@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, AlertCircle, Trash2, Edit3 } from 'lucide-react';
 import { Language, Task, TaskStatus } from '../types';
 import { formatTime12h } from '../utils/date';
+import { getTaskContextIcon } from '../utils/taskIconHelper';
 
 interface EditTaskModalProps {
   task: Task | null;
@@ -114,15 +115,22 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
             <label className="block text-xs font-bold text-slate-800 dark:text-zinc-300 mb-1.5 font-['Alexandria']">
               {lang === 'ar' ? 'اسم المهمة' : 'Task name'}
             </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                if (error) setError(null);
-              }}
-              className="w-full bg-slate-50 dark:bg-[#08090d] border border-slate-300 dark:border-white/[0.1] rounded-xl px-4 py-2 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80 focus:bg-white transition-colors"
-            />
+            <div className="relative flex items-center">
+              <div className={`absolute start-2.5 w-7 h-7 rounded-lg flex items-center justify-center pointer-events-none transition-all ${getTaskContextIcon(title).bgClass}`}>
+                {React.createElement(getTaskContextIcon(title).icon, {
+                  className: `w-3.5 h-3.5 ${getTaskContextIcon(title).iconClass}`,
+                })}
+              </div>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (error) setError(null);
+                }}
+                className="w-full bg-slate-50 dark:bg-[#08090d] border border-slate-300 dark:border-white/[0.1] rounded-xl ps-12 pe-4 py-2 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80 focus:bg-white transition-colors"
+              />
+            </div>
           </div>
 
           {/* Time & Status */}

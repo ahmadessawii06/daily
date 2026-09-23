@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Clock, AlertCircle, Sparkles, BookOpen, Flame, Briefcase } from 'lucide-react';
 import { Language, TaskStatus } from '../types';
 import { formatTime12h } from '../utils/date';
+import { getTaskContextIcon } from '../utils/taskIconHelper';
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -138,17 +139,24 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
             <label className="block text-xs font-bold text-slate-800 dark:text-zinc-300 mb-1.5 font-['Alexandria']">
               {lang === 'ar' ? 'اسم المهمة' : 'Task name'} *
             </label>
-            <input
-              type="text"
-              autoFocus
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                if (error) setError(null);
-              }}
-              placeholder={lang === 'ar' ? 'مثال: صلاة الفجر، محاضرة خوارزميات...' : 'e.g. Study, Gym, Meeting...'}
-              className="w-full bg-slate-50 dark:bg-[#08090d] border border-slate-300 dark:border-white/[0.1] rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80 focus:bg-white transition-colors"
-            />
+            <div className="relative flex items-center">
+              <div className={`absolute start-2.5 w-7 h-7 rounded-lg flex items-center justify-center pointer-events-none transition-all ${getTaskContextIcon(title).bgClass}`}>
+                {React.createElement(getTaskContextIcon(title).icon, {
+                  className: `w-3.5 h-3.5 ${getTaskContextIcon(title).iconClass}`,
+                })}
+              </div>
+              <input
+                type="text"
+                autoFocus
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (error) setError(null);
+                }}
+                placeholder={lang === 'ar' ? 'مثال: صلاة الفجر، تمرين رياضي، عمل...' : 'e.g. Study, Gym, Meeting...'}
+                className="w-full bg-slate-50 dark:bg-[#08090d] border border-slate-300 dark:border-white/[0.1] rounded-xl ps-12 pe-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80 focus:bg-white transition-colors"
+              />
+            </div>
           </div>
 
           {/* Time & Initial Status */}

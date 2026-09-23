@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Language, Task, TaskStatus } from '../types';
 import { formatTime12h } from '../utils/date';
+import { getTaskContextIcon } from '../utils/taskIconHelper';
 
 interface TaskRowProps {
   task: Task;
@@ -54,25 +55,10 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   const t12 = formatTime12h(task.time, lang);
   const isEmptySlot = !task.title || task.title.trim() === '';
 
-  // Smart context icon helper based on keywords
-  const getContextIcon = (title: string) => {
-    const t = title.toLowerCase();
-    if (t.includes('صلاة') || t.includes('قرآن') || t.includes('أذكار') || t.includes('prayer') || t.includes('fajr')) {
-      return Sparkles;
-    }
-    if (t.includes('تمرين') || t.includes('نادي') || t.includes('جيم') || t.includes('رياضة') || t.includes('workout') || t.includes('gym')) {
-      return Flame;
-    }
-    if (t.includes('جامعة') || t.includes('دراسة') || t.includes('مذاكرة') || t.includes('امتحان') || t.includes('study') || t.includes('exam')) {
-      return BookOpen;
-    }
-    if (t.includes('عمل') || t.includes('مشروع') || t.includes('دوام') || t.includes('work') || t.includes('project')) {
-      return Briefcase;
-    }
-    return CheckSquare2;
-  };
-
-  const ContextIcon = getContextIcon(task.title);
+  // Smart context icon helper based on task keywords in Arabic and English
+  const currentTitleForIcon = isEditingInline ? inlineTitle : task.title;
+  const contextIconData = getTaskContextIcon(currentTitleForIcon);
+  const ContextIcon = contextIconData.icon;
 
   // Status visual configuration: Row coloring + Badges + Side accent strip
   const statusConfig = isEmptySlot
@@ -192,7 +178,11 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
           
           {isEmptySlot || isEditingInline ? (
-            <div className="flex-1 flex items-center gap-1.5 min-w-0">
+            <div className="flex-1 flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 transition-all ${contextIconData.bgClass}`}>
+                <ContextIcon className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${contextIconData.iconClass}`} />
+              </div>
+
               <input
                 ref={inputRef}
                 type="text"
@@ -223,11 +213,11 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           ) : (
             <div 
               onClick={() => setIsEditingInline(true)}
-              className="flex items-center gap-1.5 min-w-0 flex-1 cursor-pointer group/title"
+              className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer group/title py-0.5"
               title={lang === 'ar' ? 'انقر لتعديل اسم المهمة سريعًا' : 'Click to quickly rename'}
             >
-              <div className="hidden sm:flex w-5 h-5 rounded-md bg-black/5 dark:bg-white/[0.04] text-slate-500 dark:text-zinc-400 items-center justify-center shrink-0">
-                <ContextIcon className="w-3 h-3 stroke-[2.2]" />
+              <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover/title:scale-105 shadow-2xs ${contextIconData.bgClass}`}>
+                <ContextIcon className={`w-3.5 h-3.5 ${contextIconData.iconClass}`} />
               </div>
 
               <span className={`text-xs sm:text-sm truncate select-text font-['Alexandria'] group-hover/title:underline decoration-emerald-500/50 decoration-2 ${statusConfig.titleClass}`}>

@@ -26,6 +26,7 @@ import { EditTaskModal } from './components/EditTaskModal';
 import { SettingsModal } from './components/SettingsModal';
 import { ExportScheduleModal } from './components/ExportScheduleModal';
 import { exportDailyTrackToImage } from './utils/exportDailyTrack';
+import { playAchievementSound, playFailureSound, playPendingSound } from './utils/soundEffects';
 import { MobileNav } from './components/MobileNav';
 import { MobileDrawer } from './components/MobileDrawer';
 import { CheckCircle2 } from 'lucide-react';
@@ -105,6 +106,15 @@ export default function App() {
 
   // Handlers
   const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
+    // Play achievement audio for completed tasks or failure audio for not done
+    if (newStatus === 'done') {
+      playAchievementSound();
+    } else if (newStatus === 'not-done') {
+      playFailureSound();
+    } else if (newStatus === 'pending') {
+      playPendingSound();
+    }
+
     updateTaskInDay(currentDate, taskId, { status: newStatus });
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
@@ -121,6 +131,17 @@ export default function App() {
   };
 
   const handleUpdateTask = (taskId: string, updates: Partial<Task>) => {
+    const existing = tasks.find((t) => t.id === taskId);
+    if (updates.status && updates.status !== existing?.status) {
+      if (updates.status === 'done') {
+        playAchievementSound();
+      } else if (updates.status === 'not-done') {
+        playFailureSound();
+      } else if (updates.status === 'pending') {
+        playPendingSound();
+      }
+    }
+
     updateTaskInDay(currentDate, taskId, updates);
     const updatedRecord = getDayRecord(currentDate);
     setTasks(updatedRecord.tasks);
