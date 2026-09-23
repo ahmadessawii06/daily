@@ -220,15 +220,14 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               <span className={`text-xs sm:text-sm truncate select-text font-['Alexandria'] group-hover/title:underline decoration-emerald-500/50 decoration-2 ${statusConfig.titleClass}`}>
                 {task.title}
               </span>
-
-              <Edit3 className="w-3 h-3 opacity-0 group-hover/title:opacity-60 text-slate-400 shrink-0 transition-opacity" />
             </div>
           )}
 
           {task.notes && (
             <span 
+              onClick={() => onEdit(task)}
               title={task.notes}
-              className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-amber-900 dark:text-amber-300 font-semibold bg-amber-100 dark:bg-amber-500/15 border border-amber-300 dark:border-amber-500/30 px-1.5 py-0.2 rounded shrink-0 max-w-[150px] sm:max-w-[180px] truncate"
+              className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-amber-900 dark:text-amber-300 font-semibold bg-amber-100 dark:bg-amber-500/15 border border-amber-300 dark:border-amber-500/30 px-1.5 py-0.5 rounded shrink-0 max-w-[150px] sm:max-w-[180px] truncate cursor-pointer hover:opacity-80 transition-opacity"
             >
               <StickyNote className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 text-amber-600 dark:text-amber-400" />
               <span className="truncate">{task.notes}</span>
@@ -301,22 +300,24 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           )}
         </div>
 
-        {/* Actions (Edit / Delete) - accessible on touch and hover */}
-        <div className="flex items-center gap-0.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Actions (Edit / Delete) - ALWAYS VISIBLE */}
+        <div className="flex items-center gap-0.5 sm:gap-1">
+          {/* Edit icon button */}
           <button
             type="button"
             onClick={() => onEdit(task)}
-            title={lang === 'ar' ? 'تعديل المهمة والملاحظات' : 'Edit details'}
-            className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-black/5 dark:hover:bg-white/[0.08] transition-colors cursor-pointer min-w-[30px] min-h-[30px] flex items-center justify-center"
+            title={lang === 'ar' ? 'تعديل المهمة والملاحظات' : 'Edit task details'}
+            className="p-1.5 text-slate-400 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-black/5 dark:hover:bg-white/[0.08] transition-colors cursor-pointer min-w-[28px] sm:min-w-[30px] min-h-[28px] sm:min-h-[30px] flex items-center justify-center"
           >
             <Edit3 className="w-3.5 h-3.5 stroke-[2.2]" />
           </button>
           
+          {/* Delete icon button */}
           <button
             type="button"
             onClick={() => onDelete(task.id)}
             title={isEmptySlot ? (lang === 'ar' ? 'حذف هذه الساعة' : 'Delete slot') : (lang === 'ar' ? 'حذف / تفريغ المهمة' : 'Clear / Delete')}
-            className="p-1.5 text-slate-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-300 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/20 transition-colors cursor-pointer min-w-[30px] min-h-[30px] flex items-center justify-center"
+            className="p-1.5 text-slate-400 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/20 transition-colors cursor-pointer min-w-[28px] sm:min-w-[30px] min-h-[28px] sm:min-h-[30px] flex items-center justify-center"
           >
             <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
           </button>
