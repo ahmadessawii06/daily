@@ -1,0 +1,6 @@
+{
+  "name": "Daily - Daily Task Manager",
+  "description": "A modern, premium daily task manager with 3 status states, archive history, and elegant time organization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
