@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Clock, FileText, AlertCircle } from 'lucide-react';
+import { X, Clock, AlertCircle, Plus, Sparkles, Tag } from 'lucide-react';
 import { Language, TaskStatus } from '../types';
 
 interface AddTaskModalProps {
@@ -55,7 +55,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
     const trimmedTime = time.trim();
 
     if (!trimmedTitle) {
-      setError(lang === 'ar' ? 'يرجى كتابة اسم المهمة' : 'Please enter a task name');
+      setError(lang === 'ar' ? 'يرجى كتابة اسم المهمة أولاً' : 'Please enter a task name');
       titleInputRef.current?.focus();
       return;
     }
@@ -75,38 +75,52 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
     onClose();
   };
 
-  const presetTimes = ['05:00', '08:00', '10:00', '12:00', '16:00', '20:00'];
+  const quickPresets = [
+    { label: lang === 'ar' ? '05:00 صلاة الفجر' : '05:00 Fajr', time: '05:00', title: lang === 'ar' ? 'صلاة الفجر وقراءة أذكار' : 'Fajr Prayer' },
+    { label: lang === 'ar' ? '08:00 الجامعة' : '08:00 University', time: '08:00', title: lang === 'ar' ? 'الجامعة والدوام' : 'University' },
+    { label: lang === 'ar' ? '12:00 دراسة' : '12:00 Study', time: '12:00', title: lang === 'ar' ? 'جلسة دراسة ومذاكرة' : 'Study Session' },
+    { label: lang === 'ar' ? '16:00 تمرين' : '16:00 Workout', time: '16:00', title: lang === 'ar' ? 'تمرين ونادي رياضي' : 'Workout' },
+    { label: lang === 'ar' ? '20:00 مراجعة' : '20:00 Review', time: '20:00', title: lang === 'ar' ? 'مراجعة وتخطيط الغد' : 'Evening Review' },
+  ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-150">
       <div 
-        className="w-full max-w-md bg-[#0d0e13] border border-white/[0.08] rounded-2xl p-5 sm:p-6 shadow-2xl relative"
+        className="w-full max-w-md bg-gradient-to-b from-[#13151f] to-[#0d0e14] border border-white/[0.12] rounded-3xl p-6 sm:p-7 shadow-2xl shadow-black/80 relative overflow-hidden"
         role="dialog"
         aria-modal="true"
       >
+        {/* Subtle accent highlight on top */}
+        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400" />
+
         {/* Close Button */}
         <button
           onClick={onClose}
           type="button"
-          className="absolute top-4 end-4 p-1.5 text-zinc-500 hover:text-white rounded-lg transition-colors"
+          className="absolute top-5 end-5 p-2 text-zinc-400 hover:text-white rounded-xl bg-white/[0.04] hover:bg-white/[0.08] transition-colors cursor-pointer"
         >
-          <X className="w-4 h-4" />
+          <X className="w-4 h-4 stroke-[2.5]" />
         </button>
 
-        {/* Modal Title */}
-        <div className="mb-5">
-          <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+        {/* Modal Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <Plus className="w-3.5 h-3.5 stroke-[3]" />
+            </div>
+            <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider">
+              {lang === 'ar' ? 'مهمة جديدة' : 'New Schedule Item'}
+            </span>
+          </div>
+          <h2 className="text-xl font-extrabold text-white tracking-tight font-['Alexandria','Cairo']">
             {lang === 'ar' ? 'إضافة مهمة جديدة' : 'Add new task'}
           </h2>
-          <p className="text-xs text-zinc-400 mt-0.5">
-            {lang === 'ar' ? 'حدد اسم المهمة ووقتها لإضافتها لجدول اليوم' : 'Enter the task details and time'}
-          </p>
         </div>
 
         {/* Error message */}
         {error && (
-          <div className="mb-4 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2 text-rose-300 text-xs">
-            <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-400" />
+          <div className="mb-4 p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center gap-2.5 text-rose-300 text-xs font-semibold">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 stroke-[2.5]" />
             <span>{error}</span>
           </div>
         )}
@@ -116,7 +130,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
           
           {/* Task Name */}
           <div>
-            <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+            <label className="block text-xs font-bold text-zinc-300 mb-1.5 font-['Alexandria']">
               {lang === 'ar' ? 'اسم المهمة' : 'Task name'}
             </label>
             <input
@@ -127,76 +141,79 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 setTitle(e.target.value);
                 if (error) setError(null);
               }}
-              placeholder={lang === 'ar' ? 'مثال: صلاة الفجر، دراسة، تمرين...' : 'e.g., Study, Workout, Review...'}
-              className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/[0.2] transition-colors"
+              placeholder={lang === 'ar' ? 'مثال: صلاة الفجر، دراسة، تمرين...' : 'e.g., Study session, Workout...'}
+              className="w-full bg-[#08090d] border border-white/[0.1] rounded-xl px-4 py-2.5 text-sm font-medium text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-400/80 focus:ring-1 focus:ring-emerald-400/30 transition-all"
             />
           </div>
 
-          {/* Time */}
+          {/* Time with Quick Presets */}
           <div>
-            <label className="block text-xs font-medium text-zinc-300 mb-1.5">
-              {lang === 'ar' ? 'الوقت' : 'Time'}
+            <label className="block text-xs font-bold text-zinc-300 mb-1.5 font-['Alexandria'] flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-emerald-400 stroke-[2.5]" />
+              <span>{lang === 'ar' ? 'الوقت' : 'Time'}</span>
             </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => {
-                  setTime(e.target.value);
-                  if (error) setError(null);
-                }}
-                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3.5 py-2 text-sm text-white font-mono focus:outline-none focus:border-white/[0.2] transition-colors"
-              />
-            </div>
+            
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => {
+                setTime(e.target.value);
+                if (error) setError(null);
+              }}
+              className="w-full bg-[#08090d] border border-white/[0.1] rounded-xl px-4 py-2 text-sm text-white font-mono font-bold focus:outline-none focus:border-emerald-400/80 focus:ring-1 focus:ring-emerald-400/30 transition-all"
+            />
 
-            {/* Quick Presets */}
-            <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1">
-              <span className="text-[11px] text-zinc-500 shrink-0">
-                {lang === 'ar' ? 'أوقات سريعة:' : 'Quick:'}
-              </span>
-              {presetTimes.map((pTime) => (
-                <button
-                  key={pTime}
-                  type="button"
-                  onClick={() => setTime(pTime)}
-                  className={`px-2 py-0.5 rounded text-xs font-mono tabular-nums transition-colors ${
-                    time === pTime
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold'
-                      : 'bg-white/[0.04] text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  {pTime}
-                </button>
-              ))}
+            {/* Quick Preset Pills */}
+            <div className="mt-2.5 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-400">
+                <Sparkles className="w-3 h-3 text-amber-400" />
+                <span>{lang === 'ar' ? 'اختصارات سريعة بنقرة واحدة:' : 'One-click quick presets:'}</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {quickPresets.map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setTime(preset.time);
+                      setTitle(preset.title);
+                      setError(null);
+                    }}
+                    className="px-2.5 py-1 rounded-lg text-xs font-bold bg-white/[0.04] hover:bg-emerald-500/20 text-zinc-300 hover:text-emerald-300 border border-white/[0.06] hover:border-emerald-500/30 transition-all cursor-pointer"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Optional Note */}
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+            <label className="block text-xs font-bold text-zinc-400 mb-1.5 font-['Alexandria']">
               {lang === 'ar' ? 'ملاحظة (اختياري)' : 'Note (Optional)'}
             </label>
             <input
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder={lang === 'ar' ? 'أي تفاصيل إضافية...' : 'Any extra details...'}
-              className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/[0.2] transition-colors"
+              placeholder={lang === 'ar' ? 'أي تفاصيل أو سبب مثل: مراجعة السلايدات...' : 'Optional details...'}
+              className="w-full bg-[#08090d] border border-white/[0.1] rounded-xl px-4 py-2 text-xs font-medium text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-400/80 focus:ring-1 focus:ring-emerald-400/30 transition-all"
             />
           </div>
 
-          {/* Buttons: Cancel & Add Task */}
-          <div className="flex items-center justify-end gap-2 pt-4 border-t border-white/[0.06]">
+          {/* Action buttons */}
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-white/[0.08]">
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors"
+              className="px-4 py-2 text-xs font-bold text-zinc-400 hover:text-white rounded-xl hover:bg-white/[0.04] transition-colors cursor-pointer"
             >
               {lang === 'ar' ? 'إلغاء' : 'Cancel'}
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-xs font-semibold text-zinc-950 bg-white hover:bg-zinc-200 rounded-xl transition-all shadow-sm"
+              className="px-5 py-2.5 text-xs font-black text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 rounded-xl transition-all shadow-lg shadow-emerald-500/25 active:scale-98 cursor-pointer font-['Alexandria']"
             >
               {lang === 'ar' ? 'إضافة المهمة' : 'Add Task'}
             </button>

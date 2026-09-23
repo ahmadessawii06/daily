@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, CheckCircle } from 'lucide-react';
+import { Plus, Search, CheckCircle2, Filter, Sparkles } from 'lucide-react';
 import { Language, StatusFilter, Task, TaskStatus } from '../types';
 import { TaskRow } from './TaskRow';
 
@@ -42,30 +42,30 @@ export const TaskList: React.FC<TaskListProps> = ({
   });
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       
       {/* Section Header with Filters & Search */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-        <div className="flex items-center gap-2">
-          <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
-            {lang === 'ar' ? 'مهام اليوم' : "Today's Tasks"}
+        <div className="flex items-center gap-2.5">
+          <h2 className="text-base sm:text-lg font-extrabold text-white tracking-tight font-['Alexandria','Cairo']">
+            {lang === 'ar' ? 'جدول مهام اليوم' : "Today's Schedule"}
           </h2>
-          <span className="text-xs font-mono text-zinc-500">
-            ({tasks.length})
+          <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+            {tasks.length}
           </span>
         </div>
 
-        {/* Search & Filters */}
+        {/* Filter Pills & Search */}
         <div className="flex items-center gap-2">
           
-          {/* Quick Filter tabs */}
-          <div className="flex items-center p-0.5 bg-white/[0.03] border border-white/[0.06] rounded-lg text-xs">
+          {/* Quick Filter tabs with bolder active states */}
+          <div className="flex items-center p-1 bg-[#10121a] border border-white/[0.08] rounded-xl text-xs font-semibold">
             <button
               type="button"
               onClick={() => onFilterChange('all')}
-              className={`px-2.5 py-1 rounded-md transition-colors ${
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
                 currentFilter === 'all'
-                  ? 'bg-white/[0.08] text-white font-medium'
+                  ? 'bg-white text-slate-950 font-bold shadow-sm'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
@@ -74,9 +74,9 @@ export const TaskList: React.FC<TaskListProps> = ({
             <button
               type="button"
               onClick={() => onFilterChange('done')}
-              className={`px-2.5 py-1 rounded-md transition-colors ${
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
                 currentFilter === 'done'
-                  ? 'bg-emerald-500/20 text-emerald-300 font-medium'
+                  ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
                   : 'text-zinc-400 hover:text-emerald-400'
               }`}
             >
@@ -85,9 +85,9 @@ export const TaskList: React.FC<TaskListProps> = ({
             <button
               type="button"
               onClick={() => onFilterChange('pending')}
-              className={`px-2.5 py-1 rounded-md transition-colors ${
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
                 currentFilter === 'pending'
-                  ? 'bg-amber-500/20 text-amber-300 font-medium'
+                  ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
                   : 'text-zinc-400 hover:text-amber-400'
               }`}
             >
@@ -96,9 +96,9 @@ export const TaskList: React.FC<TaskListProps> = ({
             <button
               type="button"
               onClick={() => onFilterChange('not-done')}
-              className={`px-2.5 py-1 rounded-md transition-colors ${
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
                 currentFilter === 'not-done'
-                  ? 'bg-rose-500/20 text-rose-300 font-medium'
+                  ? 'bg-rose-500 text-white font-bold shadow-sm'
                   : 'text-zinc-400 hover:text-rose-400'
               }`}
             >
@@ -106,15 +106,15 @@ export const TaskList: React.FC<TaskListProps> = ({
             </button>
           </div>
 
-          {/* Search toggle / input */}
+          {/* Search box */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute top-1/2 -translate-y-1/2 start-2.5 text-zinc-500 pointer-events-none" />
+            <Search className="w-4 h-4 absolute top-1/2 -translate-y-1/2 start-3 text-zinc-500 pointer-events-none stroke-[2.5]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={lang === 'ar' ? 'بحث...' : 'Search...'}
-              className="bg-white/[0.03] border border-white/[0.06] rounded-lg ps-8 pe-3 py-1 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/[0.2] w-28 sm:w-36 transition-all"
+              className="bg-[#10121a] border border-white/[0.08] rounded-xl ps-9 pe-3 py-1.5 text-xs font-medium text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50 w-28 sm:w-40 transition-all"
             />
           </div>
 
@@ -123,33 +123,35 @@ export const TaskList: React.FC<TaskListProps> = ({
 
       {/* Task Rows List or Empty State */}
       {filteredTasks.length === 0 ? (
-        <div className="py-16 text-center border border-dashed border-white/[0.06] rounded-2xl bg-white/[0.01]">
+        <div className="py-16 px-4 text-center border border-dashed border-white/[0.1] rounded-3xl bg-gradient-to-b from-white/[0.02] to-transparent relative overflow-hidden">
           {tasks.length === 0 ? (
-            <div className="max-w-xs mx-auto space-y-3">
-              <div className="w-10 h-10 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mx-auto text-zinc-400">
-                <CheckCircle className="w-5 h-5" />
+            <div className="max-w-sm mx-auto space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400 shadow-xl shadow-emerald-500/10">
+                <CheckCircle2 className="w-7 h-7 stroke-[2.5]" />
               </div>
-              <h3 className="text-sm font-semibold text-white">
-                {lang === 'ar' ? 'لا توجد مهام اليوم' : 'No tasks for today'}
-              </h3>
-              <p className="text-xs text-zinc-400">
-                {lang === 'ar' ? 'خذ نفسًا عميقًا.. جدولك خالٍ اليوم.' : 'Take a breath. Your day is clear.'}
-              </p>
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-white font-['Alexandria']">
+                  {lang === 'ar' ? 'لا توجد مهام لليوم' : 'No tasks for today'}
+                </h3>
+                <p className="text-xs sm:text-sm text-zinc-400 mt-1 font-medium">
+                  {lang === 'ar' ? 'خذ نفسًا عميقًا.. جدولك خالٍ اليوم.' : 'Take a breath. Your day is clear.'}
+                </p>
+              </div>
               <div className="pt-2">
                 <button
                   type="button"
                   onClick={onOpenAddTask}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-zinc-950 bg-white hover:bg-zinc-200 rounded-lg transition-colors"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-slate-950 bg-white hover:bg-zinc-200 rounded-xl transition-all shadow-lg hover:shadow-white/20 active:scale-98 cursor-pointer"
                 >
-                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <Plus className="w-4 h-4 stroke-[3]" />
                   <span>{lang === 'ar' ? '+ أضف مهمتك الأولى' : '+ Add your first task'}</span>
                 </button>
               </div>
             </div>
           ) : (
-            <div className="space-y-2">
-              <p className="text-xs text-zinc-400">
-                {lang === 'ar' ? 'لا توجد مهام تطابق البحث أو الفلتر.' : 'No tasks match your search or filter.'}
+            <div className="space-y-3">
+              <p className="text-xs sm:text-sm text-zinc-400 font-medium">
+                {lang === 'ar' ? 'لا توجد مهام تطابق كلمة البحث أو التصفية الحالية.' : 'No tasks match your search or filter.'}
               </p>
               <button
                 type="button"
@@ -157,15 +159,15 @@ export const TaskList: React.FC<TaskListProps> = ({
                   setSearchQuery('');
                   onFilterChange('all');
                 }}
-                className="text-xs text-emerald-400 hover:underline"
+                className="text-xs font-bold text-emerald-400 hover:text-emerald-300 underline cursor-pointer"
               >
-                {lang === 'ar' ? 'مسح الفلاتر' : 'Clear filters'}
+                {lang === 'ar' ? 'إعادة ضبط الفلاتر' : 'Clear filters'}
               </button>
             </div>
           )}
         </div>
       ) : (
-        <div className="divide-y divide-white/[0.03] border border-white/[0.06] rounded-2xl bg-[#0b0c10]/40 overflow-hidden">
+        <div className="space-y-2">
           {filteredTasks.map((task) => (
             <TaskRow
               key={task.id}

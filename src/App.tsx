@@ -130,7 +130,7 @@ export default function App() {
   const stats = useMemo(() => calculateStats(tasks), [tasks]);
 
   return (
-    <div className={`min-h-screen bg-[#07080b] text-zinc-100 flex flex-col md:flex-row font-['IBM_Plex_Sans_Arabic',sans-serif]`}>
+    <div className={`min-h-screen bg-[#07080b] bg-mesh text-zinc-100 flex flex-col md:flex-row font-['Alexandria','Cairo',sans-serif]`}>
       
       {/* Desktop Minimal Sidebar */}
       <div className="hidden md:flex h-screen sticky top-0">
