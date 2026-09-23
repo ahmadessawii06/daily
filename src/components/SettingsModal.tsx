@@ -22,7 +22,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-150">
       <div 
-        className="w-full max-w-sm bg-gradient-to-b from-[#13151f] to-[#0d0e14] border border-white/[0.12] rounded-3xl p-6 shadow-2xl relative overflow-hidden"
+        className="w-full max-w-sm bg-gradient-to-b from-[#13151f] to-[#0d0e14] border border-white/[0.12] rounded-3xl p-5 sm:p-6 shadow-2xl relative overflow-hidden max-h-[90vh] overflow-y-auto"
         role="dialog"
         aria-modal="true"
       >

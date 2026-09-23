@@ -12,8 +12,7 @@ import {
   Sparkles,
   BookOpen,
   Briefcase,
-  CheckSquare2,
-  ChevronDown
+  CheckSquare2
 } from 'lucide-react';
 import { Language, Task, TaskStatus } from '../types';
 
@@ -54,10 +53,11 @@ export const TaskRow: React.FC<TaskRowProps> = ({
 
   const ContextIcon = getContextIcon(task.title);
 
-  // Status visual configuration with impactful styling
+  // Status visual configuration
   const statusConfig = {
     done: {
       label: lang === 'ar' ? 'مكتملة' : 'Done',
+      shortLabel: lang === 'ar' ? 'تم' : 'Done',
       symbol: '✓',
       triggerBg: 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-400/40 shadow-md shadow-emerald-500/30',
       badgeClass: 'text-emerald-300 bg-emerald-500/20 border-emerald-500/40 hover:bg-emerald-500/30 shadow-sm',
@@ -66,6 +66,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
     },
     pending: {
       label: lang === 'ar' ? 'قيد الانتظار' : 'Pending',
+      shortLabel: lang === 'ar' ? 'انتظار' : 'Pending',
       symbol: '◷',
       triggerBg: 'bg-amber-500/20 text-amber-400 border border-amber-500/40 hover:bg-amber-500/30 ring-1 ring-amber-500/20',
       badgeClass: 'text-amber-300 bg-amber-500/20 border-amber-500/40 hover:bg-amber-500/30 shadow-sm',
@@ -74,6 +75,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
     },
     'not-done': {
       label: lang === 'ar' ? 'غير منجزة' : 'Not Done',
+      shortLabel: lang === 'ar' ? 'لم تنجز' : 'Not Done',
       symbol: '✕',
       triggerBg: 'bg-rose-500 text-white ring-2 ring-rose-500/40 shadow-md shadow-rose-500/30',
       badgeClass: 'text-rose-300 bg-rose-500/20 border-rose-500/40 hover:bg-rose-500/30 shadow-sm',
@@ -93,10 +95,10 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   };
 
   return (
-    <div className="group relative flex items-center justify-between gap-3 sm:gap-4 px-4 py-3 rounded-2xl border border-white/[0.06] bg-[#0c0e14]/80 hover:bg-white/[0.04] hover:border-white/[0.14] transition-all duration-200 shadow-sm">
+    <div className="group relative flex items-center justify-between gap-2.5 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl border border-white/[0.06] bg-[#0c0e14]/80 hover:bg-white/[0.04] hover:border-white/[0.14] transition-all duration-200 shadow-sm">
       
       {/* Left / Task identity */}
-      <div className="flex items-center gap-3 min-w-0 flex-1">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
         
         {/* Tactile Action Trigger (Round Button) */}
         <button
@@ -110,28 +112,30 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           {task.status === 'not-done' && <X className="w-3.5 h-3.5 stroke-[3.5]" />}
         </button>
 
-        {/* Time Badge (Monospace, Sharp) */}
-        <div className={`font-mono text-xs font-bold tabular-nums shrink-0 px-2.5 py-1 rounded-lg border flex items-center gap-1.5 ${statusConfig.timeClass}`}>
+        {/* Time Badge */}
+        <div className={`font-mono text-[11px] sm:text-xs font-bold tabular-nums shrink-0 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border flex items-center gap-1 ${statusConfig.timeClass}`}>
           <span>{task.time}</span>
         </div>
 
         {/* Title & Notes */}
-        <div className="min-w-0 flex-1 flex items-center gap-2">
-          {/* Subtle contextual type icon */}
-          <div className="hidden sm:flex w-5 h-5 rounded-md bg-white/[0.04] text-zinc-400 items-center justify-center shrink-0">
-            <ContextIcon className="w-3 h-3 stroke-[2.2]" />
-          </div>
+        <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            {/* Contextual type icon */}
+            <div className="hidden sm:flex w-5 h-5 rounded-md bg-white/[0.04] text-zinc-400 items-center justify-center shrink-0">
+              <ContextIcon className="w-3 h-3 stroke-[2.2]" />
+            </div>
 
-          <span className={`text-xs sm:text-sm truncate select-text font-['Alexandria'] ${statusConfig.titleClass}`}>
-            {task.title}
-          </span>
+            <span className={`text-xs sm:text-sm truncate select-text font-['Alexandria'] ${statusConfig.titleClass}`}>
+              {task.title}
+            </span>
+          </div>
 
           {task.notes && (
             <span 
               title={task.notes}
-              className="inline-flex items-center gap-1 text-[11px] text-amber-300 font-semibold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md shrink-0 max-w-[180px] truncate"
+              className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-amber-300 font-semibold bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.2 rounded shrink-0 max-w-[150px] sm:max-w-[180px] truncate"
             >
-              <StickyNote className="w-3 h-3 shrink-0 text-amber-400" />
+              <StickyNote className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 text-amber-400" />
               <span className="truncate">{task.notes}</span>
             </span>
           )}
@@ -140,9 +144,9 @@ export const TaskRow: React.FC<TaskRowProps> = ({
       </div>
 
       {/* Right / Status Badge & Actions */}
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         
-        {/* Status Badge with drop menu */}
+        {/* Status Badge */}
         <div className="relative">
           <button
             type="button"
@@ -152,16 +156,17 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               setShowStatusMenu(!showStatusMenu);
             }}
             title={lang === 'ar' ? 'انقر للتبديل، أو زر يمين للقائمة' : 'Click to cycle, right click for menu'}
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer ${statusConfig.badgeClass}`}
+            className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-xl text-[11px] sm:text-xs font-bold border transition-all cursor-pointer min-h-[30px] ${statusConfig.badgeClass}`}
           >
-            <span className="font-black text-xs">{statusConfig.symbol}</span>
-            <span>{statusConfig.label}</span>
+            <span className="font-black text-[11px] sm:text-xs">{statusConfig.symbol}</span>
+            <span className="hidden sm:inline">{statusConfig.label}</span>
+            <span className="sm:hidden">{statusConfig.shortLabel}</span>
           </button>
 
           {/* Quick status selector */}
           {showStatusMenu && (
             <div 
-              className="absolute end-0 top-full mt-2 z-30 w-36 bg-[#13151f] border border-white/[0.15] rounded-xl p-1.5 shadow-2xl text-xs space-y-1 backdrop-blur-xl"
+              className="absolute end-0 top-full mt-2 z-40 w-36 bg-[#13151f] border border-white/[0.15] rounded-xl p-1.5 shadow-2xl text-xs space-y-1 backdrop-blur-xl"
               onMouseLeave={() => setShowStatusMenu(false)}
             >
               <button
@@ -201,13 +206,13 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           )}
         </div>
 
-        {/* Actions (Edit / Delete) */}
-        <div className="flex items-center gap-0.5 opacity-80 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Actions (Edit / Delete) - accessible on touch and hover */}
+        <div className="flex items-center gap-0.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             type="button"
             onClick={() => onEdit(task)}
             title={lang === 'ar' ? 'تعديل المهمة' : 'Edit'}
-            className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/[0.08] transition-colors cursor-pointer"
+            className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/[0.08] transition-colors cursor-pointer min-w-[30px] min-h-[30px] flex items-center justify-center"
           >
             <Edit3 className="w-3.5 h-3.5 stroke-[2.2]" />
           </button>
@@ -216,7 +221,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
             type="button"
             onClick={() => onDelete(task.id)}
             title={lang === 'ar' ? 'حذف المهمة' : 'Delete'}
-            className="p-1.5 text-zinc-400 hover:text-rose-300 rounded-lg hover:bg-rose-500/20 transition-colors cursor-pointer"
+            className="p-1.5 text-zinc-400 hover:text-rose-300 rounded-lg hover:bg-rose-500/20 transition-colors cursor-pointer min-w-[30px] min-h-[30px] flex items-center justify-center"
           >
             <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
           </button>

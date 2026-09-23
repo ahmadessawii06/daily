@@ -22,6 +22,7 @@ import { AddTaskModal } from './components/AddTaskModal';
 import { EditTaskModal } from './components/EditTaskModal';
 import { SettingsModal } from './components/SettingsModal';
 import { MobileNav } from './components/MobileNav';
+import { MobileDrawer } from './components/MobileDrawer';
 import { CheckCircle2 } from 'lucide-react';
 
 export default function App() {
@@ -31,10 +32,11 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'daily' | 'archive'>('daily');
   const [currentFilter, setCurrentFilter] = useState<StatusFilter>('all');
 
-  // Modals state
+  // Modals & Drawer state
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   // Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -68,14 +70,14 @@ export default function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeEl = document.activeElement;
       const isInput = activeEl?.tagName === 'INPUT' || activeEl?.tagName === 'TEXTAREA' || activeEl?.tagName === 'SELECT';
-      if (!isInput && (e.key === 'n' || e.key === 'N') && !isAddTaskOpen && !editingTask && !isSettingsOpen) {
+      if (!isInput && (e.key === 'n' || e.key === 'N') && !isAddTaskOpen && !editingTask && !isSettingsOpen && !isMobileDrawerOpen) {
         e.preventDefault();
         setIsAddTaskOpen(true);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isAddTaskOpen, editingTask, isSettingsOpen]);
+  }, [isAddTaskOpen, editingTask, isSettingsOpen, isMobileDrawerOpen]);
 
   // Handlers
   const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
@@ -91,7 +93,7 @@ export default function App() {
     const updatedRecord = getDayRecord(currentDate);
     setTasks(updatedRecord.tasks);
     refreshArchive();
-    showToast(lang === 'ar' ? 'تمت إضافة المهمة' : 'Task added');
+    showToast(lang === 'ar' ? 'تمت إضافة المهمة بنجاح' : 'Task added successfully');
   };
 
   const handleUpdateTask = (taskId: string, updates: Partial<Task>) => {
@@ -99,7 +101,7 @@ export default function App() {
     const updatedRecord = getDayRecord(currentDate);
     setTasks(updatedRecord.tasks);
     refreshArchive();
-    showToast(lang === 'ar' ? 'تم تحديث المهمة' : 'Task updated');
+    showToast(lang === 'ar' ? 'تم حفظ التعديل' : 'Changes saved');
   };
 
   const handleDeleteTask = (taskId: string) => {
@@ -132,7 +134,7 @@ export default function App() {
   return (
     <div className={`min-h-screen bg-[#07080b] bg-mesh text-zinc-100 flex flex-col md:flex-row font-['Alexandria','Cairo',sans-serif]`}>
       
-      {/* Desktop Minimal Sidebar */}
+      {/* Desktop Sticky Minimal Sidebar */}
       <div className="hidden md:flex h-screen sticky top-0">
         <Sidebar
           activeTab={activeTab}
@@ -144,21 +146,21 @@ export default function App() {
         />
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 min-h-screen flex flex-col max-w-4xl w-full mx-auto px-4 sm:px-8 py-6 sm:py-10 pb-24 md:pb-12">
+      {/* Main Content Area - Fully responsive with safe padding for mobile bottom bar */}
+      <main className="flex-1 min-h-screen flex flex-col max-w-4xl w-full mx-auto px-3.5 sm:px-8 py-5 sm:py-10 pb-28 md:pb-12">
         
         {activeTab === 'daily' ? (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             
-            {/* Main Header (Greeting, Date, + Add Task) */}
+            {/* Main Header (Greeting, Date, + Add Task, Hamburger for Mobile) */}
             <MainHeader
               currentDate={currentDate}
               onOpenAddTask={() => setIsAddTaskOpen(true)}
-              onOpenMobileMenu={() => setIsSettingsOpen(true)}
+              onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
               lang={lang}
             />
 
-            {/* Today Progress Section */}
+            {/* Today Progress Section (Responsive bar & metrics) */}
             <TodayProgress
               stats={stats}
               currentFilter={currentFilter}
@@ -195,9 +197,21 @@ export default function App() {
           />
         )}
 
-      </div>
+      </main>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Slide-Over Drawer */}
+      <MobileDrawer
+        isOpen={isMobileDrawerOpen}
+        onClose={() => setIsMobileDrawerOpen(false)}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        todayTasksCount={tasks.length}
+        archiveDaysCount={archiveDays.length}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        lang={lang}
+      />
+
+      {/* Mobile Fixed Bottom Navigation */}
       <MobileNav
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -235,8 +249,8 @@ export default function App() {
 
       {/* Subtle Toast Feedback */}
       {toastMessage && (
-        <div className="fixed bottom-16 md:bottom-8 start-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-3.5 py-2 bg-[#121319] border border-white/[0.1] text-zinc-200 text-xs font-medium rounded-xl shadow-2xl animate-in fade-in duration-150">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+        <div className="fixed bottom-20 md:bottom-8 start-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 bg-[#121319] border border-white/[0.15] text-zinc-100 text-xs font-bold rounded-2xl shadow-2xl animate-in fade-in duration-150">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 stroke-[2.5]" />
           <span>{toastMessage}</span>
         </div>
       )}

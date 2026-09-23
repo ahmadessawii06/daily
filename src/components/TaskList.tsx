@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, CheckCircle2, Filter, Sparkles } from 'lucide-react';
+import { Plus, Search, CheckCircle2 } from 'lucide-react';
 import { Language, StatusFilter, Task, TaskStatus } from '../types';
 import { TaskRow } from './TaskRow';
 
@@ -42,9 +42,9 @@ export const TaskList: React.FC<TaskListProps> = ({
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3.5">
       
-      {/* Section Header with Filters & Search */}
+      {/* Section Header with Responsive Filters & Search */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
         <div className="flex items-center gap-2.5">
           <h2 className="text-base sm:text-lg font-extrabold text-white tracking-tight font-['Alexandria','Cairo']">
@@ -56,14 +56,14 @@ export const TaskList: React.FC<TaskListProps> = ({
         </div>
 
         {/* Filter Pills & Search */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
           
-          {/* Quick Filter tabs with bolder active states */}
-          <div className="flex items-center p-1 bg-[#10121a] border border-white/[0.08] rounded-xl text-xs font-semibold">
+          {/* Quick Filter tabs */}
+          <div className="flex items-center p-1 bg-[#10121a] border border-white/[0.08] rounded-xl text-xs font-semibold overflow-x-auto max-w-full">
             <button
               type="button"
               onClick={() => onFilterChange('all')}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap min-h-[30px] flex items-center ${
                 currentFilter === 'all'
                   ? 'bg-white text-slate-950 font-bold shadow-sm'
                   : 'text-zinc-400 hover:text-white'
@@ -74,7 +74,7 @@ export const TaskList: React.FC<TaskListProps> = ({
             <button
               type="button"
               onClick={() => onFilterChange('done')}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap min-h-[30px] flex items-center ${
                 currentFilter === 'done'
                   ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
                   : 'text-zinc-400 hover:text-emerald-400'
@@ -85,7 +85,7 @@ export const TaskList: React.FC<TaskListProps> = ({
             <button
               type="button"
               onClick={() => onFilterChange('pending')}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap min-h-[30px] flex items-center ${
                 currentFilter === 'pending'
                   ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
                   : 'text-zinc-400 hover:text-amber-400'
@@ -96,7 +96,7 @@ export const TaskList: React.FC<TaskListProps> = ({
             <button
               type="button"
               onClick={() => onFilterChange('not-done')}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap min-h-[30px] flex items-center ${
                 currentFilter === 'not-done'
                   ? 'bg-rose-500 text-white font-bold shadow-sm'
                   : 'text-zinc-400 hover:text-rose-400'
@@ -107,14 +107,14 @@ export const TaskList: React.FC<TaskListProps> = ({
           </div>
 
           {/* Search box */}
-          <div className="relative">
-            <Search className="w-4 h-4 absolute top-1/2 -translate-y-1/2 start-3 text-zinc-500 pointer-events-none stroke-[2.5]" />
+          <div className="relative flex-1 sm:flex-initial">
+            <Search className="w-3.5 h-3.5 absolute top-1/2 -translate-y-1/2 start-3 text-zinc-500 pointer-events-none stroke-[2.5]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={lang === 'ar' ? 'بحث...' : 'Search...'}
-              className="bg-[#10121a] border border-white/[0.08] rounded-xl ps-9 pe-3 py-1.5 text-xs font-medium text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50 w-28 sm:w-40 transition-all"
+              className="bg-[#10121a] border border-white/[0.08] rounded-xl ps-8 pe-3 py-1.5 text-xs font-medium text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50 w-full sm:w-36 transition-all min-h-[34px]"
             />
           </div>
 
@@ -123,11 +123,11 @@ export const TaskList: React.FC<TaskListProps> = ({
 
       {/* Task Rows List or Empty State */}
       {filteredTasks.length === 0 ? (
-        <div className="py-16 px-4 text-center border border-dashed border-white/[0.1] rounded-3xl bg-gradient-to-b from-white/[0.02] to-transparent relative overflow-hidden">
+        <div className="py-14 sm:py-16 px-4 text-center border border-dashed border-white/[0.1] rounded-3xl bg-gradient-to-b from-white/[0.02] to-transparent relative overflow-hidden">
           {tasks.length === 0 ? (
             <div className="max-w-sm mx-auto space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400 shadow-xl shadow-emerald-500/10">
-                <CheckCircle2 className="w-7 h-7 stroke-[2.5]" />
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400 shadow-xl shadow-emerald-500/10">
+                <CheckCircle2 className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5]" />
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-white font-['Alexandria']">

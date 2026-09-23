@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { Language } from '../types';
 import { addDays, isToday, formatShortDate, getDateRelativeLabel } from '../utils/date';
 
@@ -37,26 +37,27 @@ export const DateNavigation: React.FC<DateNavigationProps> = ({
   const shortDate = formatShortDate(currentDate, lang);
 
   return (
-    <div className="flex items-center justify-between py-1 px-1 text-xs">
+    <div className="flex items-center justify-between py-1 px-1 text-xs gap-2">
       
       {/* Previous Day */}
       <button
         type="button"
         onClick={handlePrev}
-        className="flex items-center gap-2 text-zinc-300 hover:text-white font-semibold transition-all py-1.5 px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] cursor-pointer"
+        className="flex items-center gap-1.5 text-zinc-300 hover:text-white font-semibold transition-all py-1.5 px-2.5 sm:px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] cursor-pointer min-h-[36px]"
       >
         {lang === 'ar' ? <ChevronRight className="w-4 h-4 stroke-[2.8]" /> : <ChevronLeft className="w-4 h-4 stroke-[2.8]" />}
-        <span>{lang === 'ar' ? 'اليوم السابق' : 'Previous Day'}</span>
+        <span className="hidden sm:inline">{lang === 'ar' ? 'اليوم السابق' : 'Previous Day'}</span>
+        <span className="sm:hidden">{lang === 'ar' ? 'السابق' : 'Prev'}</span>
       </button>
 
       {/* Center: Selected date / Today */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <button
           type="button"
           onClick={() => datePickerRef.current?.showPicker ? datePickerRef.current.showPicker() : datePickerRef.current?.click()}
-          className="flex items-center gap-2 font-bold text-white py-1.5 px-3.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] transition-all cursor-pointer font-['Alexandria']"
+          className="flex items-center gap-1.5 sm:gap-2 font-bold text-white py-1.5 px-2.5 sm:px-3.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] transition-all cursor-pointer font-['Alexandria'] text-[11px] sm:text-xs min-h-[36px]"
         >
-          <Calendar className="w-4 h-4 text-emerald-400 stroke-[2.5]" />
+          <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 stroke-[2.5]" />
           <span>{relativeLabel ? `${relativeLabel} (${shortDate})` : shortDate}</span>
         </button>
 
@@ -72,9 +73,9 @@ export const DateNavigation: React.FC<DateNavigationProps> = ({
           <button
             type="button"
             onClick={handleToday}
-            className="text-[11px] font-extrabold text-emerald-300 hover:text-emerald-200 py-1 px-2.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 transition-all cursor-pointer"
+            className="text-[10px] sm:text-[11px] font-extrabold text-emerald-300 hover:text-emerald-200 py-1 px-2 sm:px-2.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 transition-all cursor-pointer min-h-[32px] flex items-center"
           >
-            {lang === 'ar' ? 'العودة لليوم' : 'Today'}
+            {lang === 'ar' ? 'اليوم' : 'Today'}
           </button>
         )}
       </div>
@@ -83,9 +84,10 @@ export const DateNavigation: React.FC<DateNavigationProps> = ({
       <button
         type="button"
         onClick={handleNext}
-        className="flex items-center gap-2 text-zinc-300 hover:text-white font-semibold transition-all py-1.5 px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] cursor-pointer"
+        className="flex items-center gap-1.5 text-zinc-300 hover:text-white font-semibold transition-all py-1.5 px-2.5 sm:px-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] cursor-pointer min-h-[36px]"
       >
-        <span>{lang === 'ar' ? 'اليوم التالي' : 'Next Day'}</span>
+        <span className="hidden sm:inline">{lang === 'ar' ? 'اليوم التالي' : 'Next Day'}</span>
+        <span className="sm:hidden">{lang === 'ar' ? 'التالي' : 'Next'}</span>
         {lang === 'ar' ? <ChevronLeft className="w-4 h-4 stroke-[2.8]" /> : <ChevronRight className="w-4 h-4 stroke-[2.8]" />}
       </button>
 
