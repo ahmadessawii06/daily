@@ -5,14 +5,12 @@ import {
   X, 
   Edit3, 
   Trash2, 
-  StickyNote,
-  GraduationCap,
-  Dumbbell,
-  Flame,
-  Sparkles,
-  BookOpen,
-  Briefcase,
-  CheckSquare2
+  StickyNote, 
+  Flame, 
+  Sparkles, 
+  BookOpen, 
+  Briefcase, 
+  CheckSquare2 
 } from 'lucide-react';
 import { Language, Task, TaskStatus } from '../types';
 
@@ -59,28 +57,28 @@ export const TaskRow: React.FC<TaskRowProps> = ({
       label: lang === 'ar' ? 'مكتملة' : 'Done',
       shortLabel: lang === 'ar' ? 'تم' : 'Done',
       symbol: '✓',
-      triggerBg: 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-400/40 shadow-md shadow-emerald-500/30',
-      badgeClass: 'text-emerald-300 bg-emerald-500/20 border-emerald-500/40 hover:bg-emerald-500/30 shadow-sm',
-      titleClass: 'line-through text-zinc-500 font-medium',
-      timeClass: 'text-zinc-500 bg-white/[0.02] border-white/[0.04]',
+      triggerBg: 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-400/40 shadow-sm',
+      badgeClass: 'text-emerald-800 bg-emerald-50 border-emerald-200 hover:bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-500/20 dark:border-emerald-500/40 dark:hover:bg-emerald-500/30 shadow-2xs',
+      titleClass: 'line-through text-slate-400 dark:text-zinc-500 font-medium',
+      timeClass: 'text-slate-400 dark:text-zinc-500 bg-slate-100 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.04]',
     },
     pending: {
       label: lang === 'ar' ? 'قيد الانتظار' : 'Pending',
       shortLabel: lang === 'ar' ? 'انتظار' : 'Pending',
       symbol: '◷',
-      triggerBg: 'bg-amber-500/20 text-amber-400 border border-amber-500/40 hover:bg-amber-500/30 ring-1 ring-amber-500/20',
-      badgeClass: 'text-amber-300 bg-amber-500/20 border-amber-500/40 hover:bg-amber-500/30 shadow-sm',
-      titleClass: 'text-zinc-100 font-bold',
-      timeClass: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+      triggerBg: 'bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/40 dark:hover:bg-amber-500/30 ring-1 ring-amber-500/20',
+      badgeClass: 'text-amber-800 bg-amber-50 border-amber-200 hover:bg-amber-100 dark:text-amber-300 dark:bg-amber-500/20 dark:border-amber-500/40 dark:hover:bg-amber-500/30 shadow-2xs',
+      titleClass: 'text-slate-900 dark:text-zinc-100 font-bold',
+      timeClass: 'text-amber-800 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-500/10 dark:border-amber-500/20',
     },
     'not-done': {
       label: lang === 'ar' ? 'غير منجزة' : 'Not Done',
       shortLabel: lang === 'ar' ? 'لم تنجز' : 'Not Done',
       symbol: '✕',
-      triggerBg: 'bg-rose-500 text-white ring-2 ring-rose-500/40 shadow-md shadow-rose-500/30',
-      badgeClass: 'text-rose-300 bg-rose-500/20 border-rose-500/40 hover:bg-rose-500/30 shadow-sm',
-      titleClass: 'text-rose-200/90 font-bold',
-      timeClass: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+      triggerBg: 'bg-rose-500 text-white ring-2 ring-rose-500/40 shadow-sm',
+      badgeClass: 'text-rose-800 bg-rose-50 border-rose-200 hover:bg-rose-100 dark:text-rose-300 dark:bg-rose-500/20 dark:border-rose-500/40 dark:hover:bg-rose-500/30 shadow-2xs',
+      titleClass: 'text-rose-700 dark:text-rose-200/90 font-bold',
+      timeClass: 'text-rose-800 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-500/10 dark:border-rose-500/20',
     },
   }[task.status];
 
@@ -95,7 +93,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   };
 
   return (
-    <div className="group relative flex items-center justify-between gap-2.5 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl border border-white/[0.06] bg-[#0c0e14]/80 hover:bg-white/[0.04] hover:border-white/[0.14] transition-all duration-200 shadow-sm">
+    <div className="group relative flex items-center justify-between gap-2.5 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl border border-slate-200/90 dark:border-white/[0.06] bg-white dark:bg-[#0c0e14]/80 hover:bg-slate-50/80 dark:hover:bg-white/[0.04] hover:border-slate-300 dark:hover:border-white/[0.14] transition-all duration-200 shadow-2xs">
       
       {/* Left / Task identity */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -121,7 +119,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
             {/* Contextual type icon */}
-            <div className="hidden sm:flex w-5 h-5 rounded-md bg-white/[0.04] text-zinc-400 items-center justify-center shrink-0">
+            <div className="hidden sm:flex w-5 h-5 rounded-md bg-slate-100 dark:bg-white/[0.04] text-slate-500 dark:text-zinc-400 items-center justify-center shrink-0">
               <ContextIcon className="w-3 h-3 stroke-[2.2]" />
             </div>
 
@@ -133,9 +131,9 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           {task.notes && (
             <span 
               title={task.notes}
-              className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-amber-300 font-semibold bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.2 rounded shrink-0 max-w-[150px] sm:max-w-[180px] truncate"
+              className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-amber-800 dark:text-amber-300 font-semibold bg-amber-100 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/20 px-1.5 py-0.2 rounded shrink-0 max-w-[150px] sm:max-w-[180px] truncate"
             >
-              <StickyNote className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 text-amber-400" />
+              <StickyNote className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 text-amber-600 dark:text-amber-400" />
               <span className="truncate">{task.notes}</span>
             </span>
           )}
@@ -166,7 +164,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           {/* Quick status selector */}
           {showStatusMenu && (
             <div 
-              className="absolute end-0 top-full mt-2 z-40 w-36 bg-[#13151f] border border-white/[0.15] rounded-xl p-1.5 shadow-2xl text-xs space-y-1 backdrop-blur-xl"
+              className="absolute end-0 top-full mt-2 z-40 w-36 bg-white dark:bg-[#13151f] border border-slate-200 dark:border-white/[0.15] rounded-xl p-1.5 shadow-2xl text-xs space-y-1 backdrop-blur-xl"
               onMouseLeave={() => setShowStatusMenu(false)}
             >
               <button
@@ -175,7 +173,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   onStatusChange(task.id, 'done');
                   setShowStatusMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-emerald-300 font-bold hover:bg-emerald-500/20"
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-emerald-800 dark:text-emerald-300 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/20"
               >
                 <Check className="w-3.5 h-3.5 stroke-[3]" />
                 <span>{lang === 'ar' ? 'مكتملة' : 'Done'}</span>
@@ -186,7 +184,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   onStatusChange(task.id, 'pending');
                   setShowStatusMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-amber-300 font-bold hover:bg-amber-500/20"
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-amber-800 dark:text-amber-300 font-bold hover:bg-amber-50 dark:hover:bg-amber-500/20"
               >
                 <Clock className="w-3.5 h-3.5 stroke-[2.8]" />
                 <span>{lang === 'ar' ? 'قيد الانتظار' : 'Pending'}</span>
@@ -197,7 +195,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   onStatusChange(task.id, 'not-done');
                   setShowStatusMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-300 font-bold hover:bg-rose-500/20"
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-800 dark:text-rose-300 font-bold hover:bg-rose-50 dark:hover:bg-rose-500/20"
               >
                 <X className="w-3.5 h-3.5 stroke-[3]" />
                 <span>{lang === 'ar' ? 'غير منجزة' : 'Not Done'}</span>
@@ -212,7 +210,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
             type="button"
             onClick={() => onEdit(task)}
             title={lang === 'ar' ? 'تعديل المهمة' : 'Edit'}
-            className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/[0.08] transition-colors cursor-pointer min-w-[30px] min-h-[30px] flex items-center justify-center"
+            className="p-1.5 text-slate-400 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors cursor-pointer min-w-[30px] min-h-[30px] flex items-center justify-center"
           >
             <Edit3 className="w-3.5 h-3.5 stroke-[2.2]" />
           </button>
@@ -221,7 +219,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
             type="button"
             onClick={() => onDelete(task.id)}
             title={lang === 'ar' ? 'حذف المهمة' : 'Delete'}
-            className="p-1.5 text-zinc-400 hover:text-rose-300 rounded-lg hover:bg-rose-500/20 transition-colors cursor-pointer min-w-[30px] min-h-[30px] flex items-center justify-center"
+            className="p-1.5 text-slate-400 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-300 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/20 transition-colors cursor-pointer min-w-[30px] min-h-[30px] flex items-center justify-center"
           >
             <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
           </button>

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     --font-arabic: 'Alexandria', 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -9,19 +11,39 @@
 
   body {
     font-family: var(--font-arabic);
-    background-color: #08090d;
-    color: #f4f4f5;
-    color-scheme: dark;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 }
 
-/* Luxury background grid / radial glow effect */
-.bg-mesh {
+/* Dark Mode Mesh */
+html.dark body,
+body:not(.light) {
+  background-color: #08090d;
+  color: #f4f4f5;
+  color-scheme: dark;
+}
+
+html.dark .bg-mesh,
+body:not(.light) .bg-mesh {
   background-image: 
     radial-gradient(at 15% 10%, rgba(16, 185, 129, 0.08) 0px, transparent 45%),
     radial-gradient(at 85% 5%, rgba(59, 130, 246, 0.05) 0px, transparent 40%),
+    radial-gradient(at 50% 90%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
+}
+
+/* Light Mode Mesh & Theme */
+html.light body {
+  background-color: #f8fafc;
+  color: #0f172a;
+  color-scheme: light;
+}
+
+html.light .bg-mesh {
+  background-image: 
+    radial-gradient(at 15% 10%, rgba(16, 185, 129, 0.07) 0px, transparent 50%),
+    radial-gradient(at 85% 5%, rgba(59, 130, 246, 0.06) 0px, transparent 45%),
     radial-gradient(at 50% 90%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
 }
 
@@ -35,36 +57,18 @@
   background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
+html.dark ::-webkit-scrollbar-thumb,
+body:not(.light) ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+html.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 9999px;
 }
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
-}
-
-/* Glassmorphism classes */
-.glass-panel {
-  background: rgba(18, 20, 29, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.glass-card {
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.glass-card:hover {
-  background: rgba(255, 255, 255, 0.045);
-  border-color: rgba(255, 255, 255, 0.12);
-  transform: translateY(-1px);
 }

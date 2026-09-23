@@ -8,10 +8,12 @@ import {
   updateTaskInDay, 
   deleteTaskFromDay, 
   calculateStats, 
-  getAllArchiveDays,
-  resetToDefaults
+  getAllArchiveDays, 
+  resetToDefaults,
+  getStoredTheme,
+  setStoredTheme
 } from './utils/storage';
-import { Language, StatusFilter, Task, TaskStatus } from './types';
+import { Language, StatusFilter, Task, TaskStatus, Theme } from './types';
 import { Sidebar } from './components/Sidebar';
 import { MainHeader } from './components/MainHeader';
 import { TodayProgress } from './components/TodayProgress';
@@ -28,6 +30,7 @@ import { CheckCircle2 } from 'lucide-react';
 export default function App() {
   // Navigation & view states
   const [lang, setLang] = useState<Language>('ar');
+  const [theme, setTheme] = useState<Theme>(() => getStoredTheme());
   const [currentDate, setCurrentDate] = useState<string>(() => getTodayDateString());
   const [activeTab, setActiveTab] = useState<'daily' | 'archive'>('daily');
   const [currentFilter, setCurrentFilter] = useState<StatusFilter>('all');
@@ -46,6 +49,19 @@ export default function App() {
   // Archive days
   const [archiveDays, setArchiveDays] = useState(() => getAllArchiveDays());
 
+  // Apply theme to document element and persist in localStorage
+  useEffect(() => {
+    setStoredTheme(theme);
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
+    } else {
+      root.classList.add('light');
+      root.classList.remove('dark');
+    }
+  }, [theme]);
+
   // Load tasks on date or language change
   useEffect(() => {
     const record = getDayRecord(currentDate);
@@ -63,6 +79,10 @@ export default function App() {
     setTimeout(() => {
       setToastMessage((prev) => (prev === msg ? null : prev));
     }, 2200);
+  };
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
   // Keyboard shortcut: Press 'N' to open Add Task
@@ -132,7 +152,7 @@ export default function App() {
   const stats = useMemo(() => calculateStats(tasks), [tasks]);
 
   return (
-    <div className={`min-h-screen bg-[#07080b] bg-mesh text-zinc-100 flex flex-col md:flex-row font-['Alexandria','Cairo',sans-serif]`}>
+    <div className={`min-h-screen bg-slate-50 dark:bg-[#07080b] bg-mesh text-slate-900 dark:text-zinc-100 flex flex-col md:flex-row font-['Alexandria','Cairo',sans-serif] transition-colors duration-200`}>
       
       {/* Desktop Sticky Minimal Sidebar */}
       <div className="hidden md:flex h-screen sticky top-0">
@@ -143,6 +163,8 @@ export default function App() {
           archiveDaysCount={archiveDays.length}
           onOpenSettings={() => setIsSettingsOpen(true)}
           lang={lang}
+          theme={theme}
+          onToggleTheme={handleToggleTheme}
         />
       </div>
 
@@ -152,12 +174,14 @@ export default function App() {
         {activeTab === 'daily' ? (
           <div className="space-y-4 sm:space-y-6">
             
-            {/* Main Header (Greeting, Date, + Add Task, Hamburger for Mobile) */}
+            {/* Main Header (Greeting, Date, Quick Theme Toggle, + Add Task, Hamburger for Mobile) */}
             <MainHeader
               currentDate={currentDate}
               onOpenAddTask={() => setIsAddTaskOpen(true)}
               onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
               lang={lang}
+              theme={theme}
+              onToggleTheme={handleToggleTheme}
             />
 
             {/* Today Progress Section (Responsive bar & metrics) */}
@@ -209,6 +233,8 @@ export default function App() {
         archiveDaysCount={archiveDays.length}
         onOpenSettings={() => setIsSettingsOpen(true)}
         lang={lang}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* Mobile Fixed Bottom Navigation */}
@@ -238,19 +264,21 @@ export default function App() {
         lang={lang}
       />
 
-      {/* Settings Modal */}
+      {/* Settings Modal with Theme & Language options */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         lang={lang}
         onToggleLang={handleToggleLang}
         onResetData={handleResetData}
+        theme={theme}
+        onSetTheme={setTheme}
       />
 
       {/* Subtle Toast Feedback */}
       {toastMessage && (
-        <div className="fixed bottom-20 md:bottom-8 start-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 bg-[#121319] border border-white/[0.15] text-zinc-100 text-xs font-bold rounded-2xl shadow-2xl animate-in fade-in duration-150">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 stroke-[2.5]" />
+        <div className="fixed bottom-20 md:bottom-8 start-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#121319] border border-slate-300 dark:border-white/[0.15] text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-2xl shadow-xl animate-in fade-in duration-150">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 stroke-[2.5]" />
           <span>{toastMessage}</span>
         </div>
       )}

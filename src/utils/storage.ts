@@ -1,7 +1,29 @@
-import { DayRecord, DayStats, Task } from '../types';
+import { DayRecord, DayStats, Task, Theme } from '../types';
 import { sortTasksByTime } from './date';
 
 const STORAGE_KEY = 'daily_tasks_app_data_v1';
+const THEME_KEY = 'daily_theme_v1';
+
+export function getStoredTheme(): Theme {
+  try {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'light' || saved === 'dark') {
+      return saved;
+    }
+    // Default to dark as requested previously, or check system preference
+    return 'dark';
+  } catch {
+    return 'dark';
+  }
+}
+
+export function setStoredTheme(theme: Theme): void {
+  try {
+    localStorage.setItem(THEME_KEY, theme);
+  } catch {
+    // Ignore storage errors
+  }
+}
 
 // Seed data mirroring the user's authentic schedule from the uploaded image
 const INITIAL_SEED_DATA: Record<string, DayRecord> = {
