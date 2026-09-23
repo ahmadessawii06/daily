@@ -1,11 +1,12 @@
 import React from 'react';
-import { Plus, Menu, Sun, Moon, Sunrise, Sparkles } from 'lucide-react';
+import { Plus, Menu, Sun, Moon, Sunrise, Sparkles, Camera } from 'lucide-react';
 import { Language, Theme } from '../types';
 import { formatHeaderDate } from '../utils/date';
 
 interface MainHeaderProps {
   currentDate: string;
   onOpenAddTask: () => void;
+  onOpenExportModal: () => void;
   onOpenMobileMenu?: () => void;
   lang: Language;
   theme: Theme;
@@ -15,6 +16,7 @@ interface MainHeaderProps {
 export const MainHeader: React.FC<MainHeaderProps> = ({
   currentDate,
   onOpenAddTask,
+  onOpenExportModal,
   onOpenMobileMenu,
   lang,
   theme,
@@ -65,6 +67,12 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
             </button>
           )}
 
+          {/* Daily Track Brand Tag */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-black tracking-tight font-['Alexandria'] shadow-xs shrink-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Daily Track</span>
+          </div>
+
           <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold ${greeting.badgeBg}`}>
             <GreetingIcon className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
             <span className="truncate">{greeting.text}</span>
@@ -97,6 +105,20 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
           ) : (
             <Moon className="w-5 h-5 text-indigo-600 stroke-[2.5]" />
           )}
+        </button>
+
+        {/* Export Schedule as Image Button */}
+        <button
+          type="button"
+          onClick={onOpenExportModal}
+          title={lang === 'ar' ? 'تصدير جدول اليوم كصورة فائقة الجودة' : 'Export schedule as high-res image'}
+          className="p-2.5 rounded-xl border border-slate-200 dark:border-white/[0.1] bg-white dark:bg-white/[0.06] hover:bg-emerald-50 hover:border-emerald-300 dark:hover:bg-emerald-500/15 dark:hover:border-emerald-500/30 text-slate-700 dark:text-zinc-200 transition-all cursor-pointer shadow-xs min-h-[42px] min-w-[42px] flex items-center justify-center gap-1.5 group"
+          aria-label="Export schedule as image"
+        >
+          <Camera className="w-5 h-5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform stroke-[2.2]" />
+          <span className="hidden lg:inline text-xs font-bold font-['Alexandria'] text-slate-800 dark:text-zinc-200">
+            {lang === 'ar' ? 'تصدير كصورة' : 'Export'}
+          </span>
         </button>
 
         {/* Add Task Action */}

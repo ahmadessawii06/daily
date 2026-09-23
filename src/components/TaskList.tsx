@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, CheckCircle2, Clock, Sparkles, LayoutTemplate } from 'lucide-react';
+import { Plus, Search, CheckCircle2, Clock, Sparkles, LayoutTemplate, Camera } from 'lucide-react';
 import { Language, StatusFilter, Task, TaskStatus } from '../types';
 import { TaskRow } from './TaskRow';
 
@@ -11,6 +11,7 @@ interface TaskListProps {
   onUpdateTitle: (taskId: string, newTitle: string) => void;
   onOpenAddTask: () => void;
   onApply24HourTemplate: () => void;
+  onOpenExportModal?: () => void;
   currentFilter: StatusFilter;
   onFilterChange: (filter: StatusFilter) => void;
   lang: Language;
@@ -24,6 +25,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   onUpdateTitle,
   onOpenAddTask,
   onApply24HourTemplate,
+  onOpenExportModal,
   currentFilter,
   onFilterChange,
   lang,
@@ -68,17 +70,32 @@ export const TaskList: React.FC<TaskListProps> = ({
             </span>
           </div>
 
-          {/* 24-Hour Hourly Template Button */}
-          <button
-            type="button"
-            onClick={onApply24HourTemplate}
-            title={lang === 'ar' ? 'تجهيز قالب الـ 24 ساعة لليوم بالكامل' : 'Generate/Complete 24-Hour template for today'}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-xl transition-all cursor-pointer shadow-2xs font-['Alexandria']"
-          >
-            <LayoutTemplate className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span className="hidden sm:inline">{lang === 'ar' ? 'قالب الـ 24 ساعة' : '24h Template'}</span>
-            <span className="sm:hidden">{lang === 'ar' ? '24 ساعة' : '24h'}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Export Image Button */}
+            {onOpenExportModal && (
+              <button
+                type="button"
+                onClick={onOpenExportModal}
+                title={lang === 'ar' ? 'تصدير جدول اليوم كصورة فائقة الجودة' : 'Export as High-Res Image'}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-800 dark:text-zinc-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/[0.12] border border-slate-200 dark:border-white/[0.1] rounded-xl transition-all cursor-pointer shadow-2xs font-['Alexandria']"
+              >
+                <Camera className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" />
+                <span className="hidden sm:inline">{lang === 'ar' ? 'تصدير صورة' : 'Export Image'}</span>
+              </button>
+            )}
+
+            {/* 24-Hour Hourly Template Button */}
+            <button
+              type="button"
+              onClick={onApply24HourTemplate}
+              title={lang === 'ar' ? 'تجهيز قالب الـ 24 ساعة لليوم بالكامل' : 'Generate/Complete 24-Hour template for today'}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-xl transition-all cursor-pointer shadow-2xs font-['Alexandria']"
+            >
+              <LayoutTemplate className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span className="hidden sm:inline">{lang === 'ar' ? 'قالب الـ 24 ساعة' : '24h Template'}</span>
+              <span className="sm:hidden">{lang === 'ar' ? '24 ساعة' : '24h'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Filter Pills & Search */}

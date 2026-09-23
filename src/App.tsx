@@ -24,6 +24,8 @@ import { Archive } from './components/Archive';
 import { AddTaskModal } from './components/AddTaskModal';
 import { EditTaskModal } from './components/EditTaskModal';
 import { SettingsModal } from './components/SettingsModal';
+import { ExportScheduleModal } from './components/ExportScheduleModal';
+import { exportDailyTrackToImage } from './utils/exportDailyTrack';
 import { MobileNav } from './components/MobileNav';
 import { MobileDrawer } from './components/MobileDrawer';
 import { CheckCircle2 } from 'lucide-react';
@@ -40,6 +42,7 @@ export default function App() {
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   // Toast state
@@ -173,6 +176,41 @@ export default function App() {
 
   const stats = useMemo(() => calculateStats(tasks), [tasks]);
 
+  const [isExportingImage, setIsExportingImage] = useState(false);
+
+  const handleExportDailyTrackImage = async () => {
+    if (isExportingImage) return;
+    try {
+      setIsExportingImage(true);
+      showToast(
+        lang === 'ar' 
+          ? '⏳ جارٍ تصدير لوحة Daily Track كاملة كصورة فائقة الدقة (2.5x)...' 
+          : '⏳ Exporting full Daily Track high-res image (2.5x)...'
+      );
+      
+      await exportDailyTrackToImage({
+        elementId: 'daily-track-container',
+        fileName: `Daily-Track-${currentDate}.png`,
+        theme,
+      });
+
+      showToast(
+        lang === 'ar' 
+          ? '✓ تم تصدير وحفظ صورة Daily Track كاملة حتى آخر مهمة بنجاح!' 
+          : '✓ Full Daily Track image saved successfully down to the last task!'
+      );
+    } catch (error) {
+      console.error('Export failed:', error);
+      showToast(
+        lang === 'ar' 
+          ? '✕ حدث خطأ أثناء تصدير الصورة' 
+          : '✕ Failed to export image'
+      );
+    } finally {
+      setIsExportingImage(false);
+    }
+  };
+
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-[#07080b] bg-mesh text-slate-900 dark:text-zinc-100 flex flex-col md:flex-row font-['Alexandria','Cairo',sans-serif] transition-colors duration-200`}>
       
@@ -191,15 +229,19 @@ export default function App() {
       </div>
 
       {/* Main Content Area - Fully responsive with safe padding for mobile bottom bar */}
-      <main className="flex-1 min-h-screen flex flex-col max-w-4xl w-full mx-auto px-3.5 sm:px-8 py-5 sm:py-10 pb-28 md:pb-12">
+      <main 
+        id="daily-track-container" 
+        className="flex-1 min-h-screen flex flex-col max-w-4xl w-full mx-auto px-4 sm:px-8 py-6 sm:py-10 pb-28 md:pb-12 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors"
+      >
         
         {activeTab === 'daily' ? (
           <div className="space-y-4 sm:space-y-6">
             
-            {/* Main Header (Greeting, Date, Quick Theme Toggle, + Add Task, Hamburger for Mobile) */}
+            {/* Main Header (Greeting, Date, Quick Theme Toggle, Export Image, + Add Task, Hamburger for Mobile) */}
             <MainHeader
               currentDate={currentDate}
               onOpenAddTask={() => setIsAddTaskOpen(true)}
+              onOpenExportModal={handleExportDailyTrackImage}
               onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
               lang={lang}
               theme={theme}
@@ -230,6 +272,7 @@ export default function App() {
               onUpdateTitle={handleUpdateTaskTitle}
               onOpenAddTask={() => setIsAddTaskOpen(true)}
               onApply24HourTemplate={handleApply24HourTemplate}
+              onOpenExportModal={handleExportDailyTrackImage}
               currentFilter={currentFilter}
               onFilterChange={setCurrentFilter}
               lang={lang}
@@ -297,6 +340,17 @@ export default function App() {
         onResetData={handleResetData}
         theme={theme}
         onSetTheme={setTheme}
+      />
+
+      {/* Export Schedule as Image Modal */}
+      <ExportScheduleModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        tasks={tasks}
+        date={currentDate}
+        stats={stats}
+        dayNote={getDayRecord(currentDate)?.dayNote}
+        lang={lang}
       />
 
       {/* Subtle Toast Feedback */}
