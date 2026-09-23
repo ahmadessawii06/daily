@@ -136,9 +136,6 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   return (
     <div className={`group relative flex items-center justify-between gap-2.5 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl border transition-all duration-200 overflow-hidden ${statusConfig.rowClass}`}>
       
-      {/* Visual Color Line (Accent Strip at the start) */}
-      <div className={`w-1 sm:w-1.5 self-stretch rounded-full ${statusConfig.accentStrip}`} />
-
       {/* Left / Task identity */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
         
