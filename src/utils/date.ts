@@ -122,3 +122,37 @@ export function normalizeTime(time: string): string {
   if (isNaN(m)) m = 0;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
+
+export interface FormattedTime12h {
+  time12: string;     // e.g. "05:00"
+  hours: number;
+  minutes: string;
+  isPM: boolean;
+  period: string;     // "صباحًا" or "مساءً"
+  periodShort: string;// "ص" or "م"
+  formatted: string;  // "05:00 صباحًا"
+}
+
+export function formatTime12h(time24: string, lang: 'ar' | 'en' = 'ar'): FormattedTime12h {
+  const norm = normalizeTime(time24);
+  const [hStr, mStr] = norm.split(':');
+  const h = parseInt(hStr, 10);
+  const m = mStr || '00';
+
+  const isPM = h >= 12;
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  const time12 = `${String(h12).padStart(2, '0')}:${m}`;
+
+  const period = lang === 'ar' ? (isPM ? 'مساءً' : 'صباحًا') : (isPM ? 'PM' : 'AM');
+  const periodShort = lang === 'ar' ? (isPM ? 'م' : 'ص') : (isPM ? 'PM' : 'AM');
+
+  return {
+    time12,
+    hours: h12,
+    minutes: m,
+    isPM,
+    period,
+    periodShort,
+    formatted: `${time12} ${period}`,
+  };
+}

@@ -7,7 +7,7 @@ import {
   History 
 } from 'lucide-react';
 import { DayRecord, Language } from '../types';
-import { formatMonthYear, formatShortDate, getDateRelativeLabel } from '../utils/date';
+import { formatMonthYear, formatShortDate, getDateRelativeLabel, formatTime12h } from '../utils/date';
 import { calculateStats } from '../utils/storage';
 
 interface ArchiveProps {
@@ -184,17 +184,32 @@ export const Archive: React.FC<ArchiveProps> = ({
                           {record.tasks.map((task) => {
                             const isDone = task.status === 'done';
                             const isNotDone = task.status === 'not-done';
+                            const t12 = formatTime12h(task.time, lang);
+
+                            const rowStyle = isDone
+                              ? 'bg-emerald-500/[0.08] border-emerald-500/30 dark:bg-emerald-950/25 dark:border-emerald-500/30'
+                              : isNotDone
+                              ? 'bg-rose-500/[0.08] border-rose-500/30 dark:bg-rose-950/25 dark:border-rose-500/30'
+                              : 'bg-amber-500/[0.08] border-amber-500/30 dark:bg-amber-950/25 dark:border-amber-500/30';
+
+                            const stripStyle = isDone
+                              ? 'bg-emerald-500 dark:bg-emerald-400'
+                              : isNotDone
+                              ? 'bg-rose-500 dark:bg-rose-400'
+                              : 'bg-amber-500 dark:bg-amber-400';
 
                             return (
                               <div
                                 key={task.id}
-                                className="flex items-center justify-between px-3 py-2 rounded-xl bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.06] text-xs shadow-2xs"
+                                className={`flex items-center justify-between px-3 py-2 rounded-xl border text-xs shadow-2xs gap-2.5 overflow-hidden transition-colors ${rowStyle}`}
                               >
-                                <div className="flex items-center gap-2.5 truncate flex-1 min-w-0">
-                                  <span className="font-mono font-bold text-slate-600 dark:text-zinc-400 tabular-nums shrink-0 bg-slate-100 dark:bg-white/[0.04] px-2 py-0.5 rounded">
-                                    {task.time}
+                                <div className="flex items-center gap-2 truncate flex-1 min-w-0">
+                                  <div className={`w-1 self-stretch rounded-full shrink-0 ${stripStyle}`} />
+                                  <span className="font-mono font-bold text-slate-700 dark:text-zinc-300 tabular-nums shrink-0 bg-black/5 dark:bg-white/[0.06] px-2 py-0.5 rounded-lg flex items-center gap-1">
+                                    <span>{t12.time12}</span>
+                                    <span className="text-[10px] font-['Alexandria'] font-bold opacity-80">{t12.period}</span>
                                   </span>
-                                  <span className={`truncate font-['Alexandria'] ${isDone ? 'line-through text-slate-400 dark:text-zinc-500' : 'text-slate-800 dark:text-zinc-100 font-semibold'}`}>
+                                  <span className={`truncate font-['Alexandria'] ${isDone ? 'line-through text-slate-500 dark:text-zinc-500' : isNotDone ? 'text-rose-900 dark:text-rose-200 font-bold' : 'text-slate-900 dark:text-zinc-100 font-semibold'}`}>
                                     {task.title}
                                   </span>
                                   {task.notes && (

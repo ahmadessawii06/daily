@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, AlertCircle, Trash2, Edit3 } from 'lucide-react';
 import { Language, Task, TaskStatus } from '../types';
+import { formatTime12h } from '../utils/date';
 
 interface EditTaskModalProps {
   task: Task | null;
@@ -127,9 +128,16 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
           {/* Time & Status */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-800 dark:text-zinc-300 mb-1.5 font-['Alexandria']">
-                {lang === 'ar' ? 'الوقت' : 'Time'}
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold text-slate-800 dark:text-zinc-300 font-['Alexandria']">
+                  {lang === 'ar' ? 'الوقت' : 'Time'}
+                </label>
+                {time && (
+                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 font-['Alexandria']">
+                    {formatTime12h(time, lang).formatted}
+                  </span>
+                )}
+              </div>
               <input
                 type="time"
                 value={time}

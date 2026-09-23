@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Clock, AlertCircle, Sparkles, BookOpen, Flame, Briefcase } from 'lucide-react';
 import { Language, TaskStatus } from '../types';
+import { formatTime12h } from '../utils/date';
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -113,6 +114,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
           <div className="flex flex-wrap gap-1.5">
             {presets.map((p, idx) => {
               const Icon = p.icon;
+              const p12 = formatTime12h(p.time, lang);
               return (
                 <button
                   key={idx}
@@ -122,7 +124,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 >
                   <Icon className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                   <span>{p.title}</span>
-                  <span className="font-mono text-[10px] text-slate-500 dark:text-zinc-400">{p.time}</span>
+                  <span className="font-mono text-[10px] text-slate-500 dark:text-zinc-400 font-bold">{p12.time12} {p12.periodShort}</span>
                 </button>
               );
             })}
@@ -152,9 +154,16 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
           {/* Time & Initial Status */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-800 dark:text-zinc-300 mb-1.5 font-['Alexandria']">
-                {lang === 'ar' ? 'الوقت' : 'Time'} *
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold text-slate-800 dark:text-zinc-300 font-['Alexandria']">
+                  {lang === 'ar' ? 'الوقت' : 'Time'} *
+                </label>
+                {time && (
+                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 font-['Alexandria']">
+                    {formatTime12h(time, lang).formatted}
+                  </span>
+                )}
+              </div>
               <div className="relative">
                 <input
                   type="time"
