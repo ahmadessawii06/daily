@@ -11,7 +11,8 @@ import {
   getAllArchiveDays, 
   resetToDefaults,
   getStoredTheme,
-  setStoredTheme
+  setStoredTheme,
+  apply24HourTemplate
 } from './utils/storage';
 import { Language, StatusFilter, Task, TaskStatus, Theme } from './types';
 import { Sidebar } from './components/Sidebar';
@@ -124,6 +125,27 @@ export default function App() {
     showToast(lang === 'ar' ? 'تم حفظ التعديل' : 'Changes saved');
   };
 
+  const handleUpdateTaskTitle = (taskId: string, newTitle: string) => {
+    updateTaskInDay(currentDate, taskId, { title: newTitle });
+    const updatedRecord = getDayRecord(currentDate);
+    setTasks(updatedRecord.tasks);
+    refreshArchive();
+    if (newTitle.trim()) {
+      showToast(lang === 'ar' ? `تم تحديد: ${newTitle}` : `Saved: ${newTitle}`);
+    }
+  };
+
+  const handleApply24HourTemplate = () => {
+    const updatedTasks = apply24HourTemplate(currentDate, true);
+    setTasks(updatedTasks);
+    refreshArchive();
+    showToast(
+      lang === 'ar' 
+        ? 'تم تجهيز قالب الـ 24 ساعة لليوم بنجاح' 
+        : '24-hour template ready'
+    );
+  };
+
   const handleDeleteTask = (taskId: string) => {
     deleteTaskFromDay(currentDate, taskId);
     setTasks((prev) => prev.filter((t) => t.id !== taskId));
@@ -205,7 +227,9 @@ export default function App() {
               onStatusChange={handleStatusChange}
               onEdit={(task) => setEditingTask(task)}
               onDelete={handleDeleteTask}
+              onUpdateTitle={handleUpdateTaskTitle}
               onOpenAddTask={() => setIsAddTaskOpen(true)}
+              onApply24HourTemplate={handleApply24HourTemplate}
               currentFilter={currentFilter}
               onFilterChange={setCurrentFilter}
               lang={lang}

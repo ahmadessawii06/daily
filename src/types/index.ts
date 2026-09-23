@@ -27,6 +27,6 @@ export interface DayStats {
 }
 
 export type ViewMode = 'cards' | 'table';
-export type StatusFilter = 'all' | 'done' | 'pending' | 'not-done';
+export type StatusFilter = 'all' | 'scheduled' | 'done' | 'pending' | 'not-done';
 export type Language = 'ar' | 'en';
 export type Theme = 'dark' | 'light';

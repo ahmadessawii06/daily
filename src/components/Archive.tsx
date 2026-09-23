@@ -181,7 +181,7 @@ export const Archive: React.FC<ArchiveProps> = ({
                         </div>
 
                         <div className="space-y-1.5">
-                          {record.tasks.map((task) => {
+                          {record.tasks.filter((t) => t.title && t.title.trim().length > 0).map((task) => {
                             const isDone = task.status === 'done';
                             const isNotDone = task.status === 'not-done';
                             const t12 = formatTime12h(task.time, lang);

@@ -37,7 +37,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
 
             <span className="text-[11px] sm:text-xs font-mono font-bold text-slate-900 dark:text-white tabular-nums bg-slate-100 dark:bg-white/[0.06] border border-slate-200 dark:border-white/[0.08] px-2 py-0.5 rounded-lg">
               {stats.total === 0 
-                ? (lang === 'ar' ? '0 مهام' : '0 tasks')
+                ? (lang === 'ar' ? '0 مهام مجدولة' : '0 scheduled')
                 : `${stats.done} / ${stats.total} (${stats.completionPercentage}%)`}
             </span>
           </div>

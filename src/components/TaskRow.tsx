@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Check, 
   Clock, 
@@ -10,7 +10,8 @@ import {
   Sparkles, 
   BookOpen, 
   Briefcase, 
-  CheckSquare2 
+  CheckSquare2,
+  Plus
 } from 'lucide-react';
 import { Language, Task, TaskStatus } from '../types';
 import { formatTime12h } from '../utils/date';
@@ -20,6 +21,7 @@ interface TaskRowProps {
   onStatusChange: (taskId: string, newStatus: TaskStatus) => void;
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
+  onUpdateTitle?: (taskId: string, newTitle: string) => void;
   lang: Language;
 }
 
@@ -28,12 +30,29 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   onStatusChange,
   onEdit,
   onDelete,
+  onUpdateTitle,
   lang,
 }) => {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
+  const [inlineTitle, setInlineTitle] = useState(task.title || '');
+  const [isEditingInline, setIsEditingInline] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Sync internal title with task prop updates
+  useEffect(() => {
+    setInlineTitle(task.title || '');
+  }, [task.title]);
+
+  useEffect(() => {
+    if (isEditingInline && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditingInline]);
 
   // 12-hour formatted time (with صباحًا / مساءً)
   const t12 = formatTime12h(task.time, lang);
+  const isEmptySlot = !task.title || task.title.trim() === '';
 
   // Smart context icon helper based on keywords
   const getContextIcon = (title: string) => {
@@ -56,44 +75,57 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   const ContextIcon = getContextIcon(task.title);
 
   // Status visual configuration: Row coloring + Badges + Side accent strip
-  const statusConfig = {
-    done: {
-      label: lang === 'ar' ? 'مكتملة' : 'Done',
-      shortLabel: lang === 'ar' ? 'تم' : 'Done',
-      symbol: '✓',
-      rowClass: 
-        'bg-emerald-500/[0.08] hover:bg-emerald-500/[0.13] border-emerald-500/30 hover:border-emerald-500/50 shadow-xs shadow-emerald-500/5 dark:bg-emerald-950/25 dark:hover:bg-emerald-950/40 dark:border-emerald-500/35 dark:hover:border-emerald-400/50 dark:shadow-emerald-950/40',
-      accentStrip: 'bg-emerald-500 dark:bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]',
-      triggerBg: 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-400/40 shadow-sm',
-      badgeClass: 'text-emerald-900 bg-emerald-100 border-emerald-300 hover:bg-emerald-200 dark:text-emerald-300 dark:bg-emerald-500/20 dark:border-emerald-500/40 dark:hover:bg-emerald-500/30 shadow-2xs',
-      titleClass: 'line-through text-slate-500 dark:text-zinc-500 font-medium',
-      timeClass: 'text-emerald-900 dark:text-emerald-300 bg-emerald-500/10 border-emerald-500/25',
-    },
-    pending: {
-      label: lang === 'ar' ? 'قيد الانتظار' : 'Pending',
-      shortLabel: lang === 'ar' ? 'انتظار' : 'Pending',
-      symbol: '◷',
-      rowClass: 
-        'bg-amber-500/[0.08] hover:bg-amber-500/[0.13] border-amber-500/30 hover:border-amber-500/50 shadow-xs shadow-amber-500/5 dark:bg-amber-950/25 dark:hover:bg-amber-950/40 dark:border-amber-500/35 dark:hover:border-amber-400/50 dark:shadow-amber-950/40',
-      accentStrip: 'bg-amber-500 dark:bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.5)]',
-      triggerBg: 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/40 dark:hover:bg-amber-500/30 ring-1 ring-amber-500/20',
-      badgeClass: 'text-amber-900 bg-amber-100 border-amber-300 hover:bg-amber-200 dark:text-amber-300 dark:bg-amber-500/20 dark:border-amber-500/40 dark:hover:bg-amber-500/30 shadow-2xs',
-      titleClass: 'text-slate-900 dark:text-zinc-100 font-bold',
-      timeClass: 'text-amber-900 dark:text-amber-300 bg-amber-500/10 border-amber-500/25',
-    },
-    'not-done': {
-      label: lang === 'ar' ? 'غير منجزة' : 'Not Done',
-      shortLabel: lang === 'ar' ? 'لم تنجز' : 'Not Done',
-      symbol: '✕',
-      rowClass: 
-        'bg-rose-500/[0.08] hover:bg-rose-500/[0.13] border-rose-500/30 hover:border-rose-500/50 shadow-xs shadow-rose-500/5 dark:bg-rose-950/25 dark:hover:bg-rose-950/40 dark:border-rose-500/35 dark:hover:border-rose-400/50 dark:shadow-rose-950/40',
-      accentStrip: 'bg-rose-500 dark:bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.5)]',
-      triggerBg: 'bg-rose-500 text-white ring-2 ring-rose-500/40 shadow-sm',
-      badgeClass: 'text-rose-900 bg-rose-100 border-rose-300 hover:bg-rose-200 dark:text-rose-300 dark:bg-rose-500/20 dark:border-rose-500/40 dark:hover:bg-rose-500/30 shadow-2xs',
-      titleClass: 'text-rose-900 dark:text-rose-200 font-bold',
-      timeClass: 'text-rose-900 dark:text-rose-300 bg-rose-500/10 border-rose-500/25',
-    },
-  }[task.status];
+  const statusConfig = isEmptySlot
+    ? {
+        label: lang === 'ar' ? 'ساعة متاحة' : 'Open Slot',
+        shortLabel: lang === 'ar' ? 'متاح' : 'Open',
+        symbol: '+',
+        rowClass: 
+          'bg-slate-50/70 hover:bg-slate-100/90 border-dashed border-slate-300/80 hover:border-slate-400 dark:bg-white/[0.02] dark:hover:bg-white/[0.05] dark:border-white/[0.12] dark:hover:border-white/[0.22]',
+        accentStrip: 'bg-slate-300 dark:bg-white/20',
+        triggerBg: 'bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-white/10 dark:text-zinc-300 dark:hover:bg-white/20',
+        badgeClass: 'text-slate-600 bg-slate-100 border-slate-200 dark:text-zinc-400 dark:bg-white/[0.05] dark:border-white/[0.1]',
+        titleClass: 'text-slate-400 dark:text-zinc-500 font-normal',
+        timeClass: 'text-slate-700 dark:text-zinc-300 bg-slate-100 dark:bg-white/[0.06] border-slate-200 dark:border-white/[0.1]',
+      }
+    : {
+        done: {
+          label: lang === 'ar' ? 'مكتملة' : 'Done',
+          shortLabel: lang === 'ar' ? 'تم' : 'Done',
+          symbol: '✓',
+          rowClass: 
+            'bg-emerald-500/[0.08] hover:bg-emerald-500/[0.13] border-emerald-500/30 hover:border-emerald-500/50 shadow-xs shadow-emerald-500/5 dark:bg-emerald-950/25 dark:hover:bg-emerald-950/40 dark:border-emerald-500/35 dark:hover:border-emerald-400/50 dark:shadow-emerald-950/40',
+          accentStrip: 'bg-emerald-500 dark:bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]',
+          triggerBg: 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-400/40 shadow-sm',
+          badgeClass: 'text-emerald-900 bg-emerald-100 border-emerald-300 hover:bg-emerald-200 dark:text-emerald-300 dark:bg-emerald-500/20 dark:border-emerald-500/40 dark:hover:bg-emerald-500/30 shadow-2xs',
+          titleClass: 'line-through text-slate-500 dark:text-zinc-500 font-medium',
+          timeClass: 'text-emerald-900 dark:text-emerald-300 bg-emerald-500/10 border-emerald-500/25',
+        },
+        pending: {
+          label: lang === 'ar' ? 'قيد الانتظار' : 'Pending',
+          shortLabel: lang === 'ar' ? 'انتظار' : 'Pending',
+          symbol: '◷',
+          rowClass: 
+            'bg-amber-500/[0.08] hover:bg-amber-500/[0.13] border-amber-500/30 hover:border-amber-500/50 shadow-xs shadow-amber-500/5 dark:bg-amber-950/25 dark:hover:bg-amber-950/40 dark:border-amber-500/35 dark:hover:border-amber-400/50 dark:shadow-amber-950/40',
+          accentStrip: 'bg-amber-500 dark:bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.5)]',
+          triggerBg: 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/40 dark:hover:bg-amber-500/30 ring-1 ring-amber-500/20',
+          badgeClass: 'text-amber-900 bg-amber-100 border-amber-300 hover:bg-amber-200 dark:text-amber-300 dark:bg-amber-500/20 dark:border-amber-500/40 dark:hover:bg-amber-500/30 shadow-2xs',
+          titleClass: 'text-slate-900 dark:text-zinc-100 font-bold',
+          timeClass: 'text-amber-900 dark:text-amber-300 bg-amber-500/10 border-amber-500/25',
+        },
+        'not-done': {
+          label: lang === 'ar' ? 'غير منجزة' : 'Not Done',
+          shortLabel: lang === 'ar' ? 'لم تنجز' : 'Not Done',
+          symbol: '✕',
+          rowClass: 
+            'bg-rose-500/[0.08] hover:bg-rose-500/[0.13] border-rose-500/30 hover:border-rose-500/50 shadow-xs shadow-rose-500/5 dark:bg-rose-950/25 dark:hover:bg-rose-950/40 dark:border-rose-500/35 dark:hover:border-rose-400/50 dark:shadow-rose-950/40',
+          accentStrip: 'bg-rose-500 dark:bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.5)]',
+          triggerBg: 'bg-rose-500 text-white ring-2 ring-rose-500/40 shadow-sm',
+          badgeClass: 'text-rose-900 bg-rose-100 border-rose-300 hover:bg-rose-200 dark:text-rose-300 dark:bg-rose-500/20 dark:border-rose-500/40 dark:hover:bg-rose-500/30 shadow-2xs',
+          titleClass: 'text-rose-900 dark:text-rose-200 font-bold',
+          timeClass: 'text-rose-900 dark:text-rose-300 bg-rose-500/10 border-rose-500/25',
+        },
+      }[task.status];
 
   // Quick cycle between the 3 status states
   const handleCycleStatus = () => {
@@ -103,6 +135,16 @@ export const TaskRow: React.FC<TaskRowProps> = ({
       'not-done': 'pending',
     };
     onStatusChange(task.id, cycleMap[task.status]);
+  };
+
+  const handleCommitTitle = () => {
+    const trimmed = inlineTitle.trim();
+    if (trimmed !== (task.title || '').trim()) {
+      if (onUpdateTitle) {
+        onUpdateTitle(task.id, trimmed);
+      }
+    }
+    setIsEditingInline(false);
   };
 
   return (
@@ -121,9 +163,15 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           title={lang === 'ar' ? 'انقر لتغيير حالة المهمة' : 'Click to toggle status'}
           className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150 cursor-pointer active:scale-90 ${statusConfig.triggerBg}`}
         >
-          {task.status === 'done' && <Check className="w-3.5 h-3.5 stroke-[3.5]" />}
-          {task.status === 'pending' && <Clock className="w-3.5 h-3.5 stroke-[2.8]" />}
-          {task.status === 'not-done' && <X className="w-3.5 h-3.5 stroke-[3.5]" />}
+          {isEmptySlot ? (
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+          ) : task.status === 'done' ? (
+            <Check className="w-3.5 h-3.5 stroke-[3.5]" />
+          ) : task.status === 'pending' ? (
+            <Clock className="w-3.5 h-3.5 stroke-[2.8]" />
+          ) : (
+            <X className="w-3.5 h-3.5 stroke-[3.5]" />
+          )}
         </button>
 
         {/* 12-Hour Beautiful Time Badge (صباحًا / مساءً) */}
@@ -140,18 +188,55 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           </span>
         </div>
 
-        {/* Title & Notes */}
-        <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2">
-          <div className="flex items-center gap-1.5 min-w-0">
-            {/* Contextual type icon */}
-            <div className="hidden sm:flex w-5 h-5 rounded-md bg-black/5 dark:bg-white/[0.04] text-slate-500 dark:text-zinc-400 items-center justify-center shrink-0">
-              <ContextIcon className="w-3 h-3 stroke-[2.2]" />
+        {/* Title & Notes / Direct In-place Input */}
+        <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+          
+          {isEmptySlot || isEditingInline ? (
+            <div className="flex-1 flex items-center gap-1.5 min-w-0">
+              <input
+                ref={inputRef}
+                type="text"
+                value={inlineTitle}
+                onChange={(e) => setInlineTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCommitTitle();
+                  } else if (e.key === 'Escape') {
+                    setIsEditingInline(false);
+                    setInlineTitle(task.title || '');
+                  }
+                }}
+                onBlur={handleCommitTitle}
+                placeholder={lang === 'ar' ? '+ اكتب اسم المهمة هنا واضغط Enter...' : '+ Write task name and press Enter...'}
+                className="w-full bg-white dark:bg-[#0b0d13] border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs"
+              />
+              {inlineTitle.trim() && (
+                <button
+                  type="button"
+                  onClick={handleCommitTitle}
+                  className="px-2.5 py-1 text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-xs cursor-pointer shrink-0"
+                >
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                </button>
+              )}
             </div>
+          ) : (
+            <div 
+              onClick={() => setIsEditingInline(true)}
+              className="flex items-center gap-1.5 min-w-0 flex-1 cursor-pointer group/title"
+              title={lang === 'ar' ? 'انقر لتعديل اسم المهمة سريعًا' : 'Click to quickly rename'}
+            >
+              <div className="hidden sm:flex w-5 h-5 rounded-md bg-black/5 dark:bg-white/[0.04] text-slate-500 dark:text-zinc-400 items-center justify-center shrink-0">
+                <ContextIcon className="w-3 h-3 stroke-[2.2]" />
+              </div>
 
-            <span className={`text-xs sm:text-sm truncate select-text font-['Alexandria'] ${statusConfig.titleClass}`}>
-              {task.title}
-            </span>
-          </div>
+              <span className={`text-xs sm:text-sm truncate select-text font-['Alexandria'] group-hover/title:underline decoration-emerald-500/50 decoration-2 ${statusConfig.titleClass}`}>
+                {task.title}
+              </span>
+
+              <Edit3 className="w-3 h-3 opacity-0 group-hover/title:opacity-60 text-slate-400 shrink-0 transition-opacity" />
+            </div>
+          )}
 
           {task.notes && (
             <span 
@@ -179,7 +264,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               setShowStatusMenu(!showStatusMenu);
             }}
             title={lang === 'ar' ? 'انقر للتبديل، أو زر يمين للقائمة' : 'Click to cycle, right click for menu'}
-            className={`inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1 rounded-xl text-[11px] sm:text-xs font-extrabold border transition-all cursor-pointer min-h-[30px] ${statusConfig.badgeClass}`}
+            className={`inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl text-[11px] sm:text-xs font-extrabold border transition-all cursor-pointer min-h-[30px] ${statusConfig.badgeClass}`}
           >
             <span className="font-black text-[11px] sm:text-xs">{statusConfig.symbol}</span>
             <span className="hidden sm:inline">{statusConfig.label}</span>
@@ -234,7 +319,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           <button
             type="button"
             onClick={() => onEdit(task)}
-            title={lang === 'ar' ? 'تعديل المهمة' : 'Edit'}
+            title={lang === 'ar' ? 'تعديل المهمة والملاحظات' : 'Edit details'}
             className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-black/5 dark:hover:bg-white/[0.08] transition-colors cursor-pointer min-w-[30px] min-h-[30px] flex items-center justify-center"
           >
             <Edit3 className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -243,7 +328,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           <button
             type="button"
             onClick={() => onDelete(task.id)}
-            title={lang === 'ar' ? 'حذف المهمة' : 'Delete'}
+            title={isEmptySlot ? (lang === 'ar' ? 'حذف هذه الساعة' : 'Delete slot') : (lang === 'ar' ? 'حذف / تفريغ المهمة' : 'Clear / Delete')}
             className="p-1.5 text-slate-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-300 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/20 transition-colors cursor-pointer min-w-[30px] min-h-[30px] flex items-center justify-center"
           >
             <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />

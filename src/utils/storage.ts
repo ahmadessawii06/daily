@@ -112,20 +112,94 @@ export function saveAllDays(days: Record<string, DayRecord>): void {
   }
 }
 
+export function generate24HourDaySlots(date: string): Task[] {
+  const slots: Task[] = [];
+  const now = new Date().toISOString();
+  for (let h = 0; h < 24; h++) {
+    const timeStr = `${String(h).padStart(2, '0')}:00`;
+    slots.push({
+      id: `slot_${date}_${String(h).padStart(2, '0')}`,
+      time: timeStr,
+      title: '',
+      status: 'pending',
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+  return slots;
+}
+
 export function getDayRecord(date: string): DayRecord {
   const all = loadAllDays();
   if (all[date]) {
+    // If it has tasks, return it
+    if (all[date].tasks && all[date].tasks.length > 0) {
+      return all[date];
+    }
+    // If tasks is empty, initialize with 24-hour slots template
+    all[date].tasks = generate24HourDaySlots(date);
+    saveAllDays(all);
     return all[date];
   }
-  // Create empty record for date
+  // Create new record for date with complete 24 hourly slots ready
   const newRecord: DayRecord = {
     date,
-    tasks: [],
+    tasks: generate24HourDaySlots(date),
     updatedAt: new Date().toISOString()
   };
   all[date] = newRecord;
   saveAllDays(all);
   return newRecord;
+}
+
+export function apply24HourTemplate(date: string, fillMissingOnly: boolean = true): Task[] {
+  const all = loadAllDays();
+  const currentRecord = all[date] || { date, tasks: [], updatedAt: new Date().toISOString() };
+  const currentTasks = currentRecord.tasks || [];
+
+  if (!fillMissingOnly || currentTasks.length === 0) {
+    const newSlots = generate24HourDaySlots(date);
+    all[date] = {
+      ...currentRecord,
+      tasks: newSlots,
+      updatedAt: new Date().toISOString(),
+    };
+    saveAllDays(all);
+    return newSlots;
+  }
+
+  // Find existing hours
+  const existingHours = new Set(
+    currentTasks.map((t) => {
+      const [h] = t.time.split(':');
+      const parsed = parseInt(h, 10);
+      return isNaN(parsed) ? -1 : parsed;
+    })
+  );
+
+  const now = new Date().toISOString();
+  const newSlots: Task[] = [];
+  for (let h = 0; h < 24; h++) {
+    if (!existingHours.has(h)) {
+      newSlots.push({
+        id: `slot_${date}_${String(h).padStart(2, '0')}`,
+        time: `${String(h).padStart(2, '0')}:00`,
+        title: '',
+        status: 'pending',
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+  }
+
+  const merged = sortTasksByTime([...currentTasks, ...newSlots]);
+  all[date] = {
+    ...currentRecord,
+    tasks: merged,
+    updatedAt: new Date().toISOString(),
+  };
+  saveAllDays(all);
+  return merged;
 }
 
 export function saveDayTasks(date: string, tasks: Task[]): void {
@@ -146,6 +220,26 @@ export function addTaskToDay(
   const all = loadAllDays();
   const currentRecord = all[date] || { date, tasks: [], updatedAt: new Date().toISOString() };
   
+  // Check if there is an empty slot for this exact time
+  const emptySlotIndex = currentRecord.tasks.findIndex(
+    (t) => t.time === taskInput.time.trim() && (!t.title || t.title.trim() === '')
+  );
+
+  if (emptySlotIndex >= 0) {
+    const updatedSlot: Task = {
+      ...currentRecord.tasks[emptySlotIndex],
+      title: taskInput.title.trim(),
+      status: taskInput.status || currentRecord.tasks[emptySlotIndex].status || 'pending',
+      notes: taskInput.notes?.trim() || undefined,
+      category: taskInput.category?.trim() || undefined,
+      updatedAt: new Date().toISOString(),
+    };
+    currentRecord.tasks[emptySlotIndex] = updatedSlot;
+    all[date] = currentRecord;
+    saveAllDays(all);
+    return updatedSlot;
+  }
+
   const newTask: Task = {
     id: `task_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     time: taskInput.time.trim(),
@@ -203,12 +297,14 @@ export function deleteTaskFromDay(date: string, taskId: string): void {
 }
 
 export function calculateStats(tasks: Task[]): DayStats {
-  const total = tasks.length;
+  const activeTasks = tasks.filter((t) => t.title && t.title.trim().length > 0);
+  const targetTasks = activeTasks.length > 0 ? activeTasks : tasks;
+  const total = targetTasks.length;
   let done = 0;
   let notDone = 0;
   let pending = 0;
 
-  for (const t of tasks) {
+  for (const t of targetTasks) {
     if (t.status === 'done') done++;
     else if (t.status === 'not-done') notDone++;
     else pending++;
@@ -231,10 +327,10 @@ export function getAllArchiveDays(): DayRecord[] {
   // Sort descending by date (latest first)
   keys.sort((a, b) => b.localeCompare(a));
   
-  // Filter to days that have at least one task or were saved
+  // Filter to days that have at least one assigned task
   return keys
     .map(key => all[key])
-    .filter(record => record && record.tasks.length > 0);
+    .filter(record => record && record.tasks && record.tasks.some(t => t.title && t.title.trim().length > 0));
 }
 
 export function resetToDefaults(): void {
