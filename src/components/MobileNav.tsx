@@ -1,10 +1,10 @@
 import React from 'react';
 import { Calendar, History, SlidersHorizontal, Plus } from 'lucide-react';
-import { Language } from '../types';
+import { ActiveTab, Language } from '../types';
 
 interface MobileNavProps {
-  activeTab: 'daily' | 'archive';
-  onTabChange: (tab: 'daily' | 'archive') => void;
+  activeTab: ActiveTab;
+  onTabChange: (tab: ActiveTab) => void;
   onOpenAddTask: () => void;
   onOpenSettings: () => void;
   lang: Language;

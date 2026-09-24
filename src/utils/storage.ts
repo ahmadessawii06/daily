@@ -693,3 +693,37 @@ export function resetToDefaults(): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_SEED_DATA));
   localStorage.setItem(HABITS_KEY, JSON.stringify(INITIAL_HABITS));
 }
+
+export function apply24HourTemplate(dateStr: string, force = false): Task[] {
+  const all = loadAllDays();
+  const record = all[dateStr] || { date: dateStr, tasks: [], updatedAt: new Date().toISOString() };
+  
+  const tasks: Task[] = [];
+  for (let h = 0; h < 24; h++) {
+    const timeStr = `${String(h).padStart(2, '0')}:00`;
+    const endHour = (h + 1) % 24;
+    const endTimeStr = `${String(endHour).padStart(2, '0')}:00`;
+    
+    const existing = record.tasks.find(t => t.time === timeStr);
+    if (existing && !force) {
+      tasks.push(existing);
+    } else {
+      tasks.push({
+        id: `t-${dateStr}-${timeStr}-${Math.random().toString(36).substr(2, 5)}`,
+        time: timeStr,
+        endTime: endTimeStr,
+        duration: 60,
+        title: existing?.title || '',
+        status: existing?.status || 'pending',
+        category: existing?.category || 'general',
+        createdAt: new Date().toISOString(),
+      });
+    }
+  }
+
+  record.tasks = sortTasksByTime(tasks);
+  record.updatedAt = new Date().toISOString();
+  all[dateStr] = record;
+  saveAllDays(all);
+  return record.tasks;
+}

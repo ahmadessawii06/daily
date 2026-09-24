@@ -3,17 +3,18 @@ import {
   CheckCircle2, 
   Calendar, 
   History, 
+  BarChart3,
   SlidersHorizontal, 
   Sparkles,
   ChevronRight,
   Sun,
   Moon
 } from 'lucide-react';
-import { Language, Theme } from '../types';
+import { ActiveTab, Language, Theme } from '../types';
 
 interface SidebarProps {
-  activeTab: 'daily' | 'archive';
-  onTabChange: (tab: 'daily' | 'archive') => void;
+  activeTab: ActiveTab;
+  onTabChange: (tab: ActiveTab) => void;
   todayTasksCount: number;
   archiveDaysCount: number;
   onOpenSettings: () => void;
@@ -90,6 +91,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {todayTasksCount}
               </span>
             )}
+          </button>
+
+          {/* Stats & Weekly Analysis */}
+          <button
+            type="button"
+            onClick={() => onTabChange('stats')}
+            title={lang === 'ar' ? 'إحصائيات الأسبوع وتحليل الأداء' : 'Weekly Analytics'}
+            className={`w-full flex flex-col lg:flex-row items-center justify-center lg:justify-between p-2 lg:px-3.5 lg:py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer min-h-[44px] ${
+              activeTab === 'stats'
+                ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 shadow-xs font-bold'
+                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'
+            }`}
+          >
+            <div className="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3">
+              <div className={`w-7 h-7 lg:w-6 lg:h-6 rounded-lg flex items-center justify-center transition-colors shrink-0 ${
+                activeTab === 'stats' ? 'bg-emerald-400 text-slate-950 shadow-xs' : 'bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-zinc-400'
+              }`}>
+                <BarChart3 className="w-4 h-4 lg:w-3.5 lg:h-3.5 stroke-[2.5]" />
+              </div>
+              <span className="font-['Alexandria'] text-[10px] lg:text-xs">
+                {lang === 'ar' ? 'الإحصائيات' : 'Stats'}
+              </span>
+            </div>
+            <span className="text-[10px] text-amber-500 font-bold hidden lg:inline">🔥</span>
           </button>
 
           {/* Archive */}

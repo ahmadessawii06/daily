@@ -14,13 +14,14 @@ import {
   setStoredTheme,
   apply24HourTemplate
 } from './utils/storage';
-import { Language, StatusFilter, Task, TaskStatus, Theme } from './types';
+import { ActiveTab, Language, StatusFilter, Task, TaskStatus, Theme } from './types';
 import { Sidebar } from './components/Sidebar';
 import { MainHeader } from './components/MainHeader';
 import { TodayProgress } from './components/TodayProgress';
 import { DateNavigation } from './components/DateNavigation';
 import { TaskList } from './components/TaskList';
 import { Archive } from './components/Archive';
+import { WeeklyReview } from './components/WeeklyReview';
 import { AddTaskModal } from './components/AddTaskModal';
 import { EditTaskModal } from './components/EditTaskModal';
 import { SettingsModal } from './components/SettingsModal';
@@ -36,7 +37,7 @@ export default function App() {
   const [lang, setLang] = useState<Language>('ar');
   const [theme, setTheme] = useState<Theme>(() => getStoredTheme());
   const [currentDate, setCurrentDate] = useState<string>(() => getTodayDateString());
-  const [activeTab, setActiveTab] = useState<'daily' | 'archive'>('daily');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('daily');
   const [currentFilter, setCurrentFilter] = useState<StatusFilter>('all');
 
   // Modals & Drawer state
@@ -296,6 +297,11 @@ export default function App() {
             />
 
           </div>
+        ) : activeTab === 'stats' ? (
+          <WeeklyReview
+            lang={lang}
+            onNavigateToDay={handleOpenInDaily}
+          />
         ) : (
           /* Archive View */
           <Archive
@@ -315,6 +321,7 @@ export default function App() {
         onTabChange={setActiveTab}
         todayTasksCount={tasks.length}
         archiveDaysCount={archiveDays.length}
+        onOpenTemplates={() => setIsSettingsOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
         lang={lang}
         theme={theme}
