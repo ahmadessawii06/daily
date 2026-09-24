@@ -138,7 +138,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
           {headerDateStr}
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1 font-medium font-['Alexandria']">
-          {lang === 'ar' ? 'لنبدأ يوماً مفعماً بالإنتاجية والتركيز.' : "Let's make today productive and focused."}
+          {lang === 'ar' ? 'احرص على ما ينفعك واستعن بالله ولا تعجز' : "Be keen on what benefits you, seek help from Allah, and do not despair."}
         </p>
       </div>
 
