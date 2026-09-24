@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Languages, RotateCcw, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { X, Languages, RotateCcw, ShieldCheck, Sun, Moon, LayoutTemplate } from 'lucide-react';
 import { Language, Theme } from '../types';
 
 interface SettingsModalProps {
@@ -8,6 +8,7 @@ interface SettingsModalProps {
   lang: Language;
   onToggleLang: () => void;
   onResetData: () => void;
+  onApply24HourTemplate?: () => void;
   theme: Theme;
   onSetTheme: (theme: Theme) => void;
 }
@@ -18,6 +19,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   lang,
   onToggleLang,
   onResetData,
+  onApply24HourTemplate,
   theme,
   onSetTheme,
 }) => {
@@ -142,6 +144,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {lang === 'ar' ? 'استعادة' : 'Reset'}
             </button>
           </div>
+
+          {/* 24-Hour Schedule Template Option */}
+          {onApply24HourTemplate && (
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <LayoutTemplate className="w-4 h-4 stroke-[2.5]" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-900 dark:text-zinc-100 block font-['Alexandria']">
+                    {lang === 'ar' ? 'قالب الـ 24 ساعة' : '24-Hour Template'}
+                  </span>
+                  <span className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">
+                    {lang === 'ar' ? 'تجهيز كامل ساعات اليوم (00:00 - 23:00)' : 'Setup all 24 hours of today'}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  onApply24HourTemplate();
+                  onClose();
+                }}
+                className="px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 bg-emerald-100 dark:bg-emerald-500/15 hover:bg-emerald-200 dark:hover:bg-emerald-500/25 rounded-xl border border-emerald-300 dark:border-emerald-500/30 transition-all cursor-pointer"
+              >
+                {lang === 'ar' ? 'تطبيق' : 'Apply'}
+              </button>
+            </div>
+          )}
 
           {/* Privacy & Storage Note */}
           <div className="p-3.5 rounded-2xl bg-emerald-500/[0.07] border border-emerald-500/20 flex items-start gap-3 text-xs text-slate-700 dark:text-zinc-300">

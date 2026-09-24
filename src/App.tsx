@@ -355,6 +355,7 @@ export default function App() {
         lang={lang}
         onToggleLang={handleToggleLang}
         onResetData={handleResetData}
+        onApply24HourTemplate={handleApply24HourTemplate}
         theme={theme}
         onSetTheme={setTheme}
       />
