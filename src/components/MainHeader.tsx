@@ -70,8 +70,8 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
           {/* اسم التطبيق وشعار الحالة (Daily Track مع النقطة الخضراء) */}
           <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-slate-100 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white text-[11px] sm:text-xs font-bold font-['Alexandria'] shadow-2xs shrink-0">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10e588] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10e588]"></span>
             </span>
             <span>Daily Track</span>
           </div>
@@ -119,12 +119,12 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
           <button
             type="button"
             onClick={onOpenAddTask}
-            className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold text-emerald-950 bg-emerald-400 hover:bg-emerald-300 active:scale-95 rounded-xl transition-all shadow-xs hover:shadow-sm cursor-pointer min-h-[40px] font-['Alexandria'] shrink-0"
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold text-slate-950 bg-[#10e588] hover:bg-[#0fd07b] active:scale-95 rounded-xl transition-all shadow-xs hover:shadow-sm cursor-pointer min-h-[40px] font-['Alexandria'] shrink-0"
           >
             <Plus className="w-4 h-4 stroke-[2.8]" />
             <span className="sm:hidden">{lang === 'ar' ? 'مهمة' : 'Add'}</span>
             <span className="hidden sm:inline">{lang === 'ar' ? 'إضافة مهمة جديدة' : '+ Add Task'}</span>
-            <kbd className="hidden sm:inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-mono font-bold rounded bg-emerald-950/10 text-emerald-950 border border-emerald-950/15">
+            <kbd className="hidden sm:inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-mono font-bold rounded bg-black/10 text-slate-950 border border-black/15">
               N
             </kbd>
           </button>

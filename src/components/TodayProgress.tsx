@@ -36,11 +36,11 @@ const StatCircle: React.FC<StatCircleProps> = ({
 
   const colorConfig = {
     emerald: {
-      stroke: '#10b981',
-      bgGlow: 'bg-emerald-500/10 dark:bg-emerald-500/15',
-      text: 'text-emerald-600 dark:text-emerald-400',
-      activeRing: 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
-      track: 'text-emerald-500/15 dark:text-emerald-500/10',
+      stroke: '#10e588',
+      bgGlow: 'bg-emerald-400/15 dark:bg-emerald-400/20',
+      text: 'text-emerald-600 dark:text-emerald-300',
+      activeRing: 'ring-2 ring-[#10e588] ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
+      track: 'text-emerald-400/20 dark:text-emerald-400/15',
     },
     amber: {
       stroke: '#f59e0b',
@@ -50,11 +50,11 @@ const StatCircle: React.FC<StatCircleProps> = ({
       track: 'text-amber-500/15 dark:text-amber-500/10',
     },
     rose: {
-      stroke: '#f43f5e',
-      bgGlow: 'bg-rose-500/10 dark:bg-rose-500/15',
-      text: 'text-rose-600 dark:text-rose-400',
-      activeRing: 'ring-2 ring-rose-500 ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
-      track: 'text-rose-500/15 dark:text-rose-500/10',
+      stroke: '#ff6b81',
+      bgGlow: 'bg-rose-400/15 dark:bg-rose-400/20',
+      text: 'text-rose-500 dark:text-rose-300',
+      activeRing: 'ring-2 ring-[#ff6b81] ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
+      track: 'text-rose-400/20 dark:text-rose-400/15',
     },
     indigo: {
       stroke: '#6366f1',
@@ -308,7 +308,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
           <div className="flex items-center gap-4 sm:gap-5 w-full md:w-auto justify-center md:justify-start shrink-0">
             <div className="relative shrink-0 flex items-center justify-center">
               {/* Subtle ambient energetic glow */}
-              <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-emerald-500/20 via-teal-500/15 to-cyan-500/20 blur-md pointer-events-none" />
+              <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-[#10e588]/25 via-teal-400/20 to-cyan-400/20 blur-md pointer-events-none" />
 
               <svg
                 viewBox="0 0 100 100"
@@ -317,14 +317,15 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               >
                 <defs>
                   <linearGradient id="todayProgressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#10b981" />
-                    <stop offset="50%" stopColor="#06b6d4" />
-                    <stop offset="100%" stopColor="#3b82f6" />
+                    <stop offset="0%" stopColor="#10e588" />
+                    <stop offset="45%" stopColor="#2ed573" />
+                    <stop offset="85%" stopColor="#06b6d4" />
+                    <stop offset="100%" stopColor="#38bdf8" />
                   </linearGradient>
                   <linearGradient id="todayProgressCompleteGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#f59e0b" />
-                    <stop offset="50%" stopColor="#10b981" />
-                    <stop offset="100%" stopColor="#06b6d4" />
+                    <stop offset="0%" stopColor="#fbbf24" />
+                    <stop offset="45%" stopColor="#10e588" />
+                    <stop offset="100%" stopColor="#22d3ee" />
                   </linearGradient>
                 </defs>
 
@@ -362,7 +363,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                   <div className="flex flex-col items-center justify-center leading-none">
                     <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 drop-shadow-xs mb-1 animate-pulse" />
                     <div className="flex items-baseline justify-center font-numbers">
-                      <span className="text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-amber-500 via-yellow-400 to-emerald-500 bg-clip-text text-transparent">
+                      <span className="text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-amber-500 via-yellow-400 to-[#10e588] bg-clip-text text-transparent">
                         100
                       </span>
                       <span className="text-[11px] sm:text-xs font-black text-amber-500 ms-0.5">
@@ -373,10 +374,10 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                 ) : (
                   <div className="flex flex-col items-center justify-center leading-none">
                     <div className="flex items-baseline justify-center font-numbers">
-                      <span className="text-2xl sm:text-3xl font-black tracking-tight bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 dark:from-emerald-400 dark:via-teal-300 dark:to-cyan-400 bg-clip-text text-transparent drop-shadow-xs">
+                      <span className="text-2xl sm:text-3xl font-black tracking-tight bg-gradient-to-r from-[#10e588] via-emerald-400 to-cyan-400 dark:from-[#10e588] dark:via-emerald-300 dark:to-cyan-300 bg-clip-text text-transparent drop-shadow-xs">
                         {percentage}
                       </span>
-                      <span className="text-xs sm:text-sm font-black text-cyan-600 dark:text-cyan-400 ms-0.5">
+                      <span className="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400 ms-0.5">
                         %
                       </span>
                     </div>

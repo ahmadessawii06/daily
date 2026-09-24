@@ -59,23 +59,39 @@ export const TaskList: React.FC<TaskListProps> = ({
     <div className="space-y-3">
       {/* Active filter notification bar (only displayed when a circle is clicked to filter) */}
       {currentFilter !== 'all' && (
-        <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/[0.08] text-xs">
+        <div className={`flex items-center justify-between px-3.5 py-2 rounded-xl border text-xs ${
+          currentFilter === 'not-done'
+            ? 'bg-rose-400/[0.08] border-rose-400/25 dark:bg-rose-400/[0.1] dark:border-rose-400/30'
+            : 'bg-emerald-400/[0.08] border-emerald-400/25 dark:bg-emerald-400/[0.1] dark:border-emerald-400/30'
+        }`}>
           <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" />
+            <Filter className={`w-3.5 h-3.5 stroke-[2.5] ${
+              currentFilter === 'not-done' ? 'text-[#ff6b81]' : 'text-[#10e588]'
+            }`} />
             <span className="text-slate-500 dark:text-zinc-400 font-medium">
               {lang === 'ar' ? 'عرض:' : 'Showing:'}
             </span>
-            <span className="font-bold text-slate-900 dark:text-white font-['Alexandria']">
+            <span className={`font-bold font-['Alexandria'] ${
+              currentFilter === 'not-done' ? 'text-rose-700 dark:text-rose-200' : 'text-emerald-800 dark:text-emerald-200'
+            }`}>
               {getFilterLabel()}
             </span>
-            <span className="font-numbers text-[11px] px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold rounded-md">
+            <span className={`font-numbers text-[11px] px-2 py-0.5 font-bold rounded-md ${
+              currentFilter === 'not-done'
+                ? 'bg-rose-400/20 text-rose-700 dark:text-rose-300'
+                : 'bg-emerald-400/20 text-emerald-800 dark:text-emerald-300'
+            }`}>
               {filteredTasks.length}
             </span>
           </div>
           <button
             type="button"
             onClick={() => onFilterChange('all')}
-            className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:underline cursor-pointer active:scale-95"
+            className={`inline-flex items-center gap-1 text-xs font-bold hover:underline cursor-pointer active:scale-95 ${
+              currentFilter === 'not-done'
+                ? 'text-rose-600 dark:text-rose-300 hover:text-rose-700'
+                : 'text-emerald-700 dark:text-emerald-300 hover:text-emerald-800'
+            }`}
           >
             <X className="w-3 h-3 stroke-[2.5]" />
             <span>{lang === 'ar' ? 'عرض جميع الساعات' : 'Show all'}</span>

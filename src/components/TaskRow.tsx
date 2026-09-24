@@ -80,12 +80,12 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           shortLabel: lang === 'ar' ? 'تم' : 'Done',
           symbol: '✓',
           rowClass: 
-            'bg-emerald-500/[0.08] hover:bg-emerald-500/[0.13] border-emerald-500/30 hover:border-emerald-500/50 shadow-xs shadow-emerald-500/5 dark:bg-emerald-950/25 dark:hover:bg-emerald-950/40 dark:border-emerald-500/35 dark:hover:border-emerald-400/50 dark:shadow-emerald-950/40',
-          accentStrip: 'bg-emerald-500 dark:bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]',
-          triggerBg: 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-400/40 shadow-sm',
-          badgeClass: 'text-emerald-900 bg-emerald-100 border-emerald-300 hover:bg-emerald-200 dark:text-emerald-300 dark:bg-emerald-500/20 dark:border-emerald-500/40 dark:hover:bg-emerald-500/30 shadow-2xs',
+            'bg-emerald-400/[0.07] hover:bg-emerald-400/[0.12] border-emerald-400/35 hover:border-emerald-400/50 shadow-xs shadow-emerald-500/5 dark:bg-emerald-400/[0.08] dark:hover:bg-emerald-400/[0.14] dark:border-emerald-400/30 dark:hover:border-emerald-300/50',
+          accentStrip: 'bg-[#10e588] shadow-[0_0_8px_rgba(16,229,136,0.6)]',
+          triggerBg: 'bg-[#10e588] text-slate-950 font-black ring-2 ring-[#10e588]/40 shadow-sm hover:bg-[#0fd07b]',
+          badgeClass: 'text-emerald-800 bg-emerald-100/90 border-emerald-300 hover:bg-emerald-200 dark:text-emerald-200 dark:bg-emerald-400/20 dark:border-emerald-400/40 dark:hover:bg-emerald-400/30 shadow-2xs',
           titleClass: 'line-through text-slate-500 dark:text-zinc-500 font-medium',
-          timeClass: 'text-emerald-900 dark:text-emerald-300 bg-emerald-500/10 border-emerald-500/25',
+          timeClass: 'text-emerald-800 dark:text-emerald-300 bg-emerald-400/10 border-emerald-400/25',
         },
         pending: {
           label: '',
@@ -94,7 +94,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           rowClass: 
             'bg-white hover:bg-slate-50/90 border-slate-200/90 hover:border-slate-300 shadow-2xs dark:bg-[#11131a] dark:hover:bg-[#151822] dark:border-white/[0.08] dark:hover:border-white/[0.15]',
           accentStrip: 'bg-transparent',
-          triggerBg: 'border-2 border-slate-300 dark:border-white/25 hover:border-emerald-500 text-transparent hover:text-emerald-600 dark:hover:border-emerald-400 dark:hover:text-emerald-400 bg-slate-50/60 dark:bg-white/[0.03]',
+          triggerBg: 'border-2 border-slate-300 dark:border-white/25 hover:border-[#10e588] text-transparent hover:text-[#10e588] dark:hover:border-[#10e588] dark:hover:text-[#10e588] bg-slate-50/60 dark:bg-white/[0.03]',
           badgeClass: '',
           titleClass: 'text-slate-900 dark:text-zinc-100 font-bold',
           timeClass: 'text-slate-700 dark:text-zinc-300 bg-slate-100 dark:bg-white/[0.06] border-slate-200 dark:border-white/[0.1]',
@@ -104,12 +104,12 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           shortLabel: lang === 'ar' ? 'لم تنجز' : 'Not Done',
           symbol: '✕',
           rowClass: 
-            'bg-rose-500/[0.08] hover:bg-rose-500/[0.13] border-rose-500/30 hover:border-rose-500/50 shadow-xs shadow-rose-500/5 dark:bg-rose-950/25 dark:hover:bg-rose-950/40 dark:border-rose-500/35 dark:hover:border-rose-400/50 dark:shadow-rose-950/40',
-          accentStrip: 'bg-rose-500 dark:bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.5)]',
-          triggerBg: 'bg-rose-500 text-white ring-2 ring-rose-500/40 shadow-sm',
-          badgeClass: 'text-rose-900 bg-rose-100 border-rose-300 hover:bg-rose-200 dark:text-rose-300 dark:bg-rose-500/20 dark:border-rose-500/40 dark:hover:bg-rose-500/30 shadow-2xs',
-          titleClass: 'text-rose-900 dark:text-rose-200 font-bold',
-          timeClass: 'text-rose-900 dark:text-rose-300 bg-rose-500/10 border-rose-500/25',
+            'bg-rose-400/[0.07] hover:bg-rose-400/[0.12] border-rose-400/35 hover:border-rose-400/50 shadow-xs shadow-rose-500/5 dark:bg-rose-400/[0.08] dark:hover:bg-rose-400/[0.14] dark:border-rose-400/30 dark:hover:border-rose-300/50',
+          accentStrip: 'bg-[#ff6b81] shadow-[0_0_8px_rgba(255,107,129,0.6)]',
+          triggerBg: 'bg-[#ff6b81] text-white font-black ring-2 ring-[#ff6b81]/40 shadow-sm hover:bg-[#ff526c]',
+          badgeClass: 'text-rose-800 bg-rose-100/90 border-rose-300 hover:bg-rose-200 dark:text-rose-200 dark:bg-rose-400/20 dark:border-rose-400/40 dark:hover:bg-rose-400/30 shadow-2xs',
+          titleClass: 'text-rose-800 dark:text-rose-200 font-bold',
+          timeClass: 'text-rose-800 dark:text-rose-300 bg-rose-400/10 border-rose-400/25',
         },
       }[task.status];
 
