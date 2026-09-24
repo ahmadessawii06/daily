@@ -163,9 +163,9 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               )}
             </button>
 
-            <div className={`font-mono text-xs font-bold tabular-nums shrink-0 px-2 py-1 rounded-xl border flex items-center gap-1.5 shadow-2xs ${statusConfig.timeClass}`}>
+            <div className={`font-numbers text-xs font-black tabular-nums shrink-0 px-2 py-1 rounded-xl border flex items-center gap-1.5 shadow-2xs ${statusConfig.timeClass}`}>
               <Clock className="w-3.5 h-3.5 opacity-75 shrink-0" />
-              <span className="font-extrabold">{t12.time12}</span>
+              <span className="font-extrabold tracking-wide">{t12.time12}</span>
               <span className={`text-[10px] font-['Alexandria'] font-extrabold px-1.5 py-0.5 rounded-md ${
                 t12.isPM 
                   ? 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30' 
@@ -306,9 +306,9 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         </button>
 
         {/* 12-Hour Time Badge */}
-        <div className={`font-mono text-xs font-bold tabular-nums shrink-0 px-2.5 py-1 rounded-xl border flex items-center gap-1.5 shadow-2xs ${statusConfig.timeClass}`}>
+        <div className={`font-numbers text-xs font-black tabular-nums shrink-0 px-2.5 py-1 rounded-xl border flex items-center gap-1.5 shadow-2xs ${statusConfig.timeClass}`}>
           <Clock className="w-3.5 h-3.5 opacity-75 shrink-0" />
-          <span className="font-extrabold">{t12.time12}</span>
+          <span className="font-extrabold tracking-wide">{t12.time12}</span>
           <span className={`text-[11px] font-['Alexandria'] font-extrabold px-1.5 py-0.5 rounded-md ${
             t12.isPM 
               ? 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30' 

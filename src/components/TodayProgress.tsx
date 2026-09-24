@@ -93,10 +93,10 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
 
           {/* Clean Percentage Display */}
           <div className="flex items-baseline gap-1 shrink-0 text-end">
-            <span className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-slate-900 dark:text-white">
+            <span className="text-2xl sm:text-3xl font-black font-numbers tracking-tight text-slate-900 dark:text-white">
               {percentage}
             </span>
-            <span className="text-xs sm:text-sm font-bold text-slate-500 dark:text-zinc-400">
+            <span className="text-xs sm:text-sm font-bold text-slate-500 dark:text-zinc-400 font-['Alexandria']">
               %
             </span>
           </div>
@@ -127,7 +127,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               <span className="font-medium text-slate-500 dark:text-zinc-400">
                 {lang === 'ar' ? 'مكتملة:' : 'Done:'}
               </span>
-              <span className="font-mono font-bold text-slate-900 dark:text-white">
+              <span className="font-numbers font-bold text-slate-900 dark:text-white">
                 {stats.done}
               </span>
             </div>
@@ -138,7 +138,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               <span className="font-medium text-slate-500 dark:text-zinc-400">
                 {lang === 'ar' ? 'متبقية:' : 'Remaining:'}
               </span>
-              <span className="font-mono font-bold text-slate-900 dark:text-white">
+              <span className="font-numbers font-bold text-slate-900 dark:text-white">
                 {remaining}
               </span>
             </div>
@@ -150,7 +150,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                 <span className="font-medium text-slate-500 dark:text-zinc-400">
                   {lang === 'ar' ? 'غير منجزة:' : 'Not Done:'}
                 </span>
-                <span className="font-mono font-bold text-slate-900 dark:text-white">
+                <span className="font-numbers font-bold text-slate-900 dark:text-white">
                   {stats.notDone}
                 </span>
               </div>
@@ -162,7 +162,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               <span className="font-medium">
                 {lang === 'ar' ? 'الإجمالي:' : 'Total:'}
               </span>
-              <span className="font-mono font-semibold text-slate-700 dark:text-zinc-300">
+              <span className="font-numbers font-bold text-slate-700 dark:text-zinc-300">
                 {stats.total}
               </span>
             </div>
