@@ -147,12 +147,20 @@ export const TaskList: React.FC<TaskListProps> = ({
         </div>
       ) : (
         <div className="space-y-2">
-          {filteredTasks.map((task) => (
+          {filteredTasks.map((task, index) => (
             <TaskRow
               key={task.id}
               task={task}
               isEditing={editingTaskId === task.id}
               onStartEdit={() => setEditingTaskId(task.id)}
+              onEnterNext={() => {
+                const nextTask = filteredTasks[index + 1];
+                if (nextTask) {
+                  setEditingTaskId(nextTask.id);
+                } else {
+                  setEditingTaskId(null);
+                }
+              }}
               onStatusChange={onStatusChange}
               onEdit={onEdit}
               onDelete={onDelete}

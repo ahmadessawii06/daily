@@ -338,6 +338,23 @@ const INITIAL_SEED_DATA: Record<string, DayRecord> = {
   },
 };
 
+// Deduplicate tasks sharing the exact same start time (e.g. 11:00)
+function deduplicateTasksByTime(taskArr: Task[]): Task[] {
+  const map = new Map<string, Task>();
+  for (const t of taskArr) {
+    const timeKey = t.time || '00:00';
+    const existing = map.get(timeKey);
+    if (!existing) {
+      map.set(timeKey, t);
+    } else {
+      if ((!existing.title || existing.title.trim() === '') && (t.title && t.title.trim() !== '')) {
+        map.set(timeKey, t);
+      }
+    }
+  }
+  return Array.from(map.values());
+}
+
 // Normalize tasks without auto-merging adjacent items of the same title
 function normalizeTasksWithoutMerging(rawTasks: Task[]): Task[] {
   if (!rawTasks || rawTasks.length === 0) return [];
@@ -376,50 +393,47 @@ export function loadAllDays(): Record<string, DayRecord> {
     if (!parsed || typeof parsed !== 'object') {
       parsed = JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
     }
-    // Normalize and ensure 24 hours exist for every day without merging tasks of same type
+
+    // Ensure every day has exactly 24 hourly slots (00:00 to 23:00) without gaps or duplication
     for (const key of Object.keys(parsed)) {
-      if (parsed[key]?.tasks) {
-        const normalized = normalizeTasksWithoutMerging(parsed[key].tasks);
-        // Ensure all 24 hours (00:00 to 23:00) are present as distinct slots without losing duplicate titles
-        const tasks: Task[] = [];
-        
-        for (const t of normalized) {
-          if (!tasks.some(existing => existing.id === t.id)) {
-            tasks.push(t);
-          }
-        }
+      if (!parsed[key]) parsed[key] = { date: key, tasks: [], updatedAt: new Date().toISOString() };
+      const existingTasks = parsed[key].tasks || [];
+      
+      const hourlyTasks: Task[] = [];
+      for (let h = 0; h < 24; h++) {
+        const timeStr = `${String(h).padStart(2, '0')}:00`;
+        const endHour = (h + 1) % 24;
+        const endTimeStr = `${String(endHour).padStart(2, '0')}:00`;
 
-        for (let h = 0; h < 24; h++) {
-          const timeStr = `${String(h).padStart(2, '0')}:00`;
-          const endHour = (h + 1) % 24;
-          const endTimeStr = `${String(endHour).padStart(2, '0')}:00`;
+        const matches = existingTasks.filter(t => t.time && (t.time === timeStr || t.time.startsWith(`${String(h).padStart(2, '0')}:`)));
+        const bestMatch = matches.find(t => t.title && t.title.trim() !== '') || matches[0];
 
-          const covered = tasks.some(t => {
-            const tStart = timeToMinutes(t.time);
-            const tEnd = timeToMinutes(t.endTime || t.time);
-            return tStart <= h * 60 && tEnd > h * 60;
+        if (bestMatch) {
+          hourlyTasks.push({
+            ...bestMatch,
+            time: timeStr,
+            endTime: endTimeStr,
+            duration: 60,
           });
-
-          if (!covered) {
-            tasks.push({
-              id: `t-${key}-${timeStr}-${Math.random().toString(36).substr(2, 5)}`,
-              time: timeStr,
-              endTime: endTimeStr,
-              duration: 60,
-              title: '',
-              status: 'pending',
-              category: h < 6 || h >= 23 ? 'sleep' : 'general',
-              createdAt: new Date().toISOString(),
-            });
-          }
+        } else {
+          hourlyTasks.push({
+            id: `t-${key}-${timeStr}-${Math.random().toString(36).substr(2, 5)}`,
+            time: timeStr,
+            endTime: endTimeStr,
+            duration: 60,
+            title: '',
+            status: 'pending',
+            category: h < 6 || h >= 23 ? 'sleep' : 'general',
+            createdAt: new Date().toISOString(),
+          });
         }
-        parsed[key].tasks = sortTasksByTime(tasks);
       }
+      parsed[key].tasks = sortTasksByTime(hourlyTasks);
     }
     return parsed;
   } catch (err) {
     console.error('Error loading data from localStorage:', err);
-    return INITIAL_SEED_DATA;
+    return JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
   }
 }
 

@@ -272,7 +272,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   }
                 }}
                 onBlur={() => {
-                  if (isEditingInline) handleCommitTitle();
+                  // Do not commit on blur
                 }}
                 placeholder={lang === 'ar' ? '+ اكتب اسم المهمة هنا واضغط Enter...' : '+ Write task name and press Enter...'}
                 className="w-full bg-white dark:bg-[#0b0d13] border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-2 text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[40px]"
@@ -387,7 +387,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   }
                 }}
                 onBlur={() => {
-                  if (isEditingInline) handleCommitTitle();
+                  // Do not commit on blur
                 }}
                 placeholder={lang === 'ar' ? '+ اكتب اسم المهمة هنا واضغط Enter...' : '+ Write task name and press Enter...'}
                 className="w-full bg-white dark:bg-[#0b0d13] border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-1.5 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[36px]"
