@@ -91,19 +91,6 @@ export default function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Keyboard shortcut: Press 'N' to open Add Task
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const activeEl = document.activeElement;
-      const isInput = activeEl?.tagName === 'INPUT' || activeEl?.tagName === 'TEXTAREA' || activeEl?.tagName === 'SELECT';
-      if (!isInput && (e.key === 'n' || e.key === 'N') && !isAddTaskOpen && !editingTask && !isSettingsOpen && !isMobileDrawerOpen) {
-        e.preventDefault();
-        setIsAddTaskOpen(true);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isAddTaskOpen, editingTask, isSettingsOpen, isMobileDrawerOpen]);
 
   // Handlers
   const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {

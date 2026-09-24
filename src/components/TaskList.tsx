@@ -28,6 +28,8 @@ export const TaskList: React.FC<TaskListProps> = ({
   onFilterChange,
   lang,
 }) => {
+  const [editingTaskId, setEditingTaskId] = React.useState<string | null>(null);
+
   // Filter tasks based on the active filter selected via TodayProgress circles
   const filteredTasks = tasks.filter((task) => {
     const hasTitle = Boolean(task.title && task.title.trim().length > 0);
@@ -149,6 +151,8 @@ export const TaskList: React.FC<TaskListProps> = ({
             <TaskRow
               key={task.id}
               task={task}
+              isEditing={editingTaskId === task.id}
+              onStartEdit={() => setEditingTaskId(task.id)}
               onStatusChange={onStatusChange}
               onEdit={onEdit}
               onDelete={onDelete}

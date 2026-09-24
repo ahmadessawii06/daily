@@ -401,19 +401,42 @@ function migrateAndConsolidateTasks(rawTasks: Task[]): Task[] {
 export function loadAllDays(): Record<string, DayRecord> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
+    let parsed: Record<string, DayRecord>;
     if (!raw) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_SEED_DATA));
-      return INITIAL_SEED_DATA;
+      parsed = JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
+    } else {
+      parsed = JSON.parse(raw);
     }
-    const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_SEED_DATA));
-      return INITIAL_SEED_DATA;
+      parsed = JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
     }
-    // Normalize and consolidate
+    // Normalize, consolidate and ensure 24 hours exist for every day
     for (const key of Object.keys(parsed)) {
       if (parsed[key]?.tasks) {
-        parsed[key].tasks = migrateAndConsolidateTasks(parsed[key].tasks);
+        const consolidated = migrateAndConsolidateTasks(parsed[key].tasks);
+        // Ensure all 24 hours are present
+        const tasks: Task[] = [];
+        for (let h = 0; h < 24; h++) {
+          const timeStr = `${String(h).padStart(2, '0')}:00`;
+          const endHour = (h + 1) % 24;
+          const endTimeStr = `${String(endHour).padStart(2, '0')}:00`;
+          const existing = consolidated.find(t => t.time === timeStr || (timeToMinutes(t.time) <= h * 60 && timeToMinutes(t.endTime || t.time) > h * 60));
+          if (existing && !tasks.some(t => t.id === existing.id)) {
+            tasks.push(existing);
+          } else if (!existing) {
+            tasks.push({
+              id: `t-${key}-${timeStr}-${Math.random().toString(36).substr(2, 5)}`,
+              time: timeStr,
+              endTime: endTimeStr,
+              duration: 60,
+              title: '',
+              status: 'pending',
+              category: h < 6 || h >= 23 ? 'sleep' : 'general',
+              createdAt: new Date().toISOString(),
+            });
+          }
+        }
+        parsed[key].tasks = sortTasksByTime(tasks);
       }
     }
     return parsed;
@@ -433,33 +456,13 @@ export function saveAllDays(days: Record<string, DayRecord>): void {
 
 export function getDayRecord(date: string): DayRecord {
   const all = loadAllDays();
-  if (all[date] && all[date].tasks && all[date].tasks.length > 0) {
+  if (all[date] && all[date].tasks && all[date].tasks.length >= 24) {
     return all[date];
   }
   
-  // Default to the study-day template tasks for new days
-  const defaultTemplate = SCHEDULE_TEMPLATES[0];
-  const now = new Date().toISOString();
-  const newTasks: Task[] = defaultTemplate.tasks.map((t, idx) => ({
-    id: `task_${date}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
-    time: t.time,
-    endTime: t.endTime,
-    duration: t.duration || 60,
-    title: t.title,
-    status: t.status,
-    category: t.category,
-    createdAt: now,
-  }));
-
-  const newRecord: DayRecord = {
-    date,
-    tasks: newTasks,
-    dayNote: `جدول يوم ${date}`,
-    updatedAt: now,
-  };
-  all[date] = newRecord;
-  saveAllDays(all);
-  return newRecord;
+  // Default to 24-hour template tasks for new days
+  apply24HourTemplate(date, false);
+  return loadAllDays()[date];
 }
 
 export function applyTemplateToDay(date: string, templateId: string): Task[] {

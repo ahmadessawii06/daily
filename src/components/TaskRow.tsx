@@ -24,6 +24,9 @@ interface TaskRowProps {
   onDelete: (taskId: string) => void;
   onUpdateTitle?: (taskId: string, newTitle: string) => void;
   lang: Language;
+  isEditing?: boolean;
+  onStartEdit?: () => void;
+  onEnterNext?: () => void;
 }
 
 export const TaskRow: React.FC<TaskRowProps> = ({
@@ -33,16 +36,26 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   onDelete,
   onUpdateTitle,
   lang,
+  isEditing = false,
+  onStartEdit,
+  onEnterNext,
 }) => {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [inlineTitle, setInlineTitle] = useState(task.title || '');
-  const [isEditingInline, setIsEditingInline] = useState(false);
+  const [isEditingInline, setIsEditingInline] = useState(isEditing);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sync internal title with task prop updates
+  // Sync internal editing state with prop
   useEffect(() => {
-    setInlineTitle(task.title || '');
-  }, [task.title]);
+    setIsEditingInline(isEditing);
+  }, [isEditing]);
+
+  // Sync internal title with task prop updates only when not editing inline
+  useEffect(() => {
+    if (!isEditingInline) {
+      setInlineTitle(task.title || '');
+    }
+  }, [task.title, isEditingInline]);
 
   useEffect(() => {
     if (isEditingInline && inputRef.current) {
@@ -53,7 +66,8 @@ export const TaskRow: React.FC<TaskRowProps> = ({
 
   // 12-hour formatted time (with صباحًا / مساءً)
   const t12 = formatTime12h(task.time, lang);
-  const isEmptySlot = !task.title || task.title.trim() === '';
+  const effectiveTitle = isEditingInline ? inlineTitle : (task.title || '');
+  const isEmptySlot = !effectiveTitle || effectiveTitle.trim() === '';
 
   // Smart context icon helper based on task keywords in Arabic and English
   const currentTitleForIcon = isEditingInline ? inlineTitle : task.title;
@@ -123,14 +137,38 @@ export const TaskRow: React.FC<TaskRowProps> = ({
     onStatusChange(task.id, cycleMap[task.status]);
   };
 
+  const isCommittingRef = useRef(false);
+
   const handleCommitTitle = () => {
+    if (isCommittingRef.current) return;
+    isCommittingRef.current = true;
+
     const trimmed = inlineTitle.trim();
+    if (trimmed === '' && task.title && task.title.trim() !== '') {
+      setInlineTitle(task.title);
+      setIsEditingInline(false);
+      isCommittingRef.current = false;
+      if (onEnterNext) {
+        onEnterNext();
+      }
+      return;
+    }
+
     if (trimmed !== (task.title || '').trim()) {
       if (onUpdateTitle) {
         onUpdateTitle(task.id, trimmed);
       }
     }
+
     setIsEditingInline(false);
+
+    if (onEnterNext) {
+      onEnterNext();
+    }
+
+    setTimeout(() => {
+      isCommittingRef.current = false;
+    }, 100);
   };
 
   return (
@@ -225,13 +263,17 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                 onChange={(e) => setInlineTitle(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
+                    e.preventDefault();
                     handleCommitTitle();
                   } else if (e.key === 'Escape') {
+                    e.preventDefault();
                     setIsEditingInline(false);
                     setInlineTitle(task.title || '');
                   }
                 }}
-                onBlur={handleCommitTitle}
+                onBlur={() => {
+                  if (isEditingInline) handleCommitTitle();
+                }}
                 placeholder={lang === 'ar' ? '+ اكتب اسم المهمة هنا واضغط Enter...' : '+ Write task name and press Enter...'}
                 className="w-full bg-white dark:bg-[#0b0d13] border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-2 text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[40px]"
               />
@@ -247,7 +289,10 @@ export const TaskRow: React.FC<TaskRowProps> = ({
             </div>
           ) : (
             <div 
-              onClick={() => setIsEditingInline(true)}
+              onClick={() => {
+                if (onStartEdit) onStartEdit();
+                else setIsEditingInline(true);
+              }}
               className="flex items-start gap-2.5 w-full cursor-pointer group/title py-0.5"
               title={lang === 'ar' ? 'انقر لتعديل اسم المهمة سريعًا' : 'Click to quickly rename'}
             >
@@ -333,13 +378,17 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                 onChange={(e) => setInlineTitle(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
+                    e.preventDefault();
                     handleCommitTitle();
                   } else if (e.key === 'Escape') {
+                    e.preventDefault();
                     setIsEditingInline(false);
                     setInlineTitle(task.title || '');
                   }
                 }}
-                onBlur={handleCommitTitle}
+                onBlur={() => {
+                  if (isEditingInline) handleCommitTitle();
+                }}
                 placeholder={lang === 'ar' ? '+ اكتب اسم المهمة هنا واضغط Enter...' : '+ Write task name and press Enter...'}
                 className="w-full bg-white dark:bg-[#0b0d13] border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-1.5 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[36px]"
               />
@@ -355,7 +404,10 @@ export const TaskRow: React.FC<TaskRowProps> = ({
             </div>
           ) : (
             <div 
-              onClick={() => setIsEditingInline(true)}
+              onClick={() => {
+                if (onStartEdit) onStartEdit();
+                else setIsEditingInline(true);
+              }}
               className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer group/title py-0.5"
               title={lang === 'ar' ? 'انقر لتعديل اسم المهمة سريعًا' : 'Click to quickly rename'}
             >
