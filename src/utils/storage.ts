@@ -338,12 +338,11 @@ const INITIAL_SEED_DATA: Record<string, DayRecord> = {
   },
 };
 
-// Auto-migrate consecutive legacy repeated 1-hour slots to continuous time blocks
-function migrateAndConsolidateTasks(rawTasks: Task[]): Task[] {
+// Normalize tasks without auto-merging adjacent items of the same title
+function normalizeTasksWithoutMerging(rawTasks: Task[]): Task[] {
   if (!rawTasks || rawTasks.length === 0) return [];
 
-  // Fill in category and duration if missing
-  const normalized = rawTasks.map((t) => {
+  return rawTasks.map((t) => {
     const cat = t.category || autoDetectCategory(t.title);
     let dur = t.duration;
     let end = t.endTime;
@@ -363,39 +362,6 @@ function migrateAndConsolidateTasks(rawTasks: Task[]): Task[] {
       endTime: end,
     };
   });
-
-  // Consolidate adjacent items with same title & same status into single block
-  const consolidated: Task[] = [];
-  let current: Task | null = null;
-
-  for (const t of sortTasksByTime(normalized)) {
-    if (!current) {
-      current = { ...t };
-      continue;
-    }
-
-    const currentEndTime = current.endTime || minutesToTime(timeToMinutes(current.time) + (current.duration || 60));
-    const isAdjacent = currentEndTime === t.time;
-    const isSameTitle = Boolean(current.title && t.title && current.title.trim().toLowerCase() === t.title.trim().toLowerCase());
-    const isSameStatus = current.status === t.status;
-
-    if (isAdjacent && isSameTitle && isSameStatus) {
-      // Merge into current
-      const newEnd = t.endTime || minutesToTime(timeToMinutes(t.time) + (t.duration || 60));
-      current.endTime = newEnd;
-      current.duration = timeToMinutes(newEnd) - timeToMinutes(current.time);
-      if (t.notes && !current.notes) current.notes = t.notes;
-    } else {
-      consolidated.push(current);
-      current = { ...t };
-    }
-  }
-
-  if (current) {
-    consolidated.push(current);
-  }
-
-  return consolidated;
 }
 
 export function loadAllDays(): Record<string, DayRecord> {
@@ -410,20 +376,31 @@ export function loadAllDays(): Record<string, DayRecord> {
     if (!parsed || typeof parsed !== 'object') {
       parsed = JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
     }
-    // Normalize, consolidate and ensure 24 hours exist for every day
+    // Normalize and ensure 24 hours exist for every day without merging tasks of same type
     for (const key of Object.keys(parsed)) {
       if (parsed[key]?.tasks) {
-        const consolidated = migrateAndConsolidateTasks(parsed[key].tasks);
-        // Ensure all 24 hours are present
+        const normalized = normalizeTasksWithoutMerging(parsed[key].tasks);
+        // Ensure all 24 hours (00:00 to 23:00) are present as distinct slots without losing duplicate titles
         const tasks: Task[] = [];
+        
+        for (const t of normalized) {
+          if (!tasks.some(existing => existing.id === t.id)) {
+            tasks.push(t);
+          }
+        }
+
         for (let h = 0; h < 24; h++) {
           const timeStr = `${String(h).padStart(2, '0')}:00`;
           const endHour = (h + 1) % 24;
           const endTimeStr = `${String(endHour).padStart(2, '0')}:00`;
-          const existing = consolidated.find(t => t.time === timeStr || (timeToMinutes(t.time) <= h * 60 && timeToMinutes(t.endTime || t.time) > h * 60));
-          if (existing && !tasks.some(t => t.id === existing.id)) {
-            tasks.push(existing);
-          } else if (!existing) {
+
+          const covered = tasks.some(t => {
+            const tStart = timeToMinutes(t.time);
+            const tEnd = timeToMinutes(t.endTime || t.time);
+            return tStart <= h * 60 && tEnd > h * 60;
+          });
+
+          if (!covered) {
             tasks.push({
               id: `t-${key}-${timeStr}-${Math.random().toString(36).substr(2, 5)}`,
               time: timeStr,
