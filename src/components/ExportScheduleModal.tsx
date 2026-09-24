@@ -87,7 +87,7 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
     try {
       setIsExporting(true);
       await exportDailyTrackToImage({
-        element: document.getElementById('daily-track-container') || previewCardRef.current,
+        element: previewCardRef.current || document.getElementById('daily-track-container'),
         fileName: `Daily-Track-${date}.png`,
         theme: exportTheme === 'light' ? 'light' : 'dark',
       });
@@ -104,7 +104,7 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
     try {
       setIsExporting(true);
       const success = await copyDailyTrackToClipboard({
-        element: document.getElementById('daily-track-container') || previewCardRef.current,
+        element: previewCardRef.current || document.getElementById('daily-track-container'),
         theme: exportTheme === 'light' ? 'light' : 'dark',
       });
 
@@ -251,22 +251,22 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200 font-['Alexandria','Cairo',sans-serif]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200 font-['Alexandria','Cairo',sans-serif]">
       
       {/* Main Modal Dialog */}
-      <div className="relative w-full max-w-4xl bg-white dark:bg-[#0e1017] border border-slate-200 dark:border-white/[0.1] rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92vh]">
+      <div className="relative w-full max-w-4xl bg-white dark:bg-[#0e1017] border border-slate-200 dark:border-white/[0.1] rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92dvh]">
         
         {/* Modal Top Bar */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-white/[0.02] shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+        <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-3.5 border-b border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-white/[0.02] shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <ImageIcon className="w-4 h-4 stroke-[2.5]" />
             </div>
             <div>
-              <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+              <h2 className="text-xs sm:text-base font-bold text-slate-900 dark:text-white">
                 {lang === 'ar' ? 'تصدير جدول اليوم كصورة فائقة الجودة' : 'Export Daily Schedule as Image'}
               </h2>
-              <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+              <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-zinc-400">
                 {lang === 'ar' ? 'تصميم متوازن بدون قص لكامل ساعات اليوم بدقة 4K' : 'Balanced full 24-hour design, never cut off'}
               </p>
             </div>
@@ -275,7 +275,7 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-white rounded-xl hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-white rounded-xl hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center active:scale-95"
           >
             <X className="w-5 h-5 stroke-[2.2]" />
           </button>

@@ -61,7 +61,7 @@ export const Archive: React.FC<ArchiveProps> = ({
               {lang === 'ar' ? 'الأرشيف الزمني' : 'Timeline Vault'}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white font-['Alexandria','Cairo']">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white font-['Alexandria','Cairo']">
             {lang === 'ar' ? 'سجل الأيام السابقة' : 'Your History'}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1 font-medium">
@@ -70,14 +70,14 @@ export const Archive: React.FC<ArchiveProps> = ({
         </div>
 
         {/* Search Input */}
-        <div className="relative">
+        <div className="relative w-full sm:w-64">
           <Search className="w-4 h-4 absolute top-1/2 -translate-y-1/2 start-3.5 text-slate-400 dark:text-zinc-500 pointer-events-none stroke-[2.5]" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={lang === 'ar' ? 'بحث في الأرشيف...' : 'Search history...'}
-            className="bg-white dark:bg-[#10121a] border border-slate-200 dark:border-white/[0.1] rounded-xl ps-9 pe-3 py-2 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 shadow-2xs w-full sm:w-64 transition-colors"
+            className="bg-white dark:bg-[#10121a] border border-slate-200 dark:border-white/[0.1] rounded-xl ps-9 pe-3 py-2 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 shadow-2xs w-full transition-colors min-h-[38px]"
           />
         </div>
       </div>
@@ -201,9 +201,9 @@ export const Archive: React.FC<ArchiveProps> = ({
                             return (
                               <div
                                 key={task.id}
-                                className={`flex items-center justify-between px-3 py-2 rounded-xl border text-xs shadow-2xs gap-2.5 overflow-hidden transition-colors ${rowStyle}`}
+                                className={`flex items-center justify-between px-3 py-2 rounded-xl border text-xs shadow-2xs gap-2.5 transition-colors ${rowStyle}`}
                               >
-                                <div className="flex items-center gap-2 truncate flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
                                   {stripStyle !== 'bg-transparent' && (
                                     <div className={`w-1 self-stretch rounded-full shrink-0 ${stripStyle}`} />
                                   )}
@@ -211,11 +211,11 @@ export const Archive: React.FC<ArchiveProps> = ({
                                     <span>{t12.time12}</span>
                                     <span className="text-[10px] font-['Alexandria'] font-bold opacity-80">{t12.period}</span>
                                   </span>
-                                  <span className={`truncate font-['Alexandria'] ${isDone ? 'line-through text-slate-500 dark:text-zinc-500' : isNotDone ? 'text-rose-900 dark:text-rose-200 font-bold' : 'text-slate-900 dark:text-zinc-100 font-semibold'}`}>
+                                  <span className={`break-words font-['Alexandria'] ${isDone ? 'line-through text-slate-500 dark:text-zinc-500' : isNotDone ? 'text-rose-900 dark:text-rose-200 font-bold' : 'text-slate-900 dark:text-zinc-100 font-semibold'}`}>
                                     {task.title}
                                   </span>
                                   {task.notes && (
-                                    <span className="hidden sm:inline text-[11px] text-slate-500 dark:text-zinc-400 font-medium truncate">
+                                    <span className="hidden sm:inline text-[11px] text-slate-500 dark:text-zinc-400 font-medium shrink-0">
                                       ({task.notes})
                                     </span>
                                   )}

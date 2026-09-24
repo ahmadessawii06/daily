@@ -9,12 +9,38 @@
     --font-mono: 'JetBrains Mono', monospace;
   }
 
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
     font-family: var(--font-arabic);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     transition: background-color 0.25s ease, color 0.25s ease;
+    touch-action: manipulation;
   }
+}
+
+/* Prevent auto-zoom on mobile inputs in iOS Safari */
+@media (max-width: 639px) {
+  input[type="text"],
+  input[type="time"],
+  input[type="date"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Hide scrollbar utility for smooth horizontal pill scrollers on mobile */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Dark Mode Mesh */
@@ -71,30 +97,4 @@ html.light ::-webkit-scrollbar-thumb {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
-}
-
-/* Print Styles for PDF export */
-@media print {
-  aside, 
-  nav, 
-  header, 
-  .no-print,
-  button:not(.print-keep) {
-    display: none !important;
-  }
-
-  body {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-  }
-
-  main {
-    max-width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  .print-only {
-    display: block !important;
-  }
 }

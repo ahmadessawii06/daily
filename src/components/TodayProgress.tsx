@@ -118,8 +118,8 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
         </div>
 
         {/* Bottom Row: Neat, Organized Micro-Metrics & Status */}
-        <div className="flex items-center justify-between flex-wrap gap-2 text-xs pt-0.5">
-          <div className="flex items-center gap-3.5 sm:gap-5 flex-wrap">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs pt-0.5">
+          <div className="flex items-center gap-2.5 sm:gap-4 flex-wrap text-[11px] sm:text-xs">
             
             {/* Completed */}
             <div className="flex items-center gap-1.5 text-slate-600 dark:text-zinc-300">
@@ -170,7 +170,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
           </div>
 
           {/* Motivational Hint */}
-          <span className="text-[11px] sm:text-xs font-medium text-emerald-600 dark:text-emerald-400 ms-auto">
+          <span className="text-[11px] sm:text-xs font-medium text-emerald-600 dark:text-emerald-400 sm:ms-auto shrink-0">
             {getMotivationalHint()}
           </span>
         </div>

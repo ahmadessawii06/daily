@@ -134,50 +134,88 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   };
 
   return (
-    <div className={`group relative flex items-center justify-between gap-2.5 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl border transition-all duration-200 overflow-hidden ${statusConfig.rowClass}`}>
+    <div className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3.5 px-3 sm:px-4 py-2.5 sm:py-2.5 rounded-2xl border transition-all duration-200 overflow-hidden ${statusConfig.rowClass}`}>
       
-      {/* Left / Task identity */}
-      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+      {/* ============================================================ */}
+      {/* 1. MOBILE VIEW (< sm): 2-Tier Layout so titles NEVER cut off */}
+      {/* ============================================================ */}
+      <div className="flex sm:hidden flex-col gap-2 w-full">
         
-        {/* Tactile Action Trigger (Round Status Button) */}
-        <button
-          type="button"
-          onClick={handleCycleStatus}
-          title={lang === 'ar' ? 'انقر لتغيير حالة المهمة' : 'Click to toggle status'}
-          className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150 cursor-pointer active:scale-90 ${statusConfig.triggerBg}`}
-        >
-          {isEmptySlot ? (
-            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-          ) : task.status === 'done' ? (
-            <Check className="w-3.5 h-3.5 stroke-[3.5]" />
-          ) : task.status === 'not-done' ? (
-            <X className="w-3.5 h-3.5 stroke-[3.5]" />
-          ) : (
-            <Check className="w-3 h-3 stroke-[2.5] opacity-0 group-hover:opacity-40 transition-opacity text-slate-500 dark:text-zinc-400" />
-          )}
-        </button>
+        {/* Mobile Top Bar: Checkbox + Time Badge on start, Status & Actions on end */}
+        <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-black/[0.04] dark:border-white/[0.05]">
+          
+          {/* Start: Tactile Checkbox + 12h Time Badge */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCycleStatus}
+              title={lang === 'ar' ? 'انقر لتغيير حالة المهمة' : 'Click to toggle status'}
+              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150 cursor-pointer active:scale-90 ${statusConfig.triggerBg}`}
+            >
+              {isEmptySlot ? (
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+              ) : task.status === 'done' ? (
+                <Check className="w-3.5 h-3.5 stroke-[3.5]" />
+              ) : task.status === 'not-done' ? (
+                <X className="w-3.5 h-3.5 stroke-[3.5]" />
+              ) : (
+                <Check className="w-3 h-3 stroke-[2.5] opacity-0 group-hover:opacity-40 transition-opacity text-slate-500 dark:text-zinc-400" />
+              )}
+            </button>
 
-        {/* 12-Hour Beautiful Time Badge (صباحًا / مساءً) */}
-        <div className={`font-mono text-[11px] sm:text-xs font-bold tabular-nums shrink-0 px-2 sm:px-2.5 py-1 rounded-xl border flex items-center gap-1.5 shadow-2xs ${statusConfig.timeClass}`}>
-          <Clock className="w-3.5 h-3.5 opacity-75 shrink-0" />
-          <span className="font-extrabold">{t12.time12}</span>
-          <span className={`text-[10px] sm:text-[11px] font-['Alexandria'] font-extrabold px-1.5 py-0.5 rounded-md ${
-            t12.isPM 
-              ? 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30' 
-              : 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
-          }`}>
-            <span className="hidden sm:inline">{t12.period}</span>
-            <span className="sm:hidden">{t12.periodShort}</span>
-          </span>
+            <div className={`font-mono text-xs font-bold tabular-nums shrink-0 px-2 py-1 rounded-xl border flex items-center gap-1.5 shadow-2xs ${statusConfig.timeClass}`}>
+              <Clock className="w-3.5 h-3.5 opacity-75 shrink-0" />
+              <span className="font-extrabold">{t12.time12}</span>
+              <span className={`text-[10px] font-['Alexandria'] font-extrabold px-1.5 py-0.5 rounded-md ${
+                t12.isPM 
+                  ? 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30' 
+                  : 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+              }`}>
+                {t12.period}
+              </span>
+            </div>
+          </div>
+
+          {/* End: Status Badge (Done/Not Done) + Edit & Delete Actions */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {(!isEmptySlot && task.status !== 'pending') && (
+              <button
+                type="button"
+                onClick={handleCycleStatus}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-extrabold border transition-all cursor-pointer min-h-[30px] active:scale-95 ${statusConfig.badgeClass}`}
+              >
+                <span className="font-black text-xs">{statusConfig.symbol}</span>
+                <span>{statusConfig.label}</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => onEdit(task)}
+              title={lang === 'ar' ? 'تعديل المهمة والملاحظات' : 'Edit task details'}
+              className="p-1.5 text-slate-400 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-black/5 dark:hover:bg-white/[0.08] transition-colors cursor-pointer min-w-[32px] min-h-[32px] flex items-center justify-center active:scale-95"
+            >
+              <Edit3 className="w-3.5 h-3.5 stroke-[2.2]" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onDelete(task.id)}
+              title={isEmptySlot ? (lang === 'ar' ? 'حذف هذه الساعة' : 'Delete slot') : (lang === 'ar' ? 'حذف / تفريغ المهمة' : 'Clear / Delete')}
+              className="p-1.5 text-slate-400 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/20 transition-colors cursor-pointer min-w-[32px] min-h-[32px] flex items-center justify-center active:scale-95"
+            >
+              <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
+            </button>
+          </div>
+
         </div>
 
-        {/* Title & Notes / Direct In-place Input */}
-        <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-          
+        {/* Mobile Main Body: Context Icon + Task Title (FULL WIDTH, NEVER CUT OFF!) + Notes */}
+        <div className="w-full pt-0.5">
           {isEmptySlot || isEditingInline ? (
-            <div className="flex-1 flex items-center gap-1.5 sm:gap-2 min-w-0">
-              <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 transition-all ${contextIconData.bgClass}`}>
-                <ContextIcon className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${contextIconData.iconClass}`} />
+            <div className="flex items-center gap-2 w-full">
+              <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-all ${contextIconData.bgClass}`}>
+                <ContextIcon className={`w-3.5 h-3.5 ${contextIconData.iconClass}`} />
               </div>
 
               <input
@@ -195,13 +233,121 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                 }}
                 onBlur={handleCommitTitle}
                 placeholder={lang === 'ar' ? '+ اكتب اسم المهمة هنا واضغط Enter...' : '+ Write task name and press Enter...'}
-                className="w-full bg-white dark:bg-[#0b0d13] border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs"
+                className="w-full bg-white dark:bg-[#0b0d13] border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-2 text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[40px]"
               />
               {inlineTitle.trim() && (
                 <button
                   type="button"
                   onClick={handleCommitTitle}
-                  className="px-2.5 py-1 text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-xs cursor-pointer shrink-0"
+                  className="px-3 py-2 text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded-xl shadow-xs cursor-pointer shrink-0 min-h-[40px] flex items-center justify-center active:scale-95"
+                >
+                  <Check className="w-4 h-4 stroke-[3]" />
+                </button>
+              )}
+            </div>
+          ) : (
+            <div 
+              onClick={() => setIsEditingInline(true)}
+              className="flex items-start gap-2.5 w-full cursor-pointer group/title py-0.5"
+              title={lang === 'ar' ? 'انقر لتعديل اسم المهمة سريعًا' : 'Click to quickly rename'}
+            >
+              <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 mt-0.5 transition-transform group-hover/title:scale-105 shadow-2xs ${contextIconData.bgClass}`}>
+                <ContextIcon className={`w-3.5 h-3.5 ${contextIconData.iconClass}`} />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-bold select-text font-['Alexandria'] leading-relaxed break-words group-hover/title:underline decoration-emerald-500/50 decoration-2 ${statusConfig.titleClass}`}>
+                  {task.title}
+                </p>
+
+                {task.notes && (
+                  <div className="mt-1">
+                    <span 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(task);
+                      }}
+                      title={task.notes}
+                      className="inline-flex items-center gap-1.5 text-xs text-amber-900 dark:text-amber-300 font-semibold bg-amber-100 dark:bg-amber-500/15 border border-amber-300 dark:border-amber-500/30 px-2 py-0.5 rounded-md cursor-pointer hover:opacity-80 transition-opacity max-w-full break-words"
+                    >
+                      <StickyNote className="w-3 h-3 shrink-0 text-amber-600 dark:text-amber-400" />
+                      <span className="break-words">{task.notes}</span>
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+      </div>
+
+      {/* ============================================================ */}
+      {/* 2. TABLET / IPAD / DESKTOP VIEW (sm: and up): Single Sleek Row */}
+      {/* ============================================================ */}
+      <div className="hidden sm:flex items-center gap-3 min-w-0 flex-1">
+        
+        {/* Tactile Action Trigger */}
+        <button
+          type="button"
+          onClick={handleCycleStatus}
+          title={lang === 'ar' ? 'انقر لتغيير حالة المهمة' : 'Click to toggle status'}
+          className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150 cursor-pointer active:scale-90 ${statusConfig.triggerBg}`}
+        >
+          {isEmptySlot ? (
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+          ) : task.status === 'done' ? (
+            <Check className="w-3.5 h-3.5 stroke-[3.5]" />
+          ) : task.status === 'not-done' ? (
+            <X className="w-3.5 h-3.5 stroke-[3.5]" />
+          ) : (
+            <Check className="w-3 h-3 stroke-[2.5] opacity-0 group-hover:opacity-40 transition-opacity text-slate-500 dark:text-zinc-400" />
+          )}
+        </button>
+
+        {/* 12-Hour Time Badge */}
+        <div className={`font-mono text-xs font-bold tabular-nums shrink-0 px-2.5 py-1 rounded-xl border flex items-center gap-1.5 shadow-2xs ${statusConfig.timeClass}`}>
+          <Clock className="w-3.5 h-3.5 opacity-75 shrink-0" />
+          <span className="font-extrabold">{t12.time12}</span>
+          <span className={`text-[11px] font-['Alexandria'] font-extrabold px-1.5 py-0.5 rounded-md ${
+            t12.isPM 
+              ? 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30' 
+              : 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+          }`}>
+            {t12.period}
+          </span>
+        </div>
+
+        {/* Title & Notes / Direct In-place Input */}
+        <div className="min-w-0 flex-1 flex items-center gap-2">
+          {isEmptySlot || isEditingInline ? (
+            <div className="flex-1 flex items-center gap-2 min-w-0">
+              <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-all ${contextIconData.bgClass}`}>
+                <ContextIcon className={`w-3.5 h-3.5 ${contextIconData.iconClass}`} />
+              </div>
+
+              <input
+                ref={inputRef}
+                type="text"
+                value={inlineTitle}
+                onChange={(e) => setInlineTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCommitTitle();
+                  } else if (e.key === 'Escape') {
+                    setIsEditingInline(false);
+                    setInlineTitle(task.title || '');
+                  }
+                }}
+                onBlur={handleCommitTitle}
+                placeholder={lang === 'ar' ? '+ اكتب اسم المهمة هنا واضغط Enter...' : '+ Write task name and press Enter...'}
+                className="w-full bg-white dark:bg-[#0b0d13] border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-1.5 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[36px]"
+              />
+              {inlineTitle.trim() && (
+                <button
+                  type="button"
+                  onClick={handleCommitTitle}
+                  className="px-2.5 py-1 text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-xs cursor-pointer shrink-0 min-h-[36px] flex items-center justify-center"
                 >
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </button>
@@ -213,11 +359,11 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer group/title py-0.5"
               title={lang === 'ar' ? 'انقر لتعديل اسم المهمة سريعًا' : 'Click to quickly rename'}
             >
-              <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover/title:scale-105 shadow-2xs ${contextIconData.bgClass}`}>
+              <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover/title:scale-105 shadow-2xs ${contextIconData.bgClass}`}>
                 <ContextIcon className={`w-3.5 h-3.5 ${contextIconData.iconClass}`} />
               </div>
 
-              <span className={`text-xs sm:text-sm truncate select-text font-['Alexandria'] group-hover/title:underline decoration-emerald-500/50 decoration-2 ${statusConfig.titleClass}`}>
+              <span className={`text-sm truncate select-text font-['Alexandria'] group-hover/title:underline decoration-emerald-500/50 decoration-2 ${statusConfig.titleClass}`}>
                 {task.title}
               </span>
             </div>
@@ -227,9 +373,9 @@ export const TaskRow: React.FC<TaskRowProps> = ({
             <span 
               onClick={() => onEdit(task)}
               title={task.notes}
-              className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-amber-900 dark:text-amber-300 font-semibold bg-amber-100 dark:bg-amber-500/15 border border-amber-300 dark:border-amber-500/30 px-1.5 py-0.5 rounded shrink-0 max-w-[150px] sm:max-w-[180px] truncate cursor-pointer hover:opacity-80 transition-opacity"
+              className="inline-flex items-center gap-1 text-[11px] text-amber-900 dark:text-amber-300 font-semibold bg-amber-100 dark:bg-amber-500/15 border border-amber-300 dark:border-amber-500/30 px-1.5 py-0.5 rounded shrink-0 max-w-[180px] truncate cursor-pointer hover:opacity-80 transition-opacity"
             >
-              <StickyNote className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 text-amber-600 dark:text-amber-400" />
+              <StickyNote className="w-3 h-3 shrink-0 text-amber-600 dark:text-amber-400" />
               <span className="truncate">{task.notes}</span>
             </span>
           )}
@@ -237,10 +383,8 @@ export const TaskRow: React.FC<TaskRowProps> = ({
 
       </div>
 
-      {/* Right / Status Badge & Actions */}
-      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-        
-        {/* Status Badge (Only shown when done or not-done, or for empty slot) */}
+      {/* Desktop/Tablet Right Side Actions */}
+      <div className="hidden sm:flex items-center gap-2 shrink-0">
         {(!isEmptySlot && task.status !== 'pending') ? (
           <div className="relative">
             <button
@@ -251,11 +395,10 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                 setShowStatusMenu(!showStatusMenu);
               }}
               title={lang === 'ar' ? 'انقر للتبديل، أو زر يمين للقائمة' : 'Click to cycle, right click for menu'}
-              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl text-[11px] sm:text-xs font-extrabold border transition-all cursor-pointer min-h-[30px] ${statusConfig.badgeClass}`}
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold border transition-all cursor-pointer min-h-[30px] active:scale-95 ${statusConfig.badgeClass}`}
             >
-              <span className="font-black text-[11px] sm:text-xs">{statusConfig.symbol}</span>
-              <span className="hidden sm:inline">{statusConfig.label}</span>
-              <span className="sm:hidden">{statusConfig.shortLabel}</span>
+              <span className="font-black text-xs">{statusConfig.symbol}</span>
+              <span>{statusConfig.label}</span>
             </button>
 
             {/* Quick status selector */}
@@ -300,21 +443,20 @@ export const TaskRow: React.FC<TaskRowProps> = ({
             )}
           </div>
         ) : isEmptySlot ? (
-          <div className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl text-[11px] sm:text-xs font-semibold border transition-all min-h-[30px] opacity-60">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all min-h-[30px] opacity-60">
             <span>{statusConfig.symbol}</span>
-            <span className="hidden sm:inline">{statusConfig.label}</span>
-            <span className="sm:hidden">{statusConfig.shortLabel}</span>
+            <span>{statusConfig.label}</span>
           </div>
         ) : null}
 
         {/* Actions (Edit / Delete) - ALWAYS VISIBLE */}
-        <div className="flex items-center gap-0.5 sm:gap-1">
+        <div className="flex items-center gap-1">
           {/* Edit icon button */}
           <button
             type="button"
             onClick={() => onEdit(task)}
             title={lang === 'ar' ? 'تعديل المهمة والملاحظات' : 'Edit task details'}
-            className="p-1.5 text-slate-400 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-black/5 dark:hover:bg-white/[0.08] transition-colors cursor-pointer min-w-[28px] sm:min-w-[30px] min-h-[28px] sm:min-h-[30px] flex items-center justify-center"
+            className="p-1.5 text-slate-400 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-black/5 dark:hover:bg-white/[0.08] transition-colors cursor-pointer min-w-[30px] min-h-[30px] flex items-center justify-center active:scale-95"
           >
             <Edit3 className="w-3.5 h-3.5 stroke-[2.2]" />
           </button>
@@ -324,7 +466,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
             type="button"
             onClick={() => onDelete(task.id)}
             title={isEmptySlot ? (lang === 'ar' ? 'حذف هذه الساعة' : 'Delete slot') : (lang === 'ar' ? 'حذف / تفريغ المهمة' : 'Clear / Delete')}
-            className="p-1.5 text-slate-400 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/20 transition-colors cursor-pointer min-w-[28px] sm:min-w-[30px] min-h-[28px] sm:min-h-[30px] flex items-center justify-center"
+            className="p-1.5 text-slate-400 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/20 transition-colors cursor-pointer min-w-[30px] min-h-[30px] flex items-center justify-center active:scale-95"
           >
             <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
           </button>
