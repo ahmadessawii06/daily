@@ -132,16 +132,16 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
       columnHeaderBg: 'bg-white/[0.04] border border-white/[0.08] text-zinc-300',
       itemBgEmpty: 'bg-white/[0.02] border-white/[0.06] text-zinc-400',
       itemBgDone: 'bg-emerald-950/40 border-emerald-500/35 text-emerald-200',
-      itemBgPending: 'bg-amber-950/35 border-amber-500/35 text-amber-200',
+      itemBgPending: 'bg-white/[0.03] border-white/[0.08] text-zinc-100',
       itemBgNotDone: 'bg-rose-950/35 border-rose-500/35 text-rose-200',
       accentDone: 'bg-emerald-400',
-      accentPending: 'bg-amber-400',
+      accentPending: 'bg-transparent',
       accentNotDone: 'bg-rose-400',
       accentEmpty: 'bg-white/10',
       badgeBg: 'bg-black/40 border border-white/10 text-zinc-200',
       footerBg: 'bg-[#06080d] border-t border-white/[0.08] text-zinc-500',
       statusDoneBadge: 'text-emerald-300 bg-emerald-500/20 border-emerald-500/40',
-      statusPendingBadge: 'text-amber-300 bg-amber-500/20 border-amber-500/40',
+      statusPendingBadge: 'hidden',
       statusNotDoneBadge: 'text-rose-300 bg-rose-500/20 border-rose-500/40',
     },
     light: {
@@ -150,16 +150,16 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
       columnHeaderBg: 'bg-slate-200/80 border border-slate-300 text-slate-800',
       itemBgEmpty: 'bg-white border-slate-200 text-slate-400',
       itemBgDone: 'bg-emerald-50 border-emerald-300 text-emerald-950',
-      itemBgPending: 'bg-amber-50 border-amber-300 text-amber-950',
+      itemBgPending: 'bg-white border-slate-200 text-slate-900',
       itemBgNotDone: 'bg-rose-50 border-rose-300 text-rose-950',
       accentDone: 'bg-emerald-500',
-      accentPending: 'bg-amber-500',
+      accentPending: 'bg-transparent',
       accentNotDone: 'bg-rose-500',
       accentEmpty: 'bg-slate-300',
       badgeBg: 'bg-slate-200/80 border border-slate-300 text-slate-800',
       footerBg: 'bg-slate-100 border-t border-slate-200 text-slate-500',
       statusDoneBadge: 'text-emerald-900 bg-emerald-100 border-emerald-300',
-      statusPendingBadge: 'text-amber-900 bg-amber-100 border-amber-300',
+      statusPendingBadge: 'hidden',
       statusNotDoneBadge: 'text-rose-900 bg-rose-100 border-rose-300',
     },
     emerald: {
@@ -168,16 +168,16 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
       columnHeaderBg: 'bg-emerald-950/60 border border-emerald-500/20 text-emerald-300',
       itemBgEmpty: 'bg-emerald-950/20 border-emerald-500/10 text-emerald-600',
       itemBgDone: 'bg-emerald-900/40 border-emerald-400/40 text-emerald-200',
-      itemBgPending: 'bg-amber-950/40 border-amber-500/40 text-amber-200',
+      itemBgPending: 'bg-emerald-950/30 border-emerald-500/20 text-emerald-100',
       itemBgNotDone: 'bg-rose-950/40 border-rose-500/40 text-rose-200',
       accentDone: 'bg-emerald-400',
-      accentPending: 'bg-amber-400',
+      accentPending: 'bg-transparent',
       accentNotDone: 'bg-rose-400',
       accentEmpty: 'bg-emerald-800/30',
       badgeBg: 'bg-emerald-950/80 border border-emerald-500/25 text-emerald-300',
       footerBg: 'bg-[#020b08] border-t border-emerald-500/20 text-emerald-600',
       statusDoneBadge: 'text-emerald-200 bg-emerald-900/50 border-emerald-400/50',
-      statusPendingBadge: 'text-amber-200 bg-amber-950/50 border-amber-500/40',
+      statusPendingBadge: 'hidden',
       statusNotDoneBadge: 'text-rose-200 bg-rose-950/50 border-rose-500/40',
     },
   }[exportTheme];
@@ -234,17 +234,10 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
 
         {/* Status Badge: Exact identical font & styling to website (Alexandria font) */}
         <div className="shrink-0 flex items-center">
-          {isEmpty ? (
-            <span className="opacity-30 text-xs font-['Alexandria']">—</span>
-          ) : t.status === 'done' ? (
+          {isEmpty || t.status === 'pending' ? null : t.status === 'done' ? (
             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[11px] font-['Alexandria'] font-extrabold border transition-all ${themeStyles.statusDoneBadge}`}>
               <span className="font-black text-xs">✓</span>
               <span>{lang === 'ar' ? 'مكتملة' : 'Done'}</span>
-            </span>
-          ) : t.status === 'pending' ? (
-            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[11px] font-['Alexandria'] font-extrabold border transition-all ${themeStyles.statusPendingBadge}`}>
-              <span className="font-black text-xs">◷</span>
-              <span>{lang === 'ar' ? 'انتظار' : 'Pending'}</span>
             </span>
           ) : (
             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[11px] font-['Alexandria'] font-extrabold border transition-all ${themeStyles.statusNotDoneBadge}`}>
@@ -461,14 +454,10 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
                 </div>
 
                 {/* Quick Counter Chips */}
-                <div className="grid grid-cols-3 gap-2 pt-1 text-center text-xs font-['Alexandria'] font-bold">
+                <div className="grid grid-cols-2 gap-2 pt-1 text-center text-xs font-['Alexandria'] font-bold">
                   <div className="bg-emerald-500/15 border border-emerald-500/30 rounded-xl py-1.5 px-2 text-emerald-400 flex items-center justify-center gap-1.5">
                     <CheckCheck className="w-4 h-4 stroke-[3]" />
                     <span>{cardStats.done} {lang === 'ar' ? 'مكتملة' : 'Done'}</span>
-                  </div>
-                  <div className="bg-amber-500/15 border border-amber-500/30 rounded-xl py-1.5 px-2 text-amber-300 flex items-center justify-center gap-1.5">
-                    <Clock className="w-4 h-4 stroke-[2.8]" />
-                    <span>{cardStats.pending} {lang === 'ar' ? 'انتظار' : 'Pending'}</span>
                   </div>
                   <div className="bg-rose-500/15 border border-rose-500/30 rounded-xl py-1.5 px-2 text-rose-300 flex items-center justify-center gap-1.5">
                     <XCircle className="w-4 h-4 stroke-[2.8]" />

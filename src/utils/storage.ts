@@ -74,13 +74,59 @@ const INITIAL_SEED_DATA: Record<string, DayRecord> = {
   '2026-09-21': {
     date: '2026-09-21',
     updatedAt: '2026-09-21T23:00:00Z',
-    dayNote: 'بداية الأسبوع',
+    dayNote: 'بداية الأسبوع ومراجعة المهام',
     tasks: [
-      { id: 'seed-21-01', time: '05:00', title: 'صلاة الفجر', status: 'done', createdAt: '2026-09-21T05:00:00Z' },
+      { id: 'seed-21-01', time: '05:00', title: 'صلاة الفجر وقراءة أذكار', status: 'done', createdAt: '2026-09-21T05:00:00Z' },
       { id: 'seed-21-02', time: '08:30', title: 'محاضرة قواعد البيانات', status: 'done', createdAt: '2026-09-21T08:30:00Z' },
       { id: 'seed-21-03', time: '13:00', title: 'مشروع التخرج ومناقشة الفريق', status: 'done', createdAt: '2026-09-21T13:00:00Z' },
-      { id: 'seed-21-04', time: '17:00', title: 'قراءة كتاب البرمجة الشيئية', status: 'pending', createdAt: '2026-09-21T17:00:00Z' },
+      { id: 'seed-21-04', time: '17:00', title: 'قراءة كتاب البرمجة الشيئية', status: 'done', createdAt: '2026-09-21T17:00:00Z' },
       { id: 'seed-21-05', time: '20:00', title: 'جلسة عائلية واستراحة', status: 'done', createdAt: '2026-09-21T20:00:00Z' }
+    ]
+  },
+  '2026-09-20': {
+    date: '2026-09-20',
+    updatedAt: '2026-09-20T22:30:00Z',
+    dayNote: 'يوم هادئ ومراجعة مشاريع',
+    tasks: [
+      { id: 'seed-20-01', time: '05:00', title: 'صلاة الفجر وقراءة ورد القرآن', status: 'done', createdAt: '2026-09-20T05:00:00Z' },
+      { id: 'seed-20-02', time: '09:00', title: 'دراسة ومراجعة السلايدات', status: 'done', createdAt: '2026-09-20T09:00:00Z' },
+      { id: 'seed-20-03', time: '14:00', title: 'صلاة الظهر والغداء', status: 'done', createdAt: '2026-09-20T14:00:00Z' },
+      { id: 'seed-20-04', time: '17:00', title: 'تمرين الجيم واللياقة', status: 'not-done', notes: 'تأجل للمساء ولم يكتمل', createdAt: '2026-09-20T17:00:00Z' },
+      { id: 'seed-20-05', time: '20:00', title: 'برمجة موقع وتعديل واجهات', status: 'done', createdAt: '2026-09-20T20:00:00Z' }
+    ]
+  },
+  '2026-09-19': {
+    date: '2026-09-19',
+    updatedAt: '2026-09-19T22:00:00Z',
+    dayNote: 'عطلة السبت وتطوير ذاتي',
+    tasks: [
+      { id: 'seed-19-01', time: '05:00', title: 'صلاة الفجر والأذكار', status: 'done', createdAt: '2026-09-19T05:00:00Z' },
+      { id: 'seed-19-02', time: '10:00', title: 'قراءة كتاب وتلخيص فصول', status: 'done', createdAt: '2026-09-19T10:00:00Z' },
+      { id: 'seed-19-03', time: '15:00', title: 'حل كويز ومراجعة أسبوعية', status: 'done', createdAt: '2026-09-19T15:00:00Z' },
+      { id: 'seed-19-04', time: '18:00', title: 'صلاة المغرب وزيارة أقارب', status: 'done', createdAt: '2026-09-19T18:00:00Z' }
+    ]
+  },
+  '2026-09-18': {
+    date: '2026-09-18',
+    updatedAt: '2026-09-18T23:00:00Z',
+    dayNote: 'يوم الجمعة المبارك',
+    tasks: [
+      { id: 'seed-18-01', time: '05:00', title: 'صلاة الفجر', status: 'done', createdAt: '2026-09-18T05:00:00Z' },
+      { id: 'seed-18-02', time: '11:30', title: 'صلاة الجمعة وسورة الكهف', status: 'done', createdAt: '2026-09-18T11:30:00Z' },
+      { id: 'seed-18-03', time: '16:00', title: 'صلاة العصر والأذكار', status: 'done', createdAt: '2026-09-18T16:00:00Z' },
+      { id: 'seed-18-04', time: '19:00', title: 'تمرين خفيف ومشي', status: 'not-done', createdAt: '2026-09-18T19:00:00Z' }
+    ]
+  },
+  '2026-09-17': {
+    date: '2026-09-17',
+    updatedAt: '2026-09-17T21:00:00Z',
+    dayNote: 'يوم الخميس ونهاية الأسبوع الدراسي',
+    tasks: [
+      { id: 'seed-17-01', time: '05:00', title: 'صلاة الفجر', status: 'done', createdAt: '2026-09-17T05:00:00Z' },
+      { id: 'seed-17-02', time: '08:00', title: 'محاضرة البرمجة الشيئية', status: 'done', createdAt: '2026-09-17T08:00:00Z' },
+      { id: 'seed-17-03', time: '12:00', title: 'مذاكرة وحل مسائل', status: 'pending', createdAt: '2026-09-17T12:00:00Z' },
+      { id: 'seed-17-04', time: '17:00', title: 'صلاة العصر والمغرب', status: 'done', createdAt: '2026-09-17T17:00:00Z' },
+      { id: 'seed-17-05', time: '20:00', title: 'برمجة وتطبيق عملي', status: 'done', createdAt: '2026-09-17T20:00:00Z' }
     ]
   }
 };

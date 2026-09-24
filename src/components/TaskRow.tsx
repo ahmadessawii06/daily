@@ -88,16 +88,16 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           timeClass: 'text-emerald-900 dark:text-emerald-300 bg-emerald-500/10 border-emerald-500/25',
         },
         pending: {
-          label: lang === 'ar' ? 'قيد الانتظار' : 'Pending',
-          shortLabel: lang === 'ar' ? 'انتظار' : 'Pending',
-          symbol: '◷',
+          label: '',
+          shortLabel: '',
+          symbol: '',
           rowClass: 
-            'bg-amber-500/[0.08] hover:bg-amber-500/[0.13] border-amber-500/30 hover:border-amber-500/50 shadow-xs shadow-amber-500/5 dark:bg-amber-950/25 dark:hover:bg-amber-950/40 dark:border-amber-500/35 dark:hover:border-amber-400/50 dark:shadow-amber-950/40',
-          accentStrip: 'bg-amber-500 dark:bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.5)]',
-          triggerBg: 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/40 dark:hover:bg-amber-500/30 ring-1 ring-amber-500/20',
-          badgeClass: 'text-amber-900 bg-amber-100 border-amber-300 hover:bg-amber-200 dark:text-amber-300 dark:bg-amber-500/20 dark:border-amber-500/40 dark:hover:bg-amber-500/30 shadow-2xs',
+            'bg-white hover:bg-slate-50/90 border-slate-200/90 hover:border-slate-300 shadow-2xs dark:bg-[#11131a] dark:hover:bg-[#151822] dark:border-white/[0.08] dark:hover:border-white/[0.15]',
+          accentStrip: 'bg-transparent',
+          triggerBg: 'border-2 border-slate-300 dark:border-white/25 hover:border-emerald-500 text-transparent hover:text-emerald-600 dark:hover:border-emerald-400 dark:hover:text-emerald-400 bg-slate-50/60 dark:bg-white/[0.03]',
+          badgeClass: '',
           titleClass: 'text-slate-900 dark:text-zinc-100 font-bold',
-          timeClass: 'text-amber-900 dark:text-amber-300 bg-amber-500/10 border-amber-500/25',
+          timeClass: 'text-slate-700 dark:text-zinc-300 bg-slate-100 dark:bg-white/[0.06] border-slate-200 dark:border-white/[0.1]',
         },
         'not-done': {
           label: lang === 'ar' ? 'غير منجزة' : 'Not Done',
@@ -150,10 +150,10 @@ export const TaskRow: React.FC<TaskRowProps> = ({
             <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
           ) : task.status === 'done' ? (
             <Check className="w-3.5 h-3.5 stroke-[3.5]" />
-          ) : task.status === 'pending' ? (
-            <Clock className="w-3.5 h-3.5 stroke-[2.8]" />
-          ) : (
+          ) : task.status === 'not-done' ? (
             <X className="w-3.5 h-3.5 stroke-[3.5]" />
+          ) : (
+            <Check className="w-3 h-3 stroke-[2.5] opacity-0 group-hover:opacity-40 transition-opacity text-slate-500 dark:text-zinc-400" />
           )}
         </button>
 
@@ -240,65 +240,72 @@ export const TaskRow: React.FC<TaskRowProps> = ({
       {/* Right / Status Badge & Actions */}
       <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         
-        {/* Status Badge */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={handleCycleStatus}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              setShowStatusMenu(!showStatusMenu);
-            }}
-            title={lang === 'ar' ? 'انقر للتبديل، أو زر يمين للقائمة' : 'Click to cycle, right click for menu'}
-            className={`inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl text-[11px] sm:text-xs font-extrabold border transition-all cursor-pointer min-h-[30px] ${statusConfig.badgeClass}`}
-          >
-            <span className="font-black text-[11px] sm:text-xs">{statusConfig.symbol}</span>
+        {/* Status Badge (Only shown when done or not-done, or for empty slot) */}
+        {(!isEmptySlot && task.status !== 'pending') ? (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={handleCycleStatus}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setShowStatusMenu(!showStatusMenu);
+              }}
+              title={lang === 'ar' ? 'انقر للتبديل، أو زر يمين للقائمة' : 'Click to cycle, right click for menu'}
+              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl text-[11px] sm:text-xs font-extrabold border transition-all cursor-pointer min-h-[30px] ${statusConfig.badgeClass}`}
+            >
+              <span className="font-black text-[11px] sm:text-xs">{statusConfig.symbol}</span>
+              <span className="hidden sm:inline">{statusConfig.label}</span>
+              <span className="sm:hidden">{statusConfig.shortLabel}</span>
+            </button>
+
+            {/* Quick status selector */}
+            {showStatusMenu && (
+              <div 
+                className="absolute end-0 top-full mt-2 z-40 w-36 bg-white dark:bg-[#13151f] border border-slate-200 dark:border-white/[0.15] rounded-xl p-1.5 shadow-2xl text-xs space-y-1 backdrop-blur-xl"
+                onMouseLeave={() => setShowStatusMenu(false)}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    onStatusChange(task.id, 'done');
+                    setShowStatusMenu(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-emerald-800 dark:text-emerald-300 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/20"
+                >
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>{lang === 'ar' ? 'مكتملة' : 'Done'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onStatusChange(task.id, 'not-done');
+                    setShowStatusMenu(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-800 dark:text-rose-300 font-bold hover:bg-rose-50 dark:hover:bg-rose-500/20"
+                >
+                  <X className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>{lang === 'ar' ? 'غير منجزة' : 'Not Done'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onStatusChange(task.id, 'pending');
+                    setShowStatusMenu(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-slate-700 dark:text-zinc-300 font-bold hover:bg-slate-100 dark:hover:bg-white/10"
+                >
+                  <span>{lang === 'ar' ? 'بدون حالة' : 'No status'}</span>
+                </button>
+              </div>
+            )}
+          </div>
+        ) : isEmptySlot ? (
+          <div className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl text-[11px] sm:text-xs font-semibold border transition-all min-h-[30px] opacity-60">
+            <span>{statusConfig.symbol}</span>
             <span className="hidden sm:inline">{statusConfig.label}</span>
             <span className="sm:hidden">{statusConfig.shortLabel}</span>
-          </button>
-
-          {/* Quick status selector */}
-          {showStatusMenu && (
-            <div 
-              className="absolute end-0 top-full mt-2 z-40 w-36 bg-white dark:bg-[#13151f] border border-slate-200 dark:border-white/[0.15] rounded-xl p-1.5 shadow-2xl text-xs space-y-1 backdrop-blur-xl"
-              onMouseLeave={() => setShowStatusMenu(false)}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  onStatusChange(task.id, 'done');
-                  setShowStatusMenu(false);
-                }}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-emerald-800 dark:text-emerald-300 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/20"
-              >
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
-                <span>{lang === 'ar' ? 'مكتملة' : 'Done'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  onStatusChange(task.id, 'pending');
-                  setShowStatusMenu(false);
-                }}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-amber-800 dark:text-amber-300 font-bold hover:bg-amber-50 dark:hover:bg-amber-500/20"
-              >
-                <Clock className="w-3.5 h-3.5 stroke-[2.8]" />
-                <span>{lang === 'ar' ? 'قيد الانتظار' : 'Pending'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  onStatusChange(task.id, 'not-done');
-                  setShowStatusMenu(false);
-                }}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-800 dark:text-rose-300 font-bold hover:bg-rose-50 dark:hover:bg-rose-500/20"
-              >
-                <X className="w-3.5 h-3.5 stroke-[3]" />
-                <span>{lang === 'ar' ? 'غير منجزة' : 'Not Done'}</span>
-              </button>
-            </div>
-          )}
-        </div>
+          </div>
+        ) : null}
 
         {/* Actions (Edit / Delete) - ALWAYS VISIBLE */}
         <div className="flex items-center gap-0.5 sm:gap-1">

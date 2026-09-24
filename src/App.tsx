@@ -111,8 +111,6 @@ export default function App() {
       playAchievementSound();
     } else if (newStatus === 'not-done') {
       playFailureSound();
-    } else if (newStatus === 'pending') {
-      playPendingSound();
     }
 
     updateTaskInDay(currentDate, taskId, { status: newStatus });
@@ -137,8 +135,6 @@ export default function App() {
         playAchievementSound();
       } else if (updates.status === 'not-done') {
         playFailureSound();
-      } else if (updates.status === 'pending') {
-        playPendingSound();
       }
     }
 

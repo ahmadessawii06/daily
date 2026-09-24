@@ -38,7 +38,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
             <button
               type="button"
               onClick={() => onFilterChange(currentFilter === 'done' ? 'all' : 'done')}
-              className={`inline-flex items-center gap-1.5 transition-colors cursor-pointer py-0.5 px-1.5 rounded-md ${
+              className={`inline-flex items-center gap-1.5 transition-colors cursor-pointer py-0.5 px-2 rounded-md ${
                 currentFilter === 'done'
                   ? 'text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-500/10'
                   : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200'
@@ -49,26 +49,11 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               <span>{stats.done} {lang === 'ar' ? 'مكتملة' : 'Done'}</span>
             </button>
 
-            {/* قيد الانتظار */}
-            <button
-              type="button"
-              onClick={() => onFilterChange(currentFilter === 'pending' ? 'all' : 'pending')}
-              className={`inline-flex items-center gap-1.5 transition-colors cursor-pointer py-0.5 px-1.5 rounded-md ${
-                currentFilter === 'pending'
-                  ? 'text-amber-700 dark:text-amber-300 font-bold bg-amber-500/10'
-                  : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200'
-              }`}
-              title={lang === 'ar' ? 'تصفية المهام قيد الانتظار' : 'Filter pending tasks'}
-            >
-              <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-              <span>{stats.pending} {lang === 'ar' ? 'انتظار' : 'Pending'}</span>
-            </button>
-
             {/* غير منجزة */}
             <button
               type="button"
               onClick={() => onFilterChange(currentFilter === 'not-done' ? 'all' : 'not-done')}
-              className={`inline-flex items-center gap-1.5 transition-colors cursor-pointer py-0.5 px-1.5 rounded-md ${
+              className={`inline-flex items-center gap-1.5 transition-colors cursor-pointer py-0.5 px-2 rounded-md ${
                 currentFilter === 'not-done'
                   ? 'text-rose-700 dark:text-rose-300 font-bold bg-rose-500/10'
                   : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200'

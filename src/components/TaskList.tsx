@@ -144,18 +144,6 @@ export const TaskList: React.FC<TaskListProps> = ({
 
             <button
               type="button"
-              onClick={() => onFilterChange('pending')}
-              className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap min-h-[30px] flex items-center ${
-                currentFilter === 'pending'
-                  ? 'bg-amber-400 text-slate-950 font-bold shadow-xs'
-                  : 'text-slate-600 hover:text-amber-700 dark:text-zinc-400 dark:hover:text-amber-400'
-              }`}
-            >
-              {lang === 'ar' ? 'انتظار' : 'Pending'}
-            </button>
-
-            <button
-              type="button"
               onClick={() => onFilterChange('not-done')}
               className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap min-h-[30px] flex items-center ${
                 currentFilter === 'not-done'

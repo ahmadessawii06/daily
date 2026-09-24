@@ -190,13 +190,13 @@ export const Archive: React.FC<ArchiveProps> = ({
                               ? 'bg-emerald-500/[0.08] border-emerald-500/30 dark:bg-emerald-950/25 dark:border-emerald-500/30'
                               : isNotDone
                               ? 'bg-rose-500/[0.08] border-rose-500/30 dark:bg-rose-950/25 dark:border-rose-500/30'
-                              : 'bg-amber-500/[0.08] border-amber-500/30 dark:bg-amber-950/25 dark:border-amber-500/30';
+                              : 'bg-white border-slate-200/90 dark:bg-white/[0.03] dark:border-white/[0.08]';
 
                             const stripStyle = isDone
                               ? 'bg-emerald-500 dark:bg-emerald-400'
                               : isNotDone
                               ? 'bg-rose-500 dark:bg-rose-400'
-                              : 'bg-amber-500 dark:bg-amber-400';
+                              : 'bg-transparent';
 
                             return (
                               <div
@@ -204,7 +204,9 @@ export const Archive: React.FC<ArchiveProps> = ({
                                 className={`flex items-center justify-between px-3 py-2 rounded-xl border text-xs shadow-2xs gap-2.5 overflow-hidden transition-colors ${rowStyle}`}
                               >
                                 <div className="flex items-center gap-2 truncate flex-1 min-w-0">
-                                  <div className={`w-1 self-stretch rounded-full shrink-0 ${stripStyle}`} />
+                                  {stripStyle !== 'bg-transparent' && (
+                                    <div className={`w-1 self-stretch rounded-full shrink-0 ${stripStyle}`} />
+                                  )}
                                   <span className="font-mono font-bold text-slate-700 dark:text-zinc-300 tabular-nums shrink-0 bg-black/5 dark:bg-white/[0.06] px-2 py-0.5 rounded-lg flex items-center gap-1">
                                     <span>{t12.time12}</span>
                                     <span className="text-[10px] font-['Alexandria'] font-bold opacity-80">{t12.period}</span>
@@ -213,27 +215,21 @@ export const Archive: React.FC<ArchiveProps> = ({
                                     {task.title}
                                   </span>
                                   {task.notes && (
-                                    <span className="hidden sm:inline text-[11px] text-amber-800 dark:text-amber-300 font-medium truncate">
+                                    <span className="hidden sm:inline text-[11px] text-slate-500 dark:text-zinc-400 font-medium truncate">
                                       ({task.notes})
                                     </span>
                                   )}
                                 </div>
 
-                                <span
-                                  className={`text-[10px] px-2.5 py-0.5 rounded-lg font-bold shrink-0 ms-2 ${
-                                    isDone
-                                      ? 'text-emerald-800 bg-emerald-100 border border-emerald-300 dark:text-emerald-300 dark:bg-emerald-500/20 dark:border-emerald-500/30'
-                                      : isNotDone
-                                      ? 'text-rose-800 bg-rose-100 border border-rose-300 dark:text-rose-300 dark:bg-rose-500/20 dark:border-rose-500/30'
-                                      : 'text-amber-800 bg-amber-100 border border-amber-300 dark:text-amber-300 dark:bg-amber-500/20 dark:border-amber-500/30'
-                                  }`}
-                                >
-                                  {isDone
-                                    ? (lang === 'ar' ? '✓ مكتملة' : '✓ Done')
-                                    : isNotDone
-                                    ? (lang === 'ar' ? '✕ غير منجزة' : '✕ Not Done')
-                                    : (lang === 'ar' ? '◷ انتظار' : '◷ Pending')}
-                                </span>
+                                {isDone ? (
+                                  <span className="text-[10px] px-2.5 py-0.5 rounded-lg font-bold shrink-0 ms-2 text-emerald-800 bg-emerald-100 border border-emerald-300 dark:text-emerald-300 dark:bg-emerald-500/20 dark:border-emerald-500/30">
+                                    {lang === 'ar' ? '✓ مكتملة' : '✓ Done'}
+                                  </span>
+                                ) : isNotDone ? (
+                                  <span className="text-[10px] px-2.5 py-0.5 rounded-lg font-bold shrink-0 ms-2 text-rose-800 bg-rose-100 border border-rose-300 dark:text-rose-300 dark:bg-rose-500/20 dark:border-rose-500/30">
+                                    {lang === 'ar' ? '✕ غير منجزة' : '✕ Not Done'}
+                                  </span>
+                                ) : null}
                               </div>
                             );
                           })}

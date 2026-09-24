@@ -194,7 +194,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 onChange={(e) => setStatus(e.target.value as TaskStatus)}
                 className="w-full bg-slate-50 dark:bg-[#08090d] border border-slate-300 dark:border-white/[0.1] rounded-xl px-3 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80"
               >
-                <option value="pending">{lang === 'ar' ? '◷ قيد الانتظار' : 'Pending'}</option>
+                <option value="pending">{lang === 'ar' ? 'عادية (بدون حالة)' : 'Normal (No status)'}</option>
                 <option value="done">{lang === 'ar' ? '✓ مكتملة' : 'Done'}</option>
                 <option value="not-done">{lang === 'ar' ? '✕ غير منجزة' : 'Not Done'}</option>
               </select>
