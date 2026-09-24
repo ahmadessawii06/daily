@@ -153,7 +153,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (circumference * percentage) / 100;
 
-  // Motivational short phrase
+  // Motivational short phrase for badge
   const getMotivationalHint = () => {
     if (stats.total === 0) {
       return lang === 'ar' ? 'أضف مهامك لتبدأ تتبع إنجازك ✨' : 'Add tasks to start tracking ✨';
@@ -171,6 +171,48 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
       return lang === 'ar' ? 'بداية موفقة، خطوة بخطوة ✨' : 'Great start, step by step ✨';
     }
     return lang === 'ar' ? 'انطلق وابدأ أول مهمة لليوم 🚀' : 'Start with your first task 🚀';
+  };
+
+  // Motivational title replacing "نسبة الإنجاز الكلية"
+  const getMotivationalTitle = () => {
+    if (stats.total === 0) {
+      return lang === 'ar' ? 'اصنع يومك المميز الآن 💫' : 'Shape your extraordinary day 💫';
+    }
+    if (isAllComplete) {
+      return lang === 'ar' ? 'قمة الإنجاز والتميز! 🏆' : 'Peak of achievement! 🏆';
+    }
+    if (percentage >= 75) {
+      return lang === 'ar' ? 'طاقة حماسية تقترب من القمة! ⚡' : 'Unstoppable momentum! ⚡';
+    }
+    if (percentage >= 50) {
+      return lang === 'ar' ? 'زخم رائع.. أنت تصنع الفارق! 🔥' : 'Great momentum, keep going! 🔥';
+    }
+    if (percentage > 0) {
+      return lang === 'ar' ? 'خطواتك اليوم تبني مستقبلك! 🚀' : 'Every step builds your future! 🚀';
+    }
+    return lang === 'ar' ? 'انطلق بعزيمة واصنع إنجازك! 💪' : 'Ignite your drive and achieve! 💪';
+  };
+
+  // Motivational subtitle replacing "انقر على أي دائرة للتصفية"
+  const getMotivationalSubtitle = () => {
+    if (isAllComplete) {
+      return lang === 'ar'
+        ? 'أثبتت أنك قادر على كل شيء • استمتع بثمرة مجهودك 🌟'
+        : 'You proved you can conquer anything • celebrate your win 🌟';
+    }
+    if (percentage >= 50) {
+      return lang === 'ar'
+        ? 'واصل التألق، كل مهمة تنهيها فوز جديد لك 🎯'
+        : 'Keep shining, every task finished is another win 🎯';
+    }
+    if (percentage > 0) {
+      return lang === 'ar'
+        ? 'كل خطوة تقربك من هدفك • اضغط الدوائر وتابع شغفك ✨'
+        : 'Every step brings you closer • tap circles to explore ✨';
+    }
+    return lang === 'ar'
+      ? 'طاقتك اليوم تصنع الفرق • المس أي دائرة لمتابعة مهامك 🎯'
+      : 'Your energy makes the difference • tap circles to start 🎯';
   };
 
   return (
@@ -243,6 +285,9 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
           {/* Main Circular Progress Gauge */}
           <div className="flex items-center gap-4 sm:gap-5 w-full md:w-auto justify-center md:justify-start shrink-0">
             <div className="relative shrink-0 flex items-center justify-center">
+              {/* Subtle ambient energetic glow */}
+              <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-emerald-500/20 via-teal-500/15 to-cyan-500/20 blur-md pointer-events-none" />
+
               <svg
                 viewBox="0 0 100 100"
                 className="w-24 h-24 sm:w-28 sm:h-28 -rotate-90 shrink-0 transform-gpu"
@@ -251,12 +296,13 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                 <defs>
                   <linearGradient id="todayProgressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#10b981" />
-                    <stop offset="100%" stopColor="#0d9488" />
+                    <stop offset="50%" stopColor="#06b6d4" />
+                    <stop offset="100%" stopColor="#3b82f6" />
                   </linearGradient>
                   <linearGradient id="todayProgressCompleteGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#10b981" />
-                    <stop offset="50%" stopColor="#34d399" />
-                    <stop offset="100%" stopColor="#059669" />
+                    <stop offset="0%" stopColor="#f59e0b" />
+                    <stop offset="50%" stopColor="#10b981" />
+                    <stop offset="100%" stopColor="#06b6d4" />
                   </linearGradient>
                 </defs>
 
@@ -291,37 +337,39 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               {/* Inner Content inside Circle */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
                 {isAllComplete ? (
-                  <div className="flex flex-col items-center leading-none">
-                    <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 drop-shadow-xs mb-0.5" />
-                    <span className="text-[11px] sm:text-xs font-black font-numbers text-emerald-600 dark:text-emerald-400">
-                      100%
-                    </span>
-                  </div>
-                ) : (
                   <div className="flex flex-col items-center justify-center leading-none">
-                    <div className="flex items-baseline justify-center font-numbers text-slate-900 dark:text-white">
-                      <span className="text-xl sm:text-2xl font-black tracking-tight">
-                        {percentage}
+                    <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 drop-shadow-xs mb-1 animate-pulse" />
+                    <div className="flex items-baseline justify-center font-numbers">
+                      <span className="text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-amber-500 via-yellow-400 to-emerald-500 bg-clip-text text-transparent">
+                        100
                       </span>
-                      <span className="text-[10px] sm:text-xs font-bold text-slate-400 dark:text-zinc-500 ms-0.5">
+                      <span className="text-[11px] sm:text-xs font-black text-amber-500 ms-0.5">
                         %
                       </span>
                     </div>
-                    <span className="text-[9px] sm:text-[10px] font-semibold text-slate-400 dark:text-zinc-500 font-['Alexandria'] mt-0.5">
-                      {lang === 'ar' ? 'إنجاز' : 'Done'}
-                    </span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center leading-none">
+                    <div className="flex items-baseline justify-center font-numbers">
+                      <span className="text-2xl sm:text-3xl font-black tracking-tight bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 dark:from-emerald-400 dark:via-teal-300 dark:to-cyan-400 bg-clip-text text-transparent drop-shadow-xs">
+                        {percentage}
+                      </span>
+                      <span className="text-xs sm:text-sm font-black text-cyan-600 dark:text-cyan-400 ms-0.5">
+                        %
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Quick Summary beside main circle */}
-            <div className="flex flex-col justify-center min-w-0">
-              <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white font-['Alexandria']">
-                {lang === 'ar' ? 'نسبة الإنجاز الكلية' : 'Total Completion Rate'}
+            {/* Motivational Title & Subtitle beside main circle */}
+            <div className="flex flex-col justify-center min-w-0 max-w-[220px]">
+              <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white font-['Alexandria'] leading-snug">
+                {getMotivationalTitle()}
               </span>
-              <span className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
-                {lang === 'ar' ? 'انقر على أي دائرة للتصفية' : 'Tap any circle to filter'}
+              <span className="text-[11px] sm:text-xs text-slate-500 dark:text-zinc-400 mt-1 font-medium leading-relaxed font-['Alexandria']">
+                {getMotivationalSubtitle()}
               </span>
             </div>
           </div>
