@@ -307,48 +307,31 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
           {/* Main Circular Progress Gauge */}
           <div className="flex items-center gap-4 sm:gap-5 w-full md:w-auto justify-center md:justify-start shrink-0">
             <div className="relative shrink-0 flex items-center justify-center">
-              {/* Subtle ambient energetic glow */}
-              <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-[#10e588]/25 via-teal-400/20 to-cyan-400/20 blur-md pointer-events-none" />
-
               <svg
                 viewBox="0 0 100 100"
                 className="w-24 h-24 sm:w-28 sm:h-28 -rotate-90 shrink-0 transform-gpu"
                 aria-label={`Progress: ${percentage}%`}
               >
-                <defs>
-                  <linearGradient id="todayProgressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#10e588" />
-                    <stop offset="45%" stopColor="#2ed573" />
-                    <stop offset="85%" stopColor="#06b6d4" />
-                    <stop offset="100%" stopColor="#38bdf8" />
-                  </linearGradient>
-                  <linearGradient id="todayProgressCompleteGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#fbbf24" />
-                    <stop offset="45%" stopColor="#10e588" />
-                    <stop offset="100%" stopColor="#22d3ee" />
-                  </linearGradient>
-                </defs>
-
-                {/* Background ring */}
+                {/* Background track (neutral dark/light) */}
                 <circle
                   cx="50"
                   cy="50"
                   r={radius}
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="8"
-                  className="text-slate-100 dark:text-white/[0.07]"
+                  strokeWidth="7"
+                  className="text-slate-100 dark:text-white/[0.08]"
                 />
 
-                {/* Active progress arc */}
+                {/* Active progress arc (pure green) */}
                 {percentage > 0 && (
                   <circle
                     cx="50"
                     cy="50"
                     r={radius}
                     fill="none"
-                    stroke={isAllComplete ? 'url(#todayProgressCompleteGrad)' : 'url(#todayProgressGrad)'}
-                    strokeWidth="8"
+                    stroke="#10e588"
+                    strokeWidth="7"
                     strokeDasharray={circumference}
                     strokeDashoffset={strokeDashoffset}
                     strokeLinecap="round"
@@ -361,12 +344,12 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
                 {isAllComplete ? (
                   <div className="flex flex-col items-center justify-center leading-none">
-                    <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 drop-shadow-xs mb-1 animate-pulse" />
+                    <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#10e588] mb-1 animate-pulse" />
                     <div className="flex items-baseline justify-center font-numbers">
-                      <span className="text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-amber-500 via-yellow-400 to-[#10e588] bg-clip-text text-transparent">
+                      <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                         100
                       </span>
-                      <span className="text-[11px] sm:text-xs font-black text-amber-500 ms-0.5">
+                      <span className="text-[11px] sm:text-xs font-bold text-[#10e588] ms-0.5">
                         %
                       </span>
                     </div>
@@ -374,10 +357,10 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                 ) : (
                   <div className="flex flex-col items-center justify-center leading-none">
                     <div className="flex items-baseline justify-center font-numbers">
-                      <span className="text-2xl sm:text-3xl font-black tracking-tight bg-gradient-to-r from-[#10e588] via-emerald-400 to-cyan-400 dark:from-[#10e588] dark:via-emerald-300 dark:to-cyan-300 bg-clip-text text-transparent drop-shadow-xs">
+                      <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
                         {percentage}
                       </span>
-                      <span className="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400 ms-0.5">
+                      <span className="text-xs sm:text-sm font-bold text-[#10e588] ms-0.5">
                         %
                       </span>
                     </div>
