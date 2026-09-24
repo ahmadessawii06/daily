@@ -153,66 +153,88 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (circumference * percentage) / 100;
 
-  // Motivational short phrase for badge
+  // Motivational short phrase for badge (Quranic remembrance & encouragement)
   const getMotivationalHint = () => {
     if (stats.total === 0) {
-      return lang === 'ar' ? 'أضف مهامك لتبدأ تتبع إنجازك ✨' : 'Add tasks to start tracking ✨';
+      return lang === 'ar' ? '﴿بِسْمِ اللَّهِ﴾ • ابدأ يومك' : 'Begin in Allah\'s Name ✨';
     }
     if (isAllComplete) {
-      return lang === 'ar' ? 'إنجاز رائع لليوم! 🏆' : 'Awesome achievement today! 🏆';
+      return lang === 'ar' ? '﴿الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ﴾ 🏆' : 'Praise be to Allah! 🏆';
     }
     if (percentage >= 75) {
-      return lang === 'ar' ? 'أوشكت على خط النهاية! ⚡' : 'Almost at the finish line! ⚡';
+      return lang === 'ar' ? '﴿وَأَنَّ سَعْيَهُ سَوْفَ يُرَىٰ﴾ ⚡' : 'Effort shall be seen ⚡';
     }
     if (percentage >= 50) {
-      return lang === 'ar' ? 'تجاوزت المنتصف، استمر! 💪' : 'Over halfway, keep going! 💪';
+      return lang === 'ar' ? '﴿فَاسْتَبِقُوا الْخَيْرَاتِ﴾ 🎯' : 'Race to all good deeds 🎯';
     }
     if (percentage > 0) {
-      return lang === 'ar' ? 'بداية موفقة، خطوة بخطوة ✨' : 'Great start, step by step ✨';
+      return lang === 'ar' ? '﴿إِنَّ مَعَ الْعُسْرِ يُسْرًا﴾ ✨' : 'With hardship comes ease ✨';
     }
-    return lang === 'ar' ? 'انطلق وابدأ أول مهمة لليوم 🚀' : 'Start with your first task 🚀';
+    return lang === 'ar' ? '﴿عَلَى اللَّهِ تَوَكَّلْنَا﴾ 🚀' : 'Upon Allah we rely 🚀';
   };
 
-  // Motivational title replacing "نسبة الإنجاز الكلية"
+  // Motivational title beside circular progress - Inspiring Quranic verses
   const getMotivationalTitle = () => {
     if (stats.total === 0) {
-      return lang === 'ar' ? 'اصنع يومك المميز الآن 💫' : 'Shape your extraordinary day 💫';
+      return lang === 'ar'
+        ? '﴿وَقُل رَّبِّ أَدْخِلْنِي مُدْخَلَ صِدْقٍ﴾'
+        : '“My Lord, grant me a sound entrance.”';
     }
     if (isAllComplete) {
-      return lang === 'ar' ? 'قمة الإنجاز والتميز! 🏆' : 'Peak of achievement! 🏆';
+      return lang === 'ar'
+        ? '﴿إِنَّا لَا نُضِيعُ أَجْرَ مَنْ أَحْسَنَ عَمَلًا﴾'
+        : '“We do not lose the reward of one who does good deeds.”';
     }
     if (percentage >= 75) {
-      return lang === 'ar' ? 'طاقة حماسية تقترب من القمة! ⚡' : 'Unstoppable momentum! ⚡';
-    }
-    if (percentage >= 50) {
-      return lang === 'ar' ? 'زخم رائع.. أنت تصنع الفارق! 🔥' : 'Great momentum, keep going! 🔥';
-    }
-    if (percentage > 0) {
-      return lang === 'ar' ? 'خطواتك اليوم تبني مستقبلك! 🚀' : 'Every step builds your future! 🚀';
-    }
-    return lang === 'ar' ? 'انطلق بعزيمة واصنع إنجازك! 💪' : 'Ignite your drive and achieve! 💪';
-  };
-
-  // Motivational subtitle replacing "انقر على أي دائرة للتصفية"
-  const getMotivationalSubtitle = () => {
-    if (isAllComplete) {
       return lang === 'ar'
-        ? 'أثبتت أنك قادر على كل شيء • استمتع بثمرة مجهودك 🌟'
-        : 'You proved you can conquer anything • celebrate your win 🌟';
+        ? '﴿وَأَن لَّيْسَ لِلْإِنسَانِ إِلَّا مَا سَعَىٰ﴾'
+        : '“And that man receives only that which he strives for.”';
     }
     if (percentage >= 50) {
       return lang === 'ar'
-        ? 'واصل التألق، كل مهمة تنهيها فوز جديد لك 🎯'
-        : 'Keep shining, every task finished is another win 🎯';
+        ? '﴿فَاسْتَبِقُوا الْخَيْرَاتِ﴾'
+        : '“So race forward to every good.”';
     }
     if (percentage > 0) {
       return lang === 'ar'
-        ? 'كل خطوة تقربك من هدفك • اضغط الدوائر وتابع شغفك ✨'
-        : 'Every step brings you closer • tap circles to explore ✨';
+        ? '﴿وَقُلِ اعْمَلُوا فَسَيَرَى اللَّهُ عَمَلَكُمْ﴾'
+        : '“And say: Work, for Allah will see your deeds.”';
     }
     return lang === 'ar'
-      ? 'طاقتك اليوم تصنع الفرق • المس أي دائرة لمتابعة مهامك 🎯'
-      : 'Your energy makes the difference • tap circles to start 🎯';
+      ? '﴿فَإِذَا عَزَمْتَ فَتَوَكَّلْ عَلَى اللَّهِ﴾'
+      : '“When you have decided, then rely upon Allah.”';
+  };
+
+  // Motivational subtitle beside circular progress - Inspiring Quranic verses
+  const getMotivationalSubtitle = () => {
+    if (stats.total === 0) {
+      return lang === 'ar'
+        ? '﴿فَإِذَا عَزَمْتَ فَتَوَكَّلْ عَلَى اللَّهِ إِنَّ اللَّهَ يُحِبُّ الْمُتَوَكِّلِينَ﴾'
+        : '“Rely upon Allah; indeed, Allah loves those who rely upon Him.”';
+    }
+    if (isAllComplete) {
+      return lang === 'ar'
+        ? '﴿وَآخِرُ دَعْوَاهُمْ أَنِ الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ﴾'
+        : '“And their final call is: Praise be to Allah, Lord of the worlds.”';
+    }
+    if (percentage >= 75) {
+      return lang === 'ar'
+        ? '﴿وَأَنَّ سَعْيَهُ سَوْفَ يُرَىٰ • ثُمَّ يُجْزَاهُ الْجَزَاءَ الْأَوْفَىٰ﴾'
+        : '“And that his effort is going to be seen, then rewarded fully.”';
+    }
+    if (percentage >= 50) {
+      return lang === 'ar'
+        ? '﴿وَفِي ذَٰلِكَ فَلْيَتَنَافَسِ الْمُتَنَافِسُونَ﴾'
+        : '“And for this let the competitors compete.”';
+    }
+    if (percentage > 0) {
+      return lang === 'ar'
+        ? '﴿إِنَّ مَعَ الْعُسْرِ يُسْرًا • فَإِذَا فَرَغْتَ فَانصَبْ﴾'
+        : '“Indeed, with hardship comes ease. So when you have finished, strive.”';
+    }
+    return lang === 'ar'
+      ? '﴿وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ عَلَيْهِ تَوَكَّلْتُ وَإِلَيْهِ أُنِيبُ﴾'
+      : '“And my success is not but through Allah; upon Him I have relied.”';
   };
 
   return (
@@ -364,8 +386,8 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
             </div>
 
             {/* Motivational Title & Subtitle beside main circle */}
-            <div className="flex flex-col justify-center min-w-0 max-w-[220px]">
-              <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white font-['Alexandria'] leading-snug">
+            <div className="flex flex-col justify-center min-w-0 max-w-[260px] sm:max-w-[300px]">
+              <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white font-['Alexandria'] leading-relaxed tracking-tight">
                 {getMotivationalTitle()}
               </span>
               <span className="text-[11px] sm:text-xs text-slate-500 dark:text-zinc-400 mt-1 font-medium leading-relaxed font-['Alexandria']">
