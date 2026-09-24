@@ -362,12 +362,12 @@ export function analyzeWeek(endDateStr: string, lang: Language = 'ar'): WeeklyAn
     let peakMissBucket: 'morning' | 'afternoon' | 'evening' | 'night' = 'evening';
     let maxMiss = -1;
 
-    (Object.entries(misses) as [keyof typeof misses, number][]).forEach(([bucket, count]) => {
+    for (const [bucket, count] of Object.entries(misses) as [keyof typeof misses, number][]) {
       if (count > maxMiss) {
         maxMiss = count;
         peakMissBucket = bucket;
       }
-    });
+    }
 
     let advice = 'احرص على تثبيت موعدها وتخفيف المهام المتزامنة لرفع معدل إنجازها.';
     let adviceEn = 'Consider fixing its slot and reducing overlapping tasks to improve completion.';

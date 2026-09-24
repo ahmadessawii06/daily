@@ -12,8 +12,8 @@ import {
 import { Language, Theme } from '../types';
 
 interface SidebarProps {
-  activeTab: 'daily' | 'weekly' | 'archive';
-  onTabChange: (tab: 'daily' | 'weekly' | 'archive') => void;
+  activeTab: 'daily' | 'archive';
+  onTabChange: (tab: 'daily' | 'archive') => void;
   todayTasksCount: number;
   archiveDaysCount: number;
   onOpenSettings: () => void;

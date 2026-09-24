@@ -1,8 +1,11 @@
-import { DayRecord, DayStats, Task, Theme } from '../types';
+import { DayRecord, DayStats, HabitStreak, Task, TaskCategory, Theme, WeeklyDayData } from '../types';
 import { sortTasksByTime } from './date';
+import { autoDetectCategory } from './categories';
+import { SCHEDULE_TEMPLATES } from './templates';
 
-const STORAGE_KEY = 'daily_tasks_app_data_v1';
+const STORAGE_KEY = 'daily_tasks_app_data_v2';
 const THEME_KEY = 'daily_theme_v1';
+const HABITS_KEY = 'daily_habits_v1';
 
 export function getStoredTheme(): Theme {
   try {
@@ -10,7 +13,6 @@ export function getStoredTheme(): Theme {
     if (saved === 'light' || saved === 'dark') {
       return saved;
     }
-    // Default to dark as requested previously, or check system preference
     return 'dark';
   } catch {
     return 'dark';
@@ -25,111 +27,376 @@ export function setStoredTheme(theme: Theme): void {
   }
 }
 
-// Seed data mirroring the user's authentic schedule from the uploaded image
+// Convert "HH:MM" to minutes from 00:00
+export function timeToMinutes(timeStr: string): number {
+  if (!timeStr) return 0;
+  const [h, m] = timeStr.split(':').map((v) => parseInt(v, 10) || 0);
+  return h * 60 + m;
+}
+
+// Convert minutes from 00:00 to "HH:MM"
+export function minutesToTime(minutes: number): string {
+  const norm = Math.max(0, Math.min(24 * 60, minutes));
+  const h = Math.floor(norm / 60) % 24;
+  const m = norm % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+export const INITIAL_HABITS: HabitStreak[] = [
+  {
+    id: 'habit-fajr',
+    title: 'صلاة الفجر وقراءة أذكار الصباح',
+    category: 'worship',
+    currentStreak: 14,
+    bestStreak: 30,
+  },
+  {
+    id: 'habit-study',
+    title: 'جلسات الدراسة العميقة والبرمجة',
+    category: 'study',
+    currentStreak: 7,
+    bestStreak: 18,
+  },
+  {
+    id: 'habit-health',
+    title: 'النشاط البدني والمشي 30 دقيقة',
+    category: 'health',
+    currentStreak: 5,
+    bestStreak: 12,
+  },
+  {
+    id: 'habit-quran',
+    title: 'مراجعة وتدبر ورد القرآن اليومي',
+    category: 'worship',
+    currentStreak: 9,
+    bestStreak: 21,
+  },
+];
+
+export function getStoredHabits(): HabitStreak[] {
+  try {
+    const raw = localStorage.getItem(HABITS_KEY);
+    if (!raw) {
+      localStorage.setItem(HABITS_KEY, JSON.stringify(INITIAL_HABITS));
+      return INITIAL_HABITS;
+    }
+    return JSON.parse(raw);
+  } catch {
+    return INITIAL_HABITS;
+  }
+}
+
+export function saveHabits(habits: HabitStreak[]): void {
+  try {
+    localStorage.setItem(HABITS_KEY, JSON.stringify(habits));
+  } catch {
+    // Ignore
+  }
+}
+
+export function toggleHabitToday(habitId: string, todayDate: string): HabitStreak[] {
+  const habits = getStoredHabits();
+  const updated = habits.map((h) => {
+    if (h.id !== habitId) return h;
+    const isAlreadyCompletedToday = h.lastCompletedDate === todayDate;
+    if (isAlreadyCompletedToday) {
+      // Untoggle
+      const newStreak = Math.max(0, h.currentStreak - 1);
+      return {
+        ...h,
+        currentStreak: newStreak,
+        lastCompletedDate: undefined,
+      };
+    } else {
+      // Toggle complete
+      const newStreak = h.currentStreak + 1;
+      const best = Math.max(newStreak, h.bestStreak);
+      return {
+        ...h,
+        currentStreak: newStreak,
+        bestStreak: best,
+        lastCompletedDate: todayDate,
+      };
+    }
+  });
+  saveHabits(updated);
+  return updated;
+}
+
+// Authentic initial seed schedule structured as true TIME BLOCKS!
+// Notice "نوم" is one single 5-hour block instead of 5 repeated rows!
 const INITIAL_SEED_DATA: Record<string, DayRecord> = {
+  '2026-09-24': {
+    date: '2026-09-24',
+    updatedAt: '2026-09-24T07:15:00Z',
+    dayNote: 'جدول اليوم الدراسي والعبادات ومشاريع البرمجة',
+    tasks: [
+      {
+        id: 'seed-24-01',
+        time: '00:00',
+        endTime: '05:00',
+        duration: 300,
+        title: 'نوم واستعادة طاقة',
+        status: 'done',
+        category: 'sleep',
+        createdAt: '2026-09-24T00:00:00Z',
+      },
+      {
+        id: 'seed-24-02',
+        time: '05:00',
+        endTime: '06:00',
+        duration: 60,
+        title: 'صلاة الفجر + مراجعة القرآن',
+        status: 'done',
+        category: 'worship',
+        notes: 'مراجعة الجزء الثاني',
+        createdAt: '2026-09-24T05:00:00Z',
+      },
+      {
+        id: 'seed-24-03',
+        time: '06:00',
+        endTime: '07:00',
+        duration: 60,
+        title: 'تجهيز للدوام + أذكار الصباح',
+        status: 'done',
+        category: 'worship',
+        createdAt: '2026-09-24T06:00:00Z',
+      },
+      {
+        id: 'seed-24-04',
+        time: '07:00',
+        endTime: '08:00',
+        duration: 60,
+        title: 'مواصلات والتوجه للجامعة',
+        status: 'done',
+        category: 'general',
+        createdAt: '2026-09-24T07:00:00Z',
+      },
+      {
+        id: 'seed-24-05',
+        time: '08:00',
+        endTime: '10:00',
+        duration: 120,
+        title: 'محاضرة استرجاع وتطبيقات خوارزميات',
+        status: 'done',
+        category: 'study',
+        createdAt: '2026-09-24T08:00:00Z',
+      },
+      {
+        id: 'seed-24-06',
+        time: '10:00',
+        endTime: '11:00',
+        duration: 60,
+        title: 'فطور صحي واستراحة',
+        status: 'not-done',
+        category: 'health',
+        createdAt: '2026-09-24T10:00:00Z',
+      },
+      {
+        id: 'seed-24-07',
+        time: '11:00',
+        endTime: '12:00',
+        duration: 60,
+        title: 'ترتيب وتنظيم اللابتوب وملاحظات المحاضرات',
+        status: 'pending',
+        category: 'work',
+        createdAt: '2026-09-24T11:00:00Z',
+      },
+      {
+        id: 'seed-24-08',
+        time: '12:00',
+        endTime: '14:00',
+        duration: 120,
+        title: 'محاضرة التعلم الآلي والذكاء الاصطناعي',
+        status: 'pending',
+        category: 'study',
+        createdAt: '2026-09-24T12:00:00Z',
+      },
+      {
+        id: 'seed-24-09',
+        time: '14:00',
+        endTime: '15:00',
+        duration: 60,
+        title: 'صلاة الظهر + جلسة هدوء',
+        status: 'pending',
+        category: 'worship',
+        createdAt: '2026-09-24T14:00:00Z',
+      },
+      {
+        id: 'seed-24-10',
+        time: '15:00',
+        endTime: '16:00',
+        duration: 60,
+        title: 'مواصلات العودة للمنزل',
+        status: 'pending',
+        category: 'general',
+        createdAt: '2026-09-24T15:00:00Z',
+      },
+      {
+        id: 'seed-24-11',
+        time: '16:00',
+        endTime: '17:00',
+        duration: 60,
+        title: 'صلاة العصر',
+        status: 'pending',
+        category: 'worship',
+        createdAt: '2026-09-24T16:00:00Z',
+      },
+      {
+        id: 'seed-24-12',
+        time: '17:00',
+        endTime: '18:00',
+        duration: 60,
+        title: 'دراسة ومراجعة الـ 4 محاضرات',
+        status: 'pending',
+        category: 'study',
+        createdAt: '2026-09-24T17:00:00Z',
+      },
+      {
+        id: 'seed-24-13',
+        time: '18:00',
+        endTime: '19:00',
+        duration: 60,
+        title: 'صلاة المغرب',
+        status: 'pending',
+        category: 'worship',
+        createdAt: '2026-09-24T18:00:00Z',
+      },
+      {
+        id: 'seed-24-14',
+        time: '19:00',
+        endTime: '20:00',
+        duration: 60,
+        title: 'برمجة خفيفة وتكملة موقع Daily Track',
+        status: 'pending',
+        category: 'work',
+        notes: 'تطوير المخطط الزمني والتحسينات',
+        createdAt: '2026-09-24T19:00:00Z',
+      },
+      {
+        id: 'seed-24-15',
+        time: '20:00',
+        endTime: '21:00',
+        duration: 60,
+        title: 'صلاة العشاء',
+        status: 'pending',
+        category: 'worship',
+        createdAt: '2026-09-24T20:00:00Z',
+      },
+      {
+        id: 'seed-24-16',
+        time: '21:00',
+        endTime: '23:00',
+        duration: 120,
+        title: 'استراحة شخصية وجلسة عائلية',
+        status: 'pending',
+        category: 'rest',
+        createdAt: '2026-09-24T21:00:00Z',
+      },
+      {
+        id: 'seed-24-17',
+        time: '23:00',
+        endTime: '24:00',
+        duration: 60,
+        title: 'نوم واستعداد ليوم الغد',
+        status: 'pending',
+        category: 'sleep',
+        createdAt: '2026-09-24T23:00:00Z',
+      },
+    ],
+  },
   '2026-09-23': {
     date: '2026-09-23',
-    updatedAt: new Date().toISOString(),
-    dayNote: 'جدول اليوم الدراسي والعبادات والمشاريع البرمجية',
+    updatedAt: '2026-09-23T23:45:00Z',
+    dayNote: 'أمس - إنجاز مميز في الجامعة',
     tasks: [
-      { id: 'seed-23-01', time: '00:00', title: 'نوم', status: 'done', createdAt: '2026-09-23T00:00:00Z' },
-      { id: 'seed-23-02', time: '01:00', title: 'نوم', status: 'done', createdAt: '2026-09-23T01:00:00Z' },
-      { id: 'seed-23-03', time: '02:00', title: 'نوم', status: 'done', createdAt: '2026-09-23T02:00:00Z' },
-      { id: 'seed-23-04', time: '03:00', title: 'نوم', status: 'done', createdAt: '2026-09-23T03:00:00Z' },
-      { id: 'seed-23-05', time: '04:00', title: 'نوم', status: 'done', createdAt: '2026-09-23T04:00:00Z' },
-      { id: 'seed-23-06', time: '05:00', title: 'صلاة الفجر + مراجعة القرآن', status: 'not-done', notes: 'مراجعة القرآن لم يتم', createdAt: '2026-09-23T05:00:00Z' },
-      { id: 'seed-23-07', time: '06:00', title: 'تجهيز للدوام + أذكار الصباح', status: 'done', createdAt: '2026-09-23T06:00:00Z' },
-      { id: 'seed-23-08', time: '07:00', title: 'مواصلات', status: 'done', createdAt: '2026-09-23T07:00:00Z' },
-      { id: 'seed-23-09', time: '08:00', title: 'محاضرة استرجاع', status: 'done', createdAt: '2026-09-23T08:00:00Z' },
-      { id: 'seed-23-10', time: '09:00', title: 'محاضرة استرجاع', status: 'done', createdAt: '2026-09-23T09:00:00Z' },
-      { id: 'seed-23-11', time: '10:00', title: 'فطور + مراجعة قرآن', status: 'not-done', notes: 'مراجعة القرآن لم يتم', createdAt: '2026-09-23T10:00:00Z' },
-      { id: 'seed-23-12', time: '11:00', title: 'ترتيب اللابتوب', status: 'pending', createdAt: '2026-09-23T11:00:00Z' },
-      { id: 'seed-23-13', time: '12:00', title: 'محاضرة التعلم الآلي', status: 'done', createdAt: '2026-09-23T12:00:00Z' },
-      { id: 'seed-23-14', time: '13:00', title: 'محاضرة التعلم الآلي', status: 'done', createdAt: '2026-09-23T13:00:00Z' },
-      { id: 'seed-23-15', time: '14:00', title: 'صلاة الظهر + قعدة بسيطة', status: 'done', createdAt: '2026-09-23T14:00:00Z' },
-      { id: 'seed-23-16', time: '15:00', title: 'مواصلات', status: 'done', createdAt: '2026-09-23T15:00:00Z' },
-      { id: 'seed-23-17', time: '16:00', title: 'صلاة العصر', status: 'done', createdAt: '2026-09-23T16:00:00Z' },
-      { id: 'seed-23-18', time: '17:00', title: 'دراسة الـ4 محاضرات', status: 'not-done', createdAt: '2026-09-23T17:00:00Z' },
-      { id: 'seed-23-19', time: '18:00', title: 'صلاة المغرب', status: 'done', createdAt: '2026-09-23T18:00:00Z' },
-      { id: 'seed-23-20', time: '19:00', title: 'برمجة خفيفة وتكمل موقع نفس', status: 'done', notes: 'تطوير واجهة المستخدم', createdAt: '2026-09-23T19:00:00Z' },
-      { id: 'seed-23-21', time: '20:00', title: 'صلاة العشاء', status: 'done', createdAt: '2026-09-23T20:00:00Z' },
-      { id: 'seed-23-22', time: '21:00', title: 'استراحة', status: 'done', createdAt: '2026-09-23T21:00:00Z' },
-      { id: 'seed-23-23', time: '22:00', title: 'استراحة', status: 'done', createdAt: '2026-09-23T22:00:00Z' },
-      { id: 'seed-23-24', time: '23:00', title: 'نوم', status: 'done', createdAt: '2026-09-23T23:00:00Z' },
-    ]
+      { id: 'seed-23-01', time: '00:00', endTime: '05:00', duration: 300, title: 'نوم', status: 'done', category: 'sleep', createdAt: '2026-09-23T00:00:00Z' },
+      { id: 'seed-23-02', time: '05:00', endTime: '06:00', duration: 60, title: 'صلاة الفجر + مراجعة القرآن', status: 'done', category: 'worship', createdAt: '2026-09-23T05:00:00Z' },
+      { id: 'seed-23-03', time: '06:00', endTime: '08:00', duration: 120, title: 'تجهيز ومواصلات', status: 'done', category: 'general', createdAt: '2026-09-23T06:00:00Z' },
+      { id: 'seed-23-04', time: '08:00', endTime: '10:00', duration: 120, title: 'محاضرة استرجاع', status: 'done', category: 'study', createdAt: '2026-09-23T08:00:00Z' },
+      { id: 'seed-23-05', time: '10:00', endTime: '11:00', duration: 60, title: 'فطور + راحة', status: 'not-done', category: 'health', createdAt: '2026-09-23T10:00:00Z' },
+      { id: 'seed-23-06', time: '11:00', endTime: '14:00', duration: 180, title: 'محاضرات التعلم الآلي', status: 'done', category: 'study', createdAt: '2026-09-23T11:00:00Z' },
+      { id: 'seed-23-07', time: '14:00', endTime: '16:00', duration: 120, title: 'صلاة الظهر ومواصلات', status: 'done', category: 'worship', createdAt: '2026-09-23T14:00:00Z' },
+      { id: 'seed-23-08', time: '16:00', endTime: '18:00', duration: 120, title: 'صلاة العصر ودراسة المحاضرات', status: 'done', category: 'study', createdAt: '2026-09-23T16:00:00Z' },
+      { id: 'seed-23-09', time: '18:00', endTime: '20:00', duration: 120, title: 'صلاة المغرب وبرمجة', status: 'done', category: 'work', createdAt: '2026-09-23T18:00:00Z' },
+      { id: 'seed-23-10', time: '20:00', endTime: '23:00', duration: 180, title: 'صلاة العشاء واستراحة', status: 'done', category: 'rest', createdAt: '2026-09-23T20:00:00Z' },
+      { id: 'seed-23-11', time: '23:00', endTime: '24:00', duration: 60, title: 'نوم', status: 'done', category: 'sleep', createdAt: '2026-09-23T23:00:00Z' },
+    ],
   },
   '2026-09-22': {
     date: '2026-09-22',
     updatedAt: '2026-09-22T23:30:00Z',
-    dayNote: 'يوم الجامعة والمشروع',
+    dayNote: 'يوم الثلاثاء - معمل الشبكات والرياضة',
     tasks: [
-      { id: 'seed-22-01', time: '05:00', title: 'صلاة الفجر وقراءة أذكار', status: 'done', createdAt: '2026-09-22T05:00:00Z' },
-      { id: 'seed-22-02', time: '08:00', title: 'الجامعة — معمل الشبكات', status: 'done', createdAt: '2026-09-22T08:00:00Z' },
-      { id: 'seed-22-03', time: '12:00', title: 'الدراسة ومراجعة السلايدات', status: 'done', createdAt: '2026-09-22T12:00:00Z' },
-      { id: 'seed-22-04', time: '16:00', title: 'التمرين والنادي', status: 'not-done', notes: 'تأجل بسبب ضغط المذاكرة', createdAt: '2026-09-22T16:00:00Z' },
-      { id: 'seed-22-05', time: '19:00', title: 'حل واجب الذكاء الاصطناعي', status: 'done', createdAt: '2026-09-22T19:00:00Z' },
-      { id: 'seed-22-06', time: '21:30', title: 'مراجعة خفيفة وترتيب مهام الغد', status: 'done', createdAt: '2026-09-22T21:30:00Z' }
-    ]
+      { id: 'seed-22-01', time: '05:00', endTime: '06:00', duration: 60, title: 'صلاة الفجر وقراءة أذكار', status: 'done', category: 'worship', createdAt: '2026-09-22T05:00:00Z' },
+      { id: 'seed-22-02', time: '08:00', endTime: '11:00', duration: 180, title: 'الجامعة — معمل الشبكات', status: 'done', category: 'study', createdAt: '2026-09-22T08:00:00Z' },
+      { id: 'seed-22-03', time: '12:00', endTime: '15:00', duration: 180, title: 'الدراسة ومراجعة السلايدات', status: 'done', category: 'study', createdAt: '2026-09-22T12:00:00Z' },
+      { id: 'seed-22-04', time: '16:00', endTime: '18:00', duration: 120, title: 'التمرين والنادي الرياضي', status: 'not-done', category: 'health', notes: 'تأجل بسبب ضغط المذاكرة', createdAt: '2026-09-22T16:00:00Z' },
+      { id: 'seed-22-05', time: '19:00', endTime: '21:00', duration: 120, title: 'حل واجب الذكاء الاصطناعي', status: 'done', category: 'study', createdAt: '2026-09-22T19:00:00Z' },
+      { id: 'seed-22-06', time: '21:30', endTime: '23:00', duration: 90, title: 'مراجعة خفيفة وترتيب مهام الغد', status: 'done', category: 'rest', createdAt: '2026-09-22T21:30:00Z' },
+    ],
   },
-  '2026-09-21': {
-    date: '2026-09-21',
-    updatedAt: '2026-09-21T23:00:00Z',
-    dayNote: 'بداية الأسبوع ومراجعة المهام',
-    tasks: [
-      { id: 'seed-21-01', time: '05:00', title: 'صلاة الفجر وقراءة أذكار', status: 'done', createdAt: '2026-09-21T05:00:00Z' },
-      { id: 'seed-21-02', time: '08:30', title: 'محاضرة قواعد البيانات', status: 'done', createdAt: '2026-09-21T08:30:00Z' },
-      { id: 'seed-21-03', time: '13:00', title: 'مشروع التخرج ومناقشة الفريق', status: 'done', createdAt: '2026-09-21T13:00:00Z' },
-      { id: 'seed-21-04', time: '17:00', title: 'قراءة كتاب البرمجة الشيئية', status: 'done', createdAt: '2026-09-21T17:00:00Z' },
-      { id: 'seed-21-05', time: '20:00', title: 'جلسة عائلية واستراحة', status: 'done', createdAt: '2026-09-21T20:00:00Z' }
-    ]
-  },
-  '2026-09-20': {
-    date: '2026-09-20',
-    updatedAt: '2026-09-20T22:30:00Z',
-    dayNote: 'يوم هادئ ومراجعة مشاريع',
-    tasks: [
-      { id: 'seed-20-01', time: '05:00', title: 'صلاة الفجر وقراءة ورد القرآن', status: 'done', createdAt: '2026-09-20T05:00:00Z' },
-      { id: 'seed-20-02', time: '09:00', title: 'دراسة ومراجعة السلايدات', status: 'done', createdAt: '2026-09-20T09:00:00Z' },
-      { id: 'seed-20-03', time: '14:00', title: 'صلاة الظهر والغداء', status: 'done', createdAt: '2026-09-20T14:00:00Z' },
-      { id: 'seed-20-04', time: '17:00', title: 'تمرين الجيم واللياقة', status: 'not-done', notes: 'تأجل للمساء ولم يكتمل', createdAt: '2026-09-20T17:00:00Z' },
-      { id: 'seed-20-05', time: '20:00', title: 'برمجة موقع وتعديل واجهات', status: 'done', createdAt: '2026-09-20T20:00:00Z' }
-    ]
-  },
-  '2026-09-19': {
-    date: '2026-09-19',
-    updatedAt: '2026-09-19T22:00:00Z',
-    dayNote: 'عطلة السبت وتطوير ذاتي',
-    tasks: [
-      { id: 'seed-19-01', time: '05:00', title: 'صلاة الفجر والأذكار', status: 'done', createdAt: '2026-09-19T05:00:00Z' },
-      { id: 'seed-19-02', time: '10:00', title: 'قراءة كتاب وتلخيص فصول', status: 'done', createdAt: '2026-09-19T10:00:00Z' },
-      { id: 'seed-19-03', time: '15:00', title: 'حل كويز ومراجعة أسبوعية', status: 'done', createdAt: '2026-09-19T15:00:00Z' },
-      { id: 'seed-19-04', time: '18:00', title: 'صلاة المغرب وزيارة أقارب', status: 'done', createdAt: '2026-09-19T18:00:00Z' }
-    ]
-  },
-  '2026-09-18': {
-    date: '2026-09-18',
-    updatedAt: '2026-09-18T23:00:00Z',
-    dayNote: 'يوم الجمعة المبارك',
-    tasks: [
-      { id: 'seed-18-01', time: '05:00', title: 'صلاة الفجر', status: 'done', createdAt: '2026-09-18T05:00:00Z' },
-      { id: 'seed-18-02', time: '11:30', title: 'صلاة الجمعة وسورة الكهف', status: 'done', createdAt: '2026-09-18T11:30:00Z' },
-      { id: 'seed-18-03', time: '16:00', title: 'صلاة العصر والأذكار', status: 'done', createdAt: '2026-09-18T16:00:00Z' },
-      { id: 'seed-18-04', time: '19:00', title: 'تمرين خفيف ومشي', status: 'not-done', createdAt: '2026-09-18T19:00:00Z' }
-    ]
-  },
-  '2026-09-17': {
-    date: '2026-09-17',
-    updatedAt: '2026-09-17T21:00:00Z',
-    dayNote: 'يوم الخميس ونهاية الأسبوع الدراسي',
-    tasks: [
-      { id: 'seed-17-01', time: '05:00', title: 'صلاة الفجر', status: 'done', createdAt: '2026-09-17T05:00:00Z' },
-      { id: 'seed-17-02', time: '08:00', title: 'محاضرة البرمجة الشيئية', status: 'done', createdAt: '2026-09-17T08:00:00Z' },
-      { id: 'seed-17-03', time: '12:00', title: 'مذاكرة وحل مسائل', status: 'pending', createdAt: '2026-09-17T12:00:00Z' },
-      { id: 'seed-17-04', time: '17:00', title: 'صلاة العصر والمغرب', status: 'done', createdAt: '2026-09-17T17:00:00Z' },
-      { id: 'seed-17-05', time: '20:00', title: 'برمجة وتطبيق عملي', status: 'done', createdAt: '2026-09-17T20:00:00Z' }
-    ]
-  }
 };
+
+// Auto-migrate consecutive legacy repeated 1-hour slots to continuous time blocks
+function migrateAndConsolidateTasks(rawTasks: Task[]): Task[] {
+  if (!rawTasks || rawTasks.length === 0) return [];
+
+  // Fill in category and duration if missing
+  const normalized = rawTasks.map((t) => {
+    const cat = t.category || autoDetectCategory(t.title);
+    let dur = t.duration;
+    let end = t.endTime;
+    if (!dur && !end) {
+      dur = 60;
+      end = minutesToTime(timeToMinutes(t.time) + 60);
+    } else if (!end && dur) {
+      end = minutesToTime(timeToMinutes(t.time) + dur);
+    } else if (end && !dur) {
+      const diff = timeToMinutes(end) - timeToMinutes(t.time);
+      dur = diff > 0 ? diff : 60;
+    }
+    return {
+      ...t,
+      category: cat,
+      duration: dur,
+      endTime: end,
+    };
+  });
+
+  // Consolidate adjacent items with same title & same status into single block
+  const consolidated: Task[] = [];
+  let current: Task | null = null;
+
+  for (const t of sortTasksByTime(normalized)) {
+    if (!current) {
+      current = { ...t };
+      continue;
+    }
+
+    const currentEndTime = current.endTime || minutesToTime(timeToMinutes(current.time) + (current.duration || 60));
+    const isAdjacent = currentEndTime === t.time;
+    const isSameTitle = Boolean(current.title && t.title && current.title.trim().toLowerCase() === t.title.trim().toLowerCase());
+    const isSameStatus = current.status === t.status;
+
+    if (isAdjacent && isSameTitle && isSameStatus) {
+      // Merge into current
+      const newEnd = t.endTime || minutesToTime(timeToMinutes(t.time) + (t.duration || 60));
+      current.endTime = newEnd;
+      current.duration = timeToMinutes(newEnd) - timeToMinutes(current.time);
+      if (t.notes && !current.notes) current.notes = t.notes;
+    } else {
+      consolidated.push(current);
+      current = { ...t };
+    }
+  }
+
+  if (current) {
+    consolidated.push(current);
+  }
+
+  return consolidated;
+}
 
 export function loadAllDays(): Record<string, DayRecord> {
   try {
@@ -142,6 +409,12 @@ export function loadAllDays(): Record<string, DayRecord> {
     if (!parsed || typeof parsed !== 'object') {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_SEED_DATA));
       return INITIAL_SEED_DATA;
+    }
+    // Normalize and consolidate
+    for (const key of Object.keys(parsed)) {
+      if (parsed[key]?.tasks) {
+        parsed[key].tasks = migrateAndConsolidateTasks(parsed[key].tasks);
+      }
     }
     return parsed;
   } catch (err) {
@@ -158,150 +431,115 @@ export function saveAllDays(days: Record<string, DayRecord>): void {
   }
 }
 
-export function generate24HourDaySlots(date: string): Task[] {
-  const slots: Task[] = [];
-  const now = new Date().toISOString();
-  for (let h = 0; h < 24; h++) {
-    const timeStr = `${String(h).padStart(2, '0')}:00`;
-    slots.push({
-      id: `slot_${date}_${String(h).padStart(2, '0')}`,
-      time: timeStr,
-      title: '',
-      status: 'pending',
-      createdAt: now,
-      updatedAt: now,
-    });
-  }
-  return slots;
-}
-
 export function getDayRecord(date: string): DayRecord {
   const all = loadAllDays();
-  if (all[date]) {
-    // If it has tasks, return it
-    if (all[date].tasks && all[date].tasks.length > 0) {
-      return all[date];
-    }
-    // If tasks is empty, initialize with 24-hour slots template
-    all[date].tasks = generate24HourDaySlots(date);
-    saveAllDays(all);
+  if (all[date] && all[date].tasks && all[date].tasks.length > 0) {
     return all[date];
   }
-  // Create new record for date with complete 24 hourly slots ready
+  
+  // Default to the study-day template tasks for new days
+  const defaultTemplate = SCHEDULE_TEMPLATES[0];
+  const now = new Date().toISOString();
+  const newTasks: Task[] = defaultTemplate.tasks.map((t, idx) => ({
+    id: `task_${date}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
+    time: t.time,
+    endTime: t.endTime,
+    duration: t.duration || 60,
+    title: t.title,
+    status: t.status,
+    category: t.category,
+    createdAt: now,
+  }));
+
   const newRecord: DayRecord = {
     date,
-    tasks: generate24HourDaySlots(date),
-    updatedAt: new Date().toISOString()
+    tasks: newTasks,
+    dayNote: `جدول يوم ${date}`,
+    updatedAt: now,
   };
   all[date] = newRecord;
   saveAllDays(all);
   return newRecord;
 }
 
-export function apply24HourTemplate(date: string, fillMissingOnly: boolean = true): Task[] {
+export function applyTemplateToDay(date: string, templateId: string): Task[] {
+  const template = SCHEDULE_TEMPLATES.find((t) => t.id === templateId) || SCHEDULE_TEMPLATES[0];
   const all = loadAllDays();
-  const currentRecord = all[date] || { date, tasks: [], updatedAt: new Date().toISOString() };
-  const currentTasks = currentRecord.tasks || [];
-
-  if (!fillMissingOnly || currentTasks.length === 0) {
-    const newSlots = generate24HourDaySlots(date);
-    all[date] = {
-      ...currentRecord,
-      tasks: newSlots,
-      updatedAt: new Date().toISOString(),
-    };
-    saveAllDays(all);
-    return newSlots;
-  }
-
-  // Find existing hours
-  const existingHours = new Set(
-    currentTasks.map((t) => {
-      const [h] = t.time.split(':');
-      const parsed = parseInt(h, 10);
-      return isNaN(parsed) ? -1 : parsed;
-    })
-  );
-
   const now = new Date().toISOString();
-  const newSlots: Task[] = [];
-  for (let h = 0; h < 24; h++) {
-    if (!existingHours.has(h)) {
-      newSlots.push({
-        id: `slot_${date}_${String(h).padStart(2, '0')}`,
-        time: `${String(h).padStart(2, '0')}:00`,
-        title: '',
-        status: 'pending',
-        createdAt: now,
-        updatedAt: now,
-      });
-    }
-  }
 
-  const merged = sortTasksByTime([...currentTasks, ...newSlots]);
-  all[date] = {
-    ...currentRecord,
-    tasks: merged,
-    updatedAt: new Date().toISOString(),
-  };
-  saveAllDays(all);
-  return merged;
-}
+  const newTasks: Task[] = template.tasks.map((t, idx) => ({
+    id: `tpl_${date}_${idx}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+    time: t.time,
+    endTime: t.endTime || minutesToTime(timeToMinutes(t.time) + (t.duration || 60)),
+    duration: t.duration || 60,
+    title: t.title,
+    status: t.status || 'pending',
+    category: t.category || autoDetectCategory(t.title),
+    notes: t.notes,
+    createdAt: now,
+  }));
 
-export function saveDayTasks(date: string, tasks: Task[]): void {
-  const all = loadAllDays();
-  const sorted = sortTasksByTime(tasks);
-  all[date] = {
-    ...(all[date] || { date }),
-    tasks: sorted,
-    updatedAt: new Date().toISOString()
+  const updatedRecord: DayRecord = {
+    date,
+    tasks: newTasks,
+    dayNote: `${template.nameAr} - ${date}`,
+    updatedAt: now,
   };
+
+  all[date] = updatedRecord;
   saveAllDays(all);
+  return newTasks;
 }
 
 export function addTaskToDay(
   date: string,
-  taskInput: { time: string; title: string; status?: Task['status']; notes?: string; category?: string }
+  taskInput: {
+    time: string;
+    endTime?: string;
+    duration?: number;
+    title: string;
+    status?: Task['status'];
+    notes?: string;
+    category?: TaskCategory;
+  }
 ): Task {
   const all = loadAllDays();
-  const currentRecord = all[date] || { date, tasks: [], updatedAt: new Date().toISOString() };
+  const currentRecord = getDayRecord(date);
   
-  // Check if there is an empty slot for this exact time
-  const emptySlotIndex = currentRecord.tasks.findIndex(
-    (t) => t.time === taskInput.time.trim() && (!t.title || t.title.trim() === '')
-  );
+  const startTime = taskInput.time.trim();
+  let duration = taskInput.duration;
+  let endTime = taskInput.endTime?.trim();
 
-  if (emptySlotIndex >= 0) {
-    const updatedSlot: Task = {
-      ...currentRecord.tasks[emptySlotIndex],
-      title: taskInput.title.trim(),
-      status: taskInput.status || currentRecord.tasks[emptySlotIndex].status || 'pending',
-      notes: taskInput.notes?.trim() || undefined,
-      category: taskInput.category?.trim() || undefined,
-      updatedAt: new Date().toISOString(),
-    };
-    currentRecord.tasks[emptySlotIndex] = updatedSlot;
-    all[date] = currentRecord;
-    saveAllDays(all);
-    return updatedSlot;
+  if (!duration && !endTime) {
+    duration = 60;
+    endTime = minutesToTime(timeToMinutes(startTime) + 60);
+  } else if (!endTime && duration) {
+    endTime = minutesToTime(timeToMinutes(startTime) + duration);
+  } else if (endTime && !duration) {
+    const diff = timeToMinutes(endTime) - timeToMinutes(startTime);
+    duration = diff > 0 ? diff : 60;
   }
+
+  const category = taskInput.category || autoDetectCategory(taskInput.title);
 
   const newTask: Task = {
     id: `task_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-    time: taskInput.time.trim(),
+    time: startTime,
+    endTime,
+    duration,
     title: taskInput.title.trim(),
     status: taskInput.status || 'pending',
     notes: taskInput.notes?.trim() || undefined,
-    category: taskInput.category?.trim() || undefined,
+    category,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   };
 
   const updatedTasks = sortTasksByTime([...currentRecord.tasks, newTask]);
   all[date] = {
     ...currentRecord,
     tasks: updatedTasks,
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   };
   saveAllDays(all);
   return newTask;
@@ -312,31 +550,59 @@ export function updateTaskInDay(date: string, taskId: string, updates: Partial<T
   const record = all[date];
   if (!record) return;
 
-  const taskIndex = record.tasks.findIndex(t => t.id === taskId);
+  const taskIndex = record.tasks.findIndex((t) => t.id === taskId);
   if (taskIndex === -1) return;
 
-  const updatedTask: Task = {
-    ...record.tasks[taskIndex],
+  const existing = record.tasks[taskIndex];
+  const merged: Task = {
+    ...existing,
     ...updates,
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
   };
 
+  // Recalculate duration if time or endTime changed
+  if (updates.time || updates.endTime) {
+    const s = updates.time || merged.time;
+    const e = updates.endTime || merged.endTime;
+    if (s && e) {
+      const diff = timeToMinutes(e) - timeToMinutes(s);
+      merged.duration = diff > 0 ? diff : (merged.duration || 60);
+    }
+  } else if (updates.duration && updates.duration !== existing.duration) {
+    merged.endTime = minutesToTime(timeToMinutes(merged.time) + updates.duration);
+  }
+
+  // Recalculate category if title changed and category wasn't explicitly provided
+  if (updates.title && !updates.category) {
+    merged.category = autoDetectCategory(updates.title);
+  }
+
   const newTasks = [...record.tasks];
-  newTasks[taskIndex] = updatedTask;
-  
-  // Re-sort if time changed
+  newTasks[taskIndex] = merged;
+
   record.tasks = sortTasksByTime(newTasks);
   record.updatedAt = new Date().toISOString();
   all[date] = record;
   saveAllDays(all);
 }
 
-export function deleteTaskFromDay(date: string, taskId: string): void {
+export function deleteTaskFromDay(date: string, taskId: string): Task | null {
   const all = loadAllDays();
   const record = all[date];
-  if (!record) return;
+  if (!record) return null;
 
-  record.tasks = record.tasks.filter(t => t.id !== taskId);
+  const deletedTask = record.tasks.find((t) => t.id === taskId) || null;
+  record.tasks = record.tasks.filter((t) => t.id !== taskId);
+  record.updatedAt = new Date().toISOString();
+  all[date] = record;
+  saveAllDays(all);
+  return deletedTask;
+}
+
+export function restoreTaskToDay(date: string, task: Task): void {
+  const all = loadAllDays();
+  const record = all[date] || { date, tasks: [], updatedAt: new Date().toISOString() };
+  record.tasks = sortTasksByTime([...record.tasks, task]);
   record.updatedAt = new Date().toISOString();
   all[date] = record;
   saveAllDays(all);
@@ -349,11 +615,20 @@ export function calculateStats(tasks: Task[]): DayStats {
   let done = 0;
   let notDone = 0;
   let pending = 0;
+  let totalDurationMinutes = 0;
+  let doneDurationMinutes = 0;
 
   for (const t of targetTasks) {
-    if (t.status === 'done') done++;
-    else if (t.status === 'not-done') notDone++;
-    else pending++;
+    const dur = t.duration || 60;
+    totalDurationMinutes += dur;
+    if (t.status === 'done') {
+      done++;
+      doneDurationMinutes += dur;
+    } else if (t.status === 'not-done') {
+      notDone++;
+    } else {
+      pending++;
+    }
   }
 
   const completionPercentage = total > 0 ? Math.round((done / total) * 100) : 0;
@@ -363,22 +638,58 @@ export function calculateStats(tasks: Task[]): DayStats {
     done,
     notDone,
     pending,
-    completionPercentage
+    completionPercentage,
+    totalDurationMinutes,
+    doneDurationMinutes,
   };
+}
+
+export function getWeeklyStats(referenceDate: string): WeeklyDayData[] {
+  const all = loadAllDays();
+  const ref = new Date(referenceDate);
+  const result: WeeklyDayData[] = [];
+
+  const dayNamesAr = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+  const dayNamesEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Generate 7 days ending at referenceDate + 2 (or surrounding the reference date)
+  // Let's get the 7 days containing referenceDate (e.g. 6 days ago up to today)
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(ref);
+    d.setDate(ref.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const dayOfWeek = d.getDay();
+
+    const record = all[dateStr];
+    const tasks = record ? record.tasks.filter((t) => t.title && t.title.trim().length > 0) : [];
+    const stats = calculateStats(tasks);
+
+    result.push({
+      date: dateStr,
+      dayNameAr: dayNamesAr[dayOfWeek],
+      dayNameEn: dayNamesEn[dayOfWeek],
+      shortDate: `${d.getDate()}/${d.getMonth() + 1}`,
+      total: stats.total,
+      done: stats.done,
+      percentage: stats.completionPercentage,
+      isToday: dateStr === referenceDate,
+    });
+  }
+
+  return result;
 }
 
 export function getAllArchiveDays(): DayRecord[] {
   const all = loadAllDays();
   const keys = Object.keys(all);
-  // Sort descending by date (latest first)
   keys.sort((a, b) => b.localeCompare(a));
-  
-  // Filter to days that have at least one assigned task
+
   return keys
-    .map(key => all[key])
-    .filter(record => record && record.tasks && record.tasks.some(t => t.title && t.title.trim().length > 0));
+    .map((key) => all[key])
+    .filter((record) => record && record.tasks && record.tasks.some((t) => t.title && t.title.trim().length > 0));
 }
 
 export function resetToDefaults(): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_SEED_DATA));
+  localStorage.setItem(HABITS_KEY, JSON.stringify(INITIAL_HABITS));
 }

@@ -1,10 +1,10 @@
 import React from 'react';
-import { Calendar, History, SlidersHorizontal, Plus } from 'lucide-react';
-import { Language } from '../types';
+import { Calendar, History, BarChart3, Plus, SlidersHorizontal } from 'lucide-react';
+import { ActiveTab, Language } from '../types';
 
 interface MobileNavProps {
-  activeTab: 'daily' | 'archive';
-  onTabChange: (tab: 'daily' | 'archive') => void;
+  activeTab: ActiveTab;
+  onTabChange: (tab: ActiveTab) => void;
   onOpenAddTask: () => void;
   onOpenSettings: () => void;
   lang: Language;
@@ -20,7 +20,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   return (
     <nav 
       aria-label="Mobile Navigation"
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-[#090a0f]/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-white/[0.1] px-6 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))] flex items-center justify-between select-none shadow-[0_-4px_25px_rgba(0,0,0,0.08)] dark:shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.5)] transition-colors"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-[#090a0f]/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-white/[0.1] px-4 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))] flex items-center justify-between select-none shadow-[0_-4px_25px_rgba(0,0,0,0.08)] dark:shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.5)] transition-colors"
     >
       {/* Today */}
       <button
@@ -33,10 +33,24 @@ export const MobileNav: React.FC<MobileNavProps> = ({
         }`}
       >
         <Calendar className="w-5 h-5 stroke-[2.5]" />
-        <span className="text-[11px] font-['Alexandria']">{lang === 'ar' ? 'اليوم' : 'Today'}</span>
+        <span className="text-[11px] font-['Alexandria']">{lang === 'ar' ? 'الجدول' : 'Timeline'}</span>
       </button>
 
-      {/* Floating Center Add Button */}
+      {/* Stats & Streaks */}
+      <button
+        type="button"
+        onClick={() => onTabChange('stats')}
+        className={`flex-1 flex flex-col items-center justify-center gap-1 py-1 min-h-[44px] transition-colors cursor-pointer ${
+          activeTab === 'stats' 
+            ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' 
+            : 'text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200'
+        }`}
+      >
+        <BarChart3 className="w-5 h-5 stroke-[2.5]" />
+        <span className="text-[11px] font-['Alexandria']">{lang === 'ar' ? 'الإحصائيات' : 'Stats'}</span>
+      </button>
+
+      {/* Floating Center Add Button (FAB) */}
       <div className="flex-1 flex justify-center -mt-6">
         <button
           type="button"

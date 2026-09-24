@@ -7,17 +7,20 @@ import {
   CheckCircle2, 
   Sparkles, 
   Sun, 
-  Moon 
+  Moon,
+  BarChart3,
+  LayoutTemplate
 } from 'lucide-react';
-import { Language, Theme } from '../types';
+import { ActiveTab, Language, Theme } from '../types';
 
 interface MobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  activeTab: 'daily' | 'archive';
-  onTabChange: (tab: 'daily' | 'archive') => void;
+  activeTab: ActiveTab;
+  onTabChange: (tab: ActiveTab) => void;
   todayTasksCount: number;
   archiveDaysCount: number;
+  onOpenTemplates: () => void;
   onOpenSettings: () => void;
   lang: Language;
   theme: Theme;
@@ -31,6 +34,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   onTabChange,
   todayTasksCount,
   archiveDaysCount,
+  onOpenTemplates,
   onOpenSettings,
   lang,
   theme,
@@ -74,10 +78,10 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
               </div>
               <div>
                 <span className="font-extrabold text-base text-slate-900 dark:text-white tracking-tight font-['Alexandria']">
-                  Daily
+                  Daily Track
                 </span>
                 <span className="block text-[10px] text-slate-500 dark:text-zinc-400 font-medium">
-                  {lang === 'ar' ? 'إدارة المهام اليومية' : 'Daily Task Manager'}
+                  {lang === 'ar' ? 'تتبع المهام والجدول' : 'Daily Task Manager'}
                 </span>
               </div>
             </div>
@@ -107,13 +111,32 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
             >
               <div className="flex items-center gap-3">
                 <Calendar className="w-4 h-4 stroke-[2.5]" />
-                <span className="font-['Alexandria']">{lang === 'ar' ? 'مهام اليوم' : 'Today’s Tasks'}</span>
+                <span className="font-['Alexandria']">{lang === 'ar' ? 'جدول اليوم (Timeline)' : 'Today’s Tasks'}</span>
               </div>
               {todayTasksCount > 0 && (
                 <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-400 text-slate-950">
                   {todayTasksCount}
                 </span>
               )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onTabChange('stats');
+                onClose();
+              }}
+              className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'stats'
+                  ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 shadow-xs'
+                  : 'text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/[0.05]'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <BarChart3 className="w-4 h-4 stroke-[2.5]" />
+                <span className="font-['Alexandria']">{lang === 'ar' ? 'إحصائيات الأسبوع والعادات' : 'Weekly Stats'}</span>
+              </div>
+              <span className="text-xs">🔥</span>
             </button>
 
             <button
@@ -138,12 +161,24 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 </span>
               )}
             </button>
+
+            {/* Choose Template */}
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenTemplates();
+              }}
+              className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer"
+            >
+              <LayoutTemplate className="w-4 h-4 stroke-[2.5]" />
+              <span className="font-['Alexandria']">{lang === 'ar' ? 'اختيار قالب الجدول' : 'Choose Template'}</span>
+            </button>
           </nav>
         </div>
 
         {/* Bottom Options */}
         <div className="pt-4 border-t border-slate-200 dark:border-white/[0.08] space-y-2">
-          
           {/* Quick theme toggle */}
           <button
             type="button"
@@ -178,7 +213,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
           </button>
 
           <div className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400 font-medium">
-            <span>Daily Mobile</span>
+            <span>Daily Track Mobile</span>
             <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
               <Sparkles className="w-3 h-3" />
               <span>{lang === 'ar' ? 'حفظ تلقائي' : 'Saved'}</span>

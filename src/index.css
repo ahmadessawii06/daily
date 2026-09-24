@@ -72,3 +72,29 @@ html.light ::-webkit-scrollbar-thumb {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
+
+/* Print Styles for PDF export */
+@media print {
+  aside, 
+  nav, 
+  header, 
+  .no-print,
+  button:not(.print-keep) {
+    display: none !important;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
