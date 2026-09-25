@@ -285,10 +285,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
               <div>
                 <span className="text-xs font-bold text-slate-900 dark:text-zinc-100 block font-['Alexandria']">
-                  {lang === 'ar' ? 'الجدول الأصلي' : 'Seed Schedule'}
+                  {lang === 'ar' ? 'تصفير شامل للبيانات' : 'Reset All Data'}
                 </span>
                 <span className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">
-                  {lang === 'ar' ? 'استعادة الجدول المبدئي' : 'Restore initial timetable'}
+                  {lang === 'ar' ? 'البدء من السبت 26 سبتمبر بنسبة 0%' : 'Start clean from Saturday 26 (0%)'}
                 </span>
               </div>
             </div>
@@ -296,14 +296,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <button
               type="button"
               onClick={() => {
-                if (window.confirm(lang === 'ar' ? 'هل تريد استعادة الجدول الأولي؟' : 'Reset schedule data to initial seed?')) {
-                  onResetData();
-                  onClose();
-                }
+                onResetData();
+                onClose();
               }}
-              className="px-3 py-1.5 text-xs font-bold text-rose-700 dark:text-rose-300 hover:text-rose-800 dark:hover:text-rose-200 bg-rose-100 dark:bg-rose-500/15 hover:bg-rose-200 dark:hover:bg-rose-500/25 rounded-xl border border-rose-300 dark:border-rose-500/30 transition-all cursor-pointer"
+              className="px-3.5 py-1.5 text-xs font-bold text-rose-700 dark:text-rose-300 hover:text-rose-800 dark:hover:text-rose-200 bg-rose-100 dark:bg-rose-500/15 hover:bg-rose-200 dark:hover:bg-rose-500/25 rounded-xl border border-rose-300 dark:border-rose-500/30 transition-all cursor-pointer shadow-2xs"
             >
-              {lang === 'ar' ? 'استعادة' : 'Reset'}
+              {lang === 'ar' ? 'تصفير الآن' : 'Reset Now'}
             </button>
           </div>
 

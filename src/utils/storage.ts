@@ -4,10 +4,33 @@ import { autoDetectCategory } from './categories';
 import { SCHEDULE_TEMPLATES } from './templates';
 import { saveDayToDb, saveHabitsToDb } from '../services/api';
 
-const STORAGE_KEY = 'daily_tasks_app_data_v6_saturday26';
+const STORAGE_KEY = 'daily_tasks_app_data_v7_saturday26_clean';
 const THEME_KEY = 'daily_theme_v1';
-const HABITS_KEY = 'daily_habits_v6_saturday26';
+const HABITS_KEY = 'daily_habits_v7_saturday26_clean';
 const PRAYER_TIMES_KEY = 'daily_fixed_prayer_times_v1';
+
+// One-time purge of old storage keys from previous versions
+try {
+  const oldKeys = [
+    'daily_tasks_app_data_v1',
+    'daily_tasks_app_data_v2',
+    'daily_tasks_app_data_v3',
+    'daily_tasks_app_data_v4',
+    'daily_tasks_app_data_v5',
+    'daily_tasks_app_data_v6_saturday26',
+    'daily_habits_v1',
+    'daily_habits_v2',
+    'daily_habits_v3',
+    'daily_habits_v4',
+    'daily_habits_v5',
+    'daily_habits_v6_saturday26',
+  ];
+  for (const k of oldKeys) {
+    localStorage.removeItem(k);
+  }
+} catch {
+  // Ignore
+}
 
 export const DEFAULT_PRAYER_TIMES: PrayerTimeItem[] = [
   { id: 'fajr', nameAr: 'الفجر', nameEn: 'Fajr', time: '05:00' },

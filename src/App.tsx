@@ -80,27 +80,24 @@ export default function App() {
         const health = await checkDbHealth();
         if (health.connected) {
           const dbDays = await fetchAllDaysFromDb();
-          const hasDbData = Object.keys(dbDays).length > 0;
+          const hasOldData = Object.keys(dbDays).some((d) => d < '2026-09-26');
           
-          if (!hasDbData) {
-            // First time connection: upload clean Saturday 26 data to MongoDB
-            const localDays = loadAllDays();
-            const localHabits = getStoredHabits();
-            await migrateLocalDataToMongo(localDays, localHabits);
+          if (hasOldData || !dbDays['2026-09-26']) {
+            // Force reset MongoDB to clean Saturday 26
+            const saturdayRec = getDayRecord('2026-09-26');
+            await resetDatabaseToSaturday26(saturdayRec, getStoredHabits());
           } else {
-            // If DB contains old demo dates other than 2026-09-26, sync the clean Saturday 26 state
-            const hasOnlyOldData = Object.keys(dbDays).some(d => d < '2026-09-26');
-            if (hasOnlyOldData && !dbDays['2026-09-26']) {
-              const saturdayRec = getDayRecord('2026-09-26');
-              await resetDatabaseToSaturday26(saturdayRec, getStoredHabits());
-            } else {
-              const localDays = loadAllDays();
-              const merged = { ...localDays, ...dbDays };
-              saveAllDays(merged);
-              const currentRec = getDayRecord(currentDate);
-              setTasks(currentRec.tasks);
-              setArchiveDays(getAllArchiveDays());
+            const localDays = loadAllDays();
+            // Filter out any keys older than 2026-09-26
+            const cleanDbDays: Record<string, any> = {};
+            for (const [k, v] of Object.entries(dbDays)) {
+              if (k >= '2026-09-26') cleanDbDays[k] = v;
             }
+            const merged = { ...localDays, ...cleanDbDays };
+            saveAllDays(merged);
+            const currentRec = getDayRecord(currentDate);
+            setTasks(currentRec.tasks);
+            setArchiveDays(getAllArchiveDays());
           }
         }
       } catch (err) {
