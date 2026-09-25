@@ -160,15 +160,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </span>
             </div>
 
-            {dbStatus.ipWhitelistNeeded && !dbStatus.connected && (
+            {!dbStatus.connected && !dbStatus.checking && (
               <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-800 dark:text-amber-300 font-medium space-y-1">
                 <p className="font-bold font-['Alexandria']">
-                  {lang === 'ar' ? '💡 خطوة أخيرة في حساب MongoDB Atlas:' : '💡 One final step in MongoDB Atlas:'}
+                  {lang === 'ar' ? '💡 لتفعيل الاتصال السحابي المباشر:' : '💡 To activate direct MongoDB connection:'}
                 </p>
-                <p className="leading-relaxed">
+                <p className="leading-relaxed text-[11px]">
                   {lang === 'ar'
-                    ? 'يرجى الدخول إلى MongoDB Atlas ⬅️ Network Access ⬅️ الضغط على Add IP Address ⬅️ واختيار Allow Access from Anywhere (0.0.0.0/0).'
-                    : 'Please go to MongoDB Atlas -> Network Access -> Add IP Address -> Select "Allow Access from Anywhere" (0.0.0.0/0).'}
+                    ? 'في حساب MongoDB Atlas ⬅️ ادخل على Network Access ⬅️ اضغط Add IP Address ⬅️ واختر Allow Access from Anywhere (0.0.0.0/0).'
+                    : 'In MongoDB Atlas -> Network Access -> Add IP Address -> Select Allow Access from Anywhere (0.0.0.0/0).'}
+                </p>
+                <p className="text-[10px] text-slate-500 dark:text-zinc-400 pt-0.5">
+                  {lang === 'ar'
+                    ? '🛡️ ملاحظة: بياناتك وجدول يوم السبت محفوظة محلياً وتعمل بدقة كاملة حتى بدون اتصال السحابة.'
+                    : '🛡️ Note: All your schedule data is safely saved locally and fully functional.'}
                 </p>
               </div>
             )}
