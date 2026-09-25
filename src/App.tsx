@@ -18,6 +18,7 @@ import { ActiveTab, Language, StatusFilter, Task, TaskStatus, Theme } from './ty
 import { Sidebar } from './components/Sidebar';
 import { MainHeader } from './components/MainHeader';
 import { TodayProgress } from './components/TodayProgress';
+import { PrayerTimesWidget } from './components/PrayerTimesWidget';
 import { DateNavigation } from './components/DateNavigation';
 import { TaskList } from './components/TaskList';
 import { Archive } from './components/Archive';
@@ -167,6 +168,26 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleQuickAddPrayer = (title: string, time: string) => {
+    const hourPrefix = time.split(':')[0] + ':00';
+    const targetSlot = tasks.find((t) => t.time === hourPrefix);
+
+    if (targetSlot) {
+      handleUpdateTask(targetSlot.id, {
+        title,
+        category: 'worship',
+        status: targetSlot.status || 'pending',
+      });
+      showToast(lang === 'ar' ? `تم إدراج ${title} في جدول الساعة ${hourPrefix}` : `Scheduled ${title} at ${hourPrefix}`);
+    } else {
+      handleAddTask({
+        title,
+        time,
+        status: 'pending',
+      });
+    }
+  };
+
   const handleToggleLang = () => {
     setLang((prev) => (prev === 'ar' ? 'en' : 'ar'));
   };
@@ -259,6 +280,14 @@ export default function App() {
               currentFilter={currentFilter}
               onFilterChange={setCurrentFilter}
               lang={lang}
+            />
+
+            {/* Official Automated Prayer Times Widget */}
+            <PrayerTimesWidget
+              currentDate={currentDate}
+              lang={lang}
+              onAddTaskToSchedule={handleQuickAddPrayer}
+              todayTasks={tasks}
             />
 
             {/* Date Navigation (Previous Day, Today, Next Day) */}

@@ -1,4 +1,4 @@
-import { DayRecord, DayStats, HabitStreak, Task, TaskCategory, Theme, WeeklyDayData } from '../types';
+import { DayRecord, DayStats, HabitStreak, PrayerTimeItem, Task, TaskCategory, Theme, WeeklyDayData } from '../types';
 import { sortTasksByTime } from './date';
 import { autoDetectCategory } from './categories';
 import { SCHEDULE_TEMPLATES } from './templates';
@@ -6,6 +6,38 @@ import { SCHEDULE_TEMPLATES } from './templates';
 const STORAGE_KEY = 'daily_tasks_app_data_v2';
 const THEME_KEY = 'daily_theme_v1';
 const HABITS_KEY = 'daily_habits_v1';
+const PRAYER_TIMES_KEY = 'daily_fixed_prayer_times_v1';
+
+export const DEFAULT_PRAYER_TIMES: PrayerTimeItem[] = [
+  { id: 'fajr', nameAr: 'الفجر', nameEn: 'Fajr', time: '05:00' },
+  { id: 'dhuhr', nameAr: 'الظهر', nameEn: 'Dhuhr', time: '12:30' },
+  { id: 'asr', nameAr: 'العصر', nameEn: 'Asr', time: '15:45' },
+  { id: 'maghrib', nameAr: 'المغرب', nameEn: 'Maghrib', time: '18:15' },
+  { id: 'isha', nameAr: 'العشاء', nameEn: 'Isha', time: '19:45' },
+];
+
+export function getStoredPrayerTimes(): PrayerTimeItem[] {
+  try {
+    const raw = localStorage.getItem(PRAYER_TIMES_KEY);
+    if (!raw) return DEFAULT_PRAYER_TIMES;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length === 5) {
+      return parsed;
+    }
+    return DEFAULT_PRAYER_TIMES;
+  } catch {
+    return DEFAULT_PRAYER_TIMES;
+  }
+}
+
+export function saveStoredPrayerTimes(times: PrayerTimeItem[]): void {
+  try {
+    localStorage.setItem(PRAYER_TIMES_KEY, JSON.stringify(times));
+  } catch (err) {
+    console.error('Error saving prayer times:', err);
+  }
+}
+
 
 export function getStoredTheme(): Theme {
   try {

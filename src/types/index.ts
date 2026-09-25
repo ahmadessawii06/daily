@@ -58,3 +58,38 @@ export type ActiveTab = 'daily' | 'stats' | 'archive';
 export type StatusFilter = 'all' | 'scheduled' | 'done' | 'pending' | 'not-done';
 export type Language = 'ar' | 'en';
 export type Theme = 'dark' | 'light';
+
+export interface PrayerTimeItem {
+  id: 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha';
+  nameAr: string;
+  nameEn: string;
+  time: string; // "HH:MM" e.g. "05:00"
+}
+
+export interface PrayerLocationConfig {
+  city: string;
+  cityDisplayAr: string;
+  cityDisplayEn: string;
+  country: string;
+  countryDisplayAr: string;
+  countryDisplayEn: string;
+  method: number; // e.g. 4 for Umm Al-Qura, 5 for Egypt
+  latitude?: number;
+  longitude?: number;
+  useGeolocation?: boolean;
+}
+
+export interface PrayerTimesDayResponse {
+  date: string; // "YYYY-MM-DD"
+  prayers: PrayerTimeItem[];
+  sunrise?: string;
+  hijriFormatted?: string;
+  hijriDay?: string;
+  hijriMonth?: string;
+  hijriYear?: string;
+  locationNameAr?: string;
+  locationNameEn?: string;
+  methodNameAr?: string;
+  methodNameEn?: string;
+}
+
