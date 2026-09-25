@@ -2,6 +2,7 @@ import { DayRecord, DayStats, HabitStreak, PrayerTimeItem, Task, TaskCategory, T
 import { sortTasksByTime } from './date';
 import { autoDetectCategory } from './categories';
 import { SCHEDULE_TEMPLATES } from './templates';
+import { saveDayToDb, saveHabitsToDb } from '../services/api';
 
 const STORAGE_KEY = 'daily_tasks_app_data_v2';
 const THEME_KEY = 'daily_theme_v1';
@@ -121,6 +122,8 @@ export function getStoredHabits(): HabitStreak[] {
 export function saveHabits(habits: HabitStreak[]): void {
   try {
     localStorage.setItem(HABITS_KEY, JSON.stringify(habits));
+    // Asynchronously sync to MongoDB Atlas
+    saveHabitsToDb(habits).catch((err) => console.warn('Cloud habits save failed:', err));
   } catch {
     // Ignore
   }
@@ -477,6 +480,20 @@ export function saveAllDays(days: Record<string, DayRecord>): void {
   }
 }
 
+export function syncDayToMongo(date: string): void {
+  try {
+    const all = loadAllDays();
+    const rec = all[date];
+    if (rec) {
+      saveDayToDb(date, rec.tasks, rec.notes || rec.dayNote).catch((e) =>
+        console.warn('Cloud day sync failed:', e)
+      );
+    }
+  } catch {
+    // Ignore
+  }
+}
+
 export function getDayRecord(date: string): DayRecord {
   const all = loadAllDays();
   if (all[date] && all[date].tasks && all[date].tasks.length >= 24) {
@@ -568,6 +585,7 @@ export function addTaskToDay(
     updatedAt: new Date().toISOString(),
   };
   saveAllDays(all);
+  syncDayToMongo(date);
   return newTask;
 }
 
@@ -610,6 +628,7 @@ export function updateTaskInDay(date: string, taskId: string, updates: Partial<T
   record.updatedAt = new Date().toISOString();
   all[date] = record;
   saveAllDays(all);
+  syncDayToMongo(date);
 }
 
 export function deleteTaskFromDay(date: string, taskId: string): Task | null {
@@ -622,6 +641,7 @@ export function deleteTaskFromDay(date: string, taskId: string): Task | null {
   record.updatedAt = new Date().toISOString();
   all[date] = record;
   saveAllDays(all);
+  syncDayToMongo(date);
   return deletedTask;
 }
 
@@ -632,6 +652,7 @@ export function restoreTaskToDay(date: string, task: Task): void {
   record.updatedAt = new Date().toISOString();
   all[date] = record;
   saveAllDays(all);
+  syncDayToMongo(date);
 }
 
 export function calculateStats(tasks: Task[]): DayStats {

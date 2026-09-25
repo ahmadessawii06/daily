@@ -12,8 +12,12 @@ import {
   resetToDefaults,
   getStoredTheme,
   setStoredTheme,
-  apply24HourTemplate
+  apply24HourTemplate,
+  loadAllDays,
+  getStoredHabits,
+  saveAllDays,
 } from './utils/storage';
+import { checkDbHealth, fetchAllDaysFromDb, fetchDayFromDb, migrateLocalDataToMongo } from './services/api';
 import { ActiveTab, Language, StatusFilter, Task, TaskStatus, Theme } from './types';
 import { Sidebar } from './components/Sidebar';
 import { MainHeader } from './components/MainHeader';
@@ -69,12 +73,55 @@ export default function App() {
     }
   }, [theme]);
 
+  // Initial MongoDB Atlas sync and health check on mount
+  useEffect(() => {
+    async function initCloudSync() {
+      try {
+        const health = await checkDbHealth();
+        if (health.connected) {
+          // Check if MongoDB has existing days
+          const dbDays = await fetchAllDaysFromDb();
+          const hasDbData = Object.keys(dbDays).length > 0;
+          
+          if (!hasDbData) {
+            // First time connection: upload local data to MongoDB
+            const localDays = loadAllDays();
+            const localHabits = getStoredHabits();
+            await migrateLocalDataToMongo(localDays, localHabits);
+          } else {
+            // Merge MongoDB records into local cache
+            const localDays = loadAllDays();
+            const merged = { ...localDays, ...dbDays };
+            saveAllDays(merged);
+            const currentRec = getDayRecord(currentDate);
+            setTasks(currentRec.tasks);
+            setArchiveDays(getAllArchiveDays());
+          }
+        }
+      } catch (err) {
+        console.warn('Initial MongoDB sync warning:', err);
+      }
+    }
+
+    initCloudSync();
+  }, []);
+
   // Load tasks on date or language change
   useEffect(() => {
     const record = getDayRecord(currentDate);
     setTasks(record.tasks);
     document.documentElement.setAttribute('lang', lang);
     document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+
+    // Also fetch latest from MongoDB in background
+    fetchDayFromDb(currentDate).then((remoteRecord) => {
+      if (remoteRecord && remoteRecord.tasks && remoteRecord.tasks.length > 0) {
+        const local = loadAllDays();
+        local[currentDate] = remoteRecord;
+        saveAllDays(local);
+        setTasks(remoteRecord.tasks);
+      }
+    }).catch(() => {});
   }, [currentDate, lang]);
 
   const refreshArchive = useCallback(() => {

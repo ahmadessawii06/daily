@@ -19,6 +19,7 @@ export interface DayRecord {
   date: string; // "YYYY-MM-DD" e.g. "2026-09-24"
   tasks: Task[];
   dayNote?: string;
+  notes?: string;
   updatedAt: string;
 }
 
