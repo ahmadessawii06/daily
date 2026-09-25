@@ -4,9 +4,9 @@ import { autoDetectCategory } from './categories';
 import { SCHEDULE_TEMPLATES } from './templates';
 import { saveDayToDb, saveHabitsToDb } from '../services/api';
 
-const STORAGE_KEY = 'daily_tasks_app_data_v7_saturday26_clean';
+const STORAGE_KEY = 'daily_tasks_app_data_v8_saturday_schedule';
 const THEME_KEY = 'daily_theme_v1';
-const HABITS_KEY = 'daily_habits_v7_saturday26_clean';
+const HABITS_KEY = 'daily_habits_v8_saturday_schedule';
 const PRAYER_TIMES_KEY = 'daily_fixed_prayer_times_v1';
 
 // One-time purge of old storage keys from previous versions
@@ -18,12 +18,14 @@ try {
     'daily_tasks_app_data_v4',
     'daily_tasks_app_data_v5',
     'daily_tasks_app_data_v6_saturday26',
+    'daily_tasks_app_data_v7_saturday26_clean',
     'daily_habits_v1',
     'daily_habits_v2',
     'daily_habits_v3',
     'daily_habits_v4',
     'daily_habits_v5',
     'daily_habits_v6_saturday26',
+    'daily_habits_v7_saturday26_clean',
   ];
   for (const k of oldKeys) {
     localStorage.removeItem(k);
@@ -181,174 +183,61 @@ export function toggleHabitToday(habitId: string, todayDate: string): HabitStrea
   return updated;
 }
 
-// Clean start for Saturday 2026-09-26: all tasks set to pending (0% done)
+// Helper to create 24 clean, empty hourly slots for a date from 00:00 to 23:00
+export function createEmpty24HourTasks(dateStr: string): Task[] {
+  const tasks: Task[] = [];
+  for (let h = 0; h < 24; h++) {
+    const timeStr = `${String(h).padStart(2, '0')}:00`;
+    const endHour = (h + 1) % 24;
+    const endTimeStr = `${String(endHour).padStart(2, '0')}:00`;
+    tasks.push({
+      id: `task-${dateStr}-${timeStr}`,
+      time: timeStr,
+      endTime: endTimeStr,
+      duration: 60,
+      title: '',
+      status: 'pending',
+      category: h < 6 || h >= 23 ? 'sleep' : 'general',
+      createdAt: new Date().toISOString(),
+    });
+  }
+  return tasks;
+}
+
+export const SATURDAY_26_TASKS: Task[] = [
+  { id: 'sat-26-00', time: '00:00', endTime: '01:00', duration: 60, title: 'نوم', status: 'pending', category: 'sleep', createdAt: '2026-09-26T00:00:00Z' },
+  { id: 'sat-26-01', time: '01:00', endTime: '02:00', duration: 60, title: 'نوم', status: 'pending', category: 'sleep', createdAt: '2026-09-26T01:00:00Z' },
+  { id: 'sat-26-02', time: '02:00', endTime: '03:00', duration: 60, title: 'نوم', status: 'pending', category: 'sleep', createdAt: '2026-09-26T02:00:00Z' },
+  { id: 'sat-26-03', time: '03:00', endTime: '04:00', duration: 60, title: 'نوم', status: 'pending', category: 'sleep', createdAt: '2026-09-26T03:00:00Z' },
+  { id: 'sat-26-04', time: '04:00', endTime: '05:00', duration: 60, title: 'نوم', status: 'pending', category: 'sleep', createdAt: '2026-09-26T04:00:00Z' },
+  { id: 'sat-26-05', time: '05:00', endTime: '06:00', duration: 60, title: 'صلاة الفجر', status: 'pending', category: 'worship', createdAt: '2026-09-26T05:00:00Z' },
+  { id: 'sat-26-06', time: '06:00', endTime: '07:00', duration: 60, title: 'الأذكار + الورد اليومي', status: 'pending', category: 'worship', createdAt: '2026-09-26T06:00:00Z' },
+  { id: 'sat-26-07', time: '07:00', endTime: '08:00', duration: 60, title: 'التجهيز للدوام', status: 'pending', category: 'health', createdAt: '2026-09-26T07:00:00Z' },
+  { id: 'sat-26-08', time: '08:00', endTime: '09:00', duration: 60, title: 'محاضرة 1', status: 'pending', category: 'study', createdAt: '2026-09-26T08:00:00Z' },
+  { id: 'sat-26-09', time: '09:00', endTime: '10:00', duration: 60, title: 'محاضرة 1', status: 'pending', category: 'study', createdAt: '2026-09-26T09:00:00Z' },
+  { id: 'sat-26-10', time: '10:00', endTime: '11:00', duration: 60, title: 'محاضرة 2', status: 'pending', category: 'study', createdAt: '2026-09-26T10:00:00Z' },
+  { id: 'sat-26-11', time: '11:00', endTime: '12:00', duration: 60, title: 'محاضرة 3', status: 'pending', category: 'study', createdAt: '2026-09-26T11:00:00Z' },
+  { id: 'sat-26-12', time: '12:00', endTime: '13:00', duration: 60, title: 'محاضرة 4 + صلاة الظهر', status: 'pending', category: 'study', createdAt: '2026-09-26T12:00:00Z' },
+  { id: 'sat-26-13', time: '13:00', endTime: '14:00', duration: 60, title: 'محاضرة 5', status: 'pending', category: 'study', createdAt: '2026-09-26T13:00:00Z' },
+  { id: 'sat-26-14', time: '14:00', endTime: '15:00', duration: 60, title: 'محاضرة 6', status: 'pending', category: 'study', createdAt: '2026-09-26T14:00:00Z' },
+  { id: 'sat-26-15', time: '15:00', endTime: '16:00', duration: 60, title: 'فطور + صلاة العصر', status: 'pending', category: 'health', createdAt: '2026-09-26T15:00:00Z' },
+  { id: 'sat-26-16', time: '16:00', endTime: '17:00', duration: 60, title: 'بريك', status: 'pending', category: 'rest', createdAt: '2026-09-26T16:00:00Z' },
+  { id: 'sat-26-17', time: '17:00', endTime: '18:00', duration: 60, title: 'مواصلات', status: 'pending', category: 'general', createdAt: '2026-09-26T17:00:00Z' },
+  { id: 'sat-26-18', time: '18:00', endTime: '19:00', duration: 60, title: 'دراسة محاضرة استرجاع + صلاة المغرب', status: 'pending', category: 'study', createdAt: '2026-09-26T18:00:00Z' },
+  { id: 'sat-26-19', time: '19:00', endTime: '20:00', duration: 60, title: 'دراسة محاضرة استرجاع + صلاة العشاء', status: 'pending', category: 'study', createdAt: '2026-09-26T19:00:00Z' },
+  { id: 'sat-26-20', time: '20:00', endTime: '21:00', duration: 60, title: 'بريك ماينكرافت لايف 1', status: 'pending', category: 'rest', createdAt: '2026-09-26T20:00:00Z' },
+  { id: 'sat-26-21', time: '21:00', endTime: '22:00', duration: 60, title: 'بريك ماينكرافت لايف 2', status: 'pending', category: 'rest', createdAt: '2026-09-26T21:00:00Z' },
+  { id: 'sat-26-22', time: '22:00', endTime: '23:00', duration: 60, title: 'فقرة الأدعية', status: 'pending', category: 'worship', createdAt: '2026-09-26T22:00:00Z' },
+  { id: 'sat-26-23', time: '23:00', endTime: '00:00', duration: 60, title: 'نوم', status: 'pending', category: 'sleep', createdAt: '2026-09-26T23:00:00Z' },
+];
+
+// Saturday 2026-09-26 seeded with your university and daily schedule
 export const INITIAL_SEED_DATA: Record<string, DayRecord> = {
   '2026-09-26': {
     date: '2026-09-26',
     updatedAt: new Date().toISOString(),
-    dayNote: 'بداية جدول يوم السبت 26 سبتمبر - انطلاقة جديدة من الصفر',
-    tasks: [
-      {
-        id: 'sat-26-01',
-        time: '00:00',
-        endTime: '05:00',
-        duration: 300,
-        title: 'نوم واستعادة طاقة ونشاط',
-        status: 'pending',
-        category: 'sleep',
-        createdAt: '2026-09-26T00:00:00Z',
-      },
-      {
-        id: 'sat-26-02',
-        time: '05:00',
-        endTime: '06:00',
-        duration: 60,
-        title: 'صلاة الفجر وقراءة أذكار الصباح',
-        status: 'pending',
-        category: 'worship',
-        createdAt: '2026-09-26T05:00:00Z',
-      },
-      {
-        id: 'sat-26-03',
-        time: '06:00',
-        endTime: '07:00',
-        duration: 60,
-        title: 'تجهيز اليوم وقراءة الورد القرآني',
-        status: 'pending',
-        category: 'worship',
-        createdAt: '2026-09-26T06:00:00Z',
-      },
-      {
-        id: 'sat-26-04',
-        time: '07:00',
-        endTime: '08:00',
-        duration: 60,
-        title: 'فطور صحي وانطلاق بنشاط',
-        status: 'pending',
-        category: 'health',
-        createdAt: '2026-09-26T07:00:00Z',
-      },
-      {
-        id: 'sat-26-05',
-        time: '08:00',
-        endTime: '10:00',
-        duration: 120,
-        title: 'جلسة دراسة وعمل مركزة (Deep Work)',
-        status: 'pending',
-        category: 'study',
-        createdAt: '2026-09-26T08:00:00Z',
-      },
-      {
-        id: 'sat-26-06',
-        time: '10:00',
-        endTime: '12:00',
-        duration: 120,
-        title: 'تطوير مشاريع وبرمجة مهام السبت',
-        status: 'pending',
-        category: 'work',
-        createdAt: '2026-09-26T10:00:00Z',
-      },
-      {
-        id: 'sat-26-07',
-        time: '12:00',
-        endTime: '13:00',
-        duration: 60,
-        title: 'صلاة الظهر واستراحة غداء',
-        status: 'pending',
-        category: 'worship',
-        createdAt: '2026-09-26T12:00:00Z',
-      },
-      {
-        id: 'sat-26-08',
-        time: '13:00',
-        endTime: '15:00',
-        duration: 120,
-        title: 'إنجاز المهام التطبيقية ومتابعة الأهداف',
-        status: 'pending',
-        category: 'work',
-        createdAt: '2026-09-26T13:00:00Z',
-      },
-      {
-        id: 'sat-26-09',
-        time: '15:00',
-        endTime: '16:00',
-        duration: 60,
-        title: 'صلاة العصر وجلسة هدوء',
-        status: 'pending',
-        category: 'worship',
-        createdAt: '2026-09-26T15:00:00Z',
-      },
-      {
-        id: 'sat-26-10',
-        time: '16:00',
-        endTime: '18:00',
-        duration: 120,
-        title: 'مذاكرة وحل تمارين دراسية',
-        status: 'pending',
-        category: 'study',
-        createdAt: '2026-09-26T16:00:00Z',
-      },
-      {
-        id: 'sat-26-11',
-        time: '18:00',
-        endTime: '19:00',
-        duration: 60,
-        title: 'صلاة المغرب واستراحة عائلية',
-        status: 'pending',
-        category: 'worship',
-        createdAt: '2026-09-26T18:00:00Z',
-      },
-      {
-        id: 'sat-26-12',
-        time: '19:00',
-        endTime: '20:00',
-        duration: 60,
-        title: 'تمرين ونشاط رياضي ومشي',
-        status: 'pending',
-        category: 'health',
-        createdAt: '2026-09-26T19:00:00Z',
-      },
-      {
-        id: 'sat-26-13',
-        time: '20:00',
-        endTime: '21:00',
-        duration: 60,
-        title: 'صلاة العشاء وأذكار المساء',
-        status: 'pending',
-        category: 'worship',
-        createdAt: '2026-09-26T20:00:00Z',
-      },
-      {
-        id: 'sat-26-14',
-        time: '21:00',
-        endTime: '22:00',
-        duration: 60,
-        title: 'قراءة حرة وتطوير ذاتي',
-        status: 'pending',
-        category: 'study',
-        createdAt: '2026-09-26T21:00:00Z',
-      },
-      {
-        id: 'sat-26-15',
-        time: '22:00',
-        endTime: '23:00',
-        duration: 60,
-        title: 'مراجعة إنجازات اليوم وتخطيط مهام الغد',
-        status: 'pending',
-        category: 'work',
-        createdAt: '2026-09-26T22:00:00Z',
-      },
-      {
-        id: 'sat-26-16',
-        time: '23:00',
-        endTime: '00:00',
-        duration: 60,
-        title: 'تهيئة للنوم والراحة التامة',
-        status: 'pending',
-        category: 'sleep',
-        createdAt: '2026-09-26T23:00:00Z',
-      },
-    ],
+    dayNote: 'جدول دوام السبت ومحاضرات الجامعة',
+    tasks: SATURDAY_26_TASKS,
   },
 };
 

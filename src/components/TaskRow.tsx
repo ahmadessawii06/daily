@@ -139,21 +139,11 @@ export const TaskRow: React.FC<TaskRowProps> = ({
 
   const isCommittingRef = useRef(false);
 
-  const handleCommitTitle = () => {
+  const handleCommitTitle = (advanceToNext = false) => {
     if (isCommittingRef.current) return;
     isCommittingRef.current = true;
 
     const trimmed = inlineTitle.trim();
-    if (trimmed === '' && task.title && task.title.trim() !== '') {
-      setInlineTitle(task.title);
-      setIsEditingInline(false);
-      isCommittingRef.current = false;
-      if (onEnterNext) {
-        onEnterNext();
-      }
-      return;
-    }
-
     if (trimmed !== (task.title || '').trim()) {
       if (onUpdateTitle) {
         onUpdateTitle(task.id, trimmed);
@@ -162,13 +152,13 @@ export const TaskRow: React.FC<TaskRowProps> = ({
 
     setIsEditingInline(false);
 
-    if (onEnterNext) {
+    if (advanceToNext && onEnterNext) {
       onEnterNext();
     }
 
     setTimeout(() => {
       isCommittingRef.current = false;
-    }, 100);
+    }, 80);
   };
 
   return (
@@ -264,7 +254,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    handleCommitTitle();
+                    handleCommitTitle(true);
                   } else if (e.key === 'Escape') {
                     e.preventDefault();
                     setIsEditingInline(false);
@@ -272,7 +262,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   }
                 }}
                 onBlur={() => {
-                  // Do not commit on blur
+                  handleCommitTitle(false);
                 }}
                 placeholder={lang === 'ar' ? '+ اكتب اسم المهمة هنا واضغط Enter...' : '+ Write task name and press Enter...'}
                 className="w-full bg-white dark:bg-[#0b0d13] border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-2 text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[40px]"
@@ -280,7 +270,10 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               {inlineTitle.trim() && (
                 <button
                   type="button"
-                  onClick={handleCommitTitle}
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // prevent blur before click
+                    handleCommitTitle(false);
+                  }}
                   className="px-3 py-2 text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded-xl shadow-xs cursor-pointer shrink-0 min-h-[40px] flex items-center justify-center active:scale-95"
                 >
                   <Check className="w-4 h-4 stroke-[3]" />
@@ -379,7 +372,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    handleCommitTitle();
+                    handleCommitTitle(true);
                   } else if (e.key === 'Escape') {
                     e.preventDefault();
                     setIsEditingInline(false);
@@ -387,7 +380,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   }
                 }}
                 onBlur={() => {
-                  // Do not commit on blur
+                  handleCommitTitle(false);
                 }}
                 placeholder={lang === 'ar' ? '+ اكتب اسم المهمة هنا واضغط Enter...' : '+ Write task name and press Enter...'}
                 className="w-full bg-white dark:bg-[#0b0d13] border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-1.5 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[36px]"
@@ -395,7 +388,10 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               {inlineTitle.trim() && (
                 <button
                   type="button"
-                  onClick={handleCommitTitle}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleCommitTitle(false);
+                  }}
                   className="px-2.5 py-1 text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-xs cursor-pointer shrink-0 min-h-[36px] flex items-center justify-center"
                 >
                   <Check className="w-3.5 h-3.5 stroke-[3]" />

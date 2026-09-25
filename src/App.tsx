@@ -82,8 +82,11 @@ export default function App() {
           const dbDays = await fetchAllDaysFromDb();
           const hasOldData = Object.keys(dbDays).some((d) => d < '2026-09-26');
           
-          if (hasOldData || !dbDays['2026-09-26']) {
-            // Force reset MongoDB to clean Saturday 26
+          const remoteSaturday = dbDays['2026-09-26'];
+          const remoteHasTasks = remoteSaturday && remoteSaturday.tasks && remoteSaturday.tasks.some((t: any) => t.title && t.title.trim() !== '');
+
+          if (hasOldData || !remoteHasTasks) {
+            // Force sync Saturday 26 schedule to MongoDB Atlas
             const saturdayRec = getDayRecord('2026-09-26');
             await resetDatabaseToSaturday26(saturdayRec, getStoredHabits());
           } else {
@@ -119,9 +122,15 @@ export default function App() {
     fetchDayFromDb(currentDate).then((remoteRecord) => {
       if (remoteRecord && remoteRecord.tasks && remoteRecord.tasks.length > 0) {
         const local = loadAllDays();
-        local[currentDate] = remoteRecord;
-        saveAllDays(local);
-        setTasks(remoteRecord.tasks);
+        const currentLocal = local[currentDate];
+        const remoteHasContent = remoteRecord.tasks.some((t) => t.title && t.title.trim() !== '');
+        const localHasContent = currentLocal?.tasks?.some((t) => t.title && t.title.trim() !== '');
+
+        if (remoteHasContent || !localHasContent) {
+          local[currentDate] = remoteRecord;
+          saveAllDays(local);
+          setTasks(remoteRecord.tasks);
+        }
       }
     }).catch(() => {});
   }, [currentDate, lang]);
