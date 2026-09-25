@@ -323,6 +323,74 @@ apiRouter.post('/sync/migrate-all', async (req, res) => {
   });
 });
 
+// 8. Full Reset Endpoint: Clear all past data and start clean from Saturday 2026-09-26
+apiRouter.post('/sync/reset-database-to-saturday-26', async (req, res) => {
+  const { saturdayRecord, habits } = req.body;
+
+  // 1. Reset memory store
+  for (const k of Object.keys(memoryDaysStore)) {
+    delete memoryDaysStore[k];
+  }
+  if (saturdayRecord) {
+    memoryDaysStore['2026-09-26'] = saturdayRecord;
+  }
+  if (Array.isArray(habits)) {
+    memoryHabitsStore = habits;
+  }
+
+  // 2. Reset MongoDB if connected
+  try {
+    if (!isDbConnected()) {
+      await connectToDatabase().catch(() => {});
+    }
+
+    if (isDbConnected()) {
+      // Remove all old dummy dates
+      await DayModel.deleteMany({ date: { $ne: '2026-09-26' } });
+      
+      if (saturdayRecord) {
+        await DayModel.findOneAndUpdate(
+          { date: '2026-09-26' },
+          {
+            date: '2026-09-26',
+            tasks: saturdayRecord.tasks || [],
+            notes: saturdayRecord.notes || saturdayRecord.dayNote || '',
+            updatedAt: new Date(),
+          },
+          { upsert: true }
+        );
+      }
+
+      if (Array.isArray(habits)) {
+        await HabitModel.deleteMany({});
+        for (const h of habits) {
+          await HabitModel.create({
+            id: h.id,
+            title: h.title,
+            currentStreak: 0,
+            bestStreak: 0,
+            icon: h.icon || '⚡',
+            history: {},
+            updatedAt: new Date(),
+          });
+        }
+      }
+
+      return res.json({
+        success: true,
+        message: 'All past data reset! Starting from Saturday 2026-09-26 from zero.',
+      });
+    }
+  } catch (err: any) {
+    console.warn('MongoDB reset warning:', err.message);
+  }
+
+  return res.json({
+    success: true,
+    message: 'Reset completed in local cache and memory.',
+  });
+});
+
 // Mount API router
 app.use('/api', apiRouter);
 

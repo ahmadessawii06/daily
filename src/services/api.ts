@@ -97,6 +97,23 @@ export async function saveHabitsToDb(habits: HabitStreak[]): Promise<boolean> {
   }
 }
 
+export async function resetDatabaseToSaturday26(
+  saturdayRecord: DayRecord,
+  habits: HabitStreak[]
+): Promise<boolean> {
+  try {
+    const res = await fetch('/api/sync/reset-database-to-saturday-26', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ saturdayRecord, habits }),
+    });
+    return res.ok;
+  } catch (err) {
+    console.error('Failed to call reset database endpoint:', err);
+    return false;
+  }
+}
+
 export async function migrateLocalDataToMongo(
   days: Record<string, DayRecord>,
   habits: HabitStreak[]

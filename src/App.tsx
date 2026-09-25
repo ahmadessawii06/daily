@@ -17,7 +17,7 @@ import {
   getStoredHabits,
   saveAllDays,
 } from './utils/storage';
-import { checkDbHealth, fetchAllDaysFromDb, fetchDayFromDb, migrateLocalDataToMongo } from './services/api';
+import { checkDbHealth, fetchAllDaysFromDb, fetchDayFromDb, migrateLocalDataToMongo, resetDatabaseToSaturday26 } from './services/api';
 import { ActiveTab, Language, StatusFilter, Task, TaskStatus, Theme } from './types';
 import { Sidebar } from './components/Sidebar';
 import { MainHeader } from './components/MainHeader';
@@ -79,23 +79,28 @@ export default function App() {
       try {
         const health = await checkDbHealth();
         if (health.connected) {
-          // Check if MongoDB has existing days
           const dbDays = await fetchAllDaysFromDb();
           const hasDbData = Object.keys(dbDays).length > 0;
           
           if (!hasDbData) {
-            // First time connection: upload local data to MongoDB
+            // First time connection: upload clean Saturday 26 data to MongoDB
             const localDays = loadAllDays();
             const localHabits = getStoredHabits();
             await migrateLocalDataToMongo(localDays, localHabits);
           } else {
-            // Merge MongoDB records into local cache
-            const localDays = loadAllDays();
-            const merged = { ...localDays, ...dbDays };
-            saveAllDays(merged);
-            const currentRec = getDayRecord(currentDate);
-            setTasks(currentRec.tasks);
-            setArchiveDays(getAllArchiveDays());
+            // If DB contains old demo dates other than 2026-09-26, sync the clean Saturday 26 state
+            const hasOnlyOldData = Object.keys(dbDays).some(d => d < '2026-09-26');
+            if (hasOnlyOldData && !dbDays['2026-09-26']) {
+              const saturdayRec = getDayRecord('2026-09-26');
+              await resetDatabaseToSaturday26(saturdayRec, getStoredHabits());
+            } else {
+              const localDays = loadAllDays();
+              const merged = { ...localDays, ...dbDays };
+              saveAllDays(merged);
+              const currentRec = getDayRecord(currentDate);
+              setTasks(currentRec.tasks);
+              setArchiveDays(getAllArchiveDays());
+            }
           }
         }
       } catch (err) {
@@ -241,10 +246,12 @@ export default function App() {
 
   const handleResetData = () => {
     resetToDefaults();
-    const rec = getDayRecord(currentDate);
+    const rec = getDayRecord('2026-09-26');
+    setCurrentDate('2026-09-26');
     setTasks(rec.tasks);
     refreshArchive();
-    showToast(lang === 'ar' ? 'تمت استعادة الجدول الأولي' : 'Seed schedule restored');
+    resetDatabaseToSaturday26(rec, getStoredHabits()).catch(() => {});
+    showToast(lang === 'ar' ? 'تم تصفير البيانات والبدء من السبت 26 سبتمبر من الصفر' : 'Data reset to Saturday 26 from scratch');
   };
 
   const stats = useMemo(() => calculateStats(tasks), [tasks]);
