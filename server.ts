@@ -27,39 +27,42 @@ function hashPassword(password: string): string {
   return crypto.createHash('sha256').update(password + '_daily_tasks_app_salt_2026').digest('hex');
 }
 
+const DEFAULT_ADMIN_USERNAME = process.env.DEFAULT_ADMIN_USERNAME || '';
+const DEFAULT_ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD || '';
+const DEFAULT_ADMIN_NAME = process.env.DEFAULT_ADMIN_NAME || (DEFAULT_ADMIN_USERNAME ? `User (${DEFAULT_ADMIN_USERNAME})` : '');
+const DEFAULT_ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || '';
+
 // Memory fallback store when MongoDB is connecting / pending IP whitelist
 const memoryDaysStore: Record<string, any> = {};
 let memoryHabitsStore: any[] = [];
 let memorySettingsStore: any = { userId: 'default_user', theme: 'dark', lang: 'ar' };
-const memoryUsersStore: Record<string, any> = {
-  v27md: {
-    id: 'user-v27md',
-    username: 'v27md',
-    name: 'محمد (v27md)',
-    email: 'v27md@tasks.app',
-    passwordHash: hashPassword('122122122'),
+const memoryUsersStore: Record<string, any> = {};
+
+if (DEFAULT_ADMIN_USERNAME && DEFAULT_ADMIN_PASSWORD) {
+  memoryUsersStore[DEFAULT_ADMIN_USERNAME.toLowerCase()] = {
+    id: `user-${DEFAULT_ADMIN_USERNAME.toLowerCase()}`,
+    username: DEFAULT_ADMIN_USERNAME,
+    name: DEFAULT_ADMIN_NAME,
+    email: DEFAULT_ADMIN_EMAIL,
+    passwordHash: hashPassword(DEFAULT_ADMIN_PASSWORD),
     createdAt: new Date().toISOString(),
-  },
-};
+  };
+}
 
 // Initial background connection attempt and user setup
 connectToDatabase()
   .then(async () => {
     try {
-      if (isDbConnected()) {
-        // Remove old deprecated accounts like 'admin'
-        await UserModel.deleteMany({ username: 'admin' });
-
-        // Upsert v27md user
-        const passHash = hashPassword('122122122');
+      if (isDbConnected() && DEFAULT_ADMIN_USERNAME && DEFAULT_ADMIN_PASSWORD) {
+        const passHash = hashPassword(DEFAULT_ADMIN_PASSWORD);
         await UserModel.findOneAndUpdate(
-          { username: 'v27md' },
+          { username: DEFAULT_ADMIN_USERNAME },
           {
             $set: {
-              username: 'v27md',
+              username: DEFAULT_ADMIN_USERNAME,
               passwordHash: passHash,
-              name: 'محمد (v27md)',
-              email: 'v27md@tasks.app',
+              name: DEFAULT_ADMIN_NAME,
+              email: DEFAULT_ADMIN_EMAIL || undefined,
             },
           },
           { upsert: true, new: true }
@@ -72,6 +75,7 @@ connectToDatabase()
   .catch(() => {
     // Gracefully handled; API won't crash
   });
+
 
 
 

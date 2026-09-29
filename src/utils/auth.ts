@@ -71,17 +71,6 @@ export function getLocalRegisteredCredentials(): Record<string, { user: User; pa
 
 export function verifyLocalCredential(username: string, passwordInput: string): User | null {
   const cleanUser = username.trim().toLowerCase();
-  
-  // Specific master check for v27md
-  if (cleanUser === 'v27md' && passwordInput === '122122122') {
-    return {
-      id: 'user-v27md',
-      username: 'v27md',
-      name: 'محمد (v27md)',
-      email: 'v27md@tasks.app',
-      createdAt: new Date().toISOString(),
-    };
-  }
 
   // Strictly check matching password in locally registered accounts
   const creds = getLocalRegisteredCredentials();
@@ -92,3 +81,4 @@ export function verifyLocalCredential(username: string, passwordInput: string): 
 
   return null;
 }
+

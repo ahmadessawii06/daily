@@ -1,9 +1,13 @@
 import { Task } from '../types';
 
 export function getTodayDateString(): string {
-  // Configured default start date: Saturday 2026-09-26
-  return '2026-09-26';
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
+
 
 export function parseDate(dateStr: string): Date {
   const [year, month, day] = dateStr.split('-').map(Number);

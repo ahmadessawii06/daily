@@ -6,10 +6,11 @@ mongoose.set('bufferCommands', false);
 
 const MONGODB_URI =
   process.env.MONGODB_URI ||
-  'mongodb+srv://gamadmktol_db_user:bMkWKi23sJ44qZb7@cluster0.09l0tvf.mongodb.net/daily_tasks_app?retryWrites=true&w=majority';
+  'mongodb+srv://gamadmktol_db_user:l8QCwdKq9QM4ygj6@cluster0.09l0tvf.mongodb.net/daily_tasks_app?retryWrites=true&w=majority&appName=Cluster0';
+
 
 let isConnected = false;
-let connectionPromise: Promise<typeof mongoose> | null = null;
+let connectionPromise: Promise<typeof mongoose | null> | null = null;
 let lastError: string | null = null;
 
 export function isDbConnected(): boolean {
@@ -20,11 +21,17 @@ export function getDbLastError(): string | null {
   return lastError;
 }
 
-export async function connectToDatabase() {
+export async function connectToDatabase(): Promise<typeof mongoose | null> {
   if (mongoose.connection.readyState === 1) {
     isConnected = true;
     lastError = null;
-    return mongoose.connection;
+    return mongoose;
+  }
+
+  if (!MONGODB_URI) {
+    isConnected = false;
+    lastError = 'MONGODB_URI not configured - operating in resilient local/memory mode';
+    return null;
   }
 
   if (connectionPromise) {
@@ -38,22 +45,28 @@ export async function connectToDatabase() {
       socketTimeoutMS: 15000,
       retryWrites: true,
       w: 'majority',
+    }).then(() => {
+      isConnected = true;
+      lastError = null;
+      console.log(' Successfully connected to MongoDB Atlas database:', mongoose.connection.name);
+      return mongoose;
     });
 
-    await connectionPromise;
-    isConnected = true;
-    lastError = null;
-    connectionPromise = null;
-    console.log(' Successfully connected to MongoDB Atlas database:', mongoose.connection.name);
-    return mongoose.connection;
+    return await connectionPromise;
   } catch (err: any) {
-    connectionPromise = null;
     isConnected = false;
     lastError = err.message || 'Connection failed';
-    console.warn(' MongoDB Atlas Notice:', err.message);
-    throw err;
+    if (err.message && (err.message.includes('bad auth') || err.message.includes('authentication failed'))) {
+      console.warn(' MongoDB Atlas Notice: Authentication failed. Please check MONGODB_URI username and password in environment settings. Running smoothly with local/memory fallback.');
+    } else {
+      console.warn(' MongoDB Atlas Notice:', err.message);
+    }
+    return null;
+  } finally {
+    connectionPromise = null;
   }
 }
+
 
 // 1. Day Record Schema
 export interface ITask {
