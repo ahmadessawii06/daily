@@ -31,16 +31,8 @@ function hashPassword(password: string): string {
 const memoryDaysStore: Record<string, any> = {};
 let memoryHabitsStore: any[] = [];
 let memorySettingsStore: any = { userId: 'default_user', theme: 'dark', lang: 'ar' };
-const memoryUsersStore: Record<string, any> = {
-  admin: {
-    id: 'user-admin',
-    username: 'admin',
-    name: 'المستخدم الأساسي',
-    email: 'user@example.com',
-    passwordHash: hashPassword('123456'),
-    createdAt: new Date().toISOString(),
-  },
-};
+const memoryUsersStore: Record<string, any> = {};
+
 
 
 // Initial background connection attempt

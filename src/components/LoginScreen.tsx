@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Lock, User as UserIcon, KeyRound, Eye, EyeOff, Sparkles, ShieldCheck, ArrowRight, LogIn, UserPlus, CheckCircle2, AlertCircle } from 'lucide-react';
 import { User, Language, Theme } from '../types';
 import { loginApi, registerApi } from '../services/api';
-import { saveStoredAuth } from '../utils/auth';
+import { saveStoredAuth, getLocalRegisteredUsers } from '../utils/auth';
+
 
 interface LoginScreenProps {
   onLoginSuccess: (user: User, token: string) => void;
@@ -49,17 +50,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           saveStoredAuth(res.user, res.token);
           onLoginSuccess(res.user, res.token);
         } else {
-          // Offline fallback
-          if (cleanUser === 'admin' && (cleanPass === '123456' || cleanPass === 'admin')) {
-            const fallbackUser: User = {
-              id: 'user-admin',
-              username: 'admin',
-              name: 'المستخدم الأساسي',
-              email: 'admin@example.com',
-            };
-            const fallbackToken = `session_admin_${Date.now()}`;
-            saveStoredAuth(fallbackUser, fallbackToken);
-            onLoginSuccess(fallbackUser, fallbackToken);
+          // Check local registered accounts (offline fallback)
+          const localUsers = getLocalRegisteredUsers();
+          const match = localUsers.find((u) => u.username.toLowerCase() === cleanUser.toLowerCase());
+          if (match) {
+            const token = `session_${cleanUser}_${Date.now()}`;
+            saveStoredAuth(match, token);
+            onLoginSuccess(match, token);
           } else {
             setError(res.error || (lang === 'ar' ? 'اسم المستخدم أو كلمة المرور غير صحيحة' : 'Invalid username or password'));
           }
@@ -88,20 +85,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleQuickDemoLogin = () => {
-    setUsername('admin');
-    setPassword('123456');
-    const demoUser: User = {
-      id: 'user-admin',
-      username: 'admin',
-      name: 'المستخدم الأساسي',
-      email: 'user@example.com',
-    };
-    const demoToken = `session_admin_${Date.now()}`;
-    saveStoredAuth(demoUser, demoToken);
-    onLoginSuccess(demoUser, demoToken);
   };
 
   return (
@@ -230,7 +213,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 end-0 flex items-center pe-3 text-zinc-500 hover:text-zinc-300 transition-colors"
+                className="absolute inset-y-0 end-0 flex items-center pe-3 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -272,16 +255,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           </button>
         </form>
 
-        {/* Quick Demo Access */}
-        <div className="mt-6 pt-5 border-t border-white/[0.08] text-center space-y-2">
-          <button
-            type="button"
-            onClick={handleQuickDemoLogin}
-            className="text-xs text-zinc-400 hover:text-emerald-400 font-semibold transition-colors flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{lang === 'ar' ? 'دخول سريع بالحساب الافتراضي (admin / 123456)' : 'Quick Demo Login (admin / 123456)'}</span>
-          </button>
+        {/* Secure note at bottom */}
+        <div className="mt-6 pt-4 border-t border-white/[0.08] text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06] text-[11px] text-zinc-400">
+            <Lock className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{lang === 'ar' ? 'بياناتك مشفرة ومحمية في MongoDB Atlas' : 'Encrypted & Secured with MongoDB Atlas'}</span>
+          </div>
         </div>
 
       </div>
