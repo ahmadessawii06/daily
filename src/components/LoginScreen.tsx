@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { Lock, User as UserIcon, KeyRound, Eye, EyeOff, Sparkles, ShieldCheck, ArrowRight, LogIn, UserPlus, CheckCircle2, AlertCircle } from 'lucide-react';
 import { User, Language, Theme } from '../types';
 import { loginApi, registerApi } from '../services/api';
-import { saveStoredAuth, getLocalRegisteredUsers } from '../utils/auth';
-
+import { saveStoredAuth, verifyLocalCredential } from '../utils/auth';
 
 interface LoginScreenProps {
   onLoginSuccess: (user: User, token: string) => void;
@@ -47,16 +46,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       if (mode === 'login') {
         const res = await loginApi(cleanUser, cleanPass);
         if (res.success && res.user && res.token) {
-          saveStoredAuth(res.user, res.token);
+          saveStoredAuth(res.user, res.token, cleanPass);
           onLoginSuccess(res.user, res.token);
         } else {
-          // Check local registered accounts (offline fallback)
-          const localUsers = getLocalRegisteredUsers();
-          const match = localUsers.find((u) => u.username.toLowerCase() === cleanUser.toLowerCase());
-          if (match) {
+          // Strict offline credential verification (must match password!)
+          const matchedUser = verifyLocalCredential(cleanUser, cleanPass);
+          if (matchedUser) {
             const token = `session_${cleanUser}_${Date.now()}`;
-            saveStoredAuth(match, token);
-            onLoginSuccess(match, token);
+            saveStoredAuth(matchedUser, token, cleanPass);
+            onLoginSuccess(matchedUser, token);
           } else {
             setError(res.error || (lang === 'ar' ? 'اسم المستخدم أو كلمة المرور غير صحيحة' : 'Invalid username or password'));
           }
@@ -65,10 +63,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         // Register mode
         const res = await registerApi(cleanUser, cleanPass, name.trim() || cleanUser, email.trim() || undefined);
         if (res.success && res.user && res.token) {
-          saveStoredAuth(res.user, res.token);
+          saveStoredAuth(res.user, res.token, cleanPass);
           onLoginSuccess(res.user, res.token);
         } else {
-          // Fallback registration
+          // Fallback registration with saved credentials
           const fallbackUser: User = {
             id: `user-${Date.now()}`,
             username: cleanUser,
@@ -76,7 +74,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             email: email.trim() || undefined,
           };
           const fallbackToken = `session_${cleanUser}_${Date.now()}`;
-          saveStoredAuth(fallbackUser, fallbackToken);
+          saveStoredAuth(fallbackUser, fallbackToken, cleanPass);
           onLoginSuccess(fallbackUser, fallbackToken);
         }
       }
@@ -86,6 +84,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 bg-slate-950 text-slate-100 relative overflow-hidden font-['Alexandria','Cairo',sans-serif]">

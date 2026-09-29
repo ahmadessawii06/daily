@@ -31,14 +31,49 @@ function hashPassword(password: string): string {
 const memoryDaysStore: Record<string, any> = {};
 let memoryHabitsStore: any[] = [];
 let memorySettingsStore: any = { userId: 'default_user', theme: 'dark', lang: 'ar' };
-const memoryUsersStore: Record<string, any> = {};
+const memoryUsersStore: Record<string, any> = {
+  v27md: {
+    id: 'user-v27md',
+    username: 'v27md',
+    name: 'محمد (v27md)',
+    email: 'v27md@tasks.app',
+    passwordHash: hashPassword('122122122'),
+    createdAt: new Date().toISOString(),
+  },
+};
+
+// Initial background connection attempt and user setup
+connectToDatabase()
+  .then(async () => {
+    try {
+      if (isDbConnected()) {
+        // Remove old deprecated accounts like 'admin'
+        await UserModel.deleteMany({ username: 'admin' });
+
+        // Upsert v27md user
+        const passHash = hashPassword('122122122');
+        await UserModel.findOneAndUpdate(
+          { username: 'v27md' },
+          {
+            $set: {
+              username: 'v27md',
+              passwordHash: passHash,
+              name: 'محمد (v27md)',
+              email: 'v27md@tasks.app',
+            },
+          },
+          { upsert: true, new: true }
+        );
+      }
+    } catch {
+      // ignore
+    }
+  })
+  .catch(() => {
+    // Gracefully handled; API won't crash
+  });
 
 
-
-// Initial background connection attempt
-connectToDatabase().catch(() => {
-  // Gracefully handled; API won't crash
-});
 
 // API Routes
 const apiRouter = express.Router();
