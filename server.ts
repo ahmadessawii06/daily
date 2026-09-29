@@ -1,7 +1,7 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
 import crypto from 'crypto';
 import {
   connectToDatabase,
@@ -13,7 +13,6 @@ import {
   UserModel,
 } from './src/db/mongodb.js';
 
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

@@ -4,10 +4,12 @@ import { TaskCategory, TaskStatus } from '../types';
 // Disable command buffering so queries fail-fast when DB is offline instead of hanging for 10s
 mongoose.set('bufferCommands', false);
 
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  'mongodb+srv://gamadmktol_db_user:l8QCwdKq9QM4ygj6@cluster0.09l0tvf.mongodb.net/daily_tasks_app?retryWrites=true&w=majority&appName=Cluster0';
-
+function getMongoUri(): string {
+  return (
+    process.env.MONGODB_URI ||
+    'mongodb+srv://gamadmktol_db_user:l8QCwdKq9QM4ygj6@cluster0.09l0tvf.mongodb.net/daily_tasks_app?retryWrites=true&w=majority&appName=Cluster0'
+  );
+}
 
 let isConnected = false;
 let connectionPromise: Promise<typeof mongoose | null> | null = null;
@@ -28,7 +30,8 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
     return mongoose;
   }
 
-  if (!MONGODB_URI) {
+  const uri = getMongoUri();
+  if (!uri) {
     isConnected = false;
     lastError = 'MONGODB_URI not configured - operating in resilient local/memory mode';
     return null;
@@ -39,9 +42,9 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
   }
 
   try {
-    connectionPromise = mongoose.connect(MONGODB_URI, {
-      serverSelectionTimeoutMS: 3000,
-      connectTimeoutMS: 3000,
+    connectionPromise = mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 4000,
+      connectTimeoutMS: 4000,
       socketTimeoutMS: 15000,
       retryWrites: true,
       w: 'majority',
@@ -57,7 +60,7 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
     isConnected = false;
     lastError = err.message || 'Connection failed';
     if (err.message && (err.message.includes('bad auth') || err.message.includes('authentication failed'))) {
-      console.warn(' MongoDB Atlas Notice: Authentication failed. Please check MONGODB_URI username and password in environment settings. Running smoothly with local/memory fallback.');
+      console.warn(' MongoDB Atlas Notice: Authentication failed. Please check MONGODB_URI in environment settings.');
     } else {
       console.warn(' MongoDB Atlas Notice:', err.message);
     }
@@ -66,6 +69,7 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
     connectionPromise = null;
   }
 }
+
 
 
 // 1. Day Record Schema
