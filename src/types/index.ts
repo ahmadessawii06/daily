@@ -94,3 +94,19 @@ export interface PrayerTimesDayResponse {
   methodNameEn?: string;
 }
 
+export interface User {
+  id: string;
+  username: string;
+  name: string;
+  email?: string;
+  createdAt?: string;
+}
+
+
+export interface AuthState {
+  isAuthenticated: boolean;
+  user: User | null;
+  token?: string;
+}
+
+

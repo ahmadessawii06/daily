@@ -18,9 +18,12 @@ import {
   saveAllDays,
 } from './utils/storage';
 import { checkDbHealth, fetchAllDaysFromDb, fetchDayFromDb, migrateLocalDataToMongo, resetDatabaseToSaturday26 } from './services/api';
-import { ActiveTab, Language, StatusFilter, Task, TaskStatus, Theme } from './types';
+import { ActiveTab, Language, StatusFilter, Task, TaskStatus, Theme, User } from './types';
+import { getStoredAuth, clearStoredAuth } from './utils/auth';
+import { LoginScreen } from './components/LoginScreen';
 import { Sidebar } from './components/Sidebar';
 import { MainHeader } from './components/MainHeader';
+
 import { TodayProgress } from './components/TodayProgress';
 import { PrayerTimesWidget } from './components/PrayerTimesWidget';
 import { DateNavigation } from './components/DateNavigation';
@@ -38,12 +41,16 @@ import { MobileDrawer } from './components/MobileDrawer';
 import { CheckCircle2 } from 'lucide-react';
 
 export default function App() {
+  // Authentication state
+  const [currentUser, setCurrentUser] = useState<User | null>(() => getStoredAuth().user);
+
   // Navigation & view states
   const [lang, setLang] = useState<Language>('ar');
   const [theme, setTheme] = useState<Theme>(() => getStoredTheme());
   const [currentDate, setCurrentDate] = useState<string>(() => getTodayDateString());
   const [activeTab, setActiveTab] = useState<ActiveTab>('daily');
   const [currentFilter, setCurrentFilter] = useState<StatusFilter>('all');
+
 
   // Modals & Drawer state
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
@@ -297,6 +304,26 @@ export default function App() {
     }
   };
 
+  const handleLogout = () => {
+    clearStoredAuth();
+    setCurrentUser(null);
+    showToast(lang === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Logged out successfully');
+  };
+
+  // If user is not authenticated, show Lock / Login Screen
+  if (!currentUser) {
+    return (
+      <LoginScreen
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          showToast(lang === 'ar' ? `أهلاً بك، ${user.name || user.username}!` : `Welcome, ${user.name || user.username}!`);
+        }}
+        lang={lang}
+        theme={theme}
+      />
+    );
+  }
+
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-[#07080b] bg-mesh text-slate-900 dark:text-zinc-100 flex flex-col md:flex-row font-['Alexandria','Cairo',sans-serif] transition-colors duration-200`}>
       
@@ -308,6 +335,8 @@ export default function App() {
           todayTasksCount={tasks.length}
           archiveDaysCount={archiveDays.length}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          currentUser={currentUser}
+          onLogout={handleLogout}
           lang={lang}
           theme={theme}
           onToggleTheme={handleToggleTheme}
@@ -326,6 +355,8 @@ export default function App() {
             {/* Main Header (Greeting, Date, Quick Theme Toggle, Export Image, + Add Task, Hamburger for Mobile) */}
             <MainHeader
               currentDate={currentDate}
+              currentUser={currentUser}
+              onLogout={handleLogout}
               onOpenAddTask={() => setIsAddTaskOpen(true)}
               onOpenExportModal={handleExportDailyTrackImage}
               onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
@@ -399,6 +430,8 @@ export default function App() {
         archiveDaysCount={archiveDays.length}
         onOpenTemplates={() => setIsSettingsOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        currentUser={currentUser}
+        onLogout={handleLogout}
         lang={lang}
         theme={theme}
         onToggleTheme={handleToggleTheme}

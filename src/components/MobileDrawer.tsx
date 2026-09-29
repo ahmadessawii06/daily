@@ -9,9 +9,11 @@ import {
   Sun, 
   Moon,
   BarChart3,
-  LayoutTemplate
+  LayoutTemplate,
+  User as UserIcon,
+  LogOut
 } from 'lucide-react';
-import { ActiveTab, Language, Theme } from '../types';
+import { ActiveTab, Language, Theme, User } from '../types';
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -22,6 +24,8 @@ interface MobileDrawerProps {
   archiveDaysCount: number;
   onOpenTemplates: () => void;
   onOpenSettings: () => void;
+  currentUser?: User | null;
+  onLogout?: () => void;
   lang: Language;
   theme: Theme;
   onToggleTheme: () => void;
@@ -36,10 +40,13 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   archiveDaysCount,
   onOpenTemplates,
   onOpenSettings,
+  currentUser,
+  onLogout,
   lang,
   theme,
   onToggleTheme,
 }) => {
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -211,6 +218,38 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
             <SlidersHorizontal className="w-4 h-4 stroke-[2.2]" />
             <span className="font-['Alexandria']">{lang === 'ar' ? 'الإعدادات والخيارات' : 'Settings & Options'}</span>
           </button>
+
+          {/* User Account & Logout */}
+          {currentUser && (
+            <div className="p-3 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] flex items-center justify-between">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <UserIcon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-xs font-bold text-slate-900 dark:text-white truncate">
+                    {currentUser.name || currentUser.username}
+                  </span>
+                  <span className="block text-[10px] text-slate-500 dark:text-zinc-400 truncate">
+                    @{currentUser.username}
+                  </span>
+                </div>
+              </div>
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onLogout();
+                  }}
+                  title={lang === 'ar' ? 'تسجيل الخروج' : 'Logout'}
+                  className="p-2 text-rose-500 hover:text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.05] flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400 font-medium">
             <span>Daily Track Mobile</span>

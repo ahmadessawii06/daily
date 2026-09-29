@@ -146,6 +146,27 @@ const UserSettingsSchema = new Schema<IUserSettings>(
   { timestamps: true }
 );
 
+// 4. User Account Schema
+export interface IUser extends Document {
+  username: string;
+  passwordHash: string;
+  name: string;
+  email?: string;
+  createdAt: Date;
+}
+
+const UserSchema = new Schema<IUser>(
+  {
+    username: { type: String, required: true, unique: true, index: true, lowercase: true, trim: true },
+    passwordHash: { type: String, required: true },
+    name: { type: String, required: true },
+    email: { type: String, lowercase: true, trim: true },
+  },
+  { timestamps: true }
+);
+
 export const DayModel = mongoose.models.DayRecord || mongoose.model<IDayRecord>('DayRecord', DayRecordSchema);
 export const HabitModel = mongoose.models.Habit || mongoose.model<IHabit>('Habit', HabitSchema);
 export const SettingsModel = mongoose.models.UserSettings || mongoose.model<IUserSettings>('UserSettings', UserSettingsSchema);
+export const UserModel = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+

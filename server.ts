@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 import {
   connectToDatabase,
   isDbConnected,
@@ -9,6 +10,7 @@ import {
   DayModel,
   HabitModel,
   SettingsModel,
+  UserModel,
 } from './src/db/mongodb.js';
 
 dotenv.config();
@@ -21,10 +23,25 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 
 app.use(express.json({ limit: '10mb' }));
 
+function hashPassword(password: string): string {
+  return crypto.createHash('sha256').update(password + '_daily_tasks_app_salt_2026').digest('hex');
+}
+
 // Memory fallback store when MongoDB is connecting / pending IP whitelist
 const memoryDaysStore: Record<string, any> = {};
 let memoryHabitsStore: any[] = [];
 let memorySettingsStore: any = { userId: 'default_user', theme: 'dark', lang: 'ar' };
+const memoryUsersStore: Record<string, any> = {
+  admin: {
+    id: 'user-admin',
+    username: 'admin',
+    name: 'المستخدم الأساسي',
+    email: 'user@example.com',
+    passwordHash: hashPassword('123456'),
+    createdAt: new Date().toISOString(),
+  },
+};
+
 
 // Initial background connection attempt
 connectToDatabase().catch(() => {
@@ -33,6 +50,135 @@ connectToDatabase().catch(() => {
 
 // API Routes
 const apiRouter = express.Router();
+
+// Auth Routes (MongoDB User Accounts & Security)
+apiRouter.post('/auth/register', async (req, res) => {
+  const { username, password, name, email } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ success: false, error: 'اسم المستخدم وكلمة المرور مطلوبان' });
+  }
+
+  const cleanUsername = String(username).trim().toLowerCase();
+  const displayName = String(name || cleanUsername).trim();
+  const passHash = hashPassword(String(password));
+
+  try {
+    if (isDbConnected()) {
+      const existing = await UserModel.findOne({ username: cleanUsername });
+      if (existing) {
+        return res.status(400).json({ success: false, error: 'اسم المستخدم مستخدم بالفعل، يرجى اختيار اسم آخر' });
+      }
+
+      const newUser = await UserModel.create({
+        username: cleanUsername,
+        passwordHash: passHash,
+        name: displayName,
+        email: email ? String(email).trim().toLowerCase() : undefined,
+      });
+
+      const userObj = {
+        id: newUser._id.toString(),
+        username: newUser.username,
+        name: newUser.name,
+        email: newUser.email,
+        createdAt: newUser.createdAt,
+      };
+
+      memoryUsersStore[cleanUsername] = { ...userObj, passwordHash: passHash };
+
+      return res.json({
+        success: true,
+        user: userObj,
+        token: `session_${cleanUsername}_${Date.now()}`,
+        source: 'mongodb',
+      });
+    }
+  } catch (err: any) {
+    console.warn('MongoDB Register Notice:', err.message);
+  }
+
+  // Memory fallback
+  if (memoryUsersStore[cleanUsername]) {
+    return res.status(400).json({ success: false, error: 'اسم المستخدم مستخدم بالفعل' });
+  }
+
+  const memUser = {
+    id: `user-${Date.now()}`,
+    username: cleanUsername,
+    name: displayName,
+    email: email ? String(email).trim().toLowerCase() : undefined,
+    passwordHash: passHash,
+    createdAt: new Date().toISOString(),
+  };
+  memoryUsersStore[cleanUsername] = memUser;
+
+  return res.json({
+    success: true,
+    user: {
+      id: memUser.id,
+      username: memUser.username,
+      name: memUser.name,
+      email: memUser.email,
+      createdAt: memUser.createdAt,
+    },
+    token: `session_${cleanUsername}_${Date.now()}`,
+    source: 'memory',
+  });
+});
+
+apiRouter.post('/auth/login', async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ success: false, error: 'يرجى إدخال اسم المستخدم وكلمة المرور' });
+  }
+
+  const cleanUsername = String(username).trim().toLowerCase();
+  const inputHash = hashPassword(String(password));
+
+  try {
+    if (isDbConnected()) {
+      const user = await UserModel.findOne({ username: cleanUsername });
+      if (user && user.passwordHash === inputHash) {
+        return res.json({
+          success: true,
+          user: {
+            id: user._id.toString(),
+            username: user.username,
+            name: user.name,
+            email: user.email,
+            createdAt: user.createdAt,
+          },
+          token: `session_${cleanUsername}_${Date.now()}`,
+          source: 'mongodb',
+        });
+      }
+    }
+  } catch (err: any) {
+    console.warn('MongoDB Login Notice:', err.message);
+  }
+
+  // Memory fallback
+  const mem = memoryUsersStore[cleanUsername];
+  if (mem && mem.passwordHash === inputHash) {
+    return res.json({
+      success: true,
+      user: {
+        id: mem.id,
+        username: mem.username,
+        name: mem.name,
+        email: mem.email,
+        createdAt: mem.createdAt,
+      },
+      token: `session_${cleanUsername}_${Date.now()}`,
+      source: 'memory',
+    });
+  }
+
+  return res.status(401).json({
+    success: false,
+    error: 'اسم المستخدم أو كلمة المرور غير صحيحة',
+  });
+});
 
 // 1. Health check & DB status
 apiRouter.get('/health', async (req, res) => {

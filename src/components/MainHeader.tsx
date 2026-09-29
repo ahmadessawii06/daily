@@ -1,10 +1,12 @@
 import React from 'react';
-import { Plus, Menu, Sun, Moon, Sunrise, Camera } from 'lucide-react';
-import { Language, Theme } from '../types';
+import { Plus, Menu, Sun, Moon, Sunrise, Camera, User as UserIcon, LogOut } from 'lucide-react';
+import { Language, Theme, User } from '../types';
 import { formatHeaderDate } from '../utils/date';
 
 interface MainHeaderProps {
   currentDate: string;
+  currentUser?: User | null;
+  onLogout?: () => void;
   onOpenAddTask: () => void;
   onOpenExportModal: () => void;
   onOpenMobileMenu?: () => void;
@@ -15,6 +17,8 @@ interface MainHeaderProps {
 
 export const MainHeader: React.FC<MainHeaderProps> = ({
   currentDate,
+  currentUser,
+  onLogout,
   onOpenAddTask,
   onOpenExportModal,
   onOpenMobileMenu,
@@ -23,6 +27,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
   onToggleTheme,
 }) => {
   const hour = new Date().getHours();
+
 
   // Minimal and formal greeting without casual emojis
   const getGreetingData = () => {
@@ -86,6 +91,26 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
         {/* يسار / النهاية: الإجراءات الرئيسية فقط (زر الإضافة الرئيسي + أزرار ثانوية هادئة) */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           
+          {/* User profile & Logout */}
+          {currentUser && (
+            <div className="flex items-center gap-1">
+              <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/[0.08] text-xs font-bold text-slate-800 dark:text-zinc-200">
+                <UserIcon className="w-3.5 h-3.5 text-emerald-500" />
+                <span className="truncate max-w-[100px]">{currentUser.name || currentUser.username}</span>
+              </div>
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  title={lang === 'ar' ? 'تسجيل الخروج' : 'Logout'}
+                  className="p-2 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center active:scale-95"
+                >
+                  <LogOut className="w-4 h-4 stroke-[2]" />
+                </button>
+              )}
+            </div>
+          )}
+
           {/* زر الوضع الداكن/الفاتح (Secondary / Ghost Button) */}
           <button
             type="button"

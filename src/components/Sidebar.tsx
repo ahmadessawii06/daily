@@ -8,9 +8,11 @@ import {
   Sparkles,
   ChevronRight,
   Sun,
-  Moon
+  Moon,
+  LogOut,
+  User as UserIcon,
 } from 'lucide-react';
-import { ActiveTab, Language, Theme } from '../types';
+import { ActiveTab, Language, Theme, User } from '../types';
 
 interface SidebarProps {
   activeTab: ActiveTab;
@@ -18,6 +20,8 @@ interface SidebarProps {
   todayTasksCount: number;
   archiveDaysCount: number;
   onOpenSettings: () => void;
+  currentUser?: User | null;
+  onLogout?: () => void;
   lang: Language;
   theme: Theme;
   onToggleTheme: () => void;
@@ -29,10 +33,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   todayTasksCount,
   archiveDaysCount,
   onOpenSettings,
+  currentUser,
+  onLogout,
   lang,
   theme,
   onToggleTheme,
 }) => {
+
   return (
     <aside className="w-20 lg:w-64 bg-white/95 dark:bg-[#090a0f] border-e border-slate-200 dark:border-white/[0.08] flex flex-col justify-between p-2.5 lg:p-4 shrink-0 select-none transition-all duration-200">
       
@@ -193,6 +200,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <ChevronRight className={`hidden lg:block w-3.5 h-3.5 text-slate-400 dark:text-zinc-500 ${lang === 'ar' ? 'rotate-180' : ''}`} />
         </button>
+
+        {/* User Account & Logout */}
+        {currentUser && (
+          <div className="p-2 lg:p-2.5 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.08] flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <UserIcon className="w-4 h-4" />
+              </div>
+              <div className="hidden lg:block min-w-0">
+                <span className="block text-xs font-bold text-slate-900 dark:text-white truncate">
+                  {currentUser.name || currentUser.username}
+                </span>
+                <span className="block text-[10px] text-slate-500 dark:text-zinc-400 truncate">
+                  @{currentUser.username}
+                </span>
+              </div>
+            </div>
+            {onLogout && (
+              <button
+                type="button"
+                onClick={onLogout}
+                title={lang === 'ar' ? 'تسجيل الخروج' : 'Logout'}
+                className="hidden lg:flex p-1.5 text-rose-500 hover:text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer shrink-0"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Pro / Status badge */}
         <div className="p-2 lg:px-3 lg:py-2 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.05] flex items-center justify-center lg:justify-between text-[11px] text-slate-500 dark:text-zinc-400">

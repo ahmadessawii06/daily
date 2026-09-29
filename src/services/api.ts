@@ -132,3 +132,33 @@ export async function migrateLocalDataToMongo(
     return { success: false };
   }
 }
+
+export async function loginApi(username: string, password: string): Promise<{ success: boolean; user?: any; token?: string; error?: string }> {
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    return { success: false, error: err.message || 'فشل الاتصال بالخادم' };
+  }
+}
+
+export async function registerApi(username: string, password: string, name: string, email?: string): Promise<{ success: boolean; user?: any; token?: string; error?: string }> {
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, name, email }),
+    });
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    return { success: false, error: err.message || 'فشل الاتصال بالخادم' };
+  }
+}
+
