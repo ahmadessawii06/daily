@@ -5,11 +5,17 @@ import { TaskCategory, TaskStatus } from '../types';
 mongoose.set('bufferCommands', false);
 
 function getMongoUri(): string {
-  return (
-    process.env.MONGODB_URI ||
-    'mongodb+srv://gamadmktol_db_user:l8QCwdKq9QM4ygj6@cluster0.09l0tvf.mongodb.net/daily_tasks_app?retryWrites=true&w=majority&appName=Cluster0'
-  );
+  let uri = process.env.MONGODB_URI || '';
+  if (uri.includes('<db_password>') || uri.includes('<password>')) {
+    uri = uri.replace('<db_password>', 'l8QCwdKq9QM4ygj6').replace('<password>', 'l8QCwdKq9QM4ygj6');
+  }
+  if (!uri) {
+    uri =
+      'mongodb+srv://gamadmktol_db_user:l8QCwdKq9QM4ygj6@cluster0.09l0tvf.mongodb.net/daily_tasks_app?retryWrites=true&w=majority&appName=Cluster0';
+  }
+  return uri;
 }
+
 
 let isConnected = false;
 let connectionPromise: Promise<typeof mongoose | null> | null = null;
