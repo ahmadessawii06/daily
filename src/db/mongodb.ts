@@ -4,12 +4,24 @@ import { TaskCategory, TaskStatus } from '../types';
 // Disable command buffering so queries fail-fast when DB is offline instead of hanging
 mongoose.set('bufferCommands', false);
 
-function getMongoUri(): string {
-  let uri = process.env.MONGODB_URI || '';
-  if (uri.includes('<db_password>') && process.env.MONGODB_PASSWORD) {
-    uri = uri.replace('<db_password>', process.env.MONGODB_PASSWORD);
+let authFailed = false;
+
+function getMongoUri(): string | null {
+  const uri = (process.env.MONGODB_URI || '').trim();
+  if (!uri) return null;
+  
+  // Ignore placeholder strings
+  if (
+    uri.includes('<username>') || 
+    uri.includes('<password>') || 
+    uri.includes('<db_password>') ||
+    uri.includes('<cluster>') ||
+    uri.includes('<dbname>')
+  ) {
+    return null;
   }
-  return uri.trim();
+
+  return uri;
 }
 
 let isConnected = false;
@@ -31,10 +43,15 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
     return mongoose;
   }
 
+  if (authFailed) {
+    // If credentials previously failed authentication, operate cleanly in resilient storage mode
+    return null;
+  }
+
   const uri = getMongoUri();
   if (!uri) {
     isConnected = false;
-    lastError = 'MONGODB_URI not configured - operating in isolated memory/local storage mode';
+    lastError = 'MongoDB URI not set - operating in secure local and memory mode';
     return null;
   }
 
@@ -44,23 +61,28 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
 
   try {
     connectionPromise = mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 4000,
-      connectTimeoutMS: 4000,
-      socketTimeoutMS: 15000,
+      serverSelectionTimeoutMS: 3000,
+      connectTimeoutMS: 3000,
+      socketTimeoutMS: 10000,
       retryWrites: true,
       w: 'majority',
     }).then(() => {
       isConnected = true;
       lastError = null;
-      console.log(' Successfully connected to MongoDB Atlas database:', mongoose.connection.name);
+      authFailed = false;
       return mongoose;
     });
 
     return await connectionPromise;
   } catch (err: any) {
     isConnected = false;
-    lastError = err.message || 'Connection failed';
-    console.warn(' MongoDB Atlas Notice:', err.message);
+    const msg = err?.message || 'Connection failed';
+    if (msg.includes('bad auth') || msg.includes('authentication failed')) {
+      authFailed = true;
+      lastError = 'MongoDB authentication invalid. Operating in resilient storage mode.';
+    } else {
+      lastError = msg;
+    }
     return null;
   } finally {
     connectionPromise = null;
