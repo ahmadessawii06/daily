@@ -412,7 +412,7 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
                   </div>
                   <div>
                     <span className="text-xs font-mono font-black tracking-wider uppercase opacity-90 block">
-                      {lang === 'ar' ? 'مسار اليوم · DAILY TRACK' : 'DAILY TRACK SCHEDULE'}
+                      {lang === 'ar' ? 'منصة ميزان · MIZAN' : 'MIZAN SCHEDULE'}
                     </span>
                     <span className="text-[10px] opacity-60 font-['Alexandria']">
                       {lang === 'ar' ? 'جدول المهام اليومية' : 'Personal Daily Agenda'}
@@ -520,7 +520,7 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
             <div className={`px-6 py-3.5 flex items-center justify-between text-[11px] font-medium opacity-70 ${themeStyles.footerBg}`}>
               <div className="flex items-center gap-2 font-['Alexandria']">
                 <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{lang === 'ar' ? 'مسار اليوم · Daily Track' : 'Daily Track Routine'}</span>
+                <span>{lang === 'ar' ? 'منصة ميزان · Mizan' : 'Mizan Routine'}</span>
               </div>
               <span className="font-mono text-[10px] opacity-80">
                 {new Date().toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}

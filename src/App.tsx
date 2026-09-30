@@ -271,20 +271,20 @@ export default function App() {
       setIsExportingImage(true);
       showToast(
         lang === 'ar' 
-          ? '⏳ جارٍ تصدير لوحة Daily Track كاملة كصورة فائقة الدقة...' 
-          : '⏳ Exporting full Daily Track high-res image...'
+          ? '⏳ جارٍ تصدير لوحة جدول ميزان كاملة كصورة فائقة الدقة...' 
+          : '⏳ Exporting full Mizan schedule image...'
       );
       
       await exportDailyTrackToImage({
         elementId: 'daily-track-container',
-        fileName: `Daily-Track-${currentDate}.png`,
+        fileName: `Mizan-Schedule-${currentDate}.png`,
         theme,
       });
 
       showToast(
         lang === 'ar' 
-          ? '✓ تم تصدير وحفظ صورة Daily Track كاملة بنجاح!' 
-          : '✓ Full Daily Track image saved successfully!'
+          ? '✓ تم تصدير وحفظ جدول ميزان بالكامل بنجاح!' 
+          : '✓ Full Mizan schedule saved successfully!'
       );
     } catch (error) {
       console.error('Export failed:', error);

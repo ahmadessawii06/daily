@@ -170,7 +170,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
     if (percentage > 0) {
       return lang === 'ar' ? '﴿إِنَّ مَعَ الْعُسْرِ يُسْرًا﴾ ✨' : 'With hardship comes ease ✨';
     }
-    return lang === 'ar' ? '﴿عَلَى اللَّهِ تَوَكَّلْنَا﴾ 🚀' : 'Upon Allah we rely 🚀';
+    return lang === 'ar' ? 'ابدأ أول مهمة اليوم' : 'Start your first task';
   };
 
   // Motivational title beside circular progress - Inspiring Quranic verses

@@ -98,13 +98,13 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
         
         {/* يمين / البداية: اسم التطبيق وأيقونة الترحيب */}
         <div className="flex items-center gap-2 min-w-0">
-          {/* اسم التطبيق وشعار الحالة المدمج */}
+          {/* اسم التطبيق وشعار الحالة المدمج: ميزان */}
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white text-xs font-bold font-['Alexandria'] shrink-0 shadow-2xs">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10e588] opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10e588]"></span>
             </span>
-            <span>Daily Track</span>
+            <span>ميزان</span>
           </div>
 
           {/* أيقونة الترحيب المدمجة مع تلميح */}
@@ -306,14 +306,11 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
 
       </div>
 
-      {/* 2. الصف السفلي: التاريخ والعبارة اليومية */}
+      {/* 2. الصف السفلي: التاريخ */}
       <div className="pt-1">
         <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight font-['Alexandria'] leading-tight">
           {headerDateStr}
         </h1>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1 font-medium font-['Alexandria']">
-          {lang === 'ar' ? 'احرص على ما ينفعك واستعن بالله ولا تعجز' : "Be keen on what benefits you, seek help from Allah, and do not despair."}
-        </p>
       </div>
 
     </header>
