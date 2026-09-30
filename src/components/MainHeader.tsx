@@ -10,13 +10,11 @@ import {
   Settings, 
   BarChart3, 
   Archive, 
-  ChevronDown,
-  Sparkles,
   ShieldCheck,
-  CheckCircle2
 } from 'lucide-react';
 import { Language, Theme, User } from '../types';
 import { formatHeaderDate } from '../utils/date';
+import { SyncIndicator } from './SyncIndicator';
 
 interface MainHeaderProps {
   currentDate: string;
@@ -96,7 +94,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
       {/* 1. الصف العلوي: شريط الأيقونات والإجراءات المدمجة (Icons-only Header) */}
       <div className="flex items-center justify-between gap-2">
         
-        {/* يمين / البداية: اسم التطبيق وأيقونة الترحيب */}
+        {/* يمين / البداية: اسم التطبيق ومؤشر المزامنة التفاعلي */}
         <div className="flex items-center gap-2 min-w-0">
           {/* اسم التطبيق وشعار الحالة المدمج: ميزان */}
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white text-xs font-bold font-['Alexandria'] shrink-0 shadow-2xs">
@@ -107,10 +105,13 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
             <span>ميزان</span>
           </div>
 
+          {/* مؤشر حالة المزامنة الحية (Saved / Saving / Offline / Synced) */}
+          <SyncIndicator lang={lang} userId={currentUser?.id} />
+
           {/* أيقونة الترحيب المدمجة مع تلميح */}
           <div
             title={greeting.text}
-            className="hidden sm:flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100/70 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06] text-slate-500 dark:text-zinc-400 shrink-0"
+            className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl bg-slate-100/70 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06] text-slate-500 dark:text-zinc-400 shrink-0"
           >
             <GreetingIcon className="w-4 h-4 stroke-[2]" />
           </div>

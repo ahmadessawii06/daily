@@ -1,10 +1,22 @@
-import { DayRecord, HabitStreak, Task, Theme } from '../types';
+import { DayRecord, HabitStreak, Task } from '../types';
+import { getAuthToken } from '../utils/auth';
 
 export interface DbHealthStatus {
   connected: boolean;
   database?: string;
   error?: string;
   ipWhitelistNeeded?: boolean;
+}
+
+function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  const token = getAuthToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
 }
 
 async function safeParseResponse(res: Response): Promise<any> {
@@ -31,7 +43,6 @@ export async function checkDbHealth(): Promise<DbHealthStatus> {
       connected: data.connected === true,
       database: data.database,
       error: data.error,
-      ipWhitelistNeeded: data.ipWhitelistNeeded === true,
     };
   } catch (err: any) {
     return { connected: false, error: err.message };
@@ -40,7 +51,9 @@ export async function checkDbHealth(): Promise<DbHealthStatus> {
 
 export async function fetchDayFromDb(date: string): Promise<DayRecord | null> {
   try {
-    const res = await fetch(`/api/days/${date}`);
+    const res = await fetch(`/api/days/${date}`, {
+      headers: getAuthHeaders(),
+    });
     if (!res.ok) return null;
     const data = await safeParseResponse(res);
     if (data && data.found && Array.isArray(data.tasks)) {
@@ -62,7 +75,7 @@ export async function saveDayToDb(date: string, tasks: Task[], notes?: string): 
   try {
     const res = await fetch(`/api/days/${date}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ tasks, notes }),
     });
     return res.ok;
@@ -74,7 +87,9 @@ export async function saveDayToDb(date: string, tasks: Task[], notes?: string): 
 
 export async function fetchAllDaysFromDb(): Promise<Record<string, DayRecord>> {
   try {
-    const res = await fetch('/api/days');
+    const res = await fetch('/api/days', {
+      headers: getAuthHeaders(),
+    });
     if (!res.ok) return {};
     const data = await safeParseResponse(res);
     return data?.days || {};
@@ -86,7 +101,9 @@ export async function fetchAllDaysFromDb(): Promise<Record<string, DayRecord>> {
 
 export async function fetchHabitsFromDb(): Promise<HabitStreak[]> {
   try {
-    const res = await fetch('/api/habits');
+    const res = await fetch('/api/habits', {
+      headers: getAuthHeaders(),
+    });
     if (!res.ok) return [];
     const data = await safeParseResponse(res);
     return data && Array.isArray(data.habits) ? data.habits : [];
@@ -100,7 +117,7 @@ export async function saveHabitsToDb(habits: HabitStreak[]): Promise<boolean> {
   try {
     const res = await fetch('/api/habits', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ habits }),
     });
     return res.ok;
@@ -112,13 +129,13 @@ export async function saveHabitsToDb(habits: HabitStreak[]): Promise<boolean> {
 
 export async function resetDatabaseToSaturday26(
   saturdayRecord: DayRecord,
-  habits: HabitStreak[]
+  defaultHabits: HabitStreak[]
 ): Promise<boolean> {
   try {
-    const res = await fetch('/api/sync/reset-database-to-saturday-26', {
+    const res = await fetch('/api/sync/reset-saturday-26', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ saturdayRecord, habits }),
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ saturdayRecord, defaultHabits }),
     });
     return res.ok;
   } catch (err) {
@@ -132,14 +149,14 @@ export async function migrateLocalDataToMongo(
   habits: HabitStreak[]
 ): Promise<{ success: boolean; importedCount?: number }> {
   try {
-    const res = await fetch('/api/sync/migrate-all', {
+    const res = await fetch('/api/sync/batch', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ days, habits }),
     });
     if (!res.ok) return { success: false };
     const data = await safeParseResponse(res);
-    return { success: !!data?.success, importedCount: data?.importedDaysCount };
+    return { success: !!data?.success, importedCount: Object.keys(days || {}).length };
   } catch (err) {
     console.error('Migration failed:', err);
     return { success: false };

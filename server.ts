@@ -11,80 +11,127 @@ import {
   HabitModel,
   SettingsModel,
   UserModel,
-  RecurringModel,
 } from './src/db/mongodb.js';
-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
+const JWT_SECRET = process.env.JWT_SECRET || 'mizan_super_secure_jwt_secret_key_2026_948274910';
 
 app.use(express.json({ limit: '10mb' }));
 
+// Cryptographic Utilities
 function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password + '_daily_tasks_app_salt_2026').digest('hex');
+  return crypto.createHash('sha256').update(password + '_mizan_secure_salt_2026').digest('hex');
 }
 
-const DEFAULT_ADMIN_USERNAME = process.env.DEFAULT_ADMIN_USERNAME || '';
-const DEFAULT_ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD || '';
-const DEFAULT_ADMIN_NAME = process.env.DEFAULT_ADMIN_NAME || (DEFAULT_ADMIN_USERNAME ? `User (${DEFAULT_ADMIN_USERNAME})` : '');
-const DEFAULT_ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || '';
+export interface JwtPayload {
+  sub: string; // userId
+  username: string;
+  name?: string;
+  iat: number;
+  exp: number;
+}
 
-// Memory fallback store when MongoDB is connecting / pending IP whitelist
-const memoryDaysStore: Record<string, any> = {};
-let memoryHabitsStore: any[] = [];
-let memoryRecurringStore: any[] = [];
-let memorySettingsStore: any = { userId: 'default_user', theme: 'dark', lang: 'ar' };
+function signJwt(payload: { sub: string; username: string; name?: string }, expiresInSeconds = 30 * 24 * 60 * 60): string {
+  const header = { alg: 'HS256', typ: 'JWT' };
+  const now = Math.floor(Date.now() / 1000);
+  const fullPayload: JwtPayload = {
+    ...payload,
+    iat: now,
+    exp: now + expiresInSeconds,
+  };
+
+  const b64Header = Buffer.from(JSON.stringify(header)).toString('base64url');
+  const b64Payload = Buffer.from(JSON.stringify(fullPayload)).toString('base64url');
+  const data = `${b64Header}.${b64Payload}`;
+  const signature = crypto.createHmac('sha256', JWT_SECRET).update(data).digest('base64url');
+
+  return `${data}.${signature}`;
+}
+
+function verifyJwt(token: string): JwtPayload | null {
+  try {
+    if (!token) return null;
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const [b64Header, b64Payload, signature] = parts;
+    const data = `${b64Header}.${b64Payload}`;
+    const expectedSig = crypto.createHmac('sha256', JWT_SECRET).update(data).digest('base64url');
+
+    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig))) {
+      return null;
+    }
+
+    const payload: JwtPayload = JSON.parse(Buffer.from(b64Payload, 'base64url').toString('utf8'));
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < now) {
+      return null; // Expired
+    }
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+// Memory fallback stores strictly isolated per userId
+const memoryDaysStore: Record<string, Record<string, any>> = {};
+const memoryHabitsStore: Record<string, any[]> = {};
+const memorySettingsStore: Record<string, any> = {};
 const memoryUsersStore: Record<string, any> = {};
 
+// Initial background connection attempt
+connectToDatabase().catch(() => {});
 
-if (DEFAULT_ADMIN_USERNAME && DEFAULT_ADMIN_PASSWORD) {
-  memoryUsersStore[DEFAULT_ADMIN_USERNAME.toLowerCase()] = {
-    id: `user-${DEFAULT_ADMIN_USERNAME.toLowerCase()}`,
-    username: DEFAULT_ADMIN_USERNAME,
-    name: DEFAULT_ADMIN_NAME,
-    email: DEFAULT_ADMIN_EMAIL,
-    passwordHash: hashPassword(DEFAULT_ADMIN_PASSWORD),
-    createdAt: new Date().toISOString(),
+// Authentication Middleware
+function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ success: false, error: 'غير مصرح بالدخول، يرجى تسجيل الدخول' });
+  }
+
+  const token = authHeader.substring(7).trim();
+  const payload = verifyJwt(token);
+  if (!payload || !payload.sub) {
+    return res.status(401).json({ success: false, error: 'جلسة تسجيل الدخول منتهية أو غير صالحة' });
+  }
+
+  (req as any).user = {
+    id: payload.sub,
+    username: payload.username,
+    name: payload.name,
   };
+  next();
 }
-
-// Initial background connection attempt and user setup
-connectToDatabase()
-  .then(async () => {
-    try {
-      if (isDbConnected() && DEFAULT_ADMIN_USERNAME && DEFAULT_ADMIN_PASSWORD) {
-        const passHash = hashPassword(DEFAULT_ADMIN_PASSWORD);
-        await UserModel.findOneAndUpdate(
-          { username: DEFAULT_ADMIN_USERNAME },
-          {
-            $set: {
-              username: DEFAULT_ADMIN_USERNAME,
-              passwordHash: passHash,
-              name: DEFAULT_ADMIN_NAME,
-              email: DEFAULT_ADMIN_EMAIL || undefined,
-            },
-          },
-          { upsert: true, new: true }
-        );
-      }
-    } catch {
-      // ignore
-    }
-  })
-  .catch(() => {
-    // Gracefully handled; API won't crash
-  });
-
-
-
 
 // API Routes
 const apiRouter = express.Router();
 
-// Auth Routes (MongoDB User Accounts & Security)
+// 1. Health check & DB status
+apiRouter.get('/health', async (_req, res) => {
+  try {
+    if (!isDbConnected()) {
+      await connectToDatabase();
+    }
+    res.json({
+      status: 'online',
+      database: 'MongoDB Atlas',
+      connected: isDbConnected(),
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err: any) {
+    res.json({
+      status: 'offline',
+      database: 'MongoDB Atlas',
+      connected: false,
+      error: err.message,
+    });
+  }
+});
+
+// 2. Auth Routes
 apiRouter.post('/auth/register', async (req, res) => {
   const { username, password, name, email } = req.body;
   if (!username || !password) {
@@ -109,20 +156,22 @@ apiRouter.post('/auth/register', async (req, res) => {
         email: email ? String(email).trim().toLowerCase() : undefined,
       });
 
+      const userId = newUser._id.toString();
       const userObj = {
-        id: newUser._id.toString(),
+        id: userId,
         username: newUser.username,
         name: newUser.name,
         email: newUser.email,
         createdAt: newUser.createdAt,
       };
 
+      const token = signJwt({ sub: userId, username: cleanUsername, name: displayName });
       memoryUsersStore[cleanUsername] = { ...userObj, passwordHash: passHash };
 
       return res.json({
         success: true,
         user: userObj,
-        token: `session_${cleanUsername}_${Date.now()}`,
+        token,
         source: 'mongodb',
       });
     }
@@ -135,8 +184,9 @@ apiRouter.post('/auth/register', async (req, res) => {
     return res.status(400).json({ success: false, error: 'اسم المستخدم مستخدم بالفعل' });
   }
 
+  const userId = `user-${Date.now()}`;
   const memUser = {
-    id: `user-${Date.now()}`,
+    id: userId,
     username: cleanUsername,
     name: displayName,
     email: email ? String(email).trim().toLowerCase() : undefined,
@@ -144,6 +194,7 @@ apiRouter.post('/auth/register', async (req, res) => {
     createdAt: new Date().toISOString(),
   };
   memoryUsersStore[cleanUsername] = memUser;
+  const token = signJwt({ sub: userId, username: cleanUsername, name: displayName });
 
   return res.json({
     success: true,
@@ -154,7 +205,7 @@ apiRouter.post('/auth/register', async (req, res) => {
       email: memUser.email,
       createdAt: memUser.createdAt,
     },
-    token: `session_${cleanUsername}_${Date.now()}`,
+    token,
     source: 'memory',
   });
 });
@@ -172,16 +223,18 @@ apiRouter.post('/auth/login', async (req, res) => {
     if (isDbConnected()) {
       const user = await UserModel.findOne({ username: cleanUsername });
       if (user && user.passwordHash === inputHash) {
+        const userId = user._id.toString();
+        const token = signJwt({ sub: userId, username: user.username, name: user.name });
         return res.json({
           success: true,
           user: {
-            id: user._id.toString(),
+            id: userId,
             username: user.username,
             name: user.name,
             email: user.email,
             createdAt: user.createdAt,
           },
-          token: `session_${cleanUsername}_${Date.now()}`,
+          token,
           source: 'mongodb',
         });
       }
@@ -193,6 +246,7 @@ apiRouter.post('/auth/login', async (req, res) => {
   // Memory fallback
   const mem = memoryUsersStore[cleanUsername];
   if (mem && mem.passwordHash === inputHash) {
+    const token = signJwt({ sub: mem.id, username: mem.username, name: mem.name });
     return res.json({
       success: true,
       user: {
@@ -202,7 +256,7 @@ apiRouter.post('/auth/login', async (req, res) => {
         email: mem.email,
         createdAt: mem.createdAt,
       },
-      token: `session_${cleanUsername}_${Date.now()}`,
+      token,
       source: 'memory',
     });
   }
@@ -213,321 +267,156 @@ apiRouter.post('/auth/login', async (req, res) => {
   });
 });
 
-// 1. Health check & DB status
-apiRouter.get('/health', async (req, res) => {
+// User Session Verification Route
+apiRouter.get('/auth/me', requireAuth, async (req, res) => {
+  const authUser = (req as any).user;
   try {
-    if (!isDbConnected()) {
-      await connectToDatabase();
+    if (isDbConnected()) {
+      const user = await UserModel.findById(authUser.id);
+      if (user) {
+        return res.json({
+          success: true,
+          user: {
+            id: user._id.toString(),
+            username: user.username,
+            name: user.name,
+            email: user.email,
+            createdAt: user.createdAt,
+          },
+        });
+      }
     }
-    res.json({
-      status: 'online',
-      database: 'MongoDB Atlas',
-      connected: true,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (err: any) {
-    const isWhitelistIssue =
-      err.message?.includes('whitelist') ||
-      err.message?.includes('Could not connect to any servers') ||
-      err.name === 'MongooseServerSelectionError';
+  } catch {}
 
-    res.json({
-      status: 'offline',
-      database: 'MongoDB Atlas',
-      connected: false,
-      error: err.message,
-      ipWhitelistNeeded: isWhitelistIssue,
-      whitelistInstruction: isWhitelistIssue
-        ? 'Please add 0.0.0.0/0 in MongoDB Atlas -> Network Access -> Add IP Address'
-        : undefined,
-    });
-  }
+  return res.json({
+    success: true,
+    user: {
+      id: authUser.id,
+      username: authUser.username,
+      name: authUser.name || authUser.username,
+    },
+  });
 });
 
-// 2. Get single day record
-apiRouter.get('/days/:date', async (req, res) => {
+// 3. User Days Endpoints (Strictly scoped to req.user.id)
+apiRouter.get('/days/:date', requireAuth, async (req, res) => {
+  const userId = (req as any).user.id;
   const { date } = req.params;
   try {
     if (isDbConnected()) {
-      const record = await DayModel.findOne({ date }).lean();
+      const record = await DayModel.findOne({ userId, date }).lean();
       if (record) {
         return res.json({ ...record, found: true });
       }
-    } else {
-      // Try background connect
-      connectToDatabase().catch(() => {});
     }
   } catch (err: any) {
-    console.warn(`MongoDB query fallback for day ${date}:`, err.message);
+    console.warn(`MongoDB query fallback for user ${userId} day ${date}:`, err.message);
   }
 
-  // Fallback to memory / client storage
-  const memRecord = memoryDaysStore[date];
+  // Fallback to user memory store
+  const userDays = memoryDaysStore[userId] || {};
+  const memRecord = userDays[date];
   if (memRecord) {
     return res.json({ ...memRecord, found: true });
   }
   return res.json({ date, tasks: [], notes: '', found: false });
 });
 
-// 3. Save / Update single day record (upsert)
-apiRouter.post('/days/:date', async (req, res) => {
+apiRouter.post('/days/:date', requireAuth, async (req, res) => {
+  const userId = (req as any).user.id;
   const { date } = req.params;
-  const { tasks, notes } = req.body;
+  const { tasks, notes, clientUpdatedAt } = req.body;
 
-  // Always keep in memory store
-  memoryDaysStore[date] = {
+  if (!memoryDaysStore[userId]) {
+    memoryDaysStore[userId] = {};
+  }
+
+  const updatedDoc = {
+    userId,
     date,
     tasks: Array.isArray(tasks) ? tasks : [],
     notes: notes || '',
-    updatedAt: new Date().toISOString(),
+    updatedAt: clientUpdatedAt ? new Date(clientUpdatedAt) : new Date(),
   };
+
+  memoryDaysStore[userId][date] = updatedDoc;
 
   try {
     if (isDbConnected()) {
       const updated = await DayModel.findOneAndUpdate(
-        { date },
+        { userId, date },
         {
+          userId,
           date,
           tasks: Array.isArray(tasks) ? tasks : [],
           notes: notes || '',
-          updatedAt: new Date(),
+          updatedAt: clientUpdatedAt ? new Date(clientUpdatedAt) : new Date(),
         },
         { upsert: true, new: true }
       ).lean();
       return res.json({ success: true, day: updated, source: 'mongodb' });
-    } else {
-      connectToDatabase().catch(() => {});
     }
   } catch (err: any) {
-    console.warn(`MongoDB save fallback for day ${date}:`, err.message);
+    console.warn(`MongoDB save fallback for user ${userId} day ${date}:`, err.message);
   }
 
-  return res.json({ success: true, day: memoryDaysStore[date], source: 'memory_fallback' });
+  return res.json({ success: true, day: updatedDoc, source: 'memory_fallback' });
 });
 
-// 4. Get all days (for archives, weekly summary, and stats)
-apiRouter.get('/days', async (req, res) => {
+apiRouter.get('/days', requireAuth, async (req, res) => {
+  const userId = (req as any).user.id;
   try {
     if (isDbConnected()) {
-      const records = await DayModel.find({}).sort({ date: -1 }).lean();
+      const records = await DayModel.find({ userId }).sort({ date: -1 }).lean();
       const daysMap: Record<string, any> = {};
       for (const r of records) {
         daysMap[r.date] = r;
       }
       return res.json({ days: daysMap, list: records, source: 'mongodb' });
-    } else {
-      connectToDatabase().catch(() => {});
     }
   } catch (err: any) {
-    console.warn('MongoDB query fallback for all days:', err.message);
+    console.warn(`MongoDB query all days fallback for user ${userId}:`, err.message);
   }
 
-  return res.json({ days: memoryDaysStore, list: Object.values(memoryDaysStore), source: 'memory' });
+  const userDays = memoryDaysStore[userId] || {};
+  return res.json({ days: userDays, list: Object.values(userDays), source: 'memory' });
 });
 
-// 5. Habits Endpoints
-apiRouter.get('/habits', async (req, res) => {
-  try {
-    if (isDbConnected()) {
-      const habits = await HabitModel.find({}).lean();
-      return res.json({ habits, source: 'mongodb' });
-    } else {
-      connectToDatabase().catch(() => {});
-    }
-  } catch (err: any) {
-    console.warn('MongoDB habits fallback:', err.message);
-  }
+// 4. Batch Sync Endpoint (Processes offline queue atomically)
+apiRouter.post('/sync/batch', requireAuth, async (req, res) => {
+  const userId = (req as any).user.id;
+  const { days, habits, settings } = req.body;
 
-  return res.json({ habits: memoryHabitsStore, source: 'memory' });
-});
-
-apiRouter.post('/habits', async (req, res) => {
-  const { habits } = req.body;
-  if (Array.isArray(habits)) {
-    memoryHabitsStore = habits;
-  }
-
-  try {
-    if (isDbConnected() && Array.isArray(habits)) {
-      for (const h of habits) {
-        if (!h.id) continue;
-        await HabitModel.findOneAndUpdate(
-          { id: h.id },
-          {
-            id: h.id,
-            title: h.title,
-            currentStreak: h.currentStreak || 0,
-            bestStreak: h.bestStreak || 0,
-            lastCompletedDate: h.lastCompletedDate,
-            icon: h.icon || '⚡',
-            history: h.history || {},
-            updatedAt: new Date(),
-          },
-          { upsert: true, new: true }
-        );
-      }
-      const saved = await HabitModel.find({}).lean();
-      return res.json({ success: true, habits: saved, source: 'mongodb' });
-    } else {
-      connectToDatabase().catch(() => {});
-    }
-  } catch (err: any) {
-    console.warn('MongoDB save habits fallback:', err.message);
-  }
-
-  return res.json({ success: true, habits: memoryHabitsStore, source: 'memory' });
-});
-
-// 5b. Recurring Items & Routines (V2 Life Balance)
-apiRouter.get('/recurring', async (req, res) => {
-  try {
-    if (isDbConnected()) {
-      const items = await RecurringModel.find({}).sort({ createdAt: -1 }).lean();
-      return res.json({ items, source: 'mongodb' });
-    }
-  } catch (err: any) {
-    console.warn('MongoDB recurring fallback:', err.message);
-  }
-  return res.json({ items: memoryRecurringStore, source: 'memory' });
-});
-
-apiRouter.post('/recurring', async (req, res) => {
-  const { items } = req.body;
-  if (Array.isArray(items)) {
-    memoryRecurringStore = items;
-  }
-
-  try {
-    if (isDbConnected() && Array.isArray(items)) {
-      for (const it of items) {
-        if (!it.id) continue;
-        await RecurringModel.findOneAndUpdate(
-          { id: it.id },
-          {
-            id: it.id,
-            title: it.title,
-            category: it.category || 'general',
-            frequency: it.frequency || 'daily',
-            selectedDays: it.selectedDays || [],
-            everyXDays: it.everyXDays || 1,
-            targetDuration: it.targetDuration || 30,
-            preferredTime: it.preferredTime,
-            priority: it.priority || 'medium',
-            icon: it.icon || '🔁',
-            isActive: it.isActive !== false,
-            startDate: it.startDate,
-            lastCompletedDate: it.lastCompletedDate,
-            currentStreak: it.currentStreak || 0,
-            bestStreak: it.bestStreak || 0,
-            completionHistory: it.completionHistory || {},
-            userId: it.userId || 'default_user',
-            updatedAt: new Date(),
-          },
-          { upsert: true, new: true }
-        );
-      }
-      const saved = await RecurringModel.find({}).sort({ createdAt: -1 }).lean();
-      return res.json({ success: true, items: saved, source: 'mongodb' });
-    }
-  } catch (err: any) {
-    console.warn('MongoDB save recurring fallback:', err.message);
-  }
-
-  return res.json({ success: true, items: memoryRecurringStore, source: 'memory' });
-});
-
-// 6. User Settings
-
-apiRouter.get('/settings', async (req, res) => {
-  try {
-    if (isDbConnected()) {
-      const settings = await SettingsModel.findOne({ userId: 'default_user' }).lean();
-      if (settings) return res.json({ settings, source: 'mongodb' });
-    }
-  } catch (err: any) {
-    console.warn('MongoDB settings fallback:', err.message);
-  }
-  return res.json({ settings: memorySettingsStore, source: 'memory' });
-});
-
-apiRouter.post('/settings', async (req, res) => {
-  const { theme, lang, prayerLocation, prayerTimes } = req.body;
-  memorySettingsStore = {
-    ...memorySettingsStore,
-    ...(theme && { theme }),
-    ...(lang && { lang }),
-    ...(prayerLocation && { prayerLocation }),
-    ...(prayerTimes && { prayerTimes }),
-  };
+  if (!memoryDaysStore[userId]) memoryDaysStore[userId] = {};
 
   try {
     if (isDbConnected()) {
-      const settings = await SettingsModel.findOneAndUpdate(
-        { userId: 'default_user' },
-        {
-          userId: 'default_user',
-          ...memorySettingsStore,
-          updatedAt: new Date(),
-        },
-        { upsert: true, new: true }
-      ).lean();
-      return res.json({ success: true, settings, source: 'mongodb' });
-    } else {
-      connectToDatabase().catch(() => {});
-    }
-  } catch (err: any) {
-    console.warn('MongoDB save settings fallback:', err.message);
-  }
-
-  return res.json({ success: true, settings: memorySettingsStore, source: 'memory' });
-});
-
-// 7. Full Migration from Client
-apiRouter.post('/sync/migrate-all', async (req, res) => {
-  const { days, habits } = req.body;
-
-  // Save to memory
-  let importedCount = 0;
-  if (days && typeof days === 'object') {
-    for (const [date, data] of Object.entries(days as Record<string, any>)) {
-      if (date && data) {
-        memoryDaysStore[date] = data;
-        importedCount++;
-      }
-    }
-  }
-  if (Array.isArray(habits)) {
-    memoryHabitsStore = habits;
-  }
-
-  try {
-    if (!isDbConnected()) {
-      await connectToDatabase();
-    }
-
-    if (isDbConnected()) {
+      // Sync days
       if (days && typeof days === 'object') {
         for (const [date, data] of Object.entries(days as Record<string, any>)) {
           if (!date || !data) continue;
           await DayModel.findOneAndUpdate(
-            { date },
+            { userId, date },
             {
+              userId,
               date,
               tasks: Array.isArray(data.tasks) ? data.tasks : [],
               notes: data.notes || '',
-              updatedAt: new Date(),
+              updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
             },
             { upsert: true }
           );
         }
       }
 
+      // Sync habits
       if (Array.isArray(habits)) {
         for (const h of habits) {
           if (!h.id) continue;
           await HabitModel.findOneAndUpdate(
-            { id: h.id },
+            { userId, id: h.id },
             {
+              userId,
               id: h.id,
               title: h.title,
               currentStreak: h.currentStreak || 0,
@@ -542,117 +431,229 @@ apiRouter.post('/sync/migrate-all', async (req, res) => {
         }
       }
 
-      return res.json({
-        success: true,
-        message: 'Successfully synchronized to MongoDB Atlas',
-        importedDaysCount: importedCount,
-        database: 'MongoDB Atlas',
-      });
-    }
-  } catch (err: any) {
-    console.warn('MongoDB migration fallback:', err.message);
-  }
-
-  return res.json({
-    success: true,
-    message: 'Data saved locally and in memory (MongoDB Atlas connecting in background)',
-    importedDaysCount: importedCount,
-    fallback: true,
-  });
-});
-
-// 8. Full Reset Endpoint: Clear all past data and start clean from Saturday 2026-09-26
-apiRouter.post('/sync/reset-database-to-saturday-26', async (req, res) => {
-  const { saturdayRecord, habits } = req.body;
-
-  // 1. Reset memory store
-  for (const k of Object.keys(memoryDaysStore)) {
-    delete memoryDaysStore[k];
-  }
-  if (saturdayRecord) {
-    memoryDaysStore['2026-09-26'] = saturdayRecord;
-  }
-  if (Array.isArray(habits)) {
-    memoryHabitsStore = habits;
-  }
-
-  // 2. Reset MongoDB if connected
-  try {
-    if (!isDbConnected()) {
-      await connectToDatabase().catch(() => {});
-    }
-
-    if (isDbConnected()) {
-      // Remove all old dummy dates
-      await DayModel.deleteMany({ date: { $ne: '2026-09-26' } });
-      
-      if (saturdayRecord) {
-        await DayModel.findOneAndUpdate(
-          { date: '2026-09-26' },
+      // Sync settings
+      if (settings && typeof settings === 'object') {
+        await SettingsModel.findOneAndUpdate(
+          { userId },
           {
-            date: '2026-09-26',
-            tasks: saturdayRecord.tasks || [],
-            notes: saturdayRecord.notes || saturdayRecord.dayNote || '',
+            userId,
+            ...settings,
             updatedAt: new Date(),
           },
           { upsert: true }
         );
       }
 
-      if (Array.isArray(habits)) {
-        await HabitModel.deleteMany({});
-        for (const h of habits) {
-          await HabitModel.create({
-            id: h.id,
-            title: h.title,
-            currentStreak: 0,
-            bestStreak: 0,
-            icon: h.icon || '⚡',
-            history: {},
-            updatedAt: new Date(),
-          });
-        }
-      }
+      // Return fresh state from DB
+      const freshDays = await DayModel.find({ userId }).sort({ date: -1 }).lean();
+      const freshHabits = await HabitModel.find({ userId }).lean();
+      const freshSettings = await SettingsModel.findOne({ userId }).lean();
+
+      const daysMap: Record<string, any> = {};
+      for (const r of freshDays) daysMap[r.date] = r;
 
       return res.json({
         success: true,
-        message: 'All past data reset! Starting from Saturday 2026-09-26 from zero.',
+        days: daysMap,
+        habits: freshHabits,
+        settings: freshSettings,
+        source: 'mongodb',
       });
     }
   } catch (err: any) {
-    console.warn('MongoDB reset warning:', err.message);
+    console.warn(`Batch sync fallback for user ${userId}:`, err.message);
+  }
+
+  // Memory update
+  if (days && typeof days === 'object') {
+    for (const [date, data] of Object.entries(days as Record<string, any>)) {
+      if (date && data) memoryDaysStore[userId][date] = { userId, ...data };
+    }
+  }
+  if (Array.isArray(habits)) {
+    memoryHabitsStore[userId] = habits;
+  }
+  if (settings) {
+    memorySettingsStore[userId] = { userId, ...settings };
   }
 
   return res.json({
     success: true,
-    message: 'Reset completed in local cache and memory.',
+    days: memoryDaysStore[userId] || {},
+    habits: memoryHabitsStore[userId] || [],
+    settings: memorySettingsStore[userId] || {},
+    source: 'memory',
   });
 });
 
-// Mount API router
-app.use('/api', apiRouter);
-
-// Vite in dev mode or static files in production
-async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
-    const { createServer } = await import('vite');
-    const vite = await createServer({
-      server: { middlewareMode: true, host: '0.0.0.0', port: PORT },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
-    app.use(express.static(path.resolve(__dirname, 'dist')));
-    app.get('*', (req, res) => {
-      res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
-    });
+// 5. Habits Endpoints (Strictly scoped to req.user.id)
+apiRouter.get('/habits', requireAuth, async (req, res) => {
+  const userId = (req as any).user.id;
+  try {
+    if (isDbConnected()) {
+      const habits = await HabitModel.find({ userId }).lean();
+      return res.json({ habits, source: 'mongodb' });
+    }
+  } catch (err: any) {
+    console.warn(`MongoDB habits query fallback for user ${userId}:`, err.message);
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(` Server running on http://0.0.0.0:${PORT} with resilient MongoDB integration`);
+  return res.json({ habits: memoryHabitsStore[userId] || [], source: 'memory' });
+});
+
+apiRouter.post('/habits', requireAuth, async (req, res) => {
+  const userId = (req as any).user.id;
+  const { habits } = req.body;
+  if (Array.isArray(habits)) {
+    memoryHabitsStore[userId] = habits;
+  }
+
+  try {
+    if (isDbConnected() && Array.isArray(habits)) {
+      for (const h of habits) {
+        if (!h.id) continue;
+        await HabitModel.findOneAndUpdate(
+          { userId, id: h.id },
+          {
+            userId,
+            id: h.id,
+            title: h.title,
+            currentStreak: h.currentStreak || 0,
+            bestStreak: h.bestStreak || 0,
+            lastCompletedDate: h.lastCompletedDate,
+            icon: h.icon || '⚡',
+            history: h.history || {},
+            updatedAt: new Date(),
+          },
+          { upsert: true, new: true }
+        );
+      }
+      const saved = await HabitModel.find({ userId }).lean();
+      return res.json({ success: true, habits: saved, source: 'mongodb' });
+    }
+  } catch (err: any) {
+    console.warn(`MongoDB save habits fallback for user ${userId}:`, err.message);
+  }
+
+  return res.json({ success: true, habits: memoryHabitsStore[userId] || [], source: 'memory' });
+});
+
+// 6. User Settings Endpoints (Strictly scoped to req.user.id)
+apiRouter.get('/settings', requireAuth, async (req, res) => {
+  const userId = (req as any).user.id;
+  try {
+    if (isDbConnected()) {
+      const settings = await SettingsModel.findOne({ userId }).lean();
+      if (settings) return res.json({ settings, source: 'mongodb' });
+    }
+  } catch (err: any) {
+    console.warn(`MongoDB settings fallback for user ${userId}:`, err.message);
+  }
+  return res.json({ settings: memorySettingsStore[userId] || { theme: 'dark', lang: 'ar' }, source: 'memory' });
+});
+
+apiRouter.post('/settings', requireAuth, async (req, res) => {
+  const userId = (req as any).user.id;
+  const { theme, lang, prayerLocation, prayerTimes } = req.body;
+  memorySettingsStore[userId] = {
+    ...(memorySettingsStore[userId] || {}),
+    ...(theme && { theme }),
+    ...(lang && { lang }),
+    ...(prayerLocation && { prayerLocation }),
+    ...(prayerTimes && { prayerTimes }),
+  };
+
+  try {
+    if (isDbConnected()) {
+      const settings = await SettingsModel.findOneAndUpdate(
+        { userId },
+        {
+          userId,
+          ...memorySettingsStore[userId],
+          updatedAt: new Date(),
+        },
+        { upsert: true, new: true }
+      ).lean();
+      return res.json({ success: true, settings, source: 'mongodb' });
+    }
+  } catch (err: any) {
+    console.warn(`MongoDB save settings fallback for user ${userId}:`, err.message);
+  }
+
+  return res.json({ success: true, settings: memorySettingsStore[userId], source: 'memory' });
+});
+
+// 7. Full Reset & Migration
+apiRouter.post('/sync/reset-saturday-26', requireAuth, async (req, res) => {
+  const userId = (req as any).user.id;
+  const { saturdayRecord, defaultHabits } = req.body;
+
+  if (saturdayRecord && saturdayRecord.tasks) {
+    if (!memoryDaysStore[userId]) memoryDaysStore[userId] = {};
+    memoryDaysStore[userId]['2026-09-26'] = { userId, ...saturdayRecord };
+  }
+  if (Array.isArray(defaultHabits)) {
+    memoryHabitsStore[userId] = defaultHabits;
+  }
+
+  try {
+    if (isDbConnected()) {
+      // Clear old records for this specific user ONLY
+      await DayModel.deleteMany({ userId });
+      await HabitModel.deleteMany({ userId });
+
+      if (saturdayRecord && saturdayRecord.tasks) {
+        await DayModel.create({
+          userId,
+          date: '2026-09-26',
+          tasks: saturdayRecord.tasks,
+          notes: saturdayRecord.notes || '',
+        });
+      }
+
+      if (Array.isArray(defaultHabits)) {
+        for (const h of defaultHabits) {
+          if (!h.id) continue;
+          await HabitModel.create({
+            userId,
+            id: h.id,
+            title: h.title,
+            currentStreak: h.currentStreak || 0,
+            bestStreak: h.bestStreak || 0,
+            lastCompletedDate: h.lastCompletedDate,
+            icon: h.icon || '⚡',
+            history: h.history || {},
+          });
+        }
+      }
+
+      return res.json({ success: true, source: 'mongodb' });
+    }
+  } catch (err: any) {
+    console.warn(`MongoDB reset failed for user ${userId}:`, err.message);
+  }
+
+  return res.json({ success: true, source: 'memory' });
+});
+
+app.use('/api', apiRouter);
+
+// Vite / Static Middleware
+if (process.env.NODE_ENV !== 'production') {
+  const { createServer: createViteServer } = await import('vite');
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: 'spa',
+  });
+  app.use(vite.middlewares);
+} else {
+  const distPath = path.resolve(__dirname, 'dist');
+  app.use(express.static(distPath));
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
   });
 }
 
-startServer().catch((err) => {
-  console.error('Failed to start server:', err);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(` Mizan Enterprise Server running on port ${PORT}`);
 });

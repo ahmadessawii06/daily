@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { User, Language, Theme } from '../types';
 import { loginApi, registerApi } from '../services/api';
-import { saveStoredAuth, verifyLocalCredential } from '../utils/auth';
+import { saveStoredAuth } from '../utils/auth';
 
 interface LoginScreenProps {
   onLoginSuccess: (user: User, token: string) => void;
@@ -60,36 +60,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       if (mode === 'login') {
         const res = await loginApi(cleanUser, cleanPass);
         if (res.success && res.user && res.token) {
-          saveStoredAuth(res.user, res.token, cleanPass);
+          saveStoredAuth(res.user, res.token);
           onLoginSuccess(res.user, res.token);
         } else {
-          // Strict offline credential verification (matches verified password)
-          const matchedUser = verifyLocalCredential(cleanUser, cleanPass);
-          if (matchedUser) {
-            const token = `session_${cleanUser}_${Date.now()}`;
-            saveStoredAuth(matchedUser, token, cleanPass);
-            onLoginSuccess(matchedUser, token);
-          } else {
-            setError(res.error || (lang === 'ar' ? 'اسم المستخدم أو كلمة المرور غير صحيحة' : 'Invalid username or password'));
-          }
+          setError(res.error || (lang === 'ar' ? 'اسم المستخدم أو كلمة المرور غير صحيحة' : 'Invalid username or password'));
         }
       } else {
         // Register mode
         const res = await registerApi(cleanUser, cleanPass, name.trim() || cleanUser, email.trim() || undefined);
         if (res.success && res.user && res.token) {
-          saveStoredAuth(res.user, res.token, cleanPass);
+          saveStoredAuth(res.user, res.token);
           onLoginSuccess(res.user, res.token);
         } else {
-          // Fallback registration with saved credentials
-          const fallbackUser: User = {
-            id: `user-${Date.now()}`,
-            username: cleanUser,
-            name: name.trim() || cleanUser,
-            email: email.trim() || undefined,
-          };
-          const fallbackToken = `session_${cleanUser}_${Date.now()}`;
-          saveStoredAuth(fallbackUser, fallbackToken, cleanPass);
-          onLoginSuccess(fallbackUser, fallbackToken);
+          setError(res.error || (lang === 'ar' ? 'تعذر إنشاء الحساب' : 'Registration failed'));
         }
       }
     } catch (err: any) {

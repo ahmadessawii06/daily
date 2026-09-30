@@ -1,14 +1,14 @@
 import { User } from '../types';
 
-const AUTH_USER_KEY = 'daily_tasks_auth_user_v2';
-const AUTH_TOKEN_KEY = 'daily_tasks_auth_token_v2';
-const LOCAL_CREDENTIALS_KEY = 'daily_tasks_user_creds_v2';
+const AUTH_USER_KEY = 'mizan_auth_user_v3';
+const AUTH_TOKEN_KEY = 'mizan_auth_token_v3';
 
-// Purge old v1 admin storage if present
+// Purge any legacy unencrypted password storage immediately
 try {
+  localStorage.removeItem('daily_tasks_user_creds_v2');
+  localStorage.removeItem('daily_tasks_registered_users_v1');
   localStorage.removeItem('daily_tasks_auth_user_v1');
   localStorage.removeItem('daily_tasks_auth_token_v1');
-  localStorage.removeItem('daily_tasks_registered_users_v1');
 } catch {
   // ignore
 }
@@ -19,8 +19,7 @@ export function getStoredAuth(): { user: User | null; token: string | null } {
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
     if (rawUser && token) {
       const user = JSON.parse(rawUser);
-      // Ensure it's not old admin
-      if (user && user.username !== 'admin') {
+      if (user && user.id && user.username) {
         return { user, token };
       }
     }
@@ -30,19 +29,18 @@ export function getStoredAuth(): { user: User | null; token: string | null } {
   return { user: null, token: null };
 }
 
-export function saveStoredAuth(user: User, token: string, passwordPlain?: string): void {
+export function getAuthToken(): string | null {
+  try {
+    return localStorage.getItem(AUTH_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function saveStoredAuth(user: User, token: string): void {
   try {
     localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
     localStorage.setItem(AUTH_TOKEN_KEY, token);
-
-    if (passwordPlain) {
-      const creds = getLocalRegisteredCredentials();
-      creds[user.username.toLowerCase()] = {
-        user,
-        password: passwordPlain,
-      };
-      localStorage.setItem(LOCAL_CREDENTIALS_KEY, JSON.stringify(creds));
-    }
   } catch (err) {
     console.warn('Error saving auth:', err);
   }
@@ -56,29 +54,3 @@ export function clearStoredAuth(): void {
     console.warn('Error clearing auth:', err);
   }
 }
-
-export function getLocalRegisteredCredentials(): Record<string, { user: User; password: string }> {
-  try {
-    const raw = localStorage.getItem(LOCAL_CREDENTIALS_KEY);
-    if (raw) {
-      return JSON.parse(raw);
-    }
-  } catch {
-    // ignore
-  }
-  return {};
-}
-
-export function verifyLocalCredential(username: string, passwordInput: string): User | null {
-  const cleanUser = username.trim().toLowerCase();
-
-  // Strictly check matching password in locally registered accounts
-  const creds = getLocalRegisteredCredentials();
-  const found = creds[cleanUser];
-  if (found && found.password === passwordInput) {
-    return found.user;
-  }
-
-  return null;
-}
-

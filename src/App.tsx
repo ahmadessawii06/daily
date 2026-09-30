@@ -18,6 +18,7 @@ import {
   saveAllDays,
 } from './utils/storage';
 import { checkDbHealth, fetchAllDaysFromDb, fetchDayFromDb, resetDatabaseToSaturday26 } from './services/api';
+import { enqueueDayUpdate, triggerSync } from './services/syncEngine';
 import { Language, StatusFilter, Task, TaskStatus, Theme, User } from './types';
 import { getStoredAuth, clearStoredAuth } from './utils/auth';
 import { LoginScreen } from './components/LoginScreen';
@@ -161,17 +162,18 @@ export default function App() {
     }
 
     updateTaskInDay(currentDate, taskId, { status: newStatus });
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
-    );
+    const rec = getDayRecord(currentDate);
+    setTasks(rec.tasks);
     refreshArchive();
+    enqueueDayUpdate(currentDate, rec.tasks, rec.notes, currentUser?.id);
   };
 
   const handleAddTask = (taskInput: { title: string; time: string; status: TaskStatus; notes?: string }) => {
     addTaskToDay(currentDate, taskInput);
-    const updatedRecord = getDayRecord(currentDate);
-    setTasks(updatedRecord.tasks);
+    const rec = getDayRecord(currentDate);
+    setTasks(rec.tasks);
     refreshArchive();
+    enqueueDayUpdate(currentDate, rec.tasks, rec.notes, currentUser?.id);
     showToast(lang === 'ar' ? 'تمت إضافة المهمة بنجاح' : 'Task added successfully');
   };
 
@@ -186,17 +188,19 @@ export default function App() {
     }
 
     updateTaskInDay(currentDate, taskId, updates);
-    const updatedRecord = getDayRecord(currentDate);
-    setTasks(updatedRecord.tasks);
+    const rec = getDayRecord(currentDate);
+    setTasks(rec.tasks);
     refreshArchive();
+    enqueueDayUpdate(currentDate, rec.tasks, rec.notes, currentUser?.id);
     showToast(lang === 'ar' ? 'تم حفظ التعديل' : 'Changes saved');
   };
 
   const handleUpdateTaskTitle = (taskId: string, newTitle: string) => {
     updateTaskInDay(currentDate, taskId, { title: newTitle });
-    const updatedRecord = getDayRecord(currentDate);
-    setTasks(updatedRecord.tasks);
+    const rec = getDayRecord(currentDate);
+    setTasks(rec.tasks);
     refreshArchive();
+    enqueueDayUpdate(currentDate, rec.tasks, rec.notes, currentUser?.id);
     if (newTitle.trim()) {
       showToast(lang === 'ar' ? `تم تحديد: ${newTitle}` : `Saved: ${newTitle}`);
     }
@@ -206,6 +210,7 @@ export default function App() {
     const updatedTasks = apply24HourTemplate(currentDate, true);
     setTasks(updatedTasks);
     refreshArchive();
+    enqueueDayUpdate(currentDate, updatedTasks, getDayRecord(currentDate).notes, currentUser?.id);
     showToast(
       lang === 'ar' 
         ? 'تم تجهيز قالب الـ 24 ساعة لليوم بنجاح' 
@@ -215,8 +220,10 @@ export default function App() {
 
   const handleDeleteTask = (taskId: string) => {
     deleteTaskFromDay(currentDate, taskId);
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    const updated = tasks.filter((t) => t.id !== taskId);
+    setTasks(updated);
     refreshArchive();
+    enqueueDayUpdate(currentDate, updated, getDayRecord(currentDate).notes, currentUser?.id);
     showToast(lang === 'ar' ? 'تم حذف المهمة' : 'Task deleted');
   };
 
