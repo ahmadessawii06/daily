@@ -37,27 +37,25 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    const cleanUser = username.trim();
-    const cleanPass = password.trim();
+  const executeAuth = async (userToSubmit: string, passToSubmit: string, isRegister = false, displayName = '') => {
+    const cleanUser = userToSubmit.trim().toLowerCase();
+    const cleanPass = passToSubmit.trim();
 
     if (!cleanUser || !cleanPass) {
-      setError(lang === 'ar' ? 'يرجى إدخال اسم المستخدم وكلمة المرور' : 'Please enter your username/email and password');
+      setError(lang === 'ar' ? 'يرجى إدخال اسم المستخدم وكلمة المرور' : 'Please enter your username and password');
       return;
     }
 
-    if (mode === 'register' && cleanPass.length < 4) {
+    if (isRegister && cleanPass.length < 4) {
       setError(lang === 'ar' ? 'يجب أن تكون كلمة المرور 4 أحرف أو أرقام على الأقل' : 'Password must be at least 4 characters');
       return;
     }
 
     setIsLoading(true);
+    setError(null);
 
     try {
-      if (mode === 'login') {
+      if (!isRegister) {
         const res = await loginApi(cleanUser, cleanPass);
         if (res.success && res.user && res.token) {
           saveStoredAuth(res.user, res.token);
@@ -66,8 +64,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           setError(res.error || (lang === 'ar' ? 'اسم المستخدم أو كلمة المرور غير صحيحة' : 'Invalid username or password'));
         }
       } else {
-        // Register mode
-        const res = await registerApi(cleanUser, cleanPass, name.trim() || cleanUser, email.trim() || undefined);
+        const res = await registerApi(cleanUser, cleanPass, displayName || cleanUser, email.trim() || undefined);
         if (res.success && res.user && res.token) {
           saveStoredAuth(res.user, res.token);
           onLoginSuccess(res.user, res.token);
@@ -80,6 +77,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeAuth(username, password, mode === 'register', name.trim());
   };
 
   return (
@@ -98,7 +100,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         <div className="absolute inset-0 bg-radial from-transparent via-black/25 to-black/85 pointer-events-none" />
       </div>
 
-      {/* 2. Main Content Grid (On Mobile/Tablet Portrait: Directly centered Login Form. On Desktop/Tablet Landscape: 2-Column Showcase) */}
+      {/* 2. Main Content Grid */}
       <div className="relative z-10 w-full max-w-7xl mx-auto flex lg:grid lg:grid-cols-12 gap-6 lg:gap-10 xl:gap-14 items-center justify-center min-h-[85vh] py-2 sm:py-6">
         
         {/* Left Side: Brand Hero Typography & Feature Badges (Visible on Desktop / Tablet Landscape >= 1024px) */}
@@ -189,7 +191,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
         </div>
 
-        {/* Right Side: Pixel-Perfect Floating Login Glass Card (Centered immediately on Mobile & Tablets) */}
+        {/* Right Side: Pixel-Perfect Floating Login Glass Card */}
         <div className="w-full max-w-[420px] sm:max-w-md mx-auto lg:col-span-5 flex flex-col justify-center">
           <div className="relative bg-[#0b111c]/94 sm:bg-[#0b111c]/92 backdrop-blur-2xl border border-white/[0.18] rounded-3xl p-5 sm:p-8 md:p-9 shadow-[0_20px_60px_rgba(0,0,0,0.85)] text-right">
             
@@ -256,6 +258,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     <input
                       type="text"
                       value={name}
+                      autoCapitalize="words"
+                      autoCorrect="off"
+                      spellCheck={false}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="الاسم الكامل (مثال: أحمد)"
                       className="w-full bg-[#101726] border border-white/[0.15] focus:border-[#e4c27d] rounded-2xl px-4 py-3 sm:py-3.5 text-xs sm:text-sm text-white placeholder:text-zinc-400 outline-none transition-all"
@@ -273,6 +278,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   type="text"
                   required
                   value={username}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  autoComplete="username"
+                  spellCheck={false}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="البريد الإلكتروني أو اسم المستخدم"
                   className="w-full bg-[#101726] border border-white/[0.15] focus:border-[#e4c27d] rounded-2xl ps-10 pe-4 py-3 sm:py-3.5 text-xs sm:text-sm text-white placeholder:text-zinc-400 outline-none transition-all"
@@ -288,6 +297,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  spellCheck={false}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="كلمة المرور"
                   className="w-full bg-[#101726] border border-white/[0.15] focus:border-[#e4c27d] rounded-2xl ps-10 pe-10 py-3 sm:py-3.5 text-xs sm:text-sm text-white placeholder:text-zinc-400 outline-none transition-all font-sans"
