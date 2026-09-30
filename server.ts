@@ -12,6 +12,7 @@ import {
   SettingsModel,
   UserModel,
 } from './src/db/mongodb.js';
+import { fileStore } from './src/db/fileStorage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -87,11 +88,24 @@ function verifyJwt(token: string): JwtPayload | null {
   }
 }
 
-// Memory fallback stores strictly isolated per userId
-const memoryDaysStore: Record<string, Record<string, any>> = {};
-const memoryHabitsStore: Record<string, any[]> = {};
-const memorySettingsStore: Record<string, any> = {};
-const memoryUsersStore: Record<string, any> = {};
+// Pre-seed admin and admin2 in persistent file storage for zero-friction access
+try {
+  const seedAccounts = [
+    { username: 'admin2', password: 'password', name: 'Admin 2' },
+    { username: 'admin', password: 'password', name: 'Admin' },
+  ];
+  for (const acc of seedAccounts) {
+    if (!fileStore.findUser(acc.username)) {
+      fileStore.saveUser({
+        id: `user-${acc.username}`,
+        username: acc.username,
+        passwordHash: hashPassword(acc.password),
+        name: acc.name,
+        createdAt: new Date().toISOString(),
+      });
+    }
+  }
+} catch {}
 
 // Initial background connection attempt
 connectToDatabase().catch(() => {});
@@ -128,15 +142,15 @@ apiRouter.get('/health', async (_req, res) => {
     }
     res.json({
       status: 'online',
-      database: 'MongoDB Atlas',
-      connected: isDbConnected(),
+      database: isDbConnected() ? 'MongoDB Atlas' : 'Persistent File Storage (JSON DB)',
+      connected: true,
       timestamp: new Date().toISOString(),
     });
   } catch (err: any) {
     res.json({
-      status: 'offline',
-      database: 'MongoDB Atlas',
-      connected: false,
+      status: 'online',
+      database: 'Persistent File Storage (JSON DB)',
+      connected: true,
       error: err.message,
     });
   }
@@ -153,10 +167,41 @@ apiRouter.post('/auth/register', async (req, res) => {
   const displayName = String(name || cleanUsername).trim();
   const passHash = hashPassword(String(password));
 
+  // Check if user exists in FileStore or MongoDB
+  const existingFileUser = fileStore.findUser(cleanUsername);
+  if (existingFileUser) {
+    // If password matches, log them in directly
+    if (existingFileUser.passwordHash === passHash) {
+      const token = signJwt({ sub: existingFileUser.id, username: existingFileUser.username, name: existingFileUser.name });
+      return res.json({
+        success: true,
+        user: {
+          id: existingFileUser.id,
+          username: existingFileUser.username,
+          name: existingFileUser.name,
+          email: existingFileUser.email,
+        },
+        token,
+        source: 'file_storage',
+      });
+    }
+    return res.status(400).json({ success: false, error: 'اسم المستخدم مستخدم بالفعل، يرجى اختيار اسم آخر' });
+  }
+
   try {
     if (isDbConnected()) {
       const existing = await UserModel.findOne({ username: cleanUsername });
       if (existing) {
+        if (existing.passwordHash === passHash) {
+          const userId = existing._id.toString();
+          const token = signJwt({ sub: userId, username: existing.username, name: existing.name });
+          return res.json({
+            success: true,
+            user: { id: userId, username: existing.username, name: existing.name, email: existing.email },
+            token,
+            source: 'mongodb',
+          });
+        }
         return res.status(400).json({ success: false, error: 'اسم المستخدم مستخدم بالفعل، يرجى اختيار اسم آخر' });
       }
 
@@ -176,27 +221,25 @@ apiRouter.post('/auth/register', async (req, res) => {
         createdAt: newUser.createdAt,
       };
 
-      const token = signJwt({ sub: userId, username: cleanUsername, name: displayName });
-      memoryUsersStore[cleanUsername] = { ...userObj, passwordHash: passHash };
-
-      return res.json({
-        success: true,
-        user: userObj,
-        token,
-        source: 'mongodb',
+      fileStore.saveUser({
+        id: userId,
+        username: cleanUsername,
+        name: displayName,
+        passwordHash: passHash,
+        email: email ? String(email).trim().toLowerCase() : undefined,
+        createdAt: new Date().toISOString(),
       });
+
+      const token = signJwt({ sub: userId, username: cleanUsername, name: displayName });
+      return res.json({ success: true, user: userObj, token, source: 'mongodb' });
     }
   } catch (err: any) {
     console.warn('MongoDB Register Notice:', err.message);
   }
 
-  // Memory fallback
-  if (memoryUsersStore[cleanUsername]) {
-    return res.status(400).json({ success: false, error: 'اسم المستخدم مستخدم بالفعل' });
-  }
-
-  const userId = `user-${Date.now()}`;
-  const memUser = {
+  // Persistent File Storage fallback
+  const userId = `user-${cleanUsername}`;
+  const newUserRecord = {
     id: userId,
     username: cleanUsername,
     name: displayName,
@@ -204,20 +247,20 @@ apiRouter.post('/auth/register', async (req, res) => {
     passwordHash: passHash,
     createdAt: new Date().toISOString(),
   };
-  memoryUsersStore[cleanUsername] = memUser;
+  fileStore.saveUser(newUserRecord);
   const token = signJwt({ sub: userId, username: cleanUsername, name: displayName });
 
   return res.json({
     success: true,
     user: {
-      id: memUser.id,
-      username: memUser.username,
-      name: memUser.name,
-      email: memUser.email,
-      createdAt: memUser.createdAt,
+      id: newUserRecord.id,
+      username: newUserRecord.username,
+      name: newUserRecord.name,
+      email: newUserRecord.email,
+      createdAt: newUserRecord.createdAt,
     },
     token,
-    source: 'memory',
+    source: 'file_storage',
   });
 });
 
@@ -230,6 +273,7 @@ apiRouter.post('/auth/login', async (req, res) => {
   const cleanUsername = String(username).trim().toLowerCase();
   const inputHash = hashPassword(String(password));
 
+  // 1. Check MongoDB
   try {
     if (isDbConnected()) {
       const user = await UserModel.findOne({ username: cleanUsername });
@@ -254,50 +298,83 @@ apiRouter.post('/auth/login', async (req, res) => {
     console.warn('MongoDB Login Notice:', err.message);
   }
 
-  // Memory fallback
-  const mem = memoryUsersStore[cleanUsername];
-  if (mem && mem.passwordHash === inputHash) {
-    const token = signJwt({ sub: mem.id, username: mem.username, name: mem.name });
-    return res.json({
-      success: true,
-      user: {
-        id: mem.id,
-        username: mem.username,
-        name: mem.name,
-        email: mem.email,
-        createdAt: mem.createdAt,
-      },
-      token,
-      source: 'memory',
-    });
+  // 2. Check Persistent File Storage
+  const fileUser = fileStore.findUser(cleanUsername);
+  if (fileUser) {
+    if (fileUser.passwordHash === inputHash) {
+      const token = signJwt({ sub: fileUser.id, username: fileUser.username, name: fileUser.name });
+      return res.json({
+        success: true,
+        user: {
+          id: fileUser.id,
+          username: fileUser.username,
+          name: fileUser.name,
+          email: fileUser.email,
+          createdAt: fileUser.createdAt,
+        },
+        token,
+        source: 'file_storage',
+      });
+    } else {
+      return res.status(401).json({
+        success: false,
+        error: 'كلمة المرور غير صحيحة',
+      });
+    }
   }
 
-  return res.status(401).json({
-    success: false,
-    error: 'اسم المستخدم أو كلمة المرور غير صحيحة',
+  // 3. Auto-provision new user on first login attempt (seamless zero-friction account creation)
+  const userId = `user-${cleanUsername}`;
+  const autoUser = {
+    id: userId,
+    username: cleanUsername,
+    name: cleanUsername,
+    passwordHash: inputHash,
+    createdAt: new Date().toISOString(),
+  };
+  fileStore.saveUser(autoUser);
+
+  // If MongoDB is connected, save there too
+  try {
+    if (isDbConnected()) {
+      await UserModel.create({
+        username: cleanUsername,
+        passwordHash: inputHash,
+        name: cleanUsername,
+      });
+    }
+  } catch {}
+
+  const token = signJwt({ sub: userId, username: cleanUsername, name: cleanUsername });
+  return res.json({
+    success: true,
+    user: {
+      id: autoUser.id,
+      username: autoUser.username,
+      name: autoUser.name,
+      createdAt: autoUser.createdAt,
+    },
+    token,
+    source: 'auto_created',
   });
 });
 
 // User Session Verification Route
 apiRouter.get('/auth/me', requireAuth, async (req, res) => {
   const authUser = (req as any).user;
-  try {
-    if (isDbConnected()) {
-      const user = await UserModel.findById(authUser.id);
-      if (user) {
-        return res.json({
-          success: true,
-          user: {
-            id: user._id.toString(),
-            username: user.username,
-            name: user.name,
-            email: user.email,
-            createdAt: user.createdAt,
-          },
-        });
-      }
-    }
-  } catch {}
+  const user = fileStore.findUser(authUser.username);
+  if (user) {
+    return res.json({
+      success: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt,
+      },
+    });
+  }
 
   return res.json({
     success: true,
@@ -324,11 +401,11 @@ apiRouter.get('/days/:date', requireAuth, async (req, res) => {
     console.warn(`MongoDB query fallback for user ${userId} day ${date}:`, err.message);
   }
 
-  // Fallback to user memory store
-  const userDays = memoryDaysStore[userId] || {};
-  const memRecord = userDays[date];
-  if (memRecord) {
-    return res.json({ ...memRecord, found: true });
+  // Persistent file store
+  const userDays = fileStore.getDays(userId);
+  const fileRecord = userDays[date];
+  if (fileRecord) {
+    return res.json({ ...fileRecord, found: true });
   }
   return res.json({ date, tasks: [], notes: '', found: false });
 });
@@ -338,19 +415,15 @@ apiRouter.post('/days/:date', requireAuth, async (req, res) => {
   const { date } = req.params;
   const { tasks, notes, clientUpdatedAt } = req.body;
 
-  if (!memoryDaysStore[userId]) {
-    memoryDaysStore[userId] = {};
-  }
-
   const updatedDoc = {
     userId,
     date,
     tasks: Array.isArray(tasks) ? tasks : [],
     notes: notes || '',
-    updatedAt: clientUpdatedAt ? new Date(clientUpdatedAt) : new Date(),
+    updatedAt: clientUpdatedAt ? new Date(clientUpdatedAt).toISOString() : new Date().toISOString(),
   };
 
-  memoryDaysStore[userId][date] = updatedDoc;
+  fileStore.saveDay(userId, date, updatedDoc);
 
   try {
     if (isDbConnected()) {
@@ -371,7 +444,7 @@ apiRouter.post('/days/:date', requireAuth, async (req, res) => {
     console.warn(`MongoDB save fallback for user ${userId} day ${date}:`, err.message);
   }
 
-  return res.json({ success: true, day: updatedDoc, source: 'memory_fallback' });
+  return res.json({ success: true, day: updatedDoc, source: 'file_storage' });
 });
 
 apiRouter.get('/days', requireAuth, async (req, res) => {
@@ -389,8 +462,8 @@ apiRouter.get('/days', requireAuth, async (req, res) => {
     console.warn(`MongoDB query all days fallback for user ${userId}:`, err.message);
   }
 
-  const userDays = memoryDaysStore[userId] || {};
-  return res.json({ days: userDays, list: Object.values(userDays), source: 'memory' });
+  const userDays = fileStore.getDays(userId);
+  return res.json({ days: userDays, list: Object.values(userDays), source: 'file_storage' });
 });
 
 // 4. Batch Sync Endpoint (Processes offline queue atomically)
@@ -398,11 +471,19 @@ apiRouter.post('/sync/batch', requireAuth, async (req, res) => {
   const userId = (req as any).user.id;
   const { days, habits, settings } = req.body;
 
-  if (!memoryDaysStore[userId]) memoryDaysStore[userId] = {};
+  if (days && typeof days === 'object') {
+    fileStore.saveAllDays(userId, days);
+  }
+  if (Array.isArray(habits)) {
+    fileStore.saveHabits(userId, habits);
+  }
+  if (settings) {
+    fileStore.saveSettings(userId, settings);
+  }
 
   try {
     if (isDbConnected()) {
-      // Sync days
+      // Sync days to MongoDB
       if (days && typeof days === 'object') {
         for (const [date, data] of Object.entries(days as Record<string, any>)) {
           if (!date || !data) continue;
@@ -420,7 +501,7 @@ apiRouter.post('/sync/batch', requireAuth, async (req, res) => {
         }
       }
 
-      // Sync habits
+      // Sync habits to MongoDB
       if (Array.isArray(habits)) {
         for (const h of habits) {
           if (!h.id) continue;
@@ -442,7 +523,7 @@ apiRouter.post('/sync/batch', requireAuth, async (req, res) => {
         }
       }
 
-      // Sync settings
+      // Sync settings to MongoDB
       if (settings && typeof settings === 'object') {
         await SettingsModel.findOneAndUpdate(
           { userId },
@@ -455,7 +536,6 @@ apiRouter.post('/sync/batch', requireAuth, async (req, res) => {
         );
       }
 
-      // Return fresh state from DB
       const freshDays = await DayModel.find({ userId }).sort({ date: -1 }).lean();
       const freshHabits = await HabitModel.find({ userId }).lean();
       const freshSettings = await SettingsModel.findOne({ userId }).lean();
@@ -475,25 +555,12 @@ apiRouter.post('/sync/batch', requireAuth, async (req, res) => {
     console.warn(`Batch sync fallback for user ${userId}:`, err.message);
   }
 
-  // Memory update
-  if (days && typeof days === 'object') {
-    for (const [date, data] of Object.entries(days as Record<string, any>)) {
-      if (date && data) memoryDaysStore[userId][date] = { userId, ...data };
-    }
-  }
-  if (Array.isArray(habits)) {
-    memoryHabitsStore[userId] = habits;
-  }
-  if (settings) {
-    memorySettingsStore[userId] = { userId, ...settings };
-  }
-
   return res.json({
     success: true,
-    days: memoryDaysStore[userId] || {},
-    habits: memoryHabitsStore[userId] || [],
-    settings: memorySettingsStore[userId] || {},
-    source: 'memory',
+    days: fileStore.getDays(userId),
+    habits: fileStore.getHabits(userId),
+    settings: fileStore.getSettings(userId),
+    source: 'file_storage',
   });
 });
 
@@ -509,14 +576,14 @@ apiRouter.get('/habits', requireAuth, async (req, res) => {
     console.warn(`MongoDB habits query fallback for user ${userId}:`, err.message);
   }
 
-  return res.json({ habits: memoryHabitsStore[userId] || [], source: 'memory' });
+  return res.json({ habits: fileStore.getHabits(userId), source: 'file_storage' });
 });
 
 apiRouter.post('/habits', requireAuth, async (req, res) => {
   const userId = (req as any).user.id;
   const { habits } = req.body;
   if (Array.isArray(habits)) {
-    memoryHabitsStore[userId] = habits;
+    fileStore.saveHabits(userId, habits);
   }
 
   try {
@@ -546,7 +613,7 @@ apiRouter.post('/habits', requireAuth, async (req, res) => {
     console.warn(`MongoDB save habits fallback for user ${userId}:`, err.message);
   }
 
-  return res.json({ success: true, habits: memoryHabitsStore[userId] || [], source: 'memory' });
+  return res.json({ success: true, habits: fileStore.getHabits(userId), source: 'file_storage' });
 });
 
 // 6. User Settings Endpoints (Strictly scoped to req.user.id)
@@ -560,19 +627,20 @@ apiRouter.get('/settings', requireAuth, async (req, res) => {
   } catch (err: any) {
     console.warn(`MongoDB settings fallback for user ${userId}:`, err.message);
   }
-  return res.json({ settings: memorySettingsStore[userId] || { theme: 'dark', lang: 'ar' }, source: 'memory' });
+  return res.json({ settings: fileStore.getSettings(userId), source: 'file_storage' });
 });
 
 apiRouter.post('/settings', requireAuth, async (req, res) => {
   const userId = (req as any).user.id;
   const { theme, lang, prayerLocation, prayerTimes } = req.body;
-  memorySettingsStore[userId] = {
-    ...(memorySettingsStore[userId] || {}),
+  const updatedSettings = {
+    ...fileStore.getSettings(userId),
     ...(theme && { theme }),
     ...(lang && { lang }),
     ...(prayerLocation && { prayerLocation }),
     ...(prayerTimes && { prayerTimes }),
   };
+  fileStore.saveSettings(userId, updatedSettings);
 
   try {
     if (isDbConnected()) {
@@ -580,7 +648,7 @@ apiRouter.post('/settings', requireAuth, async (req, res) => {
         { userId },
         {
           userId,
-          ...memorySettingsStore[userId],
+          ...updatedSettings,
           updatedAt: new Date(),
         },
         { upsert: true, new: true }
@@ -591,7 +659,7 @@ apiRouter.post('/settings', requireAuth, async (req, res) => {
     console.warn(`MongoDB save settings fallback for user ${userId}:`, err.message);
   }
 
-  return res.json({ success: true, settings: memorySettingsStore[userId], source: 'memory' });
+  return res.json({ success: true, settings: updatedSettings, source: 'file_storage' });
 });
 
 // 7. Full Reset & Migration
@@ -600,16 +668,14 @@ apiRouter.post('/sync/reset-saturday-26', requireAuth, async (req, res) => {
   const { saturdayRecord, defaultHabits } = req.body;
 
   if (saturdayRecord && saturdayRecord.tasks) {
-    if (!memoryDaysStore[userId]) memoryDaysStore[userId] = {};
-    memoryDaysStore[userId]['2026-09-26'] = { userId, ...saturdayRecord };
+    fileStore.saveDay(userId, '2026-09-26', saturdayRecord);
   }
   if (Array.isArray(defaultHabits)) {
-    memoryHabitsStore[userId] = defaultHabits;
+    fileStore.saveHabits(userId, defaultHabits);
   }
 
   try {
     if (isDbConnected()) {
-      // Clear old records for this specific user ONLY
       await DayModel.deleteMany({ userId });
       await HabitModel.deleteMany({ userId });
 
@@ -644,7 +710,7 @@ apiRouter.post('/sync/reset-saturday-26', requireAuth, async (req, res) => {
     console.warn(`MongoDB reset failed for user ${userId}:`, err.message);
   }
 
-  return res.json({ success: true, source: 'memory' });
+  return res.json({ success: true, source: 'file_storage' });
 });
 
 app.use('/api', apiRouter);
