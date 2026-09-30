@@ -188,8 +188,55 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
+// 5. Recurring Item Schema (V2 Life Balance & Routine)
+export interface IRecurringItemDoc extends Document {
+  id: string;
+  title: string;
+  category: string;
+  frequency: string;
+  selectedDays?: number[];
+  everyXDays?: number;
+  targetDuration?: number;
+  preferredTime?: string;
+  priority?: string;
+  icon?: string;
+  isActive: boolean;
+  startDate: string;
+  lastCompletedDate?: string;
+  currentStreak: number;
+  bestStreak: number;
+  completionHistory: Record<string, boolean>;
+  userId?: string;
+  updatedAt: Date;
+}
+
+const RecurringItemSchema = new Schema<IRecurringItemDoc>(
+  {
+    id: { type: String, required: true, unique: true, index: true },
+    title: { type: String, required: true },
+    category: { type: String, default: 'general' },
+    frequency: { type: String, default: 'daily' },
+    selectedDays: { type: [Number], default: [] },
+    everyXDays: { type: Number, default: 1 },
+    targetDuration: { type: Number, default: 30 },
+    preferredTime: { type: String },
+    priority: { type: String, default: 'medium' },
+    icon: { type: String, default: '🔁' },
+    isActive: { type: Boolean, default: true },
+    startDate: { type: String, required: true },
+    lastCompletedDate: { type: String },
+    currentStreak: { type: Number, default: 0 },
+    bestStreak: { type: Number, default: 0 },
+    completionHistory: { type: Schema.Types.Mixed, default: {} },
+    userId: { type: String, default: 'default_user' },
+  },
+  { timestamps: true }
+);
+
 export const DayModel = mongoose.models.DayRecord || mongoose.model<IDayRecord>('DayRecord', DayRecordSchema);
 export const HabitModel = mongoose.models.Habit || mongoose.model<IHabit>('Habit', HabitSchema);
 export const SettingsModel = mongoose.models.UserSettings || mongoose.model<IUserSettings>('UserSettings', UserSettingsSchema);
 export const UserModel = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+export const RecurringModel = mongoose.models.RecurringItem || mongoose.model<IRecurringItemDoc>('RecurringItem', RecurringItemSchema);
+
 

@@ -36,17 +36,13 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
       return;
     }
 
-    if (!trimmedTime) {
-      setError(lang === 'ar' ? 'يرجى إدخال الوقت' : 'Please enter time');
-      return;
-    }
-
     onAdd({
       title: trimmedTitle,
       time: trimmedTime,
       status,
       notes: notes.trim() || undefined,
     });
+
 
     // Reset form
     setTitle('');

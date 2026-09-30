@@ -1,16 +1,46 @@
 export type TaskStatus = 'done' | 'not-done' | 'pending';
 
+export type TaskPriority = 'high' | 'medium' | 'low';
+
 export type TaskCategory = 'study' | 'worship' | 'health' | 'rest' | 'sleep' | 'work' | 'general';
+
+export type RecurringFrequency = 'daily' | 'weekly' | 'selected_days' | 'every_x_days' | 'monthly';
 
 export interface Task {
   id: string;
-  time: string; // "HH:MM" e.g. "05:00", "14:30"
+  time: string; // "HH:MM" e.g. "05:00", "14:30" or "" for flexible task
   endTime?: string; // "HH:MM" e.g. "08:00" for extended block
   duration?: number; // duration in minutes (e.g. 60, 120, 240)
   title: string;
   status: TaskStatus;
   notes?: string;
   category?: TaskCategory;
+  priority?: TaskPriority;
+  deadline?: string; // "YYYY-MM-DD"
+  isTopFocus?: boolean; // Pinned to top 3
+  recurringTemplateId?: string; // Linked recurring item if generated
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface RecurringItem {
+  id: string;
+  title: string;
+  category: TaskCategory;
+  frequency: RecurringFrequency;
+  selectedDays?: number[]; // [0 = Sun, 1 = Mon, 2 = Tue, 3 = Wed, 4 = Thu, 5 = Fri, 6 = Sat]
+  everyXDays?: number; // e.g. 10 for every 10 days, 30 for every 30 days
+  targetDuration?: number; // in minutes (e.g. 20, 60)
+  preferredTime?: string; // optional "HH:MM"
+  priority?: TaskPriority;
+  icon?: string;
+  isActive: boolean; // toggle pause/active
+  startDate: string; // "YYYY-MM-DD"
+  lastCompletedDate?: string; // "YYYY-MM-DD"
+  currentStreak?: number;
+  bestStreak?: number;
+  completionHistory?: Record<string, boolean>; // "YYYY-MM-DD" -> true
+  userId?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -22,6 +52,7 @@ export interface DayRecord {
   notes?: string;
   updatedAt: string;
 }
+
 
 export interface DayStats {
   total: number;

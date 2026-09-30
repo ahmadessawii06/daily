@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Menu, Sun, Moon, Sunrise, Camera, User as UserIcon, LogOut } from 'lucide-react';
+import { Plus, Menu, Sun, Moon, Sunrise, Camera, User as UserIcon, LogOut, Repeat } from 'lucide-react';
 import { Language, Theme, User } from '../types';
 import { formatHeaderDate } from '../utils/date';
 
@@ -8,6 +8,7 @@ interface MainHeaderProps {
   currentUser?: User | null;
   onLogout?: () => void;
   onOpenAddTask: () => void;
+  onOpenRecurringModal?: () => void;
   onOpenExportModal: () => void;
   onOpenMobileMenu?: () => void;
   lang: Language;
@@ -20,6 +21,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
   currentUser,
   onLogout,
   onOpenAddTask,
+  onOpenRecurringModal,
   onOpenExportModal,
   onOpenMobileMenu,
   lang,
@@ -27,6 +29,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
   onToggleTheme,
 }) => {
   const hour = new Date().getHours();
+
 
 
   // Minimal and formal greeting without casual emojis
@@ -111,7 +114,23 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
             </div>
           )}
 
+          {/* زر العادات والأشياء المتكررة */}
+          {onOpenRecurringModal && (
+            <button
+              type="button"
+              onClick={onOpenRecurringModal}
+              title={lang === 'ar' ? 'إدارة العادات والأشياء المتكررة' : 'Manage Recurring Routines'}
+              className="p-2 text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition-colors cursor-pointer min-h-[40px] flex items-center justify-center gap-1.5 shadow-2xs active:scale-95"
+            >
+              <Repeat className="w-4 h-4 stroke-[2.2]" />
+              <span className="hidden sm:inline text-xs font-bold font-['Alexandria']">
+                {lang === 'ar' ? 'العادات المتكررة' : 'Routines'}
+              </span>
+            </button>
+          )}
+
           {/* زر الوضع الداكن/الفاتح (Secondary / Ghost Button) */}
+
           <button
             type="button"
             onClick={onToggleTheme}

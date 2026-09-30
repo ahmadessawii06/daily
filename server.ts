@@ -11,6 +11,7 @@ import {
   HabitModel,
   SettingsModel,
   UserModel,
+  RecurringModel,
 } from './src/db/mongodb.js';
 
 
@@ -34,8 +35,10 @@ const DEFAULT_ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || '';
 // Memory fallback store when MongoDB is connecting / pending IP whitelist
 const memoryDaysStore: Record<string, any> = {};
 let memoryHabitsStore: any[] = [];
+let memoryRecurringStore: any[] = [];
 let memorySettingsStore: any = { userId: 'default_user', theme: 'dark', lang: 'ar' };
 const memoryUsersStore: Record<string, any> = {};
+
 
 if (DEFAULT_ADMIN_USERNAME && DEFAULT_ADMIN_PASSWORD) {
   memoryUsersStore[DEFAULT_ADMIN_USERNAME.toLowerCase()] = {
@@ -375,7 +378,66 @@ apiRouter.post('/habits', async (req, res) => {
   return res.json({ success: true, habits: memoryHabitsStore, source: 'memory' });
 });
 
+// 5b. Recurring Items & Routines (V2 Life Balance)
+apiRouter.get('/recurring', async (req, res) => {
+  try {
+    if (isDbConnected()) {
+      const items = await RecurringModel.find({}).sort({ createdAt: -1 }).lean();
+      return res.json({ items, source: 'mongodb' });
+    }
+  } catch (err: any) {
+    console.warn('MongoDB recurring fallback:', err.message);
+  }
+  return res.json({ items: memoryRecurringStore, source: 'memory' });
+});
+
+apiRouter.post('/recurring', async (req, res) => {
+  const { items } = req.body;
+  if (Array.isArray(items)) {
+    memoryRecurringStore = items;
+  }
+
+  try {
+    if (isDbConnected() && Array.isArray(items)) {
+      for (const it of items) {
+        if (!it.id) continue;
+        await RecurringModel.findOneAndUpdate(
+          { id: it.id },
+          {
+            id: it.id,
+            title: it.title,
+            category: it.category || 'general',
+            frequency: it.frequency || 'daily',
+            selectedDays: it.selectedDays || [],
+            everyXDays: it.everyXDays || 1,
+            targetDuration: it.targetDuration || 30,
+            preferredTime: it.preferredTime,
+            priority: it.priority || 'medium',
+            icon: it.icon || '🔁',
+            isActive: it.isActive !== false,
+            startDate: it.startDate,
+            lastCompletedDate: it.lastCompletedDate,
+            currentStreak: it.currentStreak || 0,
+            bestStreak: it.bestStreak || 0,
+            completionHistory: it.completionHistory || {},
+            userId: it.userId || 'default_user',
+            updatedAt: new Date(),
+          },
+          { upsert: true, new: true }
+        );
+      }
+      const saved = await RecurringModel.find({}).sort({ createdAt: -1 }).lean();
+      return res.json({ success: true, items: saved, source: 'mongodb' });
+    }
+  } catch (err: any) {
+    console.warn('MongoDB save recurring fallback:', err.message);
+  }
+
+  return res.json({ success: true, items: memoryRecurringStore, source: 'memory' });
+});
+
 // 6. User Settings
+
 apiRouter.get('/settings', async (req, res) => {
   try {
     if (isDbConnected()) {

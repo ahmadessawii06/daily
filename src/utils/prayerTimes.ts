@@ -214,7 +214,14 @@ export async function fetchOfficialPrayerTimes(
       throw new Error(`Aladhan API HTTP ${response.status}`);
     }
 
-    const json = await response.json();
+    const rawText = await response.text();
+    let json: any = null;
+    try {
+      json = JSON.parse(rawText);
+    } catch {
+      throw new Error('Invalid JSON received from Aladhan API');
+    }
+
     if (json && json.code === 200 && json.data && json.data.timings) {
       const timings = json.data.timings;
       const hijri = json.data.date?.hijri;

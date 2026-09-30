@@ -17,14 +17,29 @@ import {
   getStoredHabits,
   saveAllDays,
 } from './utils/storage';
-import { checkDbHealth, fetchAllDaysFromDb, fetchDayFromDb, migrateLocalDataToMongo, resetDatabaseToSaturday26 } from './services/api';
-import { ActiveTab, Language, StatusFilter, Task, TaskStatus, Theme, User } from './types';
+import { 
+  loadStoredRecurringItems, 
+  saveStoredRecurringItems, 
+  toggleRecurringStatus 
+} from './utils/recurring';
+import { 
+  checkDbHealth, 
+  fetchAllDaysFromDb, 
+  fetchDayFromDb, 
+  fetchRecurringFromDb, 
+  saveRecurringToDb, 
+  migrateLocalDataToMongo, 
+  resetDatabaseToSaturday26 
+} from './services/api';
+import { ActiveTab, Language, RecurringItem, StatusFilter, Task, TaskPriority, TaskStatus, Theme, User } from './types';
 import { getStoredAuth, clearStoredAuth } from './utils/auth';
 import { LoginScreen } from './components/LoginScreen';
 import { Sidebar } from './components/Sidebar';
 import { MainHeader } from './components/MainHeader';
 
 import { TodayProgress } from './components/TodayProgress';
+import { TodayDashboard } from './components/TodayDashboard';
+import { RecurringManagerModal } from './components/RecurringManagerModal';
 import { PrayerTimesWidget } from './components/PrayerTimesWidget';
 import { DateNavigation } from './components/DateNavigation';
 import { TaskList } from './components/TaskList';
@@ -38,7 +53,7 @@ import { exportDailyTrackToImage } from './utils/exportDailyTrack';
 import { playAchievementSound, playFailureSound, playPendingSound } from './utils/soundEffects';
 import { MobileNav } from './components/MobileNav';
 import { MobileDrawer } from './components/MobileDrawer';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, LayoutDashboard, Clock, Sparkles } from 'lucide-react';
 
 export default function App() {
   // Authentication state
@@ -50,7 +65,11 @@ export default function App() {
   const [currentDate, setCurrentDate] = useState<string>(() => getTodayDateString());
   const [activeTab, setActiveTab] = useState<ActiveTab>('daily');
   const [currentFilter, setCurrentFilter] = useState<StatusFilter>('all');
+  const [todayViewMode, setTodayViewMode] = useState<'dashboard' | 'timeline'>('dashboard');
 
+  // Recurring routines & habits state
+  const [recurringItems, setRecurringItems] = useState<RecurringItem[]>(() => loadStoredRecurringItems());
+  const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
 
   // Modals & Drawer state
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
@@ -66,6 +85,7 @@ export default function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   // Archive days
   const [archiveDays, setArchiveDays] = useState(() => getAllArchiveDays());
+
 
   // Apply theme to document element and persist in localStorage
   useEffect(() => {
@@ -142,9 +162,57 @@ export default function App() {
     }).catch(() => {});
   }, [currentDate, lang]);
 
+  // Initial background sync for recurring routines & habits
+  useEffect(() => {
+    fetchRecurringFromDb().then((remoteItems) => {
+      if (Array.isArray(remoteItems) && remoteItems.length > 0) {
+        setRecurringItems(remoteItems);
+        saveStoredRecurringItems(remoteItems);
+      }
+    }).catch(() => {});
+  }, []);
+
   const refreshArchive = useCallback(() => {
     setArchiveDays(getAllArchiveDays());
   }, []);
+
+  const handleToggleRecurring = (itemId: string) => {
+    const updated = toggleRecurringStatus(itemId, currentDate);
+    setRecurringItems(updated);
+    const item = updated.find((i) => i.id === itemId);
+    if (item?.completionHistory?.[currentDate]) {
+      playAchievementSound();
+      showToast(lang === 'ar' ? `🎉 أحسنت! تم إنجاز: ${item.title}` : `Completed: ${item.title}`);
+    }
+  };
+
+
+  const handleQuickAddTask = (taskInput: {
+    title: string;
+    duration?: number;
+    priority?: TaskPriority;
+    category?: any;
+    deadline?: string;
+    isTopFocus?: boolean;
+    notes?: string;
+    time?: string;
+  }) => {
+    addTaskToDay(currentDate, {
+      title: taskInput.title,
+      time: taskInput.time || '',
+      duration: taskInput.duration || 45,
+      priority: taskInput.priority || 'medium',
+      deadline: taskInput.deadline,
+      isTopFocus: taskInput.isTopFocus,
+      notes: taskInput.notes,
+      status: 'pending',
+    });
+    const updatedRecord = getDayRecord(currentDate);
+    setTasks(updatedRecord.tasks);
+    refreshArchive();
+    showToast(lang === 'ar' ? 'تمت إضافة المهمة بنجاح' : 'Task added successfully');
+  };
+
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -335,6 +403,7 @@ export default function App() {
           todayTasksCount={tasks.length}
           archiveDaysCount={archiveDays.length}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenRecurringModal={() => setIsRecurringModalOpen(true)}
           currentUser={currentUser}
           onLogout={handleLogout}
           lang={lang}
@@ -358,6 +427,7 @@ export default function App() {
               currentUser={currentUser}
               onLogout={handleLogout}
               onOpenAddTask={() => setIsAddTaskOpen(true)}
+              onOpenRecurringModal={() => setIsRecurringModalOpen(true)}
               onOpenExportModal={handleExportDailyTrackImage}
               onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
               lang={lang}
@@ -388,23 +458,78 @@ export default function App() {
               lang={lang}
             />
 
-            {/* Tasks Section */}
-            <TaskList
-              tasks={tasks}
-              onStatusChange={handleStatusChange}
-              onEdit={(task) => setEditingTask(task)}
-              onDelete={handleDeleteTask}
-              onUpdateTitle={handleUpdateTaskTitle}
-              onOpenAddTask={() => setIsAddTaskOpen(true)}
-              onApply24HourTemplate={handleApply24HourTemplate}
-              onOpenExportModal={handleExportDailyTrackImage}
-              currentFilter={currentFilter}
-              onFilterChange={setCurrentFilter}
-              lang={lang}
-            />
+            {/* View Mode Switcher: Today Smart Dashboard (V2) vs 24-Hour Timeline */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white dark:bg-[#11131a] p-1.5 sm:p-2 rounded-2xl border border-slate-200/90 dark:border-white/[0.08] shadow-2xs font-['Alexandria']">
+              <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setTodayViewMode('dashboard')}
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-3 sm:px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    todayViewMode === 'dashboard'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.05]'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{lang === 'ar' ? 'لوحة اليوم الذكية V2' : 'Smart Dashboard'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTodayViewMode('timeline')}
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-3 sm:px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    todayViewMode === 'timeline'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.05]'
+                  }`}
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>{lang === 'ar' ? 'الجدول الزمني (24 ساعة)' : '24h Timeline'}</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsRecurringModalOpen(true)}
+                className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors cursor-pointer"
+              >
+                <span>{lang === 'ar' ? '🔁 إدارة العادات والروتين' : '🔁 Manage Routines'}</span>
+              </button>
+            </div>
+
+            {/* View Mode Rendering */}
+            {todayViewMode === 'dashboard' ? (
+              <TodayDashboard
+                currentDate={currentDate}
+                tasks={tasks}
+                recurringItems={recurringItems}
+                onToggleTaskStatus={handleStatusChange}
+                onToggleRecurringStatus={handleToggleRecurring}
+                onAddTask={handleQuickAddTask}
+                onEditTask={(task) => setEditingTask(task)}
+                onDeleteTask={handleDeleteTask}
+                onOpenRecurringManager={() => setIsRecurringModalOpen(true)}
+                lang={lang}
+              />
+            ) : (
+              <TaskList
+                tasks={tasks}
+                onStatusChange={handleStatusChange}
+                onEdit={(task) => setEditingTask(task)}
+                onDelete={handleDeleteTask}
+                onUpdateTitle={handleUpdateTaskTitle}
+                onOpenAddTask={() => setIsAddTaskOpen(true)}
+                onApply24HourTemplate={handleApply24HourTemplate}
+                onOpenExportModal={handleExportDailyTrackImage}
+                currentFilter={currentFilter}
+                onFilterChange={setCurrentFilter}
+                lang={lang}
+              />
+            )}
 
           </div>
         ) : activeTab === 'stats' ? (
+
           <WeeklyReview
             lang={lang}
             onNavigateToDay={handleOpenInDaily}
@@ -476,7 +601,20 @@ export default function App() {
         onSetTheme={setTheme}
       />
 
+      {/* Recurring Tasks & Habits Manager Modal */}
+      <RecurringManagerModal
+        isOpen={isRecurringModalOpen}
+        onClose={() => setIsRecurringModalOpen(false)}
+        recurringItems={recurringItems}
+        onItemsChange={(newItems) => {
+          setRecurringItems(newItems);
+          saveStoredRecurringItems(newItems);
+        }}
+        lang={lang}
+      />
+
       {/* Export Schedule as Image Modal */}
+
       <ExportScheduleModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}

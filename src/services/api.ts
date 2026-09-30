@@ -7,13 +7,26 @@ export interface DbHealthStatus {
   ipWhitelistNeeded?: boolean;
 }
 
+async function safeParseResponse(res: Response): Promise<any> {
+  try {
+    const text = await res.text();
+    if (!text || text.trim() === '') return null;
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
 export async function checkDbHealth(): Promise<DbHealthStatus> {
   try {
     const res = await fetch('/api/health');
     if (!res.ok) {
       return { connected: false, error: `HTTP ${res.status}` };
     }
-    const data = await res.json();
+    const data = await safeParseResponse(res);
+    if (!data) {
+      return { connected: false, error: 'استجابة غير صالحة من الخادم' };
+    }
     return {
       connected: data.connected === true,
       database: data.database,
@@ -29,8 +42,8 @@ export async function fetchDayFromDb(date: string): Promise<DayRecord | null> {
   try {
     const res = await fetch(`/api/days/${date}`);
     if (!res.ok) return null;
-    const data = await res.json();
-    if (data.found && Array.isArray(data.tasks)) {
+    const data = await safeParseResponse(res);
+    if (data && data.found && Array.isArray(data.tasks)) {
       return {
         date: data.date,
         tasks: data.tasks,
@@ -63,8 +76,8 @@ export async function fetchAllDaysFromDb(): Promise<Record<string, DayRecord>> {
   try {
     const res = await fetch('/api/days');
     if (!res.ok) return {};
-    const data = await res.json();
-    return data.days || {};
+    const data = await safeParseResponse(res);
+    return data?.days || {};
   } catch (err) {
     console.warn('Could not fetch all days from MongoDB:', err);
     return {};
@@ -75,8 +88,8 @@ export async function fetchHabitsFromDb(): Promise<HabitStreak[]> {
   try {
     const res = await fetch('/api/habits');
     if (!res.ok) return [];
-    const data = await res.json();
-    return Array.isArray(data.habits) ? data.habits : [];
+    const data = await safeParseResponse(res);
+    return data && Array.isArray(data.habits) ? data.habits : [];
   } catch (err) {
     console.warn('Could not fetch habits from MongoDB:', err);
     return [];
@@ -125,8 +138,8 @@ export async function migrateLocalDataToMongo(
       body: JSON.stringify({ days, habits }),
     });
     if (!res.ok) return { success: false };
-    const data = await res.json();
-    return { success: true, importedCount: data.importedDaysCount };
+    const data = await safeParseResponse(res);
+    return { success: !!data?.success, importedCount: data?.importedDaysCount };
   } catch (err) {
     console.error('Migration failed:', err);
     return { success: false };
@@ -134,14 +147,16 @@ export async function migrateLocalDataToMongo(
 }
 
 export async function loginApi(username: string, password: string): Promise<{ success: boolean; user?: any; token?: string; error?: string }> {
-
   try {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
     });
-    const data = await res.json();
+    const data = await safeParseResponse(res);
+    if (!data) {
+      return { success: false, error: 'تعذر الاتصال بالخادم' };
+    }
     return data;
   } catch (err: any) {
     return { success: false, error: err.message || 'فشل الاتصال بالخادم' };
@@ -155,10 +170,12 @@ export async function registerApi(username: string, password: string, name: stri
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password, name, email }),
     });
-    const data = await res.json();
+    const data = await safeParseResponse(res);
+    if (!data) {
+      return { success: false, error: 'تعذر الاتصال بالخادم' };
+    }
     return data;
   } catch (err: any) {
     return { success: false, error: err.message || 'فشل الاتصال بالخادم' };
   }
 }
-

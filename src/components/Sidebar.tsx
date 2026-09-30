@@ -11,6 +11,7 @@ import {
   Moon,
   LogOut,
   User as UserIcon,
+  Repeat,
 } from 'lucide-react';
 import { ActiveTab, Language, Theme, User } from '../types';
 
@@ -20,6 +21,7 @@ interface SidebarProps {
   todayTasksCount: number;
   archiveDaysCount: number;
   onOpenSettings: () => void;
+  onOpenRecurringModal?: () => void;
   currentUser?: User | null;
   onLogout?: () => void;
   lang: Language;
@@ -33,12 +35,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   todayTasksCount,
   archiveDaysCount,
   onOpenSettings,
+  onOpenRecurringModal,
   currentUser,
   onLogout,
   lang,
   theme,
   onToggleTheme,
 }) => {
+
 
   return (
     <aside className="w-20 lg:w-64 bg-white/95 dark:bg-[#090a0f] border-e border-slate-200 dark:border-white/[0.08] flex flex-col justify-between p-2.5 lg:p-4 shrink-0 select-none transition-all duration-200">
@@ -124,7 +128,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="text-[10px] text-amber-500 font-bold hidden lg:inline">🔥</span>
           </button>
 
+          {/* Recurring Routines & Habits */}
+          {onOpenRecurringModal && (
+            <button
+              type="button"
+              onClick={onOpenRecurringModal}
+              title={lang === 'ar' ? 'العادات والأشياء المتكررة' : 'Recurring Habits'}
+              className="w-full flex flex-col lg:flex-row items-center justify-center lg:justify-between p-2 lg:px-3.5 lg:py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-all duration-150 cursor-pointer min-h-[44px]"
+            >
+              <div className="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3">
+                <div className="w-7 h-7 lg:w-6 lg:h-6 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <Repeat className="w-4 h-4 lg:w-3.5 lg:h-3.5 stroke-[2.5]" />
+                </div>
+                <span className="font-['Alexandria'] text-[10px] lg:text-xs">
+                  {lang === 'ar' ? 'العادات المتكررة' : 'Routines'}
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 hidden lg:inline">🔁</span>
+            </button>
+          )}
+
           {/* Archive */}
+
           <button
             type="button"
             onClick={() => onTabChange('archive')}

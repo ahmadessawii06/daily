@@ -1,4 +1,5 @@
-import { DayRecord, DayStats, HabitStreak, PrayerTimeItem, Task, TaskCategory, Theme, WeeklyDayData } from '../types';
+import { DayRecord, DayStats, HabitStreak, PrayerTimeItem, Task, TaskCategory, TaskPriority, Theme, WeeklyDayData } from '../types';
+
 import { sortTasksByTime } from './date';
 import { autoDetectCategory } from './categories';
 import { SCHEDULE_TEMPLATES } from './templates';
@@ -372,23 +373,26 @@ export function addTaskToDay(
     status?: Task['status'];
     notes?: string;
     category?: TaskCategory;
+    priority?: TaskPriority;
+    deadline?: string;
+    isTopFocus?: boolean;
+    recurringTemplateId?: string;
   }
 ): Task {
   const all = loadAllDays();
   const currentRecord = getDayRecord(date);
   
-  const startTime = taskInput.time.trim();
-  let duration = taskInput.duration;
+  const startTime = taskInput.time ? taskInput.time.trim() : '';
+  let duration = taskInput.duration || 45;
   let endTime = taskInput.endTime?.trim();
 
-  if (!duration && !endTime) {
-    duration = 60;
-    endTime = minutesToTime(timeToMinutes(startTime) + 60);
-  } else if (!endTime && duration) {
-    endTime = minutesToTime(timeToMinutes(startTime) + duration);
-  } else if (endTime && !duration) {
-    const diff = timeToMinutes(endTime) - timeToMinutes(startTime);
-    duration = diff > 0 ? diff : 60;
+  if (startTime) {
+    if (!endTime && duration) {
+      endTime = minutesToTime(timeToMinutes(startTime) + duration);
+    } else if (endTime && !duration) {
+      const diff = timeToMinutes(endTime) - timeToMinutes(startTime);
+      duration = diff > 0 ? diff : 60;
+    }
   }
 
   const category = taskInput.category || autoDetectCategory(taskInput.title);
@@ -402,6 +406,10 @@ export function addTaskToDay(
     status: taskInput.status || 'pending',
     notes: taskInput.notes?.trim() || undefined,
     category,
+    priority: taskInput.priority || 'medium',
+    deadline: taskInput.deadline,
+    isTopFocus: taskInput.isTopFocus,
+    recurringTemplateId: taskInput.recurringTemplateId,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -416,6 +424,7 @@ export function addTaskToDay(
   syncDayToMongo(date);
   return newTask;
 }
+
 
 export function updateTaskInDay(date: string, taskId: string, updates: Partial<Task>): void {
   const all = loadAllDays();
