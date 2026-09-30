@@ -17,43 +17,24 @@ import {
   getStoredHabits,
   saveAllDays,
 } from './utils/storage';
-import { 
-  loadStoredRecurringItems, 
-  saveStoredRecurringItems, 
-  toggleRecurringStatus 
-} from './utils/recurring';
-import { 
-  checkDbHealth, 
-  fetchAllDaysFromDb, 
-  fetchDayFromDb, 
-  fetchRecurringFromDb, 
-  saveRecurringToDb, 
-  migrateLocalDataToMongo, 
-  resetDatabaseToSaturday26 
-} from './services/api';
-import { ActiveTab, Language, RecurringItem, StatusFilter, Task, TaskPriority, TaskStatus, Theme, User } from './types';
+import { checkDbHealth, fetchAllDaysFromDb, fetchDayFromDb, resetDatabaseToSaturday26 } from './services/api';
+import { Language, StatusFilter, Task, TaskStatus, Theme, User } from './types';
 import { getStoredAuth, clearStoredAuth } from './utils/auth';
 import { LoginScreen } from './components/LoginScreen';
-import { Sidebar } from './components/Sidebar';
 import { MainHeader } from './components/MainHeader';
-
 import { TodayProgress } from './components/TodayProgress';
-import { TodayDashboard } from './components/TodayDashboard';
-import { RecurringManagerModal } from './components/RecurringManagerModal';
 import { PrayerTimesWidget } from './components/PrayerTimesWidget';
 import { DateNavigation } from './components/DateNavigation';
 import { TaskList } from './components/TaskList';
-import { Archive } from './components/Archive';
-import { WeeklyReview } from './components/WeeklyReview';
+import { StatsModal } from './components/StatsModal';
+import { ArchiveModal } from './components/ArchiveModal';
 import { AddTaskModal } from './components/AddTaskModal';
 import { EditTaskModal } from './components/EditTaskModal';
 import { SettingsModal } from './components/SettingsModal';
 import { ExportScheduleModal } from './components/ExportScheduleModal';
 import { exportDailyTrackToImage } from './utils/exportDailyTrack';
-import { playAchievementSound, playFailureSound, playPendingSound } from './utils/soundEffects';
-import { MobileNav } from './components/MobileNav';
-import { MobileDrawer } from './components/MobileDrawer';
-import { CheckCircle2, LayoutDashboard, Clock, Sparkles } from 'lucide-react';
+import { playAchievementSound, playFailureSound } from './utils/soundEffects';
+import { CheckCircle2 } from 'lucide-react';
 
 export default function App() {
   // Authentication state
@@ -63,20 +44,15 @@ export default function App() {
   const [lang, setLang] = useState<Language>('ar');
   const [theme, setTheme] = useState<Theme>(() => getStoredTheme());
   const [currentDate, setCurrentDate] = useState<string>(() => getTodayDateString());
-  const [activeTab, setActiveTab] = useState<ActiveTab>('daily');
   const [currentFilter, setCurrentFilter] = useState<StatusFilter>('all');
-  const [todayViewMode, setTodayViewMode] = useState<'dashboard' | 'timeline'>('dashboard');
 
-  // Recurring routines & habits state
-  const [recurringItems, setRecurringItems] = useState<RecurringItem[]>(() => loadStoredRecurringItems());
-  const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
-
-  // Modals & Drawer state
+  // Modals state
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   // Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -85,7 +61,6 @@ export default function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   // Archive days
   const [archiveDays, setArchiveDays] = useState(() => getAllArchiveDays());
-
 
   // Apply theme to document element and persist in localStorage
   useEffect(() => {
@@ -162,57 +137,9 @@ export default function App() {
     }).catch(() => {});
   }, [currentDate, lang]);
 
-  // Initial background sync for recurring routines & habits
-  useEffect(() => {
-    fetchRecurringFromDb().then((remoteItems) => {
-      if (Array.isArray(remoteItems) && remoteItems.length > 0) {
-        setRecurringItems(remoteItems);
-        saveStoredRecurringItems(remoteItems);
-      }
-    }).catch(() => {});
-  }, []);
-
   const refreshArchive = useCallback(() => {
     setArchiveDays(getAllArchiveDays());
   }, []);
-
-  const handleToggleRecurring = (itemId: string) => {
-    const updated = toggleRecurringStatus(itemId, currentDate);
-    setRecurringItems(updated);
-    const item = updated.find((i) => i.id === itemId);
-    if (item?.completionHistory?.[currentDate]) {
-      playAchievementSound();
-      showToast(lang === 'ar' ? `🎉 أحسنت! تم إنجاز: ${item.title}` : `Completed: ${item.title}`);
-    }
-  };
-
-
-  const handleQuickAddTask = (taskInput: {
-    title: string;
-    duration?: number;
-    priority?: TaskPriority;
-    category?: any;
-    deadline?: string;
-    isTopFocus?: boolean;
-    notes?: string;
-    time?: string;
-  }) => {
-    addTaskToDay(currentDate, {
-      title: taskInput.title,
-      time: taskInput.time || '',
-      duration: taskInput.duration || 45,
-      priority: taskInput.priority || 'medium',
-      deadline: taskInput.deadline,
-      isTopFocus: taskInput.isTopFocus,
-      notes: taskInput.notes,
-      status: 'pending',
-    });
-    const updatedRecord = getDayRecord(currentDate);
-    setTasks(updatedRecord.tasks);
-    refreshArchive();
-    showToast(lang === 'ar' ? 'تمت إضافة المهمة بنجاح' : 'Task added successfully');
-  };
-
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -225,10 +152,8 @@ export default function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-
   // Handlers
   const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
-    // Play achievement audio for completed tasks or failure audio for not done
     if (newStatus === 'done') {
       playAchievementSound();
     } else if (newStatus === 'not-done') {
@@ -297,7 +222,8 @@ export default function App() {
 
   const handleOpenInDaily = (date: string) => {
     setCurrentDate(date);
-    setActiveTab('daily');
+    setIsArchiveModalOpen(false);
+    setIsStatsModalOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -345,8 +271,8 @@ export default function App() {
       setIsExportingImage(true);
       showToast(
         lang === 'ar' 
-          ? '⏳ جارٍ تصدير لوحة Daily Track كاملة كصورة فائقة الدقة (2.5x)...' 
-          : '⏳ Exporting full Daily Track high-res image (2.5x)...'
+          ? '⏳ جارٍ تصدير لوحة Daily Track كاملة كصورة فائقة الدقة...' 
+          : '⏳ Exporting full Daily Track high-res image...'
       );
       
       await exportDailyTrackToImage({
@@ -357,8 +283,8 @@ export default function App() {
 
       showToast(
         lang === 'ar' 
-          ? '✓ تم تصدير وحفظ صورة Daily Track كاملة حتى آخر مهمة بنجاح!' 
-          : '✓ Full Daily Track image saved successfully down to the last task!'
+          ? '✓ تم تصدير وحفظ صورة Daily Track كاملة بنجاح!' 
+          : '✓ Full Daily Track image saved successfully!'
       );
     } catch (error) {
       console.error('Export failed:', error);
@@ -393,182 +319,87 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-[#07080b] bg-mesh text-slate-900 dark:text-zinc-100 flex flex-col md:flex-row font-['Alexandria','Cairo',sans-serif] transition-colors duration-200`}>
+    <div className={`min-h-screen bg-slate-50 dark:bg-[#07080b] bg-mesh text-slate-900 dark:text-zinc-100 flex flex-col font-['Alexandria','Cairo',sans-serif] transition-colors duration-200`}>
       
-      {/* Desktop Sticky Minimal Sidebar */}
-      <div className="hidden md:flex h-screen sticky top-0">
-        <Sidebar
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          todayTasksCount={tasks.length}
-          archiveDaysCount={archiveDays.length}
-          onOpenSettings={() => setIsSettingsOpen(true)}
-          onOpenRecurringModal={() => setIsRecurringModalOpen(true)}
-          currentUser={currentUser}
-          onLogout={handleLogout}
-          lang={lang}
-          theme={theme}
-          onToggleTheme={handleToggleTheme}
-        />
-      </div>
-
-      {/* Main Content Area - Fully responsive with safe padding for mobile bottom bar */}
+      {/* Main Full-Width Centered Clean Canvas */}
       <main 
         id="daily-track-container" 
-        className="flex-1 min-h-screen flex flex-col max-w-4xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-10 pb-28 md:pb-12 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors"
+        className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors"
       >
-        
-        {activeTab === 'daily' ? (
-          <div className="space-y-4 sm:space-y-6">
-            
-            {/* Main Header (Greeting, Date, Quick Theme Toggle, Export Image, + Add Task, Hamburger for Mobile) */}
-            <MainHeader
-              currentDate={currentDate}
-              currentUser={currentUser}
-              onLogout={handleLogout}
-              onOpenAddTask={() => setIsAddTaskOpen(true)}
-              onOpenRecurringModal={() => setIsRecurringModalOpen(true)}
-              onOpenExportModal={handleExportDailyTrackImage}
-              onOpenMobileMenu={() => setIsMobileDrawerOpen(true)}
-              lang={lang}
-              theme={theme}
-              onToggleTheme={handleToggleTheme}
-            />
-
-            {/* Today Progress Section (Responsive bar & metrics) */}
-            <TodayProgress
-              stats={stats}
-              currentFilter={currentFilter}
-              onFilterChange={setCurrentFilter}
-              lang={lang}
-            />
-
-            {/* Official Automated Prayer Times Widget */}
-            <PrayerTimesWidget
-              currentDate={currentDate}
-              lang={lang}
-              onAddTaskToSchedule={handleQuickAddPrayer}
-              todayTasks={tasks}
-            />
-
-            {/* Date Navigation (Previous Day, Today, Next Day) */}
-            <DateNavigation
-              currentDate={currentDate}
-              onDateChange={setCurrentDate}
-              lang={lang}
-            />
-
-            {/* View Mode Switcher: Today Smart Dashboard (V2) vs 24-Hour Timeline */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white dark:bg-[#11131a] p-1.5 sm:p-2 rounded-2xl border border-slate-200/90 dark:border-white/[0.08] shadow-2xs font-['Alexandria']">
-              <div className="flex items-center gap-1.5 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={() => setTodayViewMode('dashboard')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-3 sm:px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    todayViewMode === 'dashboard'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>{lang === 'ar' ? 'لوحة اليوم الذكية V2' : 'Smart Dashboard'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setTodayViewMode('timeline')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-3 sm:px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    todayViewMode === 'timeline'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.05]'
-                  }`}
-                >
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>{lang === 'ar' ? 'الجدول الزمني (24 ساعة)' : '24h Timeline'}</span>
-                </button>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsRecurringModalOpen(true)}
-                className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors cursor-pointer"
-              >
-                <span>{lang === 'ar' ? '🔁 إدارة العادات والروتين' : '🔁 Manage Routines'}</span>
-              </button>
-            </div>
-
-            {/* View Mode Rendering */}
-            {todayViewMode === 'dashboard' ? (
-              <TodayDashboard
-                currentDate={currentDate}
-                tasks={tasks}
-                recurringItems={recurringItems}
-                onToggleTaskStatus={handleStatusChange}
-                onToggleRecurringStatus={handleToggleRecurring}
-                onAddTask={handleQuickAddTask}
-                onEditTask={(task) => setEditingTask(task)}
-                onDeleteTask={handleDeleteTask}
-                onOpenRecurringManager={() => setIsRecurringModalOpen(true)}
-                lang={lang}
-              />
-            ) : (
-              <TaskList
-                tasks={tasks}
-                onStatusChange={handleStatusChange}
-                onEdit={(task) => setEditingTask(task)}
-                onDelete={handleDeleteTask}
-                onUpdateTitle={handleUpdateTaskTitle}
-                onOpenAddTask={() => setIsAddTaskOpen(true)}
-                onApply24HourTemplate={handleApply24HourTemplate}
-                onOpenExportModal={handleExportDailyTrackImage}
-                currentFilter={currentFilter}
-                onFilterChange={setCurrentFilter}
-                lang={lang}
-              />
-            )}
-
-          </div>
-        ) : activeTab === 'stats' ? (
-
-          <WeeklyReview
+        <div className="space-y-4 sm:space-y-6">
+          
+          {/* Main Header with clean icons: Profile (with Stats & Archive), Settings, Theme, Export, + Add Task */}
+          <MainHeader
+            currentDate={currentDate}
+            currentUser={currentUser}
+            onLogout={handleLogout}
+            onOpenAddTask={() => setIsAddTaskOpen(true)}
+            onOpenExportModal={handleExportDailyTrackImage}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenStats={() => setIsStatsModalOpen(true)}
+            onOpenArchive={() => setIsArchiveModalOpen(true)}
+            archiveDaysCount={archiveDays.length}
             lang={lang}
-            onNavigateToDay={handleOpenInDaily}
+            theme={theme}
+            onToggleTheme={handleToggleTheme}
           />
-        ) : (
-          /* Archive View */
-          <Archive
-            days={archiveDays}
-            onOpenInDaily={handleOpenInDaily}
+
+          {/* Today Progress Section (bar & metrics) */}
+          <TodayProgress
+            stats={stats}
+            currentFilter={currentFilter}
+            onFilterChange={setCurrentFilter}
             lang={lang}
           />
-        )}
 
+          {/* Automated Prayer Times Widget */}
+          <PrayerTimesWidget
+            currentDate={currentDate}
+            lang={lang}
+            onAddTaskToSchedule={handleQuickAddPrayer}
+            todayTasks={tasks}
+          />
+
+          {/* Date Navigation (Previous Day, Today, Next Day) */}
+          <DateNavigation
+            currentDate={currentDate}
+            onDateChange={setCurrentDate}
+            lang={lang}
+          />
+
+          {/* Always Displayed: Today's 24-Hour Tasks Section */}
+          <TaskList
+            tasks={tasks}
+            onStatusChange={handleStatusChange}
+            onEdit={(task) => setEditingTask(task)}
+            onDelete={handleDeleteTask}
+            onUpdateTitle={handleUpdateTaskTitle}
+            onOpenAddTask={() => setIsAddTaskOpen(true)}
+            onApply24HourTemplate={handleApply24HourTemplate}
+            onOpenExportModal={handleExportDailyTrackImage}
+            currentFilter={currentFilter}
+            onFilterChange={setCurrentFilter}
+            lang={lang}
+          />
+
+        </div>
       </main>
 
-      {/* Mobile Slide-Over Drawer */}
-      <MobileDrawer
-        isOpen={isMobileDrawerOpen}
-        onClose={() => setIsMobileDrawerOpen(false)}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        todayTasksCount={tasks.length}
-        archiveDaysCount={archiveDays.length}
-        onOpenTemplates={() => setIsSettingsOpen(true)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        currentUser={currentUser}
-        onLogout={handleLogout}
+      {/* Dedicated Statistics Modal (Accessed via Profile Icon in Header) */}
+      <StatsModal
+        isOpen={isStatsModalOpen}
+        onClose={() => setIsStatsModalOpen(false)}
         lang={lang}
-        theme={theme}
-        onToggleTheme={handleToggleTheme}
+        onNavigateToDay={handleOpenInDaily}
       />
 
-      {/* Mobile Fixed Bottom Navigation */}
-      <MobileNav
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onOpenAddTask={() => setIsAddTaskOpen(true)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
+      {/* Dedicated Archive Modal (Accessed via Profile Icon in Header) */}
+      <ArchiveModal
+        isOpen={isArchiveModalOpen}
+        onClose={() => setIsArchiveModalOpen(false)}
+        days={archiveDays}
         lang={lang}
+        onOpenInDaily={handleOpenInDaily}
       />
 
       {/* Add Task Modal */}
@@ -589,7 +420,7 @@ export default function App() {
         lang={lang}
       />
 
-      {/* Settings Modal with Theme & Language options */}
+      {/* Settings Modal (Accessed via Settings Icon in Header) */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -601,20 +432,7 @@ export default function App() {
         onSetTheme={setTheme}
       />
 
-      {/* Recurring Tasks & Habits Manager Modal */}
-      <RecurringManagerModal
-        isOpen={isRecurringModalOpen}
-        onClose={() => setIsRecurringModalOpen(false)}
-        recurringItems={recurringItems}
-        onItemsChange={(newItems) => {
-          setRecurringItems(newItems);
-          saveStoredRecurringItems(newItems);
-        }}
-        lang={lang}
-      />
-
       {/* Export Schedule as Image Modal */}
-
       <ExportScheduleModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
@@ -625,9 +443,9 @@ export default function App() {
         lang={lang}
       />
 
-      {/* Subtle Toast Feedback */}
+      {/* Toast Feedback */}
       {toastMessage && (
-        <div className="fixed bottom-20 md:bottom-8 start-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#121319] border border-slate-300 dark:border-white/[0.15] text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-2xl shadow-xl animate-in fade-in duration-150">
+        <div className="fixed bottom-6 start-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#121319] border border-slate-300 dark:border-white/[0.15] text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-2xl shadow-xl animate-in fade-in duration-150">
           <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 stroke-[2.5]" />
           <span>{toastMessage}</span>
         </div>
