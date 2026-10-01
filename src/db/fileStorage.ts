@@ -1,19 +1,45 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DATA_DIR = path.resolve(__dirname, '../../data');
 
-// Ensure data directory exists
-try {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+// In Vercel / serverless environments, root folders are read-only.
+// We prioritize project data/ directory, and seamlessly fallback to /tmp if read-only.
+function resolveDataDir(): string {
+  const localDir = path.resolve(__dirname, '../../data');
+  try {
+    if (!fs.existsSync(localDir)) {
+      fs.mkdirSync(localDir, { recursive: true });
+    }
+    // Test write permission
+    const testFile = path.join(localDir, '.write_test');
+    fs.writeFileSync(testFile, 'ok', 'utf-8');
+    fs.unlinkSync(testFile);
+    return localDir;
+  } catch {
+    // Fallback to /tmp in Serverless / Vercel Lambda
+    const tmpDir = path.join(os.tmpdir(), 'mizan_data');
+    try {
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
+    } catch {}
+    return tmpDir;
   }
-} catch (e) {
-  console.warn('Could not create data directory:', e);
 }
+
+const DATA_DIR = resolveDataDir();
+
+// In-memory runtime cache for high performance & fallback
+const memoryStore: Record<string, any> = {
+  'users.json': {},
+  'days.json': {},
+  'habits.json': {},
+  'settings.json': {},
+};
 
 function getFilePath(filename: string): string {
   return path.join(DATA_DIR, filename);
@@ -25,21 +51,28 @@ function readJsonFile<T>(filename: string, defaultValue: T): T {
     if (fs.existsSync(filePath)) {
       const content = fs.readFileSync(filePath, 'utf-8');
       if (content && content.trim()) {
-        return JSON.parse(content);
+        const parsed = JSON.parse(content);
+        memoryStore[filename] = parsed;
+        return parsed;
       }
     }
   } catch (err) {
-    console.warn(`Error reading ${filename}:`, err);
+    console.warn(`FileStore read fallback for ${filename}:`, err);
+  }
+
+  if (memoryStore[filename] && Object.keys(memoryStore[filename]).length > 0) {
+    return memoryStore[filename] as T;
   }
   return defaultValue;
 }
 
 function writeJsonFile<T>(filename: string, data: T): void {
+  memoryStore[filename] = data;
   try {
     const filePath = getFilePath(filename);
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
   } catch (err) {
-    console.warn(`Error writing ${filename}:`, err);
+    console.warn(`FileStore write fallback for ${filename}:`, err);
   }
 }
 
