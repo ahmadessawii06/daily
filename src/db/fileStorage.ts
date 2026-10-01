@@ -43,65 +43,117 @@ function writeJsonFile<T>(filename: string, data: T): void {
   }
 }
 
-// Persistent Stores
-export interface FileUser {
+export interface StoredUser {
   id: string;
-  username: string;
-  passwordHash: string;
-  name: string;
-  email?: string;
+  userCode: string;
+  name?: string;
   createdAt: string;
 }
 
+// Generate an easy-to-read, memorable 6-character alphanumeric code (e.g. A7K9P2)
+// Avoiding easily confused characters (like 0 and O, 1 and I)
+export function generateUserCode(): string {
+  const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    const randomIndex = Math.floor(Math.random() * chars.length);
+    code += chars[randomIndex];
+  }
+  return code;
+}
+
 export const fileStore = {
-  // Users
-  getUsers(): Record<string, FileUser> {
-    return readJsonFile<Record<string, FileUser>>('users.json', {});
-  },
-  saveUser(user: FileUser): void {
-    const users = this.getUsers();
-    users[user.username.toLowerCase()] = user;
-    writeJsonFile('users.json', users);
-  },
-  findUser(username: string): FileUser | null {
-    const users = this.getUsers();
-    return users[username.toLowerCase()] || null;
+  // Users Store
+  getUsers(): Record<string, StoredUser> {
+    return readJsonFile<Record<string, StoredUser>>('users.json', {});
   },
 
-  // Days
+  findUserByCode(code: string): StoredUser | null {
+    if (!code) return null;
+    const users = this.getUsers();
+    const clean = code.trim().toUpperCase();
+    return users[clean] || null;
+  },
+
+  findUserById(userId: string): StoredUser | null {
+    if (!userId) return null;
+    const users = this.getUsers();
+    return Object.values(users).find((u) => u.id === userId) || null;
+  },
+
+  createUser(customName?: string): StoredUser {
+    const users = this.getUsers();
+    
+    // Generate a guaranteed unique code
+    let code = generateUserCode();
+    while (users[code]) {
+      code = generateUserCode();
+    }
+
+    const userId = `usr_${code}`;
+    const newUser: StoredUser = {
+      id: userId,
+      userCode: code,
+      name: (customName && customName.trim()) ? customName.trim() : `مستخدم ${code}`,
+      createdAt: new Date().toISOString(),
+    };
+
+    users[code] = newUser;
+    writeJsonFile('users.json', users);
+    return newUser;
+  },
+
+  saveUser(user: StoredUser): void {
+    const users = this.getUsers();
+    users[user.userCode.trim().toUpperCase()] = user;
+    writeJsonFile('users.json', users);
+  },
+
+  // Days Store (Strictly isolated by userId)
   getDays(userId: string): Record<string, any> {
+    if (!userId) return {};
     const allDays = readJsonFile<Record<string, Record<string, any>>>('days.json', {});
     return allDays[userId] || {};
   },
+
   saveDay(userId: string, date: string, dayData: any): void {
+    if (!userId || !date) return;
     const allDays = readJsonFile<Record<string, Record<string, any>>>('days.json', {});
     if (!allDays[userId]) allDays[userId] = {};
     allDays[userId][date] = { ...dayData, userId, date, updatedAt: new Date().toISOString() };
     writeJsonFile('days.json', allDays);
   },
+
   saveAllDays(userId: string, daysMap: Record<string, any>): void {
+    if (!userId || !daysMap) return;
     const allDays = readJsonFile<Record<string, Record<string, any>>>('days.json', {});
     allDays[userId] = { ...(allDays[userId] || {}), ...daysMap };
     writeJsonFile('days.json', allDays);
   },
 
-  // Habits
+  // Habits Store (Strictly isolated by userId)
   getHabits(userId: string): any[] {
+    if (!userId) return [];
     const allHabits = readJsonFile<Record<string, any[]>>('habits.json', {});
     return allHabits[userId] || [];
   },
+
   saveHabits(userId: string, habits: any[]): void {
+    if (!userId || !Array.isArray(habits)) return;
     const allHabits = readJsonFile<Record<string, any[]>>('habits.json', {});
     allHabits[userId] = habits;
     writeJsonFile('habits.json', allHabits);
   },
 
-  // Settings
+  // Settings Store (Strictly isolated by userId)
   getSettings(userId: string): any {
+    if (!userId) return { theme: 'dark', lang: 'ar' };
     const allSettings = readJsonFile<Record<string, any>>('settings.json', {});
     return allSettings[userId] || { theme: 'dark', lang: 'ar' };
   },
+
   saveSettings(userId: string, settings: any): void {
+    if (!userId || !settings) return;
     const allSettings = readJsonFile<Record<string, any>>('settings.json', {});
     allSettings[userId] = { ...(allSettings[userId] || {}), ...settings, updatedAt: new Date().toISOString() };
     writeJsonFile('settings.json', allSettings);

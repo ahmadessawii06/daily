@@ -1,0 +1,19 @@
+{
+  "usr_BSCS4B": {
+    "2026-10-01": {
+      "userId": "usr_BSCS4B",
+      "date": "2026-10-01",
+      "tasks": [
+        {
+          "id": "t1",
+          "time": "08:00",
+          "title": "مذاكرة مادة الرياضيات",
+          "status": "pending",
+          "category": "study"
+        }
+      ],
+      "notes": "يوم أحمد",
+      "updatedAt": "2026-10-01T09:25:39.437Z"
+    }
+  }
+}

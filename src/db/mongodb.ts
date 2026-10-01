@@ -44,14 +44,13 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
   }
 
   if (authFailed) {
-    // If credentials previously failed authentication, operate cleanly in resilient storage mode
     return null;
   }
 
   const uri = getMongoUri();
   if (!uri) {
     isConnected = false;
-    lastError = 'MongoDB URI not set - operating in secure local and memory mode';
+    lastError = 'MongoDB URI not set - operating in persistent local file database mode';
     return null;
   }
 
@@ -79,7 +78,7 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
     const msg = err?.message || 'Connection failed';
     if (msg.includes('bad auth') || msg.includes('authentication failed')) {
       authFailed = true;
-      lastError = 'MongoDB authentication invalid. Operating in resilient storage mode.';
+      lastError = 'MongoDB authentication invalid. Operating in persistent local file database mode.';
     } else {
       lastError = msg;
     }
@@ -102,18 +101,10 @@ export interface ITask {
   updatedAt?: string;
 }
 
-export interface IDayRecord extends Document {
-  userId: string;
-  date: string; // "YYYY-MM-DD"
-  tasks: ITask[];
-  notes?: string;
-  updatedAt: Date;
-}
-
 const TaskSubSchema = new Schema<ITask>(
   {
     id: { type: String, required: true },
-    time: { type: String, required: true },
+    time: { type: String, default: '' },
     title: { type: String, default: '' },
     status: { type: String, enum: ['done', 'pending', 'not-done'], default: 'pending' },
     category: { type: String, default: 'work' },
@@ -124,6 +115,15 @@ const TaskSubSchema = new Schema<ITask>(
   },
   { _id: false }
 );
+
+// 2. Day Record Schema (Linked to userId)
+export interface IDayRecord extends Document {
+  userId: string;
+  date: string; // "YYYY-MM-DD"
+  tasks: ITask[];
+  notes?: string;
+  updatedAt: Date;
+}
 
 const DayRecordSchema = new Schema<IDayRecord>(
   {
@@ -136,10 +136,10 @@ const DayRecordSchema = new Schema<IDayRecord>(
   { timestamps: true }
 );
 
-// Compound index so each user has their own unique date record
+// Compound index: each user has their own unique date record
 DayRecordSchema.index({ userId: 1, date: 1 }, { unique: true });
 
-// 2. Habit Schema (Per-user)
+// 3. Habit Schema (Linked to userId)
 export interface IHabit extends Document {
   userId: string;
   id: string;
@@ -169,7 +169,7 @@ const HabitSchema = new Schema<IHabit>(
 
 HabitSchema.index({ userId: 1, id: 1 }, { unique: true });
 
-// 3. User Settings Schema (Per-user)
+// 4. User Settings Schema (Linked to userId)
 export interface IUserSettings extends Document {
   userId: string;
   theme: 'dark' | 'light';
@@ -191,21 +191,19 @@ const UserSettingsSchema = new Schema<IUserSettings>(
   { timestamps: true }
 );
 
-// 4. User Account Schema
+// 5. Simple User Model with unique User Code (e.g. A7K9P2)
 export interface IUser extends Document {
-  username: string;
-  passwordHash: string;
-  name: string;
-  email?: string;
+  id: string;
+  userCode: string;
+  name?: string;
   createdAt: Date;
 }
 
 const UserSchema = new Schema<IUser>(
   {
-    username: { type: String, required: true, unique: true, index: true, lowercase: true, trim: true },
-    passwordHash: { type: String, required: true },
-    name: { type: String, required: true },
-    email: { type: String, lowercase: true, trim: true },
+    id: { type: String, required: true, unique: true, index: true },
+    userCode: { type: String, required: true, unique: true, index: true, uppercase: true, trim: true },
+    name: { type: String, default: 'مستخدم ميزان' },
   },
   { timestamps: true }
 );

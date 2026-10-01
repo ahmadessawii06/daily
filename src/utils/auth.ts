@@ -1,88 +1,74 @@
 import { User } from '../types';
 
-const AUTH_USER_KEY = 'mizan_auth_user_v3';
-const AUTH_TOKEN_KEY = 'mizan_auth_token_v3';
+const USER_CODE_STORAGE_KEY = 'mizan_user_code_v1';
+const USER_INFO_STORAGE_KEY = 'mizan_user_info_v1';
 
-// Safe in-memory fallback for Safari Private Browsing or restricted environments
-const memoryAuthCache: { user: User | null; token: string | null } = {
-  user: null,
-  token: null,
-};
+// In-memory cache for restricted browsing environments
+let memoryUserCode: string | null = null;
+let memoryUser: User | null = null;
 
-// Purge any legacy storage safely
-try {
-  if (typeof localStorage !== 'undefined') {
-    localStorage.removeItem('daily_tasks_user_creds_v2');
-    localStorage.removeItem('daily_tasks_registered_users_v1');
-    localStorage.removeItem('daily_tasks_auth_user_v1');
-    localStorage.removeItem('daily_tasks_auth_token_v1');
-  }
-} catch {
-  // ignore Safari Private Browsing restrictions
+export function getStoredUserCode(): string | null {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const code = localStorage.getItem(USER_CODE_STORAGE_KEY);
+      if (code && code.trim()) {
+        memoryUserCode = code.trim().toUpperCase();
+        return memoryUserCode;
+      }
+    }
+  } catch {}
+  return memoryUserCode;
 }
 
 export function getStoredAuth(): { user: User | null; token: string | null } {
   try {
     if (typeof localStorage !== 'undefined') {
-      const rawUser = localStorage.getItem(AUTH_USER_KEY);
-      const token = localStorage.getItem(AUTH_TOKEN_KEY);
-      if (rawUser && token) {
+      const rawUser = localStorage.getItem(USER_INFO_STORAGE_KEY);
+      const code = localStorage.getItem(USER_CODE_STORAGE_KEY);
+      if (rawUser && code) {
         const user = JSON.parse(rawUser);
-        if (user && user.id && user.username) {
-          memoryAuthCache.user = user;
-          memoryAuthCache.token = token;
-          return { user, token };
+        if (user && user.userCode) {
+          memoryUser = user;
+          memoryUserCode = user.userCode;
+          return { user, token: user.userCode };
         }
       }
     }
-  } catch (err) {
-    console.warn('Error reading stored auth:', err);
-  }
+  } catch {}
 
-  // Fallback to memory cache
-  if (memoryAuthCache.user && memoryAuthCache.token) {
-    return memoryAuthCache;
+  if (memoryUser) {
+    return { user: memoryUser, token: memoryUser.userCode };
   }
 
   return { user: null, token: null };
 }
 
 export function getAuthToken(): string | null {
-  try {
-    if (typeof localStorage !== 'undefined') {
-      const token = localStorage.getItem(AUTH_TOKEN_KEY);
-      if (token) return token;
-    }
-  } catch {
-    // ignore
-  }
-  return memoryAuthCache.token;
+  return getStoredUserCode();
 }
 
-export function saveStoredAuth(user: User, token: string): void {
-  memoryAuthCache.user = user;
-  memoryAuthCache.token = token;
+export function saveStoredAuth(user: User, _token?: string): void {
+  memoryUser = user;
+  memoryUserCode = user.userCode;
 
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
-      localStorage.setItem(AUTH_TOKEN_KEY, token);
+      localStorage.setItem(USER_CODE_STORAGE_KEY, user.userCode.trim().toUpperCase());
+      localStorage.setItem(USER_INFO_STORAGE_KEY, JSON.stringify(user));
     }
-  } catch (err) {
-    console.warn('Error saving auth to localStorage (e.g. Safari Private Mode):', err);
-  }
+  } catch {}
 }
 
 export function clearStoredAuth(): void {
-  memoryAuthCache.user = null;
-  memoryAuthCache.token = null;
+  memoryUser = null;
+  memoryUserCode = null;
 
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(AUTH_USER_KEY);
-      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(USER_CODE_STORAGE_KEY);
+      localStorage.removeItem(USER_INFO_STORAGE_KEY);
+      localStorage.removeItem('mizan_auth_user_v3');
+      localStorage.removeItem('mizan_auth_token_v3');
     }
-  } catch (err) {
-    console.warn('Error clearing auth:', err);
-  }
+  } catch {}
 }

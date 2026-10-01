@@ -11,6 +11,9 @@ import {
   BarChart3, 
   Archive, 
   ShieldCheck,
+  KeyRound,
+  Copy,
+  Check
 } from 'lucide-react';
 import { Language, Theme, User } from '../types';
 import { formatHeaderDate } from '../utils/date';
@@ -46,7 +49,16 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
   onToggleTheme,
 }) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isCopiedCode, setIsCopiedCode] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  const handleCopyCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setIsCopiedCode(true);
+      setTimeout(() => setIsCopiedCode(false), 2000);
+    } catch {}
+  };
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -130,9 +142,9 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
                 className="relative group flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 via-teal-500/10 to-emerald-500/5 dark:from-emerald-400/20 dark:via-teal-400/10 dark:to-emerald-500/5 border border-emerald-500/30 dark:border-emerald-400/30 text-emerald-600 dark:text-emerald-400 shrink-0 shadow-2xs hover:border-emerald-500/60 transition-all cursor-pointer active:scale-95"
                 aria-label="Profile Menu"
               >
-                {currentUser.name || currentUser.username ? (
+                {currentUser ? (
                   <span className="text-sm font-black uppercase text-emerald-700 dark:text-emerald-300 font-['Alexandria']">
-                    {(currentUser.name || currentUser.username).trim().charAt(0)}
+                    {(currentUser.name || currentUser.username || currentUser.userCode || 'M').trim().charAt(0)}
                   </span>
                 ) : (
                   <CircleUserRound className="w-5 h-5 stroke-[2.2]" />
@@ -147,25 +159,49 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
               {/* القائمة المنسدلة للبروفايل، الإحصائيات، والأرشيف */}
               {isProfileMenuOpen && (
                 <div className="absolute end-0 top-12 z-50 w-72 p-2 bg-white dark:bg-[#0f111a] border border-slate-200 dark:border-white/[0.12] rounded-2xl shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 font-['Alexandria']">
-                  {/* معلومات المستخدم */}
-                  <div className="px-3 py-2.5 mb-1 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.05]">
-                    <div className="flex items-center gap-2.5">
+                  {/* معلومات المستخدم وكود ميزان */}
+                  <div className="px-3 py-2.5 mb-1.5 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.05]">
+                    <div className="flex items-center gap-2.5 mb-2">
                       <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center font-bold text-emerald-600 dark:text-emerald-400 text-xs">
-                        {(currentUser.name || currentUser.username).trim().charAt(0).toUpperCase()}
+                        {(currentUser.name || currentUser.userCode || 'M').trim().charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                          {currentUser.name || currentUser.username}
+                          {currentUser.name || 'مستخدم ميزان'}
                         </p>
                         <p className="text-[10px] text-slate-400 dark:text-zinc-400 truncate">
-                          @{currentUser.username}
+                          حساب ميزان النشط
                         </p>
                       </div>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                        <ShieldCheck className="w-3 h-3" />
-                        <span>نشط</span>
-                      </span>
                     </div>
+
+                    {/* كود المستخدم مع زر النسخ للمزامنة بين الأجهزة */}
+                    {currentUser.userCode && (
+                      <div className="flex items-center justify-between gap-1.5 p-1.5 rounded-lg bg-emerald-500/10 dark:bg-emerald-400/10 border border-emerald-500/20 text-[11px]">
+                        <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300 font-mono font-bold">
+                          <KeyRound className="w-3.5 h-3.5 text-emerald-500" />
+                          <span>كودك: {currentUser.userCode}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyCode(currentUser.userCode)}
+                          className="px-2 py-0.5 rounded-md bg-white dark:bg-black/40 border border-emerald-500/30 text-[10px] font-bold text-emerald-600 dark:text-emerald-300 hover:scale-105 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+                          title="نسخ الكود لاستخدامه في أجهزة أخرى"
+                        >
+                          {isCopiedCode ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-500" />
+                              <span>تم النسخ</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3 text-emerald-500" />
+                              <span>نسخ الكود</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-1">

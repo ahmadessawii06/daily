@@ -127,8 +127,9 @@ export interface PrayerTimesDayResponse {
 
 export interface User {
   id: string;
-  username: string;
-  name: string;
+  userCode: string;
+  name?: string;
+  username?: string;
   email?: string;
   createdAt?: string;
 }

@@ -1,4 +1,4 @@
-import { DayRecord, HabitStreak, Task } from '../types';
+import { DayRecord, HabitStreak, Task, User, RecurringItem } from '../types';
 import { getAuthToken } from '../utils/auth';
 
 export interface DbHealthStatus {
@@ -14,6 +14,7 @@ function getAuthHeaders(): Record<string, string> {
   };
   const token = getAuthToken();
   if (token) {
+    headers['x-user-code'] = token;
     headers['Authorization'] = `Bearer ${token}`;
   }
   return headers;
@@ -49,6 +50,53 @@ export async function checkDbHealth(): Promise<DbHealthStatus> {
   }
 }
 
+// 1. Create New User (Generates User Code e.g. A7K9P2)
+export async function createUserApi(name?: string): Promise<{ success: boolean; user?: User; message?: string; error?: string }> {
+  try {
+    const res = await fetch('/api/users/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    });
+    const data = await safeParseResponse(res);
+    if (data && typeof data === 'object') {
+      return data;
+    }
+    return { success: false, error: 'تعذر إنشاء كود جديد، يرجى المحاولة ثانية' };
+  } catch (err: any) {
+    return { success: false, error: 'تعذر الاتصال بالخادم' };
+  }
+}
+
+// 2. Access Existing User by User Code (e.g. from Laptop, Phone, iPad)
+export async function accessUserApi(userCode: string): Promise<{ success: boolean; user?: User; message?: string; error?: string }> {
+  try {
+    const cleanCode = userCode.trim().toUpperCase();
+    const res = await fetch('/api/users/access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userCode: cleanCode }),
+    });
+    const data = await safeParseResponse(res);
+    if (data && typeof data === 'object') {
+      return data;
+    }
+    return { success: false, error: 'تعذر التحقق من كود ميزان' };
+  } catch (err: any) {
+    return { success: false, error: 'تعذر الاتصال بالخادم، تأكد من اتصال الإنترنت' };
+  }
+}
+
+// Legacy aliases for backward compatibility
+export async function loginApi(userCodeOrUser: string, _password?: string) {
+  return accessUserApi(userCodeOrUser);
+}
+
+export async function registerApi(userCodeOrUser: string, _pass?: string, name?: string) {
+  return createUserApi(name);
+}
+
+// 3. User Days Endpoints
 export async function fetchDayFromDb(date: string): Promise<DayRecord | null> {
   try {
     const res = await fetch(`/api/days/${date}`, {
@@ -66,7 +114,7 @@ export async function fetchDayFromDb(date: string): Promise<DayRecord | null> {
     }
     return null;
   } catch (err) {
-    console.warn(`Could not fetch day ${date} from MongoDB:`, err);
+    console.warn(`Could not fetch day ${date}:`, err);
     return null;
   }
 }
@@ -80,7 +128,7 @@ export async function saveDayToDb(date: string, tasks: Task[], notes?: string): 
     });
     return res.ok;
   } catch (err) {
-    console.warn(`Could not save day ${date} to MongoDB:`, err);
+    console.warn(`Could not save day ${date}:`, err);
     return false;
   }
 }
@@ -94,22 +142,49 @@ export async function fetchAllDaysFromDb(): Promise<Record<string, DayRecord>> {
     const data = await safeParseResponse(res);
     return data?.days || {};
   } catch (err) {
-    console.warn('Could not fetch all days from MongoDB:', err);
+    console.warn('Could not fetch all days:', err);
     return {};
   }
 }
 
-export async function fetchHabitsFromDb(): Promise<HabitStreak[]> {
+// 4. Batch Sync
+export async function batchSyncWithMongo(
+  days: Record<string, DayRecord>,
+  habits?: HabitStreak[],
+  settings?: any
+): Promise<{ success: boolean; days?: Record<string, DayRecord>; habits?: any[]; settings?: any }> {
+  try {
+    const res = await fetch('/api/sync/batch', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ days, habits, settings }),
+    });
+    if (!res.ok) return { success: false };
+    const data = await safeParseResponse(res);
+    return {
+      success: true,
+      days: data?.days,
+      habits: data?.habits,
+      settings: data?.settings,
+    };
+  } catch (err) {
+    console.warn('Batch sync notice:', err);
+    return { success: false };
+  }
+}
+
+// 5. Habits Endpoints
+export async function fetchHabitsFromDb(): Promise<HabitStreak[] | null> {
   try {
     const res = await fetch('/api/habits', {
       headers: getAuthHeaders(),
     });
-    if (!res.ok) return [];
+    if (!res.ok) return null;
     const data = await safeParseResponse(res);
-    return data && Array.isArray(data.habits) ? data.habits : [];
+    return data?.habits || null;
   } catch (err) {
-    console.warn('Could not fetch habits from MongoDB:', err);
-    return [];
+    console.warn('Could not fetch habits:', err);
+    return null;
   }
 }
 
@@ -122,24 +197,88 @@ export async function saveHabitsToDb(habits: HabitStreak[]): Promise<boolean> {
     });
     return res.ok;
   } catch (err) {
-    console.warn('Could not save habits to MongoDB:', err);
+    console.warn('Could not save habits:', err);
     return false;
   }
 }
 
+// 6. User Settings Endpoints
+export async function fetchSettingsFromDb(): Promise<any | null> {
+  try {
+    const res = await fetch('/api/settings', {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) return null;
+    const data = await safeParseResponse(res);
+    return data?.settings || null;
+  } catch (err) {
+    console.warn('Could not fetch settings:', err);
+    return null;
+  }
+}
+
+export async function saveSettingsToDb(settings: {
+  theme?: string;
+  lang?: string;
+  prayerLocation?: any;
+  prayerTimes?: any;
+}): Promise<boolean> {
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(settings),
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('Could not save settings:', err);
+    return false;
+  }
+}
+
+// 8. Migration & Reset Endpoints
 export async function resetDatabaseToSaturday26(
   saturdayRecord: DayRecord,
   defaultHabits: HabitStreak[]
 ): Promise<boolean> {
   try {
-    const res = await fetch('/api/sync/reset-saturday-26', {
+    const res = await fetch('/api/sync/batch', {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ saturdayRecord, defaultHabits }),
+      body: JSON.stringify({
+        days: { '2026-09-26': saturdayRecord },
+        habits: defaultHabits,
+      }),
     });
     return res.ok;
   } catch (err) {
     console.error('Failed to call reset database endpoint:', err);
+    return false;
+  }
+}
+
+export async function fetchRecurringFromDb(): Promise<RecurringItem[] | null> {
+  try {
+    const res = await fetch('/api/habits', {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) return null;
+    const data = await safeParseResponse(res);
+    return data?.habits || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveRecurringToDb(items: RecurringItem[]): Promise<boolean> {
+  try {
+    const res = await fetch('/api/habits', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ habits: items }),
+    });
+    return res.ok;
+  } catch {
     return false;
   }
 }
@@ -160,69 +299,5 @@ export async function migrateLocalDataToMongo(
   } catch (err) {
     console.error('Migration failed:', err);
     return { success: false };
-  }
-}
-
-export async function loginApi(username: string, password: string): Promise<{ success: boolean; user?: any; token?: string; error?: string }> {
-  try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-    const data = await safeParseResponse(res);
-    if (data && typeof data === 'object') {
-      return data;
-    }
-    if (!res.ok) {
-      return { success: false, error: 'اسم المستخدم أو كلمة المرور غير صحيحة. إذا كنت مستخدماً جديداً اضغط على (حساب جديد)' };
-    }
-    return { success: false, error: 'تعذر التحقق من الحساب' };
-  } catch (err: any) {
-    // Network fallback for smooth offline login
-    const cleanUser = username.trim().toLowerCase();
-    const fallbackToken = `session_offline_${cleanUser}_${Date.now()}`;
-    return {
-      success: true,
-      user: {
-        id: `user-${cleanUser}`,
-        username: cleanUser,
-        name: cleanUser,
-      },
-      token: fallbackToken,
-    };
-  }
-}
-
-export async function registerApi(username: string, password: string, name: string, email?: string): Promise<{ success: boolean; user?: any; token?: string; error?: string }> {
-  try {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, name, email }),
-    });
-    const data = await safeParseResponse(res);
-    if (data && typeof data === 'object') {
-      return data;
-    }
-    if (!res.ok) {
-      return { success: false, error: 'تعذر إتمام التسجيل، قد يكون اسم المستخدم محجوزاً' };
-    }
-    return { success: false, error: 'تعذر إتمام عملية التسجيل' };
-  } catch (err: any) {
-    // Network fallback for smooth offline registration
-    const cleanUser = username.trim().toLowerCase();
-    const displayName = (name || cleanUser).trim();
-    const fallbackToken = `session_offline_${cleanUser}_${Date.now()}`;
-    return {
-      success: true,
-      user: {
-        id: `user-${cleanUser}`,
-        username: cleanUser,
-        name: displayName,
-        email: email ? email.trim().toLowerCase() : undefined,
-      },
-      token: fallbackToken,
-    };
   }
 }
