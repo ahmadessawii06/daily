@@ -10,7 +10,6 @@ import { CARD_ICONS, CategoryEditor } from './CategoryEditor';
 import { TaskStatusIndicator } from './TaskStatusIndicator';
 import { StatCircle } from './StatCircle';
 import { calculateStats } from '../utils/storage';
-import { getTaskContextIcon } from '../utils/taskIconHelper';
 import { partitionPrayerTasks } from '../utils/prayerTasks';
 import { PrayerCard } from './PrayerCard';
 
@@ -67,7 +66,6 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   const regionId = useId();
   const [title, setTitle] = useState('');
   const [notice, setNotice] = useState('');
-  const QuickAddIcon = getTaskContextIcon(title).icon;
   const stats = calculateStats(tasks);
   const completed = stats.done;
   const isComplete = tasks.length > 0 && completed === tasks.length;
@@ -98,7 +96,6 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
         <div className="space-y-1">
           {visible.length === 0 && <p className="px-2 py-5 text-xs leading-6 text-slate-500 dark:text-zinc-400">{tasks.length ? (ar ? 'لا توجد مهام تطابق هذا الفلتر.' : 'No tasks match this filter.') : (ar ? 'ابدأ بمهمة صغيرة، وأكملها على إيقاعك.' : 'Start with something small. Make it your own.')}</p>}
           {visible.map(task => {
-            const TaskIcon = getTaskContextIcon(task.title).icon;
             const rowStyle = task.status === 'done'
               ? 'border-emerald-300 border-s-emerald-500 bg-emerald-50/90 hover:bg-emerald-100/90 dark:border-emerald-400/35 dark:border-s-emerald-400 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15'
               : task.status === 'not-done'
@@ -112,7 +109,6 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
               className="group/status flex h-11 w-9 shrink-0 items-center justify-center rounded-lg cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-400"><TaskStatusIndicator status={task.status} /></button>
             <button type="button" onClick={() => onEdit(task)} aria-label={ar ? `تعديل ${task.title}` : `Edit ${task.title}`} className="min-h-11 min-w-0 flex-1 py-2 text-start">
               <span className="flex items-start gap-2">
-                <span data-task-context-icon aria-hidden="true" className={`mt-1 flex h-5 w-5 shrink-0 items-center justify-center ${task.status === 'done' ? 'text-emerald-700 dark:text-emerald-300' : task.status === 'not-done' ? 'text-rose-700 dark:text-rose-300' : 'planner-card-task-icon'}`}><TaskIcon className="h-4 w-4" strokeWidth={1.8} /></span>
                 <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
                   <span className={`min-w-0 max-w-full break-words text-xs font-medium leading-6 ${task.status === 'done' ? 'text-emerald-700 line-through decoration-emerald-500/50 dark:text-emerald-300' : task.status === 'not-done' ? 'text-rose-600 dark:text-rose-300' : ''}`}>{task.title}</span>
                 {task.status !== 'pending' && <span data-task-status-label={task.status} className={`inline-flex shrink-0 items-center gap-1 rounded-lg border px-1.5 py-0.5 text-[10px] font-semibold leading-4 ${task.status === 'done' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300' : 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300'}`}>{task.status === 'done' ? <Check aria-hidden="true" className="h-3 w-3" /> : <X aria-hidden="true" className="h-3 w-3" />}{statusLabels[task.status]}</span>}
@@ -126,7 +122,6 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
           })}
         </div>
         <form className="planner-card-form mt-2 flex items-center gap-1 rounded-xl border border-slate-200/80 bg-white/60 dark:border-white/[0.07] dark:bg-white/[0.02]" onSubmit={e => { e.preventDefault(); if (!title.trim()) return; onAdd(title.trim(), category.id); setTitle(''); setNotice(ar ? 'تمت إضافة المهمة' : 'Task added'); }}>
-          {title.trim() && <span data-task-icon-preview aria-hidden="true" className="planner-card-task-icon ms-3 shrink-0"><QuickAddIcon className="h-4 w-4" strokeWidth={1.8} /></span>}
           <input aria-label={ar ? `مهمة جديدة في ${name}` : `New task in ${name}`} maxLength={300} value={title} onChange={e => { setTitle(e.target.value); setNotice(''); }} onKeyDown={e => { if (e.nativeEvent.isComposing && e.key === 'Enter') e.preventDefault(); }} placeholder={ar ? 'أضف مهمة…' : 'Add a task…'} className="min-h-11 min-w-0 flex-1 rounded-xl bg-transparent px-3 text-xs outline-none placeholder:text-slate-500 dark:placeholder:text-zinc-400" />
           <button type="submit" disabled={!title.trim()} aria-label={ar ? `إضافة مهمة إلى ${name}` : `Add task to ${name}`} className="planner-card-add m-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg disabled:bg-transparent disabled:text-slate-400 dark:disabled:text-zinc-600"><Plus className="h-4 w-4" /></button>
         </form>
