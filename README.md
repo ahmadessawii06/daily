@@ -44,6 +44,17 @@
 
 ## 🖼️ Screenshots & Preview
 
+<p align="center">
+  <a href="https://daily-ten-rose.vercel.app/">
+    <img src="docs/images/published-image.png" width="100%" alt="Mizan live demo: Arabic sign-in page with a sunrise landscape and gold interface">
+  </a>
+</p>
+
+<sub>Actual public live-demo preview. Click the image to open Mizan.</sub>
+
+<details>
+<summary><strong>☀️🌙 Explore the planner in light and dark themes</strong></summary>
+
 <table>
   <tr>
     <th width="50%">☀️ Light workspace</th>
@@ -56,6 +67,8 @@
 </table>
 
 <sub>Actual captures of the running app with a local example account. Same day, same tasks, both themes. Click either image for full resolution.</sub>
+
+</details>
 
 **[Explore the live demo →](https://daily-ten-rose.vercel.app/)** Create your own account to try the planner.
 

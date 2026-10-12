@@ -92,6 +92,8 @@ Legacy local `data/users.json` and `data/days.json` are preserved when present. 
 
 ## Screenshot provenance
 
+The main README preview, `docs/images/published-image.png`, shows the public live-demo sign-in page at its original 1440 × 1000 resolution.
+
 The README's `docs/images/planner-light.png` and `planner-dark.png` are direct browser captures of the running app using an isolated local example account. They show the same eight sample tasks on October 12, 2026. They contain no personal account data, and the screenshots retain their original proportions and an opaque background.
 
 The theme-aware SVG banners are decorative branding, separate from the product screenshots.
