@@ -2,6 +2,49 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Stable category hues, with theme-specific contrast and softly tinted surfaces. */
+@layer components {
+  .planner-card {
+    --card-accent: hsl(var(--card-hue) var(--card-saturation) 38%);
+    background-color: hsl(var(--card-hue) var(--card-saturation) 97%);
+    border-color: hsl(var(--card-hue) var(--card-saturation) 85%);
+    border-top-color: var(--card-accent);
+  }
+
+  .dark .planner-card {
+    --card-accent: hsl(var(--card-hue) var(--card-saturation) 72%);
+    background-color: hsl(var(--card-hue) 22% 10%);
+    border-color: hsl(var(--card-hue) 30% 24%);
+    border-top-color: var(--card-accent);
+  }
+
+  .planner-card-icon {
+    color: var(--card-accent);
+    background-color: hsl(var(--card-hue) var(--card-saturation) 92%);
+    border-color: hsl(var(--card-hue) var(--card-saturation) 85%);
+  }
+
+  .dark .planner-card-icon {
+    background-color: hsl(var(--card-hue) 35% 17%);
+    border-color: hsl(var(--card-hue) 35% 26%);
+  }
+
+  .planner-card-progress,
+  .planner-card-add {
+    background-color: var(--card-accent);
+  }
+
+  .planner-card-add { color: white; }
+  .dark .planner-card-add { color: #0f172a; }
+  .planner-card-add:enabled:hover { filter: brightness(1.1); }
+
+  .planner-card-form:focus-within {
+    border-color: var(--card-accent);
+    outline: 2px solid var(--card-accent);
+    outline-offset: 2px;
+  }
+}
+
 /* Indeterminate progress follows the request; no artificial percentage or delay. */
 @keyframes auth-loading-progress {
   from { transform: translateX(-110%); }

@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { Check, ChevronDown, Clock, MoreHorizontal, Plus, StickyNote, Pencil, Trash2, X } from 'lucide-react';
 import type { Language, PlannerCategory, PlannerWorkspace, StatusFilter, Task, TaskStatus } from '../types';
 import { activeCategories, groupTasksByCategory, UNASSIGNED_CATEGORY, WORKSPACE_EPOCH } from '../shared/workspace';
@@ -58,14 +59,18 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   const completed = tasks.filter(task => task.status === 'done').length;
   const visible = tasks.filter(task => filter === 'all' || filter === 'scheduled' || task.status === filter);
   const collapsed = Boolean(category.collapsed);
+  // Use stored order rather than visible position so renaming/deleting cards never recolors their neighbors.
+  const hues = [215, 35, 270, 345, 155, 190];
+  const hue = hues[category.order] ?? (215 + category.order * 137.508) % 360;
+  const colorStyle = { '--card-hue': hue, '--card-saturation': category.id === UNASSIGNED_CATEGORY ? '0%' : '65%' } as CSSProperties;
   return (
-    <article aria-label={name} className="min-w-0 rounded-2xl border border-slate-200/80 bg-white shadow-2xs dark:border-white/[0.08] dark:bg-[#101319]">
+    <article aria-label={name} style={colorStyle} className="planner-card min-w-0 rounded-2xl border border-t-[3px] shadow-2xs">
       <div className="flex items-center gap-3 p-4">
-        <div aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/10 bg-emerald-500/[0.07] text-emerald-700 dark:text-emerald-300"><Icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></div>
+        <div aria-hidden="true" className="planner-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"><Icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></div>
         <div className="min-w-0 flex-1"><h3 className="break-words text-sm font-bold leading-6">{name}</h3><p className="text-[11px] text-slate-500 dark:text-zinc-400">{tasks.length ? (ar ? `${completed} من ${tasks.length} مكتملة` : `${completed} of ${tasks.length} complete`) : (ar ? 'مساحة لما يهمك' : 'Room for what matters')}</p></div>
         {onCustomize && <><button type="button" aria-label={ar ? `تخصيص ${name}` : `Customize ${name}`} onClick={onCustomize} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5"><MoreHorizontal className="h-4 w-4" /></button><button type="button" aria-label={ar ? (collapsed ? `توسيع ${name}` : `طي ${name}`) : (collapsed ? `Expand ${name}` : `Collapse ${name}`)} aria-expanded={!collapsed} aria-controls={regionId} onClick={() => updatePlannerCategory(category.id, { collapsed: !collapsed })} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5"><ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${collapsed ? '-rotate-90 rtl:rotate-90' : ''}`} /></button></>}
       </div>
-      {tasks.length > 0 && <div aria-hidden="true" className="mx-4 h-0.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/5"><div className="h-full rounded-full bg-emerald-500 transition-[width] duration-200 motion-reduce:transition-none" style={{ width: `${completed / tasks.length * 100}%` }} /></div>}
+      {tasks.length > 0 && <div aria-hidden="true" className="mx-4 h-0.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/5"><div className="planner-card-progress h-full rounded-full transition-[width] duration-200 motion-reduce:transition-none" style={{ width: `${completed / tasks.length * 100}%` }} /></div>}
       <div id={regionId} data-planner-card-content hidden={collapsed} className="p-3 pt-2">
         <div className="space-y-1">
           {visible.length === 0 && <p className="px-2 py-5 text-xs leading-6 text-slate-500 dark:text-zinc-400">{tasks.length ? (ar ? 'لا توجد مهام تطابق هذا الفلتر.' : 'No tasks match this filter.') : (ar ? 'ابدأ بمهمة صغيرة، وأكملها على إيقاعك.' : 'Start with something small. Make it your own.')}</p>}
@@ -80,9 +85,9 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
             <button type="button" onClick={() => onDelete(task.id)} aria-label={ar ? `حذف ${task.title}` : `Delete ${task.title}`} className="flex h-11 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:text-rose-500 dark:text-zinc-600 dark:hover:text-rose-400"><Trash2 className="h-3.5 w-3.5" /></button>
           </div>)}
         </div>
-        <form className="mt-2 flex items-center gap-1 rounded-xl border border-slate-200/80 bg-slate-50/70 focus-within:border-emerald-600 dark:focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-500/10 dark:border-white/[0.07] dark:bg-white/[0.02]" onSubmit={e => { e.preventDefault(); if (!title.trim()) return; onAdd(title.trim(), category.id); setTitle(''); setNotice(ar ? 'تمت إضافة المهمة' : 'Task added'); }}>
+        <form className="planner-card-form mt-2 flex items-center gap-1 rounded-xl border border-slate-200/80 bg-white/60 dark:border-white/[0.07] dark:bg-white/[0.02]" onSubmit={e => { e.preventDefault(); if (!title.trim()) return; onAdd(title.trim(), category.id); setTitle(''); setNotice(ar ? 'تمت إضافة المهمة' : 'Task added'); }}>
           <input aria-label={ar ? `مهمة جديدة في ${name}` : `New task in ${name}`} maxLength={300} value={title} onChange={e => { setTitle(e.target.value); setNotice(''); }} onKeyDown={e => { if (e.nativeEvent.isComposing && e.key === 'Enter') e.preventDefault(); }} placeholder={ar ? 'أضف مهمة…' : 'Add a task…'} className="min-h-11 min-w-0 flex-1 rounded-xl bg-transparent px-3 text-xs outline-none placeholder:text-slate-500 dark:placeholder:text-zinc-400" />
-          <button type="submit" disabled={!title.trim()} aria-label={ar ? `إضافة مهمة إلى ${name}` : `Add task to ${name}`} className="m-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-400 text-slate-950 hover:bg-emerald-300 disabled:bg-transparent disabled:text-slate-400 dark:disabled:text-zinc-600"><Plus className="h-4 w-4" /></button>
+          <button type="submit" disabled={!title.trim()} aria-label={ar ? `إضافة مهمة إلى ${name}` : `Add task to ${name}`} className="planner-card-add m-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg disabled:bg-transparent disabled:text-slate-400 dark:disabled:text-zinc-600"><Plus className="h-4 w-4" /></button>
         </form>
         <p role="status" aria-live="polite" className="sr-only">{notice}</p>
       </div>
