@@ -31,7 +31,23 @@ const AccountModel = mongoose.models.Account || mongoose.model('Account', new Sc
   revision: { type: Number, default: 0 },
   // Validated at the API boundary; Mixed retains all task and recurring fields.
   state: { type: Schema.Types.Mixed, required: true },
-}));
+}, { autoCreate: false, autoIndex: false }));
+
+let accountInitialization: Promise<void> | null = null;
+
+async function initializeAccounts(): Promise<void> {
+  if (!accountInitialization) {
+    accountInitialization = (async () => {
+      await AccountModel.createCollection();
+      // Keep unique indexes for account IDs, usernames and email addresses.
+      await AccountModel.createIndexes();
+    })().catch(error => {
+      accountInitialization = null;
+      throw error;
+    });
+  }
+  await accountInitialization;
+}
 
 export const dataDir = () => path.resolve(process.env.DATA_DIR || 'data');
 export const isServerless = () => !!(process.env.VERCEL || process.env.NETLIFY);
@@ -40,7 +56,7 @@ async function useMongo(): Promise<boolean> {
   if (process.env.MONGODB_URI?.trim() && !process.env.MONGODB_URI.includes('<')) {
     await connectToDatabase();
     if (!isDbConnected()) throw new Error(`Database unavailable: ${getDbLastError() || 'connection not ready'}`);
-    await AccountModel.init();
+    await initializeAccounts();
     return true;
   }
   if (isServerless() || process.env.NODE_ENV === 'production') throw new Error('MONGODB_URI is required in production');

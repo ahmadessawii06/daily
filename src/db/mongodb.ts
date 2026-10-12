@@ -3,6 +3,9 @@ import type { TaskCategory, TaskStatus } from '../types';
 
 // Disable command buffering so queries fail-fast when DB is offline instead of hanging
 mongoose.set('bufferCommands', false);
+// With buffering disabled, models must not create collections before connect().
+mongoose.set('autoCreate', false);
+mongoose.set('autoIndex', false);
 
 let authFailed = false;
 
