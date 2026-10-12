@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { promisify } from 'node:util';
-import { dataDir, isServerless } from './repository';
+import { dataDir, isServerless } from './repository.js';
 
 const scrypt = promisify(crypto.scrypt);
 let localSecret: string | undefined;

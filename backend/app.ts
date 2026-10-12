@@ -1,9 +1,9 @@
 import 'dotenv/config';
 import express from 'express';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { createAccount, findAccount, storageStatus, updateState, type Account } from './repository';
-import { hashPassword, matchesPassword, signToken, verifyToken } from './security';
-import { mergeDay } from '../src/shared/merge';
+import { createAccount, findAccount, storageStatus, updateState, type Account } from './repository.js';
+import { hashPassword, matchesPassword, signToken, verifyToken } from './security.js';
+import { mergeDay } from '../src/shared/merge.js';
 import type { DayRecord } from '../src/types';
 
 function publicUser(account: Account) {

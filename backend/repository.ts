@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import mongoose, { Schema } from 'mongoose';
-import { connectToDatabase, isDbConnected } from '../src/db/mongodb';
+import { connectToDatabase, isDbConnected } from '../src/db/mongodb.js';
 import type { DayRecord, HabitStreak, RecurringItem, User } from '../src/types';
 
 export interface Account extends User {

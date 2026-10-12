@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { TaskCategory, TaskStatus } from '../types';
+import type { TaskCategory, TaskStatus } from '../types';
 
 // Disable command buffering so queries fail-fast when DB is offline instead of hanging
 mongoose.set('bufferCommands', false);

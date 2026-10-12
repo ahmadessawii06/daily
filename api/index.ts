@@ -1,3 +1,3 @@
-import { createApiApp } from '../backend/app';
+import { createApiApp } from '../backend/app.js';
 
 export default createApiApp(true);

@@ -1,5 +1,5 @@
 import serverless from 'serverless-http';
-import { createApiApp } from '../../backend/app';
+import { createApiApp } from '../../backend/app.js';
 
 export function createNetlifyHandler(app = createApiApp(true)) {
   const handle = serverless(app);
