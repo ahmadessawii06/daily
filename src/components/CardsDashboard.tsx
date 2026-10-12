@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { ChevronDown, Clock, MoreHorizontal, Plus, StickyNote, Pencil, Trash2, X } from 'lucide-react';
+import { Check, CheckCheck, ChevronDown, Clock, MoreHorizontal, Plus, StickyNote, Pencil, Trash2, X } from 'lucide-react';
 import type { Language, PlannerCategory, PlannerWorkspace, StatusFilter, Task, TaskStatus } from '../types';
 import { activeCategories, groupTasksByCategory, UNASSIGNED_CATEGORY, WORKSPACE_EPOCH } from '../shared/workspace';
 import { createPlannerCategory, deletePlannerCategory, updatePlannerCategory } from '../utils/workspace';
@@ -59,6 +59,7 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   const [title, setTitle] = useState('');
   const [notice, setNotice] = useState('');
   const completed = tasks.filter(task => task.status === 'done').length;
+  const isComplete = tasks.length > 0 && completed === tasks.length;
   const visible = tasks.filter(task => filter === 'all' || filter === 'scheduled' || task.status === filter);
   const collapsed = Boolean(category.collapsed);
   const statusLabels = ar
@@ -69,12 +70,13 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   const hue = hues[category.order] ?? (215 + category.order * 137.508) % 360;
   const colorStyle = { '--card-hue': hue, '--card-saturation': category.id === UNASSIGNED_CATEGORY ? '0%' : '65%' } as CSSProperties;
   return (
-    <article aria-label={name} style={colorStyle} className="planner-card min-w-0 rounded-2xl border border-t-[3px] shadow-2xs">
+    <article aria-label={name} data-card-complete={isComplete} style={colorStyle} className="planner-card min-w-0 rounded-2xl border border-t-[3px] shadow-2xs">
       <div className="flex items-center gap-3 p-4">
         <div aria-hidden="true" className="planner-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"><Icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></div>
         <div className="min-w-0 flex-1"><h3 className="break-words text-sm font-bold leading-6">{name}</h3><p className="text-[11px] text-slate-500 dark:text-zinc-400">{tasks.length ? (ar ? `${completed} من ${tasks.length} مكتملة` : `${completed} of ${tasks.length} complete`) : (ar ? 'مساحة لما يهمك' : 'Room for what matters')}</p></div>
         {onCustomize && <><button type="button" aria-label={ar ? `تخصيص ${name}` : `Customize ${name}`} onClick={onCustomize} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5"><MoreHorizontal className="h-4 w-4" /></button><button type="button" aria-label={ar ? (collapsed ? `توسيع ${name}` : `طي ${name}`) : (collapsed ? `Expand ${name}` : `Collapse ${name}`)} aria-expanded={!collapsed} aria-controls={regionId} onClick={() => updatePlannerCategory(category.id, { collapsed: !collapsed })} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5"><ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${collapsed ? '-rotate-90 rtl:rotate-90' : ''}`} /></button></>}
       </div>
+      {isComplete && <div data-card-completion-banner role="status" className="mx-4 mb-3 flex items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300"><span className="inline-flex items-center gap-2"><CheckCheck aria-hidden="true" className="h-4 w-4 shrink-0" />{ar ? 'اكتملت كل المهام' : 'All tasks complete'}</span><span dir="ltr" className="tabular-nums">100%</span></div>}
       {tasks.length > 0 && <div aria-hidden="true" className="mx-4 h-0.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/5"><div className="planner-card-progress h-full rounded-full transition-[width] duration-200 motion-reduce:transition-none" style={{ width: `${completed / tasks.length * 100}%` }} /></div>}
       <div id={regionId} data-planner-card-content hidden={collapsed} className="p-3 pt-2">
         <div className="space-y-1">
@@ -86,8 +88,11 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
               onClick={() => onStatusChange(task.id, nextTaskStatus(task.status))}
               className="group/status flex h-11 w-9 shrink-0 items-center justify-center rounded-lg cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-400"><TaskStatusIndicator status={task.status} /></button>
             <button type="button" onClick={() => onEdit(task)} aria-label={ar ? `تعديل ${task.title}` : `Edit ${task.title}`} className="min-h-11 min-w-0 flex-1 py-2 text-start">
-              <span className={`block break-words text-xs font-medium leading-6 ${task.status === 'done' ? 'text-slate-400 line-through dark:text-zinc-500' : task.status === 'not-done' ? 'text-rose-600 dark:text-rose-300' : ''}`}>{task.title}</span>
-              {(task.time || task.notes || task.status === 'not-done') && <span className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-400">{task.time && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime12h(task.time, lang).formatted}</span>}{task.notes && <StickyNote className="h-3 w-3" aria-label={ar ? 'توجد ملاحظة' : 'Has notes'} />}{task.status === 'not-done' && <span>{ar ? 'غير منجزة' : 'Not done'}</span>}</span>}
+              <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className={`min-w-0 max-w-full break-words text-xs font-medium leading-6 ${task.status === 'done' ? 'text-slate-400 line-through dark:text-zinc-500' : task.status === 'not-done' ? 'text-rose-600 dark:text-rose-300' : ''}`}>{task.title}</span>
+                {task.status !== 'pending' && <span data-task-status-label={task.status} className={`inline-flex shrink-0 items-center gap-1 rounded-lg border px-1.5 py-0.5 text-[10px] font-semibold leading-4 ${task.status === 'done' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300' : 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300'}`}>{task.status === 'done' ? <Check aria-hidden="true" className="h-3 w-3" /> : <X aria-hidden="true" className="h-3 w-3" />}{statusLabels[task.status]}</span>}
+              </span>
+              {(task.time || task.notes) && <span className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-400">{task.time && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime12h(task.time, lang).formatted}</span>}{task.notes && <StickyNote className="h-3 w-3" aria-label={ar ? 'توجد ملاحظة' : 'Has notes'} />}</span>}
             </button>
             <button type="button" onClick={() => onEdit(task)} aria-label={ar ? `تفاصيل ${task.title}` : `Details for ${task.title}`} className="flex h-11 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200"><Pencil className="h-3.5 w-3.5" /></button>
             <button type="button" onClick={() => onDelete(task.id)} aria-label={ar ? `حذف ${task.title}` : `Delete ${task.title}`} className="flex h-11 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:text-rose-500 dark:text-zinc-600 dark:hover:text-rose-400"><Trash2 className="h-3.5 w-3.5" /></button>
