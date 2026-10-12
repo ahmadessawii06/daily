@@ -4,6 +4,7 @@ import {
 } from './utils/date';
 import { 
   getDayRecord, 
+  loadAllDays,
   addTaskToDay, 
   updateTaskInDay, 
   deleteTaskFromDay, 
@@ -23,7 +24,7 @@ import { getStoredAuth, clearStoredAuth } from './utils/auth';
 import { LoginScreen } from './components/LoginScreen';
 import { AuthLoadingScreen } from './components/AuthLoadingScreen';
 import { CardsDashboard } from './components/CardsDashboard';
-import { getPlannerWorkspace, setPlannerView } from './utils/workspace';
+import { getPlannerWorkspace, readStoredWorkspace, setPlannerView } from './utils/workspace';
 import { activeCategories } from './shared/workspace';
 import { MainHeader } from './components/MainHeader';
 import { TodayProgress } from './components/TodayProgress';
@@ -43,7 +44,9 @@ import { CheckCircle2, LayoutGrid, ListChecks } from 'lucide-react';
 export default function App() {
   // Authentication state
   const [currentUser, setCurrentUser] = useState<User | null>(() => getStoredAuth().user);
-  const [isPreparingWorkspace, setIsPreparingWorkspace] = useState(() => Boolean(getStoredAuth().user));
+  const [isPreparingWorkspace, setIsPreparingWorkspace] = useState(() => Boolean(
+    getStoredAuth().user && !readStoredWorkspace() && Object.keys(loadAllDays()).length === 0
+  ));
   const [workspace, setWorkspace] = useState(getPlannerWorkspace);
 
   // Navigation & view states

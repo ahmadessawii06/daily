@@ -21,6 +21,8 @@ Workspace changes have their own queue entry. Categories merge by ID and timesta
 
 The browser continues to use account-scoped local storage. New Cards days start empty; legacy Timeline days retain hourly initialization. Switching views never rewrites an existing day.
 
+Cached sessions open immediately and synchronize in the background. A fresh sign-in, or a restored session without any cached workspace or days, waits for the first sync before initializing a day.
+
 ## Files
 
 | Area | Files |
