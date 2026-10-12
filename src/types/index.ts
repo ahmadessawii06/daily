@@ -130,6 +130,7 @@ export interface PrayerLocationConfig {
   latitude?: number;
   longitude?: number;
   useGeolocation?: boolean;
+  timezone?: string;
 }
 
 export interface PrayerTimesDayResponse {

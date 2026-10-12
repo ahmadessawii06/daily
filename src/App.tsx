@@ -26,10 +26,10 @@ import { AuthLoadingScreen } from './components/AuthLoadingScreen';
 import { CardsDashboard } from './components/CardsDashboard';
 import { getPlannerWorkspace, readStoredWorkspace, setPlannerView } from './utils/workspace';
 import { activeCategories } from './shared/workspace';
-import { dailyPrayerId } from './utils/prayerTasks';
+import { partitionPrayerTasks } from './utils/prayerTasks';
 import { MainHeader } from './components/MainHeader';
 import { TodayProgress } from './components/TodayProgress';
-import { PrayerTimesWidget } from './components/PrayerTimesWidget';
+import { PrayerCard } from './components/PrayerCard';
 import { DateNavigation } from './components/DateNavigation';
 import { TaskList } from './components/TaskList';
 import { StatsModal } from './components/StatsModal';
@@ -214,30 +214,10 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleQuickAddPrayer = (title: string, time: string) => {
-    const prayerId = dailyPrayerId(title);
-    const existingPrayer = prayerId ? tasks.find(task => dailyPrayerId(task.title) === prayerId) : undefined;
-    if (existingPrayer) {
-      handleUpdateTask(existingPrayer.id, { time });
-      showToast(lang === 'ar' ? `تم تحديث وقت ${title}` : 'Prayer time updated');
-      return;
-    }
-    const targetSlot = tasks.find((t) => t.time === time && !t.title.trim());
-
-    if (targetSlot) {
-      handleUpdateTask(targetSlot.id, {
-        title,
-        category: 'worship',
-        status: targetSlot.status || 'pending',
-      });
-      showToast(lang === 'ar' ? `تم إدراج ${title} في الساعة ${time}` : `Scheduled ${title} at ${time}`);
-    } else {
-      handleAddTask({
-        title,
-        time,
-        status: 'pending',
-      });
-    }
+  const handleCompletePrayer = (title: string, time: string) => {
+    handleAddTask({ title, categoryId: 'worship', time, status: 'done' });
+    playAchievementSound();
+    setCurrentFilter('all');
   };
 
   const handleToggleLang = () => {
@@ -366,14 +346,6 @@ export default function App() {
             lang={lang}
           />
 
-          {/* Automated Prayer Times Widget */}
-          <PrayerTimesWidget
-            currentDate={currentDate}
-            lang={lang}
-            onAddTaskToSchedule={handleQuickAddPrayer}
-            todayTasks={tasks}
-          />
-
           {/* Date Navigation (Previous Day, Today, Next Day) */}
           <DateNavigation
             currentDate={currentDate}
@@ -389,10 +361,12 @@ export default function App() {
             })}
           </div>
 
-          {workspace.view === 'cards' ? <CardsDashboard tasks={tasks} workspace={workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
+          {workspace.view === 'cards' ? <CardsDashboard currentDate={currentDate} tasks={tasks} workspace={workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
             onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
-            onAddPrayer={title => { handleAddTask({ title, categoryId: 'worship', time: '', status: 'done' }); playAchievementSound(); setCurrentFilter('all'); }}
-            onStatusChange={handleStatusChange} onEdit={setEditingTask} onDelete={handleDeleteTask} /> : <TaskList
+            onAddPrayer={handleCompletePrayer}
+            onStatusChange={handleStatusChange} onEdit={setEditingTask} onDelete={handleDeleteTask} /> : <>
+            <PrayerCard currentDate={currentDate} slots={partitionPrayerTasks(tasks).slots} lang={lang} onAddPrayer={handleCompletePrayer} onStatusChange={handleStatusChange} onEdit={setEditingTask} onDelete={handleDeleteTask} />
+            <TaskList
             tasks={tasks}
             onStatusChange={handleStatusChange}
             onEdit={(task) => setEditingTask(task)}
@@ -404,7 +378,7 @@ export default function App() {
             currentFilter={currentFilter}
             onFilterChange={setCurrentFilter}
             lang={lang}
-          />}
+          /></>}
 
         </div>
       </main>

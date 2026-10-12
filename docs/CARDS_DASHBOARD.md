@@ -10,7 +10,8 @@ This change adds a category-based daily workspace beside the existing timeline. 
 - Removing a card leaves every associated task on its original date. Those tasks appear under **Unassigned**, and can be reassigned in the task editor.
 - Timeline retains inline editing, completion states, filters, arbitrary start times, and the optional 24-hour template. Untimed tasks have a separate section.
 - Prayer times, authentication, archive, statistics, language, themes and image export remain available. Exports temporarily reveal collapsed card contents and then restore the layout.
-- A full-width prayer card shows exactly five prayer slots. It reuses matching daily tasks; an empty slot creates a completed, untimed task only when clicked. Extra worship tasks and duplicate prayer records remain in category cards. Scheduling an existing prayer updates its time without duplicating or resetting its status.
+- A full-width prayer card shows exactly five prayer slots with daily Nablus, Palestine times from Aladhan (Muslim World League calculation, `Asia/Hebron`). It replaces the separate prayer-times widget in both views. Times follow the selected date, use a validated daily cache, and show loading/retry states instead of fabricated fallback times.
+- The card reuses matching daily tasks; clicking an empty slot creates a completed task at its prayer time when available. Existing task times, notes and statuses remain untouched when the schedule loads. Extra worship tasks and duplicate prayer records remain in category cards. Viewing a day does not generate stored tasks.
 - The prayer card appears first on every selected day, with independent daily completion, prayer labels and time-of-day icons. Completing all five reveals a compact 100% completion banner beneath the heading, aligned beside a randomly selected Quranic verse badge beneath the statistics circles. These stack on narrow screens. The verse stays stable during ordinary UI updates; changing a prayer back to incomplete hides both messages.
 - Verses remain complete on one line. Their font size fits the measured badge width and readjusts when the viewport or loaded font changes.
 
@@ -31,6 +32,7 @@ Cached sessions open immediately and synchronize in the background. A fresh sign
 | Area | Files |
 | --- | --- |
 | Dashboard UI | `src/components/CardsDashboard.tsx`, `CategoryEditor.tsx`, `PrayerCard.tsx`, `src/utils/prayerTasks.ts` |
+| Daily prayer schedule | `src/hooks/useNablusPrayerTimes.ts`, `src/utils/prayerTimes.ts`, `tests/prayerTimes.test.ts` |
 | Shared view integration | `src/App.tsx`, `AddTaskModal.tsx`, `EditTaskModal.tsx`, `TaskList.tsx`, `TaskRow.tsx` |
 | Workspace model and persistence | `src/types/index.ts`, `src/shared/workspace.ts`, `src/utils/workspace.ts`, `src/utils/storage.ts` |
 | API and synchronization | `backend/app.ts`, `backend/repository.ts`, `src/services/api.ts`, `syncEngine.ts`, `syncQueue.ts`, `src/components/LoginScreen.tsx` |
