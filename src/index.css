@@ -29,6 +29,8 @@
     border-color: hsl(var(--card-hue) var(--card-saturation) 85%);
   }
 
+  .planner-card-task-icon { color: var(--card-accent); }
+
   .dark .planner-card-icon {
     background-color: hsl(var(--card-hue) 35% 17%);
     border-color: hsl(var(--card-hue) 35% 26%);
