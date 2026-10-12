@@ -1,55 +1,71 @@
-﻿<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/banner-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/images/banner-light.svg">
+  <img src="docs/images/banner-light.svg" width="100%" alt="Mizan · ميزان — Make room for what matters.">
+</picture>
 
-# Mizan · ميزان
+<p align="center"><strong>A daily planner for a balanced life.</strong><br>Tasks, prayer times, and progress. Arabic-first, with English support.</p>
 
-### Make room for what matters.
+<p align="center">
+  <a href="https://github.com/ahmadessawii06/daily/actions/workflows/ci.yml"><img src="https://github.com/ahmadessawii06/daily/actions/workflows/ci.yml/badge.svg" alt="Test and build status"></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-149ECA?style=flat-square&amp;logo=react&amp;logoColor=white" alt="React 19"></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&amp;logo=typescript&amp;logoColor=white" alt="TypeScript"></a>
+  <a href="https://www.mongodb.com/"><img src="https://img.shields.io/badge/MongoDB-47A248?style=flat-square&amp;logo=mongodb&amp;logoColor=white" alt="MongoDB"></a>
+</p>
 
-An Arabic-first daily planner that brings tasks, prayer times, and progress into one calm workspace.
+<p align="center"><a href="https://daily-ten-rose.vercel.app/"><strong>Open live demo ↗</strong></a> &nbsp; · &nbsp; <a href="#quick-start">Run locally</a> &nbsp; · &nbsp; <a href="docs/DEPLOYMENT.md">Deploy your own</a></p>
 
-[![Live demo](https://img.shields.io/badge/Live_Demo-Visit_Mizan-D4AF63?style=for-the-badge)](https://daily-ten-rose.vercel.app/)
-[![React](https://img.shields.io/badge/React-19-149ECA?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+---
 
-[Try the live demo](https://daily-ten-rose.vercel.app/) · [Get started](#get-started) · [Deployment](#deployment) · [How sync works](#how-sync-works)
+## 🚀 Project Overview
 
-</div>
+**Mizan** (ميزان, “balance”) brings daily planning, prayer times, and progress into one workspace. Plan around your own rhythm, track what gets done, and pick up your day in another browser with account-based synchronization.
 
-[![Mizan live demo: Arabic sign-in page](docs/images/live-demo.png)](https://daily-ten-rose.vercel.app/)
+**Arabic-first & RTL** · **English support** · **Light & dark themes** · **Responsive interface**
 
-*Actual screenshot of the public live demo. Create your own account to explore the planner; no shared demo credentials are provided.*
+## ✨ Key Features
 
-## The idea
+<table>
+  <tr>
+    <td width="50%"><strong>🗓️ A flexible daily plan</strong><br>Exact times, multiple tasks per hour, untimed tasks, and quick schedule templates.</td>
+    <td width="50%"><strong>🕌 Prayer times in context</strong><br>Location and calculation settings, with manual prayer-time configuration.</td>
+  </tr>
+  <tr>
+    <td><strong>📊 Progress you can see</strong><br>Completion indicators, archived days, and weekly reports.</td>
+    <td><strong>☁️ Your account, across browsers</strong><br>Server-backed sync with a local queue that retains pending edits during connection failures.</td>
+  </tr>
+  <tr>
+    <td><strong>🖼️ Shareable snapshots</strong><br>Export daily schedules and weekly reports as images.</td>
+    <td><strong>🔐 Separate account data</strong><br>Salted password hashes, signed sessions, and storage scoped to each account.</td>
+  </tr>
+</table>
 
-Mizan means **balance**. It helps you plan a day around work, study, worship, and personal routines, then look back at what you accomplished. The interface starts in Arabic with right-to-left layouts and also supports English, light mode, and dark mode.
+<a id="preview"></a>
 
-## Features
+## 🖼️ Screenshots & Preview
 
-| Feature | What you can do |
-| --- | --- |
-| Daily planning | Add and edit tasks, set times, and mark them pending, done, or not done. |
-| A flexible schedule | Keep multiple tasks in the same hour, use exact minutes, or leave tasks untimed. |
-| Quick templates | Start with suggested tasks or a full-day schedule template. |
-| Prayer times | Configure your location and calculation method, or set prayer times manually. |
-| Progress and history | Review daily completion, browse archived days, and explore weekly reports. |
-| Image exports | Download a daily schedule or weekly report as an image. |
-| Account-based sync | Access the same account's tasks and preferences across browsers. |
-| Local save queue | Keep edits in browser storage while the server is unavailable and retry synchronization. |
-| Account separation | Keep each account's local data, server data, and pending changes separate. |
-| Legacy recovery | Download old browser data or explicitly import it into your current account. |
+<table>
+  <tr>
+    <th width="50%">☀️ Light workspace</th>
+    <th width="50%">🌙 Dark workspace</th>
+  </tr>
+  <tr>
+    <td><a href="docs/images/planner-light.png"><img src="docs/images/planner-light.png" width="420" alt="Mizan light theme: prayer times, 38 percent progress, and eight example tasks"></a></td>
+    <td><a href="docs/images/planner-dark.png"><img src="docs/images/planner-dark.png" width="420" alt="Mizan dark theme: the same prayer times, progress, and eight example tasks"></a></td>
+  </tr>
+</table>
 
-## Built with
+<sub>Actual captures of the running app with a local example account. Same day, same tasks, both themes. Click either image for full resolution.</sub>
 
-- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS, and Lucide icons.
-- **Backend:** Express, Mongoose, MongoDB, and Node.js.
-- **Authentication:** Salted scrypt password hashes and signed HMAC session tokens.
-- **Exports:** `html-to-image` with an embedded Arabic font for schedule exports.
-- **Hosting:** Vercel Functions, with a Netlify Functions adapter included.
-- **Verification:** Node's test runner through `tsx`, TypeScript checks, and production builds.
+**[Explore the live demo →](https://daily-ten-rose.vercel.app/)** Create your own account to try the planner.
 
-## Get started
+---
 
-Use **Node.js 22.12 or newer** and npm.
+<a id="quick-start"></a>
+
+## ⚡ Quick Start
+
+**Node.js 22.12+** and **npm** are required. Run these commands from a terminal:
 
 ```bash
 git clone https://github.com/ahmadessawii06/daily.git
@@ -58,130 +74,122 @@ npm ci
 npm run dev
 ```
 
-Open **http://localhost:3000** and create an account. If port 3000 is occupied, the development server chooses another port and prints its URL.
+Open **http://localhost:3000**. The server prints another port if 3000 is in use.
 
-No database setup is needed for local development. Without `MONGODB_URI`, the server stores accounts in `data/accounts.json` and creates a local session secret in `data/.session-secret`. Keep both files together when backing up local accounts. The local file store supports one server process; use MongoDB for shared or production deployments.
+> 💡 Local development works without MongoDB. Production deployments require `MONGODB_URI` and `JWT_SECRET`.
 
-To configure MongoDB locally, copy the environment template:
+<details>
+<summary><strong>📦 Installation details & local persistence</strong></summary>
 
-```bash
-cp .env.example .env
-```
+The development server runs the React frontend and Express API together. Local accounts are saved in `data/accounts.json`, with the session secret in `data/.session-secret`. Back up both together.
 
-On PowerShell, use `Copy-Item .env.example .env`. Set the values described below, then restart the server.
+To configure a database, create `.env` from `.env.example` if it does not already exist. Restart the server after changing it.
 
-## Environment variables
+**[Complete setup guide →](docs/DEVELOPMENT.md#local-setup)**
 
-| Variable | Purpose | Required |
-| --- | --- | --- |
-| `MONGODB_URI` | MongoDB connection string, including the database name and database-user credentials. | Production |
-| `JWT_SECRET` | A random, stable secret of at least 32 characters for signing sessions. | Production |
-| `PORT` | Local server port; defaults to `3000`. | No |
-| `DATA_DIR` | Alternative directory for the local file store. | No |
+</details>
 
-Generate a session secret locally:
+## 🛠️ Technologies Used
 
-```bash
-node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"
-```
+| Layer            | Tools                                                 |
+| :--------------- | :---------------------------------------------------- |
+| Interface        | React 19 · TypeScript · Tailwind CSS · Lucide      |
+| Build            | Vite ·`tsx` · esbuild                             |
+| Server & storage | Express · Mongoose · MongoDB · Node.js             |
+| Authentication   | scrypt password hashing · HMAC-signed session tokens |
+| Image exports    | `html-to-image` · embedded Arabic export font      |
+| Hosting & checks | Vercel Functions · Netlify adapter · GitHub Actions |
 
-Keep secrets in server environment variables. Do not commit `.env`, database credentials, or account data, and do not prefix secrets with `VITE_`. Changing `JWT_SECRET` invalidates existing sessions.
+## ⚙️ Configuration
 
-## Deployment
+| Variable        | Local development                          | Production                       |
+| :-------------- | :----------------------------------------- | :------------------------------- |
+| `MONGODB_URI` | Optional; defaults to the local file store | Required                         |
+| `JWT_SECRET`  | Generated and persisted when omitted       | Required; at least 32 characters |
+| `PORT`        | Optional; defaults to`3000`              | Host-dependent                   |
+| `DATA_DIR`    | Optional local storage directory           | MongoDB is used                  |
 
-### Vercel
+<details>
+<summary><strong>🚢 Deployment & secret configuration</strong></summary>
 
-1. Import this GitHub repository into Vercel.
-2. Choose the directory containing `package.json` and `vercel.json` as the **Root Directory**. This is the repository root; in an outer workspace containing a nested `daily` folder, choose that inner folder.
-3. Use **`npm run build`** as the build command and **`dist`** as the output directory.
-4. Add `MONGODB_URI` and `JWT_SECRET` to the **Production** environment. Add them to Preview too if preview deployments need working accounts.
-5. Confirm the MongoDB cluster is running, the database user has read/write access, and the Atlas IP access list allows the deployment's network connection.
-6. Deploy. After changing environment variables, create a new deployment.
+Import the repository into Vercel, set the build command to `npm run build`, and use `dist` as the output directory. Add the server variables above and confirm Atlas allows the deployment to connect.
 
-`vercel.json` routes `/api/*` to the Express function and frontend routes to `index.html`.
+Keep credentials in server environment variables. Do not commit `.env` or use the `VITE_` prefix for secrets. Create a new deployment after changing hosting variables.
 
-### Netlify
+**[Vercel, Netlify, and Node deployment guide →](docs/DEPLOYMENT.md)**
 
-Import the same repository, choose the same project root, and set the server environment variables above. `netlify.toml` provides the build settings and API redirects; `netlify/functions/api.ts` adapts the shared Express API.
+</details>
 
-### A Node server
+## 📁 Project Structure
 
-```bash
-npm run build
-```
-
-Set `NODE_ENV=production`, `MONGODB_URI`, and `JWT_SECRET` in your hosting environment, then run `npm start`. The Node server serves both `dist` and the API.
-
-## How sync works
-
-1. Edits are saved locally and queued under the active account.
-2. The client sends the queue to `/api/sync/batch` with its session token.
-3. The server merges task changes and persists the account state in MongoDB.
-4. Acknowledged changes leave the queue. Edits made while a request is running remain queued for the next request.
-
-Task timestamps and deletion markers prevent stale uploads from restoring deleted tasks. Habits, recurring items, and settings use collection-level versions. MongoDB updates also check the account revision to prevent concurrent requests from overwriting each other.
-
-The sync indicator shows pending changes, errors, and the last successful sync. Click it to retry immediately. When the server is unavailable, edits remain queued in that browser; they are not available on another device until synchronization succeeds. The app does not provide a service worker for loading the site offline.
-
-### Verify a deployment
-
-```bash
-curl https://daily-ten-rose.vercel.app/api/health
-```
-
-A healthy production response is:
-
-```json
-{"connected":true,"database":"MongoDB"}
-```
-
-To check synchronization end to end, create a test task, wait for **Synced** and an empty pending count, then sign into the same account in another browser and view the same date.
-
-If synchronization fails, inspect **Network → `/api/sync/batch` → Response** and the matching `API failure:` entry in the hosting logs. A healthy `/api/health` confirms database access, but does not by itself verify an account's sync request. Keep browser storage intact while changes are pending.
-
-## Project structure
+<details>
+<summary><strong>Explore the source layout</strong></summary>
 
 ```text
-daily/
-├── api/                  # Vercel function entry
-├── backend/              # Shared Express API, persistence, auth, and local startup
-├── docs/images/          # README screenshots
-├── netlify/functions/    # Netlify API adapter
-├── scripts/              # Generated-file cleanup
+.
+├── api/                   Vercel function entry
+├── backend/               Express API, MongoDB, authentication, persistence
+├── docs/                  Setup guides and verified screenshot assets
+├── netlify/functions/     Netlify adapter for the shared API
+├── scripts/               Generated-file cleanup
 ├── src/
-│   ├── assets/images/    # Bundled application images
-│   ├── components/       # Active React interface
-│   ├── services/         # API client and sync queue/engine
-│   ├── shared/           # Shared task merge logic
-│   ├── types/            # TypeScript domain models
-│   └── utils/            # Storage, dates, prayer times, analytics, and exports
-├── tests/                # Backend, client, sync, startup, and ESM regressions
-├── .env.example          # Environment template without credentials
-├── server.ts             # Local development and standalone production server
-├── netlify.toml          # Netlify deployment configuration
-└── vercel.json           # Vercel deployment configuration
+│   ├── assets/            Bundled application images
+│   ├── components/        React interface
+│   ├── services/          API client, synchronization, pending queue
+│   ├── shared/            Shared task-merge logic
+│   ├── types/             Domain models
+│   └── utils/             Dates, storage, prayer times, analytics, exports
+├── tests/                 Backend, client, sync, and deployment regressions
+└── server.ts              Local and standalone Node server
 ```
 
-`data/`, `dist/`, `node_modules/`, hosting metadata, and temporary test directories are local or generated files and are excluded from Git.
+Local data, credentials, dependencies, and generated builds are excluded from Git.
 
-## Development commands
+</details>
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Run the local frontend and API together. |
-| `npm start` | Run the shared Node server using the current environment. |
-| `npm run lint` | Check TypeScript types. |
-| `npm test` | Run the regression suite. |
-| `npm run build` | Check types and build the frontend for production. |
-| `npm run preview` | Preview built frontend assets only; does not run the API. |
-| `npm run clean` | Remove generated build and temporary test artifacts; preserve account data. |
+## 💻 Development Guide
 
-Tests cover authentication, persistence, account isolation, merge/deletion behavior, queued changes, MongoDB initialization and missing fields, deployment adapters, occupied ports, and native Node ESM imports. Database behavior is covered with mocks and local storage; the suite does not require or verify a real Atlas cluster.
+```bash
+npm test          # Regression suite
+npm run build    # TypeScript checks + production frontend build
+```
 
-## Existing data
+GitHub Actions runs both checks on pushes and pull requests.
 
-Older browser-only accounts are not automatically migrated to server accounts. Sign into a server account, open Settings, download a backup of detected legacy data, and import it explicitly if it belongs to you. Legacy local `data/users.json` and `data/days.json` are preserved when present, but the current server uses `data/accounts.json`. All local data files are excluded from new Git commits.
+<details>
+<summary><strong>☁️ Understand and verify synchronization</strong></summary>
 
-## Contributing
+Edits move from account-scoped local storage into a pending queue, then through an authenticated batch API. The server merges task timestamps and deletion markers, and checks account revisions before saving.
 
-Open an issue with a reproducible example or submit a focused pull request. Before submitting a change, run `npm test` and `npm run build`. For sync issues, include the response status and a redacted server error, never a token, password, or connection string.
+To verify it: add a task, wait for **Synced / تمت المزامنة** and an empty pending count, then sign into the same account in another browser and open the same date.
+
+Edits remain in the originating browser until sync succeeds. The app currently has no service worker for loading the site offline.
+
+**[Sync behavior, troubleshooting, and all commands →](docs/DEVELOPMENT.md)**
+
+</details>
+
+## 🤝 Contributing
+
+Focused pull requests and reproducible bug reports are welcome. Run `npm test` and `npm run build` before submitting changes. For sync issues, include a redacted response status and server error; keep tokens, passwords, and connection strings private.
+
+**[Open an issue](https://github.com/ahmadessawii06/daily/issues)** · **[Development guide](docs/DEVELOPMENT.md)**
+
+## 🗺️ Roadmap
+
+Proposed next steps:
+
+- [ ] Browser-based end-to-end checks for cross-browser synchronization.
+- [ ] Automated regeneration and validation of documentation screenshots.
+- [ ] Service-worker support for reopening the app offline.
+
+## 📜 License
+
+A license has not been selected for this repository. No `LICENSE` file is currently included; review the licensing status before reusing or redistributing the code.
+
+---
+
+<div align="center">
+  <strong>Plan with intention. Build a balanced day.</strong><br>
+  <sub>Mizan · ميزان</sub>
+</div>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-labelledby="title desc">
+  <title id="title">Mizan — make room for what matters</title>
+  <desc id="desc">A warm ivory banner with Mizan branding and a balanced scale emblem.</desc>
+  <defs>
+    <linearGradient id="surface" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#faf7ef"/><stop offset="1" stop-color="#eef7f3"/></linearGradient>
+  </defs>
+  <rect x="1" y="1" width="1198" height="298" rx="24" fill="url(#surface)" stroke="#e5e4d9"/>
+  <g fill="none" stroke="#c2dcd1" stroke-width="1">
+    <circle cx="1040" cy="150" r="200"/><circle cx="1040" cy="150" r="155"/><circle cx="1040" cy="150" r="110"/>
+  </g>
+  <rect x="54" y="43" width="137" height="27" rx="13.5" fill="#e1f2e9"/>
+  <text x="122" y="61" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="2" fill="#267556">DAILY BALANCE</text>
+  <text x="54" y="144" font-family="Arial, sans-serif" font-size="64" font-weight="800" letter-spacing="6" fill="#172b24">MIZAN</text>
+  <text x="350" y="141" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#a07d36">ميزان</text>
+  <text x="56" y="192" font-family="Arial, sans-serif" font-size="25" fill="#3f574d">Make room for what matters.</text>
+  <text x="56" y="243" font-family="Arial, sans-serif" font-size="12" letter-spacing="2.5" fill="#67796e">PLAN YOUR DAY · KEEP YOUR RHYTHM · SEE YOUR PROGRESS</text>
+  <circle cx="1039" cy="150" r="70" fill="#f9fcf8" stroke="#d1e1d4"/>
+  <g stroke="#95742f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M1039 107v84m-29 0h58m-73-64 44-9 44 9m-44-20v11"/>
+    <path d="m1005 125-16 38h32l-16-38m69 0-16 38h32l-16-38"/>
+    <path d="M989 163q16 17 32 0m37 0q16 17 32 0"/>
+  </g>
+</svg>
