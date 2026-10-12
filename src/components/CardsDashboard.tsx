@@ -5,6 +5,7 @@ import type { Language, PlannerCategory, PlannerWorkspace, StatusFilter, Task, T
 import { activeCategories, groupTasksByCategory, UNASSIGNED_CATEGORY, WORKSPACE_EPOCH } from '../shared/workspace';
 import { createPlannerCategory, deletePlannerCategory, updatePlannerCategory } from '../utils/workspace';
 import { formatTime12h } from '../utils/date';
+import { nextTaskStatus } from '../utils/taskStatus';
 import { CARD_ICONS, CategoryEditor } from './CategoryEditor';
 
 interface CardsDashboardProps {
@@ -59,6 +60,9 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   const completed = tasks.filter(task => task.status === 'done').length;
   const visible = tasks.filter(task => filter === 'all' || filter === 'scheduled' || task.status === filter);
   const collapsed = Boolean(category.collapsed);
+  const statusLabels = ar
+    ? { pending: 'متبقية', done: 'مكتملة', 'not-done': 'غير منجزة' }
+    : { pending: 'Remaining', done: 'Completed', 'not-done': 'Not done' };
   // Use stored order rather than visible position so renaming/deleting cards never recolors their neighbors.
   const hues = [215, 35, 270, 345, 155, 190];
   const hue = hues[category.order] ?? (215 + category.order * 137.508) % 360;
@@ -75,8 +79,11 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
         <div className="space-y-1">
           {visible.length === 0 && <p className="px-2 py-5 text-xs leading-6 text-slate-500 dark:text-zinc-400">{tasks.length ? (ar ? 'لا توجد مهام تطابق هذا الفلتر.' : 'No tasks match this filter.') : (ar ? 'ابدأ بمهمة صغيرة، وأكملها على إيقاعك.' : 'Start with something small. Make it your own.')}</p>}
           {visible.map(task => <div key={task.id} className="group flex items-start gap-2 rounded-xl px-1 py-2 transition-colors hover:bg-slate-50 dark:hover:bg-white/[0.02]">
-            <button type="button" role="checkbox" aria-checked={task.status === 'done'} aria-label={ar ? `إنجاز ${task.title}` : `Complete ${task.title}`} onClick={() => onStatusChange(task.id, task.status === 'done' ? 'pending' : 'done')}
-              className="flex h-11 w-9 shrink-0 items-center justify-center rounded-lg focus-visible:outline-2 focus-visible:outline-emerald-400"><span className={`flex h-5 w-5 items-center justify-center rounded-md border transition-colors ${task.status === 'done' ? 'border-emerald-400 bg-emerald-400 text-slate-950' : 'border-slate-500 dark:border-zinc-500'}`}>{task.status === 'done' && <Check className="h-3.5 w-3.5" />}</span></button>
+            <button type="button" data-task-status={task.status}
+              aria-label={ar ? `تغيير حالة ${task.title}: ${statusLabels[task.status]}. التالي: ${statusLabels[nextTaskStatus(task.status)]}` : `Change status of ${task.title}: ${statusLabels[task.status]}. Next: ${statusLabels[nextTaskStatus(task.status)]}`}
+              title={ar ? 'انقر للتبديل: متبقية ← مكتملة ← غير منجزة ← متبقية' : 'Click to cycle: Remaining → Completed → Not done → Remaining'}
+              onClick={() => onStatusChange(task.id, nextTaskStatus(task.status))}
+              className="flex h-11 w-9 shrink-0 items-center justify-center rounded-lg focus-visible:outline-2 focus-visible:outline-emerald-400"><span aria-hidden="true" className={`flex h-5 w-5 items-center justify-center rounded-md border transition-colors ${task.status === 'done' ? 'border-emerald-400 bg-emerald-400 text-slate-950' : task.status === 'not-done' ? 'border-rose-500 bg-rose-500 text-white dark:border-rose-400 dark:bg-rose-400 dark:text-slate-950' : 'border-slate-500 dark:border-zinc-500'}`}>{task.status === 'done' ? <Check className="h-3.5 w-3.5" /> : task.status === 'not-done' ? <X className="h-3.5 w-3.5" /> : null}</span></button>
             <button type="button" onClick={() => onEdit(task)} aria-label={ar ? `تعديل ${task.title}` : `Edit ${task.title}`} className="min-h-11 min-w-0 flex-1 py-2 text-start">
               <span className={`block break-words text-xs font-medium leading-6 ${task.status === 'done' ? 'text-slate-400 line-through dark:text-zinc-500' : task.status === 'not-done' ? 'text-rose-600 dark:text-rose-300' : ''}`}>{task.title}</span>
               {(task.time || task.notes || task.status === 'not-done') && <span className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-400">{task.time && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime12h(task.time, lang).formatted}</span>}{task.notes && <StickyNote className="h-3 w-3" aria-label={ar ? 'توجد ملاحظة' : 'Has notes'} />}{task.status === 'not-done' && <span>{ar ? 'غير منجزة' : 'Not done'}</span>}</span>}

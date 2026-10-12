@@ -16,6 +16,7 @@ import {
 import { Language, Task, TaskStatus } from '../types';
 import { formatTime12h } from '../utils/date';
 import { getTaskContextIcon } from '../utils/taskIconHelper';
+import { nextTaskStatus } from '../utils/taskStatus';
 
 interface TaskRowProps {
   task: Task;
@@ -129,12 +130,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
 
   // Quick cycle between the 3 status states
   const handleCycleStatus = () => {
-    const cycleMap: Record<TaskStatus, TaskStatus> = {
-      pending: 'done',
-      done: 'not-done',
-      'not-done': 'pending',
-    };
-    onStatusChange(task.id, cycleMap[task.status]);
+    onStatusChange(task.id, nextTaskStatus(task.status));
   };
 
   const isCommittingRef = useRef(false);
