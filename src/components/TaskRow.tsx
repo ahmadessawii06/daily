@@ -17,6 +17,7 @@ import { Language, Task, TaskStatus } from '../types';
 import { formatTime12h } from '../utils/date';
 import { getTaskContextIcon } from '../utils/taskIconHelper';
 import { nextTaskStatus } from '../utils/taskStatus';
+import { TaskStatusIndicator } from './TaskStatusIndicator';
 
 interface TaskRowProps {
   task: Task;
@@ -84,7 +85,6 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         rowClass: 
           'bg-slate-50/40 hover:bg-slate-50 border-dashed border-slate-200/80 hover:border-slate-300 dark:bg-white/[0.01] dark:hover:bg-white/[0.03] dark:border-white/[0.06] dark:hover:border-white/[0.12]',
         accentStrip: 'bg-slate-300 dark:bg-white/15',
-        triggerBg: 'bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-white/5 dark:text-zinc-400 dark:hover:bg-white/10',
         badgeClass: 'text-slate-500 bg-slate-100 border-slate-200 dark:text-zinc-400 dark:bg-white/[0.04] dark:border-white/[0.08]',
         titleClass: 'text-slate-400 dark:text-zinc-500 font-normal',
         timeClass: 'text-slate-600 dark:text-zinc-400 bg-slate-100/70 dark:bg-white/[0.03] border-slate-200/70 dark:border-white/[0.06]',
@@ -97,7 +97,6 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           rowClass: 
             'bg-white hover:bg-slate-50/70 border-slate-200/70 dark:bg-[#11131a] dark:hover:bg-[#141720] dark:border-white/[0.06]',
           accentStrip: 'bg-[#10e588]',
-          triggerBg: 'bg-[#10e588] text-slate-950 font-black shadow-xs hover:bg-[#0fd07b]',
           badgeClass: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-300 dark:bg-emerald-500/15 dark:border-emerald-500/30 shadow-2xs',
           titleClass: 'line-through text-slate-400 dark:text-zinc-500 font-medium',
           timeClass: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50/60 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20',
@@ -109,7 +108,6 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           rowClass: 
             'bg-white hover:bg-slate-50/70 border-slate-200/70 dark:bg-[#11131a] dark:hover:bg-[#141720] dark:border-white/[0.06]',
           accentStrip: 'bg-transparent',
-          triggerBg: 'border-2 border-slate-300 dark:border-white/20 hover:border-[#10e588] text-transparent hover:text-[#10e588] bg-slate-50/40 dark:bg-white/[0.02]',
           badgeClass: '',
           titleClass: 'text-slate-900 dark:text-zinc-100 font-bold',
           timeClass: 'text-slate-600 dark:text-zinc-400 bg-slate-100/70 dark:bg-white/[0.03] border-slate-200/70 dark:border-white/[0.06]',
@@ -121,7 +119,6 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           rowClass: 
             'bg-white hover:bg-slate-50/70 border-slate-200/70 dark:bg-[#11131a] dark:hover:bg-[#141720] dark:border-white/[0.06]',
           accentStrip: 'bg-[#ff6b81]',
-          triggerBg: 'bg-[#ff6b81] text-white font-black shadow-xs hover:bg-[#ff526c]',
           badgeClass: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-300 dark:bg-rose-500/15 dark:border-rose-500/30 shadow-2xs',
           titleClass: 'text-rose-600 dark:text-rose-300 font-bold',
           timeClass: 'text-rose-700 dark:text-rose-300 bg-rose-50/60 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20',
@@ -174,17 +171,9 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               type="button"
               onClick={handleCycleStatus}
               title={lang === 'ar' ? 'انقر لتغيير حالة المهمة' : 'Click to toggle status'}
-              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150 cursor-pointer active:scale-90 ${statusConfig.triggerBg}`}
+              className="group/status w-7 h-7 rounded-lg flex items-center justify-center shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-400"
             >
-              {isEmptySlot ? (
-                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-              ) : task.status === 'done' ? (
-                <Check className="w-3.5 h-3.5 stroke-[3.5]" />
-              ) : task.status === 'not-done' ? (
-                <X className="w-3.5 h-3.5 stroke-[3.5]" />
-              ) : (
-                <Check className="w-3 h-3 stroke-[2.5] opacity-0 group-hover:opacity-40 transition-opacity text-slate-500 dark:text-zinc-400" />
-              )}
+              <TaskStatusIndicator status={task.status} isEmptySlot={isEmptySlot} />
             </button>
 
             <div className={`font-numbers text-xs font-black tabular-nums shrink-0 px-2 py-1 rounded-xl border flex items-center gap-1.5 shadow-2xs ${statusConfig.timeClass}`}>
@@ -326,17 +315,9 @@ export const TaskRow: React.FC<TaskRowProps> = ({
           type="button"
           onClick={handleCycleStatus}
           title={lang === 'ar' ? 'انقر لتغيير حالة المهمة' : 'Click to toggle status'}
-          className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150 cursor-pointer active:scale-90 ${statusConfig.triggerBg}`}
+          className="group/status w-6 h-6 rounded-lg flex items-center justify-center shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-400"
         >
-          {isEmptySlot ? (
-            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-          ) : task.status === 'done' ? (
-            <Check className="w-3.5 h-3.5 stroke-[3.5]" />
-          ) : task.status === 'not-done' ? (
-            <X className="w-3.5 h-3.5 stroke-[3.5]" />
-          ) : (
-            <Check className="w-3 h-3 stroke-[2.5] opacity-0 group-hover:opacity-40 transition-opacity text-slate-500 dark:text-zinc-400" />
-          )}
+          <TaskStatusIndicator status={task.status} isEmptySlot={isEmptySlot} />
         </button>
 
         {/* 12-Hour Time Badge */}
