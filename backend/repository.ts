@@ -31,7 +31,20 @@ const AccountModel = mongoose.models.Account || mongoose.model('Account', new Sc
   revision: { type: Number, default: 0 },
   // Validated at the API boundary; Mixed retains all task and recurring fields.
   state: { type: Schema.Types.Mixed, required: true },
-}, { autoCreate: false, autoIndex: false }));
+}, { autoCreate: false, autoIndex: false, minimize: false }));
+
+// MongoDB documents saved with minimize enabled may omit empty Mixed objects.
+// Restore missing fields on reads and before merges, retaining existing data.
+export function normalizeAccount(account: Account | null): Account | null {
+  if (!account) return null;
+  account.state ??= {} as Account['state'];
+  account.state.days ??= {};
+  account.state.habits ??= [];
+  account.state.recurring ??= [];
+  account.state.settings ??= {};
+  account.state.versions ??= {};
+  return account;
+}
 
 let accountInitialization: Promise<void> | null = null;
 
@@ -83,9 +96,10 @@ export async function storageStatus(): Promise<string> {
 
 export async function findAccount(identifier: string, byId = false): Promise<Account | null> {
   if (await useMongo()) {
-    return await AccountModel.findOne(byId ? { id: identifier } : { $or: [{ username: identifier }, { email: identifier }] }).lean() as unknown as Account | null;
+    const account = await AccountModel.findOne(byId ? { id: identifier } : { $or: [{ username: identifier }, { email: identifier }] }).lean() as unknown as Account | null;
+    return normalizeAccount(account);
   }
-  return Object.values(readAccounts()).find(a => byId ? a.id === identifier : a.username === identifier || a.email === identifier) || null;
+  return normalizeAccount(Object.values(readAccounts()).find(a => byId ? a.id === identifier : a.username === identifier || a.email === identifier) || null);
 }
 
 export async function createAccount(account: Account): Promise<void> {
@@ -105,7 +119,7 @@ export async function updateState(id: string, mutate: (state: Account['state']) 
   if (await useMongo()) {
     // Compare-and-swap prevents concurrent serverless instances losing updates.
     for (let attempt = 0; attempt < 8; attempt++) {
-      const account = await AccountModel.findOne({ id }).lean() as unknown as Account | null;
+      const account = normalizeAccount(await AccountModel.findOne({ id }).lean() as unknown as Account | null);
       if (!account) throw new Error('Account not found');
       mutate(account.state);
       const result = await AccountModel.updateOne({ id, revision: account.revision }, { $set: { state: account.state }, $inc: { revision: 1 } });
@@ -115,7 +129,7 @@ export async function updateState(id: string, mutate: (state: Account['state']) 
   }
   // No await between reading and writing: atomic within the single local server.
   const accounts = readAccounts();
-  const account = accounts[id];
+  const account = normalizeAccount(accounts[id]);
   if (!account) throw new Error('Account not found');
   mutate(account.state);
   account.revision++;

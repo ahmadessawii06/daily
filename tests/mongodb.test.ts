@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { describeDbFailure } from '../src/db/mongodb.js';
 import mongoose from 'mongoose';
-import { storageStatus } from '../backend/repository.js';
+import { normalizeAccount, storageStatus, findAccount, updateState, type Account } from '../backend/repository.js';
 
 test('MongoDB diagnostics classify failures without leaking connection credentials', () => {
   const secret = 'mongodb+srv://private-user:private-password@private-host/';
@@ -46,9 +46,34 @@ test('accounts initialize collections and unique indexes only after connection, 
     assert.equal(await storageStatus(), 'MongoDB');
     assert.equal(await storageStatus(), 'MongoDB');
     assert.deepEqual(calls, ['connect', 'collection', 'collection', 'indexes']);
+    const saved: any = { id: 'old-account', revision: 0, state: { habits: [{ id: 'habit', title: 'Keep me' }] } };
+    t.mock.method(model, 'findOne', () => ({ lean: async () => structuredClone(saved) }));
+    t.mock.method(model, 'updateOne', async (filter: any, update: any) => {
+      assert.equal(filter.revision, saved.revision);
+      saved.state = update.$set.state;
+      saved.revision++;
+      return { modifiedCount: 1 };
+    });
+    assert.deepEqual((await findAccount(saved.id, true))?.state.days, {});
+    const date = '2026-10-12';
+    const state = await updateState(saved.id, state => {
+      state.days[date] = { date, tasks: [], updatedAt: '2026-10-12T10:00:00.000Z' };
+      state.versions.settings = 1;
+    });
+    assert.equal(state.days[date].date, date);
+    assert.deepEqual(saved.state.habits, [{ id: 'habit', title: 'Keep me' }]);
+    assert.equal(saved.state.versions.settings, 1);
   } finally {
     Reflect.set(mongoose.connection, 'readyState', 0);
     if (previousUri === undefined) delete process.env.MONGODB_URI;
     else process.env.MONGODB_URI = previousUri;
   }
+});
+
+test('new accounts retain empty sync objects and older accounts get missing fields', () => {
+  const empty = { days: {}, habits: [], recurring: [], settings: {}, versions: {} };
+  const document = new mongoose.models.Account({ state: empty }).toObject();
+  assert.deepEqual(document.state, empty);
+  assert.deepEqual(normalizeAccount({ state: undefined } as unknown as Account)?.state, empty);
+  assert.equal(normalizeAccount(null), null);
 });
