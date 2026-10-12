@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import mongoose, { Schema } from 'mongoose';
-import { connectToDatabase, isDbConnected } from '../src/db/mongodb.js';
+import { connectToDatabase, getDbLastError, isDbConnected } from '../src/db/mongodb.js';
 import type { DayRecord, HabitStreak, RecurringItem, User } from '../src/types';
 
 export interface Account extends User {
@@ -39,7 +39,7 @@ export const isServerless = () => !!(process.env.VERCEL || process.env.NETLIFY);
 async function useMongo(): Promise<boolean> {
   if (process.env.MONGODB_URI?.trim() && !process.env.MONGODB_URI.includes('<')) {
     await connectToDatabase();
-    if (!isDbConnected()) throw new Error('Database unavailable');
+    if (!isDbConnected()) throw new Error(`Database unavailable: ${getDbLastError() || 'connection not ready'}`);
     await AccountModel.init();
     return true;
   }

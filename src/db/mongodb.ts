@@ -36,6 +36,22 @@ export function getDbLastError(): string | null {
   return lastError;
 }
 
+// Fixed messages keep connection credentials out of server logs.
+export function describeDbFailure(err: any): string {
+  const details = `${err?.code || err?.cause?.code || ''} ${err?.message || ''}`.toLowerCase();
+  if (err?.code === 18 || /bad auth|authentication failed|authenticationfailed/.test(details))
+    return 'Authentication failed: check Atlas database username and password';
+  if (/enotfound|eai_again|querysrv|querytxt/.test(details))
+    return 'DNS lookup failed: check Atlas cluster hostname and DNS availability';
+  if (err?.name === 'MongoParseError' || /invalid connection string|invalid scheme|uri malformed/.test(details))
+    return 'Invalid MongoDB URI: check connection string and encode password special characters';
+  if (/tls|ssl|certificate/.test(details))
+    return 'TLS connection failed: check cluster TLS configuration';
+  if (/ServerSelectionError$/.test(err?.name || '') || /etimedout|econnrefused|econnreset/.test(details))
+    return 'Cluster unreachable: check Atlas Network Access, cluster status and connectivity';
+  return 'MongoDB connection failed: check cluster configuration';
+}
+
 export async function connectToDatabase(): Promise<typeof mongoose | null> {
   if (mongoose.connection.readyState === 1) {
     isConnected = true;
@@ -75,12 +91,9 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
     return await connectionPromise;
   } catch (err: any) {
     isConnected = false;
-    const msg = err?.message || 'Connection failed';
-    if (msg.includes('bad auth') || msg.includes('authentication failed')) {
+    lastError = describeDbFailure(err);
+    if (lastError.startsWith('Authentication failed:')) {
       authFailed = true;
-      lastError = 'MongoDB authentication invalid. Operating in persistent local file database mode.';
-    } else {
-      lastError = msg;
     }
     return null;
   } finally {
