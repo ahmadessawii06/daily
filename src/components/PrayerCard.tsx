@@ -20,7 +20,7 @@ const prayerVerses = [
 function PrayerVerseBadge() {
   // Choose once per completed card, so ordinary UI updates do not shuffle the message.
   const [verse] = useState(() => prayerVerses[Math.floor(Math.random() * prayerVerses.length)]);
-  return <p data-prayer-verse lang="ar" dir="rtl" className="mt-3 rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-center text-xs leading-6 text-emerald-900 dark:border-amber-200/15 dark:bg-amber-200/[0.06] dark:text-amber-100/90">{verse}</p>;
+  return <p data-prayer-verse lang="ar" dir="rtl" className="order-3 rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-center text-xs leading-6 text-emerald-900 dark:border-amber-200/15 dark:bg-amber-200/[0.06] dark:text-amber-100/90 md:order-4">{verse}</p>;
 }
 
 interface PrayerCardProps {
@@ -41,25 +41,23 @@ export function PrayerCard({ slots, lang, onAddPrayer, onStatusChange, onEdit, o
     : { done: 'Completed', pending: 'Remaining', 'not-done': 'Not done' };
   return (
     <article data-prayer-card aria-label={ar ? 'الصلوات الخمس' : 'Five daily prayers'} className="col-span-full min-w-0 overflow-hidden rounded-3xl border border-emerald-300/70 bg-linear-to-br from-emerald-50 via-white to-amber-50/60 p-4 shadow-xs dark:border-emerald-400/25 dark:from-[#102521] dark:via-[#111b1c] dark:to-[#202219] sm:p-5">
-      <div className="flex flex-wrap items-center justify-between gap-5">
-        <div className="flex min-w-0 items-center gap-3">
+      <div className="grid grid-cols-1 items-center gap-x-5 gap-y-3 md:grid-cols-[minmax(0,1fr)_20rem]">
+        <div data-prayer-heading className="order-1 flex min-w-0 items-center gap-3">
           <div aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-amber-300/50 bg-amber-100/70 text-amber-700 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-200"><MoonStar className="h-6 w-6" strokeWidth={1.6} /></div>
           <div><h3 className="text-base font-bold">{ar ? 'الصلوات الخمس' : 'Five daily prayers'}</h3><p className="mt-1 text-xs text-emerald-800/80 dark:text-emerald-100/60">{ar ? `${done} من 5 مكتملة · لحظات ثابتة في يومك` : `${done} of 5 complete · A steady daily rhythm`}</p></div>
         </div>
-        <div className="w-full min-w-0 sm:w-80">
-          <div data-prayer-stats role="group" aria-label={ar ? 'إحصائيات الصلوات' : 'Prayer statistics'} className="grid grid-cols-4 gap-3">
-            <StatCircle compact label={labels.done} value={done} percentage={done * 20} color="emerald" isActive={false} subLabel={`${done * 20}%`} />
-            <StatCircle compact label={labels.pending} value={pending} percentage={pending * 20} color="amber" isActive={false} subLabel={`${pending * 20}%`} />
-            <StatCircle compact label={labels['not-done']} value={notDone} percentage={notDone * 20} color="rose" isActive={false} subLabel={`${notDone * 20}%`} />
-            <StatCircle compact label={ar ? 'الإجمالي' : 'Total'} value={5} percentage={100} color="indigo" isActive={true} subLabel={ar ? 'صلوات' : 'prayers'} />
-          </div>
-          {done === 5 && <PrayerVerseBadge key={slots.map(slot => slot.task?.id).join(':')} />}
+        <div data-prayer-stats role="group" aria-label={ar ? 'إحصائيات الصلوات' : 'Prayer statistics'} className="order-2 grid grid-cols-4 gap-3">
+          <StatCircle compact label={labels.done} value={done} percentage={done * 20} color="emerald" isActive={false} subLabel={`${done * 20}%`} />
+          <StatCircle compact label={labels.pending} value={pending} percentage={pending * 20} color="amber" isActive={false} subLabel={`${pending * 20}%`} />
+          <StatCircle compact label={labels['not-done']} value={notDone} percentage={notDone * 20} color="rose" isActive={false} subLabel={`${notDone * 20}%`} />
+          <StatCircle compact label={ar ? 'الإجمالي' : 'Total'} value={5} percentage={100} color="indigo" isActive={true} subLabel={ar ? 'صلوات' : 'prayers'} />
         </div>
+        {done === 5 && <PrayerVerseBadge key={slots.map(slot => slot.task?.id).join(':')} />}
+        {done === 5 && <div data-prayer-completion role="status" className="order-4 flex w-full max-w-sm items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300 md:order-3">
+          <span className="inline-flex items-center gap-2"><CheckCheck aria-hidden="true" className="h-4 w-4 shrink-0" />{ar ? 'اكتملت كل المهام' : 'All tasks complete'}</span>
+          <span dir="ltr" className="tabular-nums">100%</span>
+        </div>}
       </div>
-      {done === 5 && <div data-prayer-completion role="status" className="mt-4 flex items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300">
-        <span className="inline-flex items-center gap-2"><CheckCheck aria-hidden="true" className="h-4 w-4 shrink-0" />{ar ? 'اكتملت كل المهام' : 'All tasks complete'}</span>
-        <span dir="ltr" className="tabular-nums">100%</span>
-      </div>}
       <div className="mt-5 grid grid-cols-2 gap-3 border-t border-emerald-200/60 pt-4 dark:border-emerald-100/10 lg:grid-cols-5">
         {slots.map(({ prayer, task }, index) => {
           const status = task?.status || 'pending';
