@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { CheckCheck, Moon, MoonStar, Pencil, Sun, SunMedium, Sunrise, Sunset, Trash2 } from 'lucide-react';
 import type { Language, Task, TaskStatus } from '../types';
 import type { DailyPrayer } from '../utils/prayerTasks';
@@ -20,7 +20,42 @@ const prayerVerses = [
 function PrayerVerseBadge() {
   // Choose once per completed card, so ordinary UI updates do not shuffle the message.
   const [verse] = useState(() => prayerVerses[Math.floor(Math.random() * prayerVerses.length)]);
-  return <p data-prayer-verse lang="ar" dir="rtl" className="order-3 rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-center text-xs leading-6 text-emerald-900 dark:border-amber-200/15 dark:bg-amber-200/[0.06] dark:text-amber-100/90 md:order-4">{verse}</p>;
+  const badgeRef = useRef<HTMLParagraphElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const badge = badgeRef.current;
+    const text = textRef.current;
+    if (!badge || !text) return;
+    let disposed = false;
+    const fitVerse = () => {
+      if (disposed) return;
+      const style = getComputedStyle(badge);
+      const availableWidth = badge.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      if (availableWidth <= 0) return;
+      // Measure the shaped Arabic text with the actual font, then shrink only when needed.
+      text.style.fontSize = '12px';
+      const naturalWidth = text.getBoundingClientRect().width;
+      if (naturalWidth <= availableWidth) return;
+      let size = 12 * (availableWidth - 1) / naturalWidth;
+      text.style.fontSize = `${size}px`;
+      const fittedWidth = text.getBoundingClientRect().width;
+      if (fittedWidth > availableWidth) {
+        size *= (availableWidth - 1) / fittedWidth;
+        text.style.fontSize = `${size}px`;
+      }
+    };
+    fitVerse();
+    const observer = new ResizeObserver(fitVerse);
+    observer.observe(badge);
+    void document.fonts.ready.then(fitVerse);
+    document.fonts.addEventListener('loadingdone', fitVerse);
+    return () => {
+      disposed = true;
+      observer.disconnect();
+      document.fonts.removeEventListener('loadingdone', fitVerse);
+    };
+  }, [verse]);
+  return <p ref={badgeRef} data-prayer-verse lang="ar" dir="rtl" className="order-3 min-w-0 rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-center text-xs leading-6 text-emerald-900 dark:border-amber-200/15 dark:bg-amber-200/[0.06] dark:text-amber-100/90 md:order-4"><span ref={textRef} className="inline-block whitespace-nowrap">{verse}</span></p>;
 }
 
 interface PrayerCardProps {

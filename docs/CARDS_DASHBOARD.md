@@ -12,6 +12,7 @@ This change adds a category-based daily workspace beside the existing timeline. 
 - Prayer times, authentication, archive, statistics, language, themes and image export remain available. Exports temporarily reveal collapsed card contents and then restore the layout.
 - A full-width prayer card shows exactly five prayer slots. It reuses matching daily tasks; an empty slot creates a completed, untimed task only when clicked. Extra worship tasks and duplicate prayer records remain in category cards. Scheduling an existing prayer updates its time without duplicating or resetting its status.
 - The prayer card appears first on every selected day, with independent daily completion, prayer labels and time-of-day icons. Completing all five reveals a compact 100% completion banner beneath the heading, aligned beside a randomly selected Quranic verse badge beneath the statistics circles. These stack on narrow screens. The verse stays stable during ordinary UI updates; changing a prayer back to incomplete hides both messages.
+- Verses remain complete on one line. Their font size fits the measured badge width and readjusts when the viewport or loaded font changes.
 
 ## Data and compatibility
 
