@@ -52,23 +52,18 @@
 
 <sub>Actual public live-demo preview. Click the image to open Mizan.</sub>
 
-<details>
-<summary><strong>☀️🌙 Explore the planner in light and dark themes</strong></summary>
-
 <table>
   <tr>
     <th width="50%">☀️ Light workspace</th>
     <th width="50%">🌙 Dark workspace</th>
   </tr>
   <tr>
-    <td><a href="docs/images/planner-light.png"><img src="docs/images/planner-light.png" width="420" alt="Mizan light theme: prayer times, 38 percent progress, and eight example tasks"></a></td>
-    <td><a href="docs/images/planner-dark.png"><img src="docs/images/planner-dark.png" width="420" alt="Mizan dark theme: the same prayer times, progress, and eight example tasks"></a></td>
+    <td><a href="https://daily-ten-rose.vercel.app/"><img src="docs/images/planner-light.png" width="420" alt="Mizan light theme: prayer times, 38 percent progress, and eight example tasks"></a></td>
+    <td><a href="https://daily-ten-rose.vercel.app/"><img src="docs/images/planner-dark.png" width="420" alt="Mizan dark theme: the same prayer times, progress, and eight example tasks"></a></td>
   </tr>
 </table>
 
-<sub>Actual captures of the running app with a local example account. Same day, same tasks, both themes. Click either image for full resolution.</sub>
-
-</details>
+<sub>Actual captures of the running app with a local example account. Same day, same tasks, both themes. Click any preview image to open the live demo.</sub>
 
 **[Explore the live demo →](https://daily-ten-rose.vercel.app/)** Create your own account to try the planner.
 
