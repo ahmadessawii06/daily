@@ -11,6 +11,7 @@ This change adds a category-based daily workspace beside the existing timeline. 
 - Timeline retains inline editing, completion states, filters, arbitrary start times, and the optional 24-hour template. Untimed tasks have a separate section.
 - Prayer times, authentication, archive, statistics, language, themes and image export remain available. Exports temporarily reveal collapsed card contents and then restore the layout.
 - A full-width prayer card shows exactly five prayer slots. It reuses matching daily tasks; an empty slot creates a completed, untimed task only when clicked. Extra worship tasks and duplicate prayer records remain in category cards. Scheduling an existing prayer updates its time without duplicating or resetting its status.
+- The prayer card appears first on every selected day, with independent daily completion, prayer labels and time-of-day icons. Completing all five reveals a Quranic verse alone; changing a prayer back to incomplete hides it.
 
 ## Data and compatibility
 
