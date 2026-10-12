@@ -8,6 +8,8 @@ import { formatTime12h } from '../utils/date';
 import { nextTaskStatus } from '../utils/taskStatus';
 import { CARD_ICONS, CategoryEditor } from './CategoryEditor';
 import { TaskStatusIndicator } from './TaskStatusIndicator';
+import { StatCircle } from './StatCircle';
+import { calculateStats } from '../utils/storage';
 
 interface CardsDashboardProps {
   tasks: Task[];
@@ -58,7 +60,8 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   const regionId = useId();
   const [title, setTitle] = useState('');
   const [notice, setNotice] = useState('');
-  const completed = tasks.filter(task => task.status === 'done').length;
+  const stats = calculateStats(tasks);
+  const completed = stats.done;
   const isComplete = tasks.length > 0 && completed === tasks.length;
   const visible = tasks.filter(task => filter === 'all' || filter === 'scheduled' || task.status === filter);
   const collapsed = Boolean(category.collapsed);
@@ -77,7 +80,12 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
         {onCustomize && <><button type="button" aria-label={ar ? `تخصيص ${name}` : `Customize ${name}`} onClick={onCustomize} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5"><MoreHorizontal className="h-4 w-4" /></button><button type="button" aria-label={ar ? (collapsed ? `توسيع ${name}` : `طي ${name}`) : (collapsed ? `Expand ${name}` : `Collapse ${name}`)} aria-expanded={!collapsed} aria-controls={regionId} onClick={() => updatePlannerCategory(category.id, { collapsed: !collapsed })} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5"><ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${collapsed ? '-rotate-90 rtl:rotate-90' : ''}`} /></button></>}
       </div>
       {isComplete && <div data-card-completion-banner role="status" className="mx-4 mb-3 flex items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300"><span className="inline-flex items-center gap-2"><CheckCheck aria-hidden="true" className="h-4 w-4 shrink-0" />{ar ? 'اكتملت كل المهام' : 'All tasks complete'}</span><span dir="ltr" className="tabular-nums">100%</span></div>}
-      {tasks.length > 0 && <div aria-hidden="true" className="mx-4 h-0.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/5"><div className="planner-card-progress h-full rounded-full transition-[width] duration-200 motion-reduce:transition-none" style={{ width: `${completed / tasks.length * 100}%` }} /></div>}
+      <div data-card-stats role="group" aria-label={ar ? `إحصائيات ${name}` : `${name} statistics`} className="mx-4 grid grid-cols-4 items-start gap-1 border-t border-slate-200/60 py-3 dark:border-white/[0.06]">
+        <StatCircle compact label={statusLabels.done} value={stats.done} percentage={stats.total ? stats.done / stats.total * 100 : 0} color="emerald" isActive={false} subLabel={`${stats.total ? Math.round(stats.done / stats.total * 100) : 0}%`} />
+        <StatCircle compact label={statusLabels.pending} value={stats.pending} percentage={stats.total ? stats.pending / stats.total * 100 : 0} color="amber" isActive={false} subLabel={`${stats.total ? Math.round(stats.pending / stats.total * 100) : 0}%`} />
+        <StatCircle compact label={statusLabels['not-done']} value={stats.notDone} percentage={stats.total ? stats.notDone / stats.total * 100 : 0} color="rose" isActive={false} subLabel={`${stats.total ? Math.round(stats.notDone / stats.total * 100) : 0}%`} />
+        <StatCircle compact label={ar ? 'الإجمالي' : 'Total'} value={stats.total} percentage={stats.total ? 100 : 0} color="indigo" isActive={true} subLabel={ar ? 'مهمة' : 'tasks'} />
+      </div>
       <div id={regionId} data-planner-card-content hidden={collapsed} className="p-3 pt-2">
         <div className="space-y-1">
           {visible.length === 0 && <p className="px-2 py-5 text-xs leading-6 text-slate-500 dark:text-zinc-400">{tasks.length ? (ar ? 'لا توجد مهام تطابق هذا الفلتر.' : 'No tasks match this filter.') : (ar ? 'ابدأ بمهمة صغيرة، وأكملها على إيقاعك.' : 'Start with something small. Make it your own.')}</p>}

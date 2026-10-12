@@ -34,7 +34,6 @@
     border-color: hsl(var(--card-hue) 35% 26%);
   }
 
-  .planner-card-progress,
   .planner-card-add {
     background-color: var(--card-accent);
   }
