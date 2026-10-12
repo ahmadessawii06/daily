@@ -1,74 +1,31 @@
-import { User } from '../types';
+import type { User } from '../types';
 
-const USER_CODE_STORAGE_KEY = 'mizan_user_code_v1';
-const USER_INFO_STORAGE_KEY = 'mizan_user_info_v1';
-
-// In-memory cache for restricted browsing environments
-let memoryUserCode: string | null = null;
-let memoryUser: User | null = null;
-
-export function getStoredUserCode(): string | null {
-  try {
-    if (typeof localStorage !== 'undefined') {
-      const code = localStorage.getItem(USER_CODE_STORAGE_KEY);
-      if (code && code.trim()) {
-        memoryUserCode = code.trim().toUpperCase();
-        return memoryUserCode;
-      }
-    }
-  } catch {}
-  return memoryUserCode;
-}
+const SESSION_KEY = 'mizan_session_v4';
+let memorySession: { user: User; token: string } | null = null;
 
 export function getStoredAuth(): { user: User | null; token: string | null } {
   try {
-    if (typeof localStorage !== 'undefined') {
-      const rawUser = localStorage.getItem(USER_INFO_STORAGE_KEY);
-      const code = localStorage.getItem(USER_CODE_STORAGE_KEY);
-      if (rawUser && code) {
-        const user = JSON.parse(rawUser);
-        if (user && user.userCode) {
-          memoryUser = user;
-          memoryUserCode = user.userCode;
-          return { user, token: user.userCode };
-        }
-      }
-    }
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (raw) {
+      const session = JSON.parse(raw);
+      if (session.user?.id && typeof session.token === 'string') memorySession = session;
+    } else memorySession = null;
   } catch {}
-
-  if (memoryUser) {
-    return { user: memoryUser, token: memoryUser.userCode };
-  }
-
-  return { user: null, token: null };
+  return memorySession || { user: null, token: null };
 }
 
-export function getAuthToken(): string | null {
-  return getStoredUserCode();
-}
+export function getAuthToken(): string | null { return getStoredAuth().token; }
+export function getStoredUserCode(): string | null { return getStoredAuth().user?.userCode || null; }
 
-export function saveStoredAuth(user: User, _token?: string): void {
-  memoryUser = user;
-  memoryUserCode = user.userCode;
-
-  try {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(USER_CODE_STORAGE_KEY, user.userCode.trim().toUpperCase());
-      localStorage.setItem(USER_INFO_STORAGE_KEY, JSON.stringify(user));
-    }
-  } catch {}
+export function saveStoredAuth(user: User, token: string): void {
+  memorySession = { user, token };
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(memorySession)); } catch {}
 }
 
 export function clearStoredAuth(): void {
-  memoryUser = null;
-  memoryUserCode = null;
-
+  memorySession = null;
   try {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(USER_CODE_STORAGE_KEY);
-      localStorage.removeItem(USER_INFO_STORAGE_KEY);
-      localStorage.removeItem('mizan_auth_user_v3');
-      localStorage.removeItem('mizan_auth_token_v3');
-    }
+    for (const key of [SESSION_KEY, 'mizan_user_code_v1', 'mizan_user_info_v1', 'mizan_auth_user_v3', 'mizan_auth_token_v3']) localStorage.removeItem(key);
   } catch {}
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('mizan:session-cleared'));
 }

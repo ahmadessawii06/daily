@@ -1,3 +1,5 @@
+import { userStorage } from './scopedStorage';
+import { enqueue } from '../services/syncQueue';
 import { PrayerLocationConfig, PrayerTimeItem, PrayerTimesDayResponse } from '../types';
 
 export interface CalculationMethodInfo {
@@ -130,7 +132,7 @@ export function getDefaultLocationConfig(): PrayerLocationConfig {
 
 export function getStoredLocationConfig(): PrayerLocationConfig {
   try {
-    const raw = localStorage.getItem(LOCATION_STORAGE_KEY);
+    const raw = userStorage.getItem(LOCATION_STORAGE_KEY);
     if (!raw) return getDefaultLocationConfig();
     const parsed = JSON.parse(raw);
     if (parsed && parsed.city && parsed.method) {
@@ -144,7 +146,8 @@ export function getStoredLocationConfig(): PrayerLocationConfig {
 
 export function saveStoredLocationConfig(config: PrayerLocationConfig): void {
   try {
-    localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(config));
+    userStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(config));
+    enqueue('settings', { prayerLocation: config });
   } catch (err) {
     console.error('Failed to save prayer location config:', err);
   }
@@ -183,7 +186,7 @@ export async function fetchOfficialPrayerTimes(
 
   // 1. Try Cache First
   try {
-    const cached = localStorage.getItem(cacheKey);
+    const cached = userStorage.getItem(cacheKey);
     if (cached) {
       const parsed = JSON.parse(cached) as PrayerTimesDayResponse;
       if (parsed && Array.isArray(parsed.prayers) && parsed.prayers.length === 5) {
@@ -252,7 +255,7 @@ export async function fetchOfficialPrayerTimes(
 
       // Save in cache
       try {
-        localStorage.setItem(cacheKey, JSON.stringify(result));
+        userStorage.setItem(cacheKey, JSON.stringify(result));
       } catch {
         // Cache save failure is non-fatal
       }

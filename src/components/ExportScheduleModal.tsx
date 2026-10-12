@@ -17,8 +17,8 @@ import {
   Columns2,
   List
 } from 'lucide-react';
-import { toPng, toBlob } from 'html-to-image';
-import { exportDailyTrackToImage, copyDailyTrackToClipboard } from '../utils/exportDailyTrack';
+
+
 import { DayStats, Language, Task } from '../types';
 import { formatHeaderDate, formatTime12h } from '../utils/date';
 
@@ -86,7 +86,7 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
   const handleDownload = async () => {
     try {
       setIsExporting(true);
-      await exportDailyTrackToImage({
+      await (await import('../utils/exportDailyTrack')).exportDailyTrackToImage({
         element: previewCardRef.current || document.getElementById('daily-track-container'),
         fileName: `Daily-Track-${date}.png`,
         theme: exportTheme === 'light' ? 'light' : 'dark',
@@ -103,7 +103,7 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
   const handleCopy = async () => {
     try {
       setIsExporting(true);
-      const success = await copyDailyTrackToClipboard({
+      const success = await (await import('../utils/exportDailyTrack')).copyDailyTrackToClipboard({
         element: previewCardRef.current || document.getElementById('daily-track-container'),
         theme: exportTheme === 'light' ? 'light' : 'dark',
       });

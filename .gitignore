@@ -6,3 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+data/accounts.json
+data/.session-secret
+data/*.tmp
+.test-data/

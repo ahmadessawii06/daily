@@ -23,7 +23,7 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId }) =>
   }, []);
 
   const handleManualSync = () => {
-    triggerSync(userId || 'active_user', true);
+    triggerSync(userId, true);
   };
 
   const getStatusDisplay = () => {
@@ -56,7 +56,7 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId }) =>
       case 'synced':
       default:
         return {
-          text: lang === 'ar' ? 'محفوظ سحابياً' : 'Saved',
+          text: lang === 'ar' ? 'تمت المزامنة' : 'Synced',
           icon: CloudCheck,
           color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
           iconClass: 'text-emerald-500',

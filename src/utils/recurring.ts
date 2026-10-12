@@ -1,7 +1,8 @@
 import { RecurringItem, RecurringFrequency, TaskCategory, TaskPriority } from '../types';
 import { autoDetectCategory } from './categories';
 import { getTodayDateString, parseDate } from './date';
-import { fetchRecurringFromDb, saveRecurringToDb } from '../services/api';
+import { userStorage } from './scopedStorage';
+import { enqueue } from '../services/syncQueue';
 
 const RECURRING_STORAGE_KEY = 'daily_life_recurring_items_v2';
 
@@ -104,13 +105,13 @@ export const INITIAL_RECURRING_ITEMS: RecurringItem[] = [
 
 export function loadStoredRecurringItems(): RecurringItem[] {
   try {
-    const raw = localStorage.getItem(RECURRING_STORAGE_KEY);
+    const raw = userStorage.getItem(RECURRING_STORAGE_KEY);
     if (!raw) {
-      localStorage.setItem(RECURRING_STORAGE_KEY, JSON.stringify(INITIAL_RECURRING_ITEMS));
+      userStorage.setItem(RECURRING_STORAGE_KEY, JSON.stringify(INITIAL_RECURRING_ITEMS));
       return INITIAL_RECURRING_ITEMS;
     }
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
+    if (Array.isArray(parsed)) {
       return parsed;
     }
     return INITIAL_RECURRING_ITEMS;
@@ -122,9 +123,9 @@ export function loadStoredRecurringItems(): RecurringItem[] {
 
 export function saveStoredRecurringItems(items: RecurringItem[]): void {
   try {
-    localStorage.setItem(RECURRING_STORAGE_KEY, JSON.stringify(items));
+    userStorage.setItem(RECURRING_STORAGE_KEY, JSON.stringify(items));
     // Background cloud sync
-    saveRecurringToDb(items).catch(() => {});
+    enqueue('recurring', items);
   } catch (err) {
     console.error('Error saving recurring items:', err);
   }

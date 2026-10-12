@@ -90,6 +90,13 @@ export async function connectToDatabase(): Promise<typeof mongoose | null> {
 
 // 1. Task Subschema
 export interface ITask {
+  endTime?: string;
+  duration?: number;
+  priority?: string;
+  deadline?: string;
+  isTopFocus?: boolean;
+  recurringTemplateId?: string;
+  createdAt?: string;
   id: string;
   time: string;
   title: string;
@@ -104,6 +111,13 @@ export interface ITask {
 const TaskSubSchema = new Schema<ITask>(
   {
     id: { type: String, required: true },
+    endTime: String,
+    duration: Number,
+    priority: { type: String, enum: ['high', 'medium', 'low'] },
+    deadline: String,
+    isTopFocus: Boolean,
+    recurringTemplateId: String,
+    createdAt: String,
     time: { type: String, default: '' },
     title: { type: String, default: '' },
     status: { type: String, enum: ['done', 'pending', 'not-done'], default: 'pending' },
@@ -118,6 +132,8 @@ const TaskSubSchema = new Schema<ITask>(
 
 // 2. Day Record Schema (Linked to userId)
 export interface IDayRecord extends Document {
+  dayNote?: string;
+  deletedTaskIds?: Record<string, string>;
   userId: string;
   date: string; // "YYYY-MM-DD"
   tasks: ITask[];
@@ -131,6 +147,8 @@ const DayRecordSchema = new Schema<IDayRecord>(
     date: { type: String, required: true, index: true },
     tasks: { type: [TaskSubSchema], default: [] },
     notes: { type: String, default: '' },
+    dayNote: String,
+    deletedTaskIds: { type: Schema.Types.Mixed, default: {} },
     updatedAt: { type: Date, default: Date.now },
   },
   { timestamps: true }

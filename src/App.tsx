@@ -13,12 +13,11 @@ import {
   getStoredTheme,
   setStoredTheme,
   apply24HourTemplate,
-  loadAllDays,
-  getStoredHabits,
-  saveAllDays,
 } from './utils/storage';
-import { checkDbHealth, fetchAllDaysFromDb, fetchDayFromDb, resetDatabaseToSaturday26 } from './services/api';
-import { enqueueDayUpdate, triggerSync } from './services/syncEngine';
+
+import { triggerSync } from './services/syncEngine';
+import { enqueue } from './services/syncQueue';
+import { userStorage } from './utils/scopedStorage';
 import { Language, StatusFilter, Task, TaskStatus, Theme, User } from './types';
 import { getStoredAuth, clearStoredAuth } from './utils/auth';
 import { LoginScreen } from './components/LoginScreen';
@@ -33,7 +32,7 @@ import { AddTaskModal } from './components/AddTaskModal';
 import { EditTaskModal } from './components/EditTaskModal';
 import { SettingsModal } from './components/SettingsModal';
 import { ExportScheduleModal } from './components/ExportScheduleModal';
-import { exportDailyTrackToImage } from './utils/exportDailyTrack';
+
 import { playAchievementSound, playFailureSound } from './utils/soundEffects';
 import { CheckCircle2 } from 'lucide-react';
 
@@ -63,9 +62,8 @@ export default function App() {
   // Archive days
   const [archiveDays, setArchiveDays] = useState(() => getAllArchiveDays());
 
-  // Apply theme to document element and persist in localStorage
+  // Apply the active account?s theme to the document.
   useEffect(() => {
-    setStoredTheme(theme);
     const root = document.documentElement;
     if (theme === 'dark') {
       root.classList.add('dark');
@@ -76,67 +74,40 @@ export default function App() {
     }
   }, [theme]);
 
-  // Initial MongoDB Atlas sync and health check on mount
   useEffect(() => {
-    async function initCloudSync() {
-      try {
-        const health = await checkDbHealth();
-        if (health.connected) {
-          const dbDays = await fetchAllDaysFromDb();
-          const hasOldData = Object.keys(dbDays).some((d) => d < '2026-09-26');
-          
-          const remoteSaturday = dbDays['2026-09-26'];
-          const remoteHasTasks = remoteSaturday && remoteSaturday.tasks && remoteSaturday.tasks.some((t: any) => t.title && t.title.trim() !== '');
+    if (!currentUser) return;
+    let disposed = false;
+    const refresh = () => {
+      if (disposed) return;
+      setTasks(getDayRecord(currentDate).tasks);
+      setArchiveDays(getAllArchiveDays());
+      setTheme(getStoredTheme());
+      setLang(userStorage.getItem('lang') === 'en' ? 'en' : 'ar');
+    };
+    refresh();
+    window.addEventListener('mizan:data-synced', refresh);
+    const syncOnFocus = () => { void triggerSync(currentUser.id, true); };
+    window.addEventListener('focus', syncOnFocus);
+    const interval = setInterval(syncOnFocus, 30000);
+    void triggerSync(currentUser.id, true);
+    return () => {
+      disposed = true;
+      clearInterval(interval);
+      window.removeEventListener('focus', syncOnFocus);
+      window.removeEventListener('mizan:data-synced', refresh);
+    };
+  }, [currentDate, currentUser?.id]);
 
-          if (hasOldData || !remoteHasTasks) {
-            // Force sync Saturday 26 schedule to MongoDB Atlas
-            const saturdayRec = getDayRecord('2026-09-26');
-            await resetDatabaseToSaturday26(saturdayRec, getStoredHabits());
-          } else {
-            const localDays = loadAllDays();
-            // Filter out any keys older than 2026-09-26
-            const cleanDbDays: Record<string, any> = {};
-            for (const [k, v] of Object.entries(dbDays)) {
-              if (k >= '2026-09-26') cleanDbDays[k] = v;
-            }
-            const merged = { ...localDays, ...cleanDbDays };
-            saveAllDays(merged);
-            const currentRec = getDayRecord(currentDate);
-            setTasks(currentRec.tasks);
-            setArchiveDays(getAllArchiveDays());
-          }
-        }
-      } catch (err) {
-        console.warn('Initial MongoDB sync warning:', err);
-      }
-    }
-
-    initCloudSync();
-  }, []);
-
-  // Load tasks on date or language change
   useEffect(() => {
-    const record = getDayRecord(currentDate);
-    setTasks(record.tasks);
     document.documentElement.setAttribute('lang', lang);
     document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+  }, [lang]);
 
-    // Also fetch latest from MongoDB in background
-    fetchDayFromDb(currentDate).then((remoteRecord) => {
-      if (remoteRecord && remoteRecord.tasks && remoteRecord.tasks.length > 0) {
-        const local = loadAllDays();
-        const currentLocal = local[currentDate];
-        const remoteHasContent = remoteRecord.tasks.some((t) => t.title && t.title.trim() !== '');
-        const localHasContent = currentLocal?.tasks?.some((t) => t.title && t.title.trim() !== '');
-
-        if (remoteHasContent || !localHasContent) {
-          local[currentDate] = remoteRecord;
-          saveAllDays(local);
-          setTasks(remoteRecord.tasks);
-        }
-      }
-    }).catch(() => {});
-  }, [currentDate, lang]);
+  useEffect(() => {
+    if (!currentUser) return;
+    setTheme(getStoredTheme());
+    setLang(userStorage.getItem('lang') === 'en' ? 'en' : 'ar');
+  }, [currentUser?.id]);
 
   const refreshArchive = useCallback(() => {
     setArchiveDays(getAllArchiveDays());
@@ -150,7 +121,7 @@ export default function App() {
   };
 
   const handleToggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    const next = theme === 'dark' ? 'light' : 'dark'; setStoredTheme(next); setTheme(next);
   };
 
   // Handlers
@@ -165,7 +136,6 @@ export default function App() {
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
     refreshArchive();
-    enqueueDayUpdate(currentDate, rec.tasks, rec.notes, currentUser?.id);
   };
 
   const handleAddTask = (taskInput: { title: string; time: string; status: TaskStatus; notes?: string }) => {
@@ -173,7 +143,6 @@ export default function App() {
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
     refreshArchive();
-    enqueueDayUpdate(currentDate, rec.tasks, rec.notes, currentUser?.id);
     showToast(lang === 'ar' ? 'تمت إضافة المهمة بنجاح' : 'Task added successfully');
   };
 
@@ -191,7 +160,6 @@ export default function App() {
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
     refreshArchive();
-    enqueueDayUpdate(currentDate, rec.tasks, rec.notes, currentUser?.id);
     showToast(lang === 'ar' ? 'تم حفظ التعديل' : 'Changes saved');
   };
 
@@ -200,7 +168,6 @@ export default function App() {
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
     refreshArchive();
-    enqueueDayUpdate(currentDate, rec.tasks, rec.notes, currentUser?.id);
     if (newTitle.trim()) {
       showToast(lang === 'ar' ? `تم تحديد: ${newTitle}` : `Saved: ${newTitle}`);
     }
@@ -210,7 +177,6 @@ export default function App() {
     const updatedTasks = apply24HourTemplate(currentDate, true);
     setTasks(updatedTasks);
     refreshArchive();
-    enqueueDayUpdate(currentDate, updatedTasks, getDayRecord(currentDate).notes, currentUser?.id);
     showToast(
       lang === 'ar' 
         ? 'تم تجهيز قالب الـ 24 ساعة لليوم بنجاح' 
@@ -223,7 +189,6 @@ export default function App() {
     const updated = tasks.filter((t) => t.id !== taskId);
     setTasks(updated);
     refreshArchive();
-    enqueueDayUpdate(currentDate, updated, getDayRecord(currentDate).notes, currentUser?.id);
     showToast(lang === 'ar' ? 'تم حذف المهمة' : 'Task deleted');
   };
 
@@ -235,8 +200,7 @@ export default function App() {
   };
 
   const handleQuickAddPrayer = (title: string, time: string) => {
-    const hourPrefix = time.split(':')[0] + ':00';
-    const targetSlot = tasks.find((t) => t.time === hourPrefix);
+    const targetSlot = tasks.find((t) => t.time === time && !t.title.trim());
 
     if (targetSlot) {
       handleUpdateTask(targetSlot.id, {
@@ -244,7 +208,7 @@ export default function App() {
         category: 'worship',
         status: targetSlot.status || 'pending',
       });
-      showToast(lang === 'ar' ? `تم إدراج ${title} في جدول الساعة ${hourPrefix}` : `Scheduled ${title} at ${hourPrefix}`);
+      showToast(lang === 'ar' ? `تم إدراج ${title} في الساعة ${time}` : `Scheduled ${title} at ${time}`);
     } else {
       handleAddTask({
         title,
@@ -255,17 +219,18 @@ export default function App() {
   };
 
   const handleToggleLang = () => {
-    setLang((prev) => (prev === 'ar' ? 'en' : 'ar'));
+    const next = lang === 'ar' ? 'en' : 'ar';
+    userStorage.setItem('lang', next);
+    enqueue('settings', { lang: next });
+    setLang(next);
   };
 
   const handleResetData = () => {
     resetToDefaults();
-    const rec = getDayRecord('2026-09-26');
-    setCurrentDate('2026-09-26');
+    const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
     refreshArchive();
-    resetDatabaseToSaturday26(rec, getStoredHabits()).catch(() => {});
-    showToast(lang === 'ar' ? 'تم تصفير البيانات والبدء من السبت 26 سبتمبر من الصفر' : 'Data reset to Saturday 26 from scratch');
+    showToast(lang === 'ar' ? 'تم مسح المهام وإعادة ضبط العادات لهذا الحساب' : 'Tasks cleared and habits reset for this account');
   };
 
   const stats = useMemo(() => calculateStats(tasks), [tasks]);
@@ -282,7 +247,7 @@ export default function App() {
           : '⏳ Exporting full Mizan schedule image...'
       );
       
-      await exportDailyTrackToImage({
+      await (await import('./utils/exportDailyTrack')).exportDailyTrackToImage({
         elementId: 'daily-track-container',
         fileName: `Mizan-Schedule-${currentDate}.png`,
         theme,
@@ -307,6 +272,14 @@ export default function App() {
 
   const handleLogout = () => {
     clearStoredAuth();
+    setTasks([]);
+    setArchiveDays([]);
+    setIsSettingsOpen(false);
+    setIsStatsModalOpen(false);
+    setIsArchiveModalOpen(false);
+    setIsAddTaskOpen(false);
+    setEditingTask(null);
+    setIsExportModalOpen(false);
     setCurrentUser(null);
     showToast(lang === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Logged out successfully');
   };
@@ -436,7 +409,8 @@ export default function App() {
         onResetData={handleResetData}
         onApply24HourTemplate={handleApply24HourTemplate}
         theme={theme}
-        onSetTheme={setTheme}
+        onSetTheme={(next) => { setStoredTheme(next); setTheme(next); }}
+        onSyncComplete={() => { setTasks(getDayRecord(currentDate).tasks); refreshArchive(); }}
       />
 
       {/* Export Schedule as Image Modal */}

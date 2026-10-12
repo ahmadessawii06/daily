@@ -51,6 +51,7 @@ export interface DayRecord {
   dayNote?: string;
   notes?: string;
   updatedAt: string;
+  deletedTaskIds?: Record<string, string>;
 }
 
 

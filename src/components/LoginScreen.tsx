@@ -59,7 +59,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     setSuccessMsg(null);
 
     const cleanUser = loginUsername.trim().toLowerCase();
-    const cleanPass = loginPassword.trim();
+    const cleanPass = loginPassword;
 
     if (!cleanUser) {
       setError(lang === 'ar' ? 'يرجى إدخال اسم المستخدم أو البريد الإلكتروني' : 'Please enter your username or email');
@@ -96,8 +96,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
     const cleanName = regName.trim();
     const cleanUser = regUsername.trim().toLowerCase();
-    const cleanPass = regPassword.trim();
-    const cleanConfirm = regConfirmPassword.trim();
+    const cleanPass = regPassword;
+    const cleanConfirm = regConfirmPassword;
     const cleanEmail = regEmail.trim().toLowerCase();
 
     if (!cleanName) {

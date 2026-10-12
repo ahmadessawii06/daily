@@ -27,7 +27,7 @@ import {
 import { Language, Task } from '../types';
 import { analyzeWeek, WeeklyAnalysisResult, CategoryStat } from '../utils/weeklyAnalytics';
 import { addDays, getTodayDateString, formatHeaderDate } from '../utils/date';
-import { toPng } from 'html-to-image';
+
 
 interface WeeklyReviewProps {
   lang: Language;
@@ -67,7 +67,7 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
     if (!reportRef.current) return;
     try {
       setIsExporting(true);
-      const dataUrl = await toPng(reportRef.current, {
+      const dataUrl = await (await import('html-to-image')).toPng(reportRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: '#090a0f',

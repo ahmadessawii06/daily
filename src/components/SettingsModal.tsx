@@ -14,7 +14,11 @@ import {
 } from 'lucide-react';
 import { Language, Theme } from '../types';
 import { checkDbHealth, migrateLocalDataToMongo } from '../services/api';
-import { getStoredHabits, loadAllDays } from '../utils/storage';
+import { getStoredHabits, loadAllDays, saveAllDays, saveHabits } from '../utils/storage';
+import { legacyBackup } from '../utils/scopedStorage';
+import { mergeDay } from '../shared/merge';
+import { enqueueDay } from '../services/syncQueue';
+import { saveStoredRecurringItems } from '../utils/recurring';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -58,7 +62,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         setDbStatus({
           connected: res.connected,
           checking: false,
-          database: res.database || 'MongoDB Atlas',
+          database: res.database,
           ipWhitelistNeeded: res.ipWhitelistNeeded,
         });
       });
@@ -75,8 +79,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       if (res.success) {
         setSyncResult(
           lang === 'ar'
-            ? `تمت المزامنة بنجاح وحفظ ${res.importedCount || 'جميع'} الأيام في MongoDB Atlas!`
-            : `Synced successfully! Saved to MongoDB Atlas.`
+            ? `تمت المزامنة بنجاح وحفظ ${res.importedCount || 0} أيام`
+            : `Synced successfully.`
         );
         if (onSyncComplete) onSyncComplete();
       } else {
@@ -87,6 +91,34 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     } finally {
       setIsSyncing(false);
     }
+  };
+
+  const handleLegacyImport = () => {
+    if (!window.confirm(lang === 'ar' ? 'هل البيانات القديمة في هذا المتصفح تخص هذا الحساب؟ سيتم دمجها معه.' : 'Do the old browser records belong to this account? They will be merged.')) return;
+    try {
+      const backup = legacyBackup();
+      const days = backup['daily_tasks_app_data_v8_saturday_schedule'] as ReturnType<typeof loadAllDays> | undefined;
+      if (!days || typeof days !== 'object' || Array.isArray(days)) throw new Error(lang === 'ar' ? 'لا توجد أيام قديمة قابلة للاستيراد' : 'No legacy days found');
+      const merged = loadAllDays();
+      for (const [date, record] of Object.entries(days)) {
+        if (!record || !Array.isArray(record.tasks)) continue;
+        merged[date] = mergeDay(merged[date], record);
+      }
+      saveAllDays(merged);
+      for (const day of Object.values(merged)) enqueueDay(day);
+      const habits = backup['daily_habits_v8_saturday_schedule'];
+      if (Array.isArray(habits)) saveHabits(habits);
+      const recurring = backup['daily_life_recurring_items_v2'];
+      if (Array.isArray(recurring)) saveStoredRecurringItems(recurring);
+      onSyncComplete?.();
+      setSyncResult(lang === 'ar' ? 'تم استيراد البيانات. النسخة القديمة بقيت محفوظة.' : 'Imported. The old copy is preserved.');
+    } catch (error) { setSyncResult((error as Error).message); }
+  };
+
+  const handleLegacyBackup = () => {
+    const url = URL.createObjectURL(new Blob([JSON.stringify(legacyBackup(), null, 2)], { type: 'application/json' }));
+    const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'mizan-legacy-backup.json'; anchor.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   if (!isOpen) return null;
@@ -124,7 +156,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-900 dark:text-white font-['Alexandria']">
-                      MongoDB Atlas Cloud
+                      {dbStatus.database || (lang === 'ar' ? 'التخزين والمزامنة' : 'Storage & Sync')}
                     </span>
                     <span
                       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold ${
@@ -134,11 +166,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       }`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full ${dbStatus.connected ? 'bg-[#10e588] animate-pulse' : 'bg-amber-500'}`} />
-                      <span>{dbStatus.connected ? (lang === 'ar' ? 'متصل' : 'Connected') : (lang === 'ar' ? 'جارٍ الاتصال...' : 'Connecting...')}</span>
+                      <span>{dbStatus.connected ? (lang === 'ar' ? 'متصل' : 'Connected') : (lang === 'ar' ? 'غير متصل' : 'Unavailable')}</span>
                     </span>
                   </div>
                   <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">
-                    {lang === 'ar' ? 'قاعدة بيانات سحابية متصلة ومزامنة تلقائياً' : 'Automated Cloud Database Sync'}
+                    {lang === 'ar' ? 'حفظ ومزامنة بيانات الحساب' : 'Account storage and sync'}
                   </p>
                 </div>
               </div>
@@ -152,30 +184,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#10e588] hover:bg-[#0fd07b] text-slate-950 font-bold text-xs rounded-xl transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-60 font-['Alexandria']"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                <span>{isSyncing ? (lang === 'ar' ? 'جارٍ المزامنة...' : 'Syncing...') : (lang === 'ar' ? 'مزامنة السحابة الآن' : 'Sync to MongoDB Now')}</span>
+                <span>{isSyncing ? (lang === 'ar' ? 'جارٍ المزامنة...' : 'Syncing...') : (lang === 'ar' ? 'مزامنة السحابة الآن' : 'Sync Now')}</span>
               </button>
 
               <span className="text-[10px] text-slate-400 dark:text-zinc-500">
-                {lang === 'ar' ? 'Cluster: cluster0.09l0tvf' : 'Atlas Cluster Active'}
+                {dbStatus.database || ''}
               </span>
             </div>
 
             {!dbStatus.connected && !dbStatus.checking && (
-              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-800 dark:text-amber-300 font-medium space-y-1">
-                <p className="font-bold font-['Alexandria']">
-                  {lang === 'ar' ? '💡 لتفعيل الاتصال السحابي المباشر:' : '💡 To activate direct MongoDB connection:'}
-                </p>
-                <p className="leading-relaxed text-[11px]">
-                  {lang === 'ar'
-                    ? 'في حساب MongoDB Atlas ⬅️ ادخل على Network Access ⬅️ اضغط Add IP Address ⬅️ واختر Allow Access from Anywhere (0.0.0.0/0).'
-                    : 'In MongoDB Atlas -> Network Access -> Add IP Address -> Select Allow Access from Anywhere (0.0.0.0/0).'}
-                </p>
-                <p className="text-[10px] text-slate-500 dark:text-zinc-400 pt-0.5">
-                  {lang === 'ar'
-                    ? '🛡️ ملاحظة: بياناتك وجدول يوم السبت محفوظة محلياً وتعمل بدقة كاملة حتى بدون اتصال السحابة.'
-                    : '🛡️ Note: All your schedule data is safely saved locally and fully functional.'}
-                </p>
-              </div>
+              <p className="p-2.5 rounded-xl bg-amber-500/10 text-xs text-amber-800 dark:text-amber-300">
+                {lang === 'ar' ? 'الاتصال بالخادم غير متاح. تعديلاتك المحلية ستبقى في انتظار المزامنة.' : 'The server is unavailable. Local edits will wait for sync.'}
+              </p>
             )}
 
             {syncResult && (
@@ -184,6 +204,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
             )}
           </div>
+
+          {Object.keys(legacyBackup()).length > 0 && (
+            <div className="p-3.5 rounded-2xl border border-amber-500/30 space-y-2 text-xs">
+              <p>{lang === 'ar' ? 'وجدنا بيانات من النسخة القديمة. يمكنك تنزيل نسخة أو استيرادها لهذا الحساب.' : 'Old browser data is available for backup or import into this account.'}</p>
+              <button type="button" onClick={handleLegacyBackup} className="px-3 py-2 rounded-xl bg-amber-500/15">{lang === 'ar' ? 'تنزيل نسخة' : 'Download backup'}</button>
+              <button type="button" onClick={handleLegacyImport} className="px-3 py-2 rounded-xl bg-emerald-500/15 ms-2">{lang === 'ar' ? 'استيراد لهذا الحساب' : 'Import into this account'}</button>
+            </div>
+          )}
 
           {/* Theme Selector (Dark / Light) */}
           <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.07] space-y-2.5">
@@ -290,10 +318,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
               <div>
                 <span className="text-xs font-bold text-slate-900 dark:text-zinc-100 block font-['Alexandria']">
-                  {lang === 'ar' ? 'تصفير شامل للبيانات' : 'Reset All Data'}
+                  {lang === 'ar' ? 'مسح المهام وإعادة ضبط العادات' : 'Reset Tasks & Habits'}
                 </span>
                 <span className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">
-                  {lang === 'ar' ? 'البدء من السبت 26 سبتمبر بنسبة 0%' : 'Start clean from Saturday 26 (0%)'}
+                  {lang === 'ar' ? 'مسح مهام هذا الحساب وإعادة ضبط العادات' : 'Clear this account’s tasks and reset habits'}
                 </span>
               </div>
             </div>
@@ -301,6 +329,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <button
               type="button"
               onClick={() => {
+                if (!window.confirm(lang === 'ar' ? 'هل تريد مسح مهام هذا الحساب وإعادة ضبط العادات؟' : 'Clear this account’s tasks and reset habits?')) return;
                 onResetData();
                 onClose();
               }}
@@ -314,7 +343,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         <div className="mt-5 pt-3 border-t border-slate-200 dark:border-white/[0.08] text-center">
           <p className="text-[11px] text-slate-500 dark:text-zinc-500 font-mono font-medium">
-            Daily • Powered by MongoDB Atlas
+            Daily • Mizan
           </p>
         </div>
 

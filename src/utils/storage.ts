@@ -3,37 +3,14 @@ import { DayRecord, DayStats, HabitStreak, PrayerTimeItem, Task, TaskCategory, T
 import { sortTasksByTime } from './date';
 import { autoDetectCategory } from './categories';
 import { SCHEDULE_TEMPLATES } from './templates';
-import { saveDayToDb, saveHabitsToDb } from '../services/api';
+import { userStorage } from './scopedStorage';
+import { enqueue, enqueueDay } from '../services/syncQueue';
+import { nextRecordTimestamp } from '../shared/merge';
 
 const STORAGE_KEY = 'daily_tasks_app_data_v8_saturday_schedule';
 const THEME_KEY = 'daily_theme_v1';
 const HABITS_KEY = 'daily_habits_v8_saturday_schedule';
 const PRAYER_TIMES_KEY = 'daily_fixed_prayer_times_v1';
-
-// One-time purge of old storage keys from previous versions
-try {
-  const oldKeys = [
-    'daily_tasks_app_data_v1',
-    'daily_tasks_app_data_v2',
-    'daily_tasks_app_data_v3',
-    'daily_tasks_app_data_v4',
-    'daily_tasks_app_data_v5',
-    'daily_tasks_app_data_v6_saturday26',
-    'daily_tasks_app_data_v7_saturday26_clean',
-    'daily_habits_v1',
-    'daily_habits_v2',
-    'daily_habits_v3',
-    'daily_habits_v4',
-    'daily_habits_v5',
-    'daily_habits_v6_saturday26',
-    'daily_habits_v7_saturday26_clean',
-  ];
-  for (const k of oldKeys) {
-    localStorage.removeItem(k);
-  }
-} catch {
-  // Ignore
-}
 
 export const DEFAULT_PRAYER_TIMES: PrayerTimeItem[] = [
   { id: 'fajr', nameAr: 'الفجر', nameEn: 'Fajr', time: '05:00' },
@@ -45,7 +22,7 @@ export const DEFAULT_PRAYER_TIMES: PrayerTimeItem[] = [
 
 export function getStoredPrayerTimes(): PrayerTimeItem[] {
   try {
-    const raw = localStorage.getItem(PRAYER_TIMES_KEY);
+    const raw = userStorage.getItem(PRAYER_TIMES_KEY);
     if (!raw) return DEFAULT_PRAYER_TIMES;
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length === 5) {
@@ -59,7 +36,8 @@ export function getStoredPrayerTimes(): PrayerTimeItem[] {
 
 export function saveStoredPrayerTimes(times: PrayerTimeItem[]): void {
   try {
-    localStorage.setItem(PRAYER_TIMES_KEY, JSON.stringify(times));
+    userStorage.setItem(PRAYER_TIMES_KEY, JSON.stringify(times));
+    enqueue('settings', { prayerTimes: times });
   } catch (err) {
     console.error('Error saving prayer times:', err);
   }
@@ -67,7 +45,7 @@ export function saveStoredPrayerTimes(times: PrayerTimeItem[]): void {
 
 export function getStoredTheme(): Theme {
   try {
-    const saved = localStorage.getItem(THEME_KEY);
+    const saved = userStorage.getItem(THEME_KEY);
     if (saved === 'light' || saved === 'dark') {
       return saved;
     }
@@ -79,7 +57,10 @@ export function getStoredTheme(): Theme {
 
 export function setStoredTheme(theme: Theme): void {
   try {
-    localStorage.setItem(THEME_KEY, theme);
+    if (userStorage.getItem(THEME_KEY) !== theme) {
+      userStorage.setItem(THEME_KEY, theme);
+      enqueue('settings', { theme });
+    }
   } catch {
     // Ignore storage errors
   }
@@ -134,9 +115,9 @@ export const INITIAL_HABITS: HabitStreak[] = [
 
 export function getStoredHabits(): HabitStreak[] {
   try {
-    const raw = localStorage.getItem(HABITS_KEY);
+    const raw = userStorage.getItem(HABITS_KEY);
     if (!raw) {
-      localStorage.setItem(HABITS_KEY, JSON.stringify(INITIAL_HABITS));
+      userStorage.setItem(HABITS_KEY, JSON.stringify(INITIAL_HABITS));
       return INITIAL_HABITS;
     }
     return JSON.parse(raw);
@@ -147,9 +128,9 @@ export function getStoredHabits(): HabitStreak[] {
 
 export function saveHabits(habits: HabitStreak[]): void {
   try {
-    localStorage.setItem(HABITS_KEY, JSON.stringify(habits));
+    userStorage.setItem(HABITS_KEY, JSON.stringify(habits));
     // Asynchronously sync to MongoDB Atlas
-    saveHabitsToDb(habits).catch((err) => console.warn('Cloud habits save failed:', err));
+    enqueue('habits', habits);
   } catch {
     // Ignore
   }
@@ -205,132 +186,38 @@ export function createEmpty24HourTasks(dateStr: string): Task[] {
   return tasks;
 }
 
-export const SATURDAY_26_TASKS: Task[] = [
-  { id: 'sat-26-00', time: '00:00', endTime: '01:00', duration: 60, title: 'نوم', status: 'pending', category: 'sleep', createdAt: '2026-09-26T00:00:00Z' },
-  { id: 'sat-26-01', time: '01:00', endTime: '02:00', duration: 60, title: 'نوم', status: 'pending', category: 'sleep', createdAt: '2026-09-26T01:00:00Z' },
-  { id: 'sat-26-02', time: '02:00', endTime: '03:00', duration: 60, title: 'نوم', status: 'pending', category: 'sleep', createdAt: '2026-09-26T02:00:00Z' },
-  { id: 'sat-26-03', time: '03:00', endTime: '04:00', duration: 60, title: 'نوم', status: 'pending', category: 'sleep', createdAt: '2026-09-26T03:00:00Z' },
-  { id: 'sat-26-04', time: '04:00', endTime: '05:00', duration: 60, title: 'نوم', status: 'pending', category: 'sleep', createdAt: '2026-09-26T04:00:00Z' },
-  { id: 'sat-26-05', time: '05:00', endTime: '06:00', duration: 60, title: 'صلاة الفجر', status: 'pending', category: 'worship', createdAt: '2026-09-26T05:00:00Z' },
-  { id: 'sat-26-06', time: '06:00', endTime: '07:00', duration: 60, title: 'الأذكار + الورد اليومي', status: 'pending', category: 'worship', createdAt: '2026-09-26T06:00:00Z' },
-  { id: 'sat-26-07', time: '07:00', endTime: '08:00', duration: 60, title: 'التجهيز للدوام', status: 'pending', category: 'health', createdAt: '2026-09-26T07:00:00Z' },
-  { id: 'sat-26-08', time: '08:00', endTime: '09:00', duration: 60, title: 'محاضرة 1', status: 'pending', category: 'study', createdAt: '2026-09-26T08:00:00Z' },
-  { id: 'sat-26-09', time: '09:00', endTime: '10:00', duration: 60, title: 'محاضرة 1', status: 'pending', category: 'study', createdAt: '2026-09-26T09:00:00Z' },
-  { id: 'sat-26-10', time: '10:00', endTime: '11:00', duration: 60, title: 'محاضرة 2', status: 'pending', category: 'study', createdAt: '2026-09-26T10:00:00Z' },
-  { id: 'sat-26-11', time: '11:00', endTime: '12:00', duration: 60, title: 'محاضرة 3', status: 'pending', category: 'study', createdAt: '2026-09-26T11:00:00Z' },
-  { id: 'sat-26-12', time: '12:00', endTime: '13:00', duration: 60, title: 'محاضرة 4 + صلاة الظهر', status: 'pending', category: 'study', createdAt: '2026-09-26T12:00:00Z' },
-  { id: 'sat-26-13', time: '13:00', endTime: '14:00', duration: 60, title: 'محاضرة 5', status: 'pending', category: 'study', createdAt: '2026-09-26T13:00:00Z' },
-  { id: 'sat-26-14', time: '14:00', endTime: '15:00', duration: 60, title: 'محاضرة 6', status: 'pending', category: 'study', createdAt: '2026-09-26T14:00:00Z' },
-  { id: 'sat-26-15', time: '15:00', endTime: '16:00', duration: 60, title: 'فطور + صلاة العصر', status: 'pending', category: 'health', createdAt: '2026-09-26T15:00:00Z' },
-  { id: 'sat-26-16', time: '16:00', endTime: '17:00', duration: 60, title: 'بريك', status: 'pending', category: 'rest', createdAt: '2026-09-26T16:00:00Z' },
-  { id: 'sat-26-17', time: '17:00', endTime: '18:00', duration: 60, title: 'مواصلات', status: 'pending', category: 'general', createdAt: '2026-09-26T17:00:00Z' },
-  { id: 'sat-26-18', time: '18:00', endTime: '19:00', duration: 60, title: 'دراسة محاضرة استرجاع + صلاة المغرب', status: 'pending', category: 'study', createdAt: '2026-09-26T18:00:00Z' },
-  { id: 'sat-26-19', time: '19:00', endTime: '20:00', duration: 60, title: 'دراسة محاضرة استرجاع + صلاة العشاء', status: 'pending', category: 'study', createdAt: '2026-09-26T19:00:00Z' },
-  { id: 'sat-26-20', time: '20:00', endTime: '21:00', duration: 60, title: 'بريك ماينكرافت لايف 1', status: 'pending', category: 'rest', createdAt: '2026-09-26T20:00:00Z' },
-  { id: 'sat-26-21', time: '21:00', endTime: '22:00', duration: 60, title: 'بريك ماينكرافت لايف 2', status: 'pending', category: 'rest', createdAt: '2026-09-26T21:00:00Z' },
-  { id: 'sat-26-22', time: '22:00', endTime: '23:00', duration: 60, title: 'فقرة الأدعية', status: 'pending', category: 'worship', createdAt: '2026-09-26T22:00:00Z' },
-  { id: 'sat-26-23', time: '23:00', endTime: '00:00', duration: 60, title: 'نوم', status: 'pending', category: 'sleep', createdAt: '2026-09-26T23:00:00Z' },
-];
-
-// Saturday 2026-09-26 seeded with your university and daily schedule
-export const INITIAL_SEED_DATA: Record<string, DayRecord> = {
-  '2026-09-26': {
-    date: '2026-09-26',
-    updatedAt: new Date().toISOString(),
-    dayNote: 'جدول دوام السبت ومحاضرات الجامعة',
-    tasks: SATURDAY_26_TASKS,
-  },
-};
-
 export function loadAllDays(): Record<string, DayRecord> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    let parsed: Record<string, DayRecord>;
-    if (!raw) {
-      parsed = JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-    } else {
-      parsed = JSON.parse(raw);
-    }
-    if (!parsed || typeof parsed !== 'object' || Object.keys(parsed).length === 0) {
-      parsed = JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-    }
-
-    // Ensure every day has exactly 24 hourly slots (00:00 to 23:00) without gaps
-    for (const key of Object.keys(parsed)) {
-      if (!parsed[key]) parsed[key] = { date: key, tasks: [], updatedAt: new Date().toISOString() };
-      const existingTasks = parsed[key].tasks || [];
-      
-      const hourlyTasks: Task[] = [];
-      for (let h = 0; h < 24; h++) {
-        const timeStr = `${String(h).padStart(2, '0')}:00`;
-        const endHour = (h + 1) % 24;
-        const endTimeStr = `${String(endHour).padStart(2, '0')}:00`;
-
-        const matches = existingTasks.filter(t => t.time && (t.time === timeStr || t.time.startsWith(`${String(h).padStart(2, '0')}:`)));
-        const bestMatch = matches.find(t => t.title && t.title.trim() !== '') || matches[0];
-
-        if (bestMatch) {
-          hourlyTasks.push({
-            ...bestMatch,
-            time: timeStr,
-            endTime: endTimeStr,
-            duration: 60,
-          });
-        } else {
-          hourlyTasks.push({
-            id: `t-${key}-${timeStr}-${Math.random().toString(36).substr(2, 5)}`,
-            time: timeStr,
-            endTime: endTimeStr,
-            duration: 60,
-            title: '',
-            status: 'pending',
-            category: h < 6 || h >= 23 ? 'sleep' : 'general',
-            createdAt: new Date().toISOString(),
-          });
-        }
-      }
-      parsed[key].tasks = sortTasksByTime(hourlyTasks);
-    }
-    return parsed;
+    const raw = userStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
   } catch (err) {
-    console.error('Error loading data from localStorage:', err);
-    return JSON.parse(JSON.stringify(INITIAL_SEED_DATA));
+    console.error('Error loading saved days:', err);
+    return {};
   }
 }
 
 export function saveAllDays(days: Record<string, DayRecord>): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(days));
+    userStorage.setItem(STORAGE_KEY, JSON.stringify(days));
   } catch (err) {
     console.error('Error saving data to localStorage:', err);
   }
 }
 
 export function syncDayToMongo(date: string): void {
-  try {
-    const all = loadAllDays();
-    const rec = all[date];
-    if (rec) {
-      saveDayToDb(date, rec.tasks, rec.notes || rec.dayNote).catch((e) =>
-        console.warn('Cloud day sync failed:', e)
-      );
-    }
-  } catch {
-    // Ignore
-  }
+  const record = loadAllDays()[date];
+  if (record) enqueueDay(record);
 }
 
 export function getDayRecord(date: string): DayRecord {
   const all = loadAllDays();
-  if (all[date] && all[date].tasks && all[date].tasks.length >= 24) {
-    return all[date];
-  }
-  
-  // Default to 24-hour template tasks for new days
-  apply24HourTemplate(date, false);
-  return loadAllDays()[date];
+  if (all[date] && Array.isArray(all[date].tasks)) return all[date];
+  const record: DayRecord = { date, tasks: createEmpty24HourTasks(date), updatedAt: new Date().toISOString() };
+  all[date] = record;
+  saveAllDays(all);
+  return record;
 }
 
 export function applyTemplateToDay(date: string, templateId: string): Task[] {
@@ -355,6 +242,7 @@ export function applyTemplateToDay(date: string, templateId: string): Task[] {
     tasks: newTasks,
     dayNote: `${template.nameAr} - ${date}`,
     updatedAt: now,
+    deletedTaskIds: { ...all[date]?.deletedTaskIds, ...Object.fromEntries((all[date]?.tasks || []).map(t => [t.id, now])) },
   };
 
   all[date] = updatedRecord;
@@ -411,14 +299,14 @@ export function addTaskToDay(
     isTopFocus: taskInput.isTopFocus,
     recurringTemplateId: taskInput.recurringTemplateId,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    updatedAt: nextRecordTimestamp(currentRecord),
   };
 
   const updatedTasks = sortTasksByTime([...currentRecord.tasks, newTask]);
   all[date] = {
     ...currentRecord,
     tasks: updatedTasks,
-    updatedAt: new Date().toISOString(),
+    updatedAt: newTask.updatedAt!,
   };
   saveAllDays(all);
   syncDayToMongo(date);
@@ -438,7 +326,7 @@ export function updateTaskInDay(date: string, taskId: string, updates: Partial<T
   const merged: Task = {
     ...existing,
     ...updates,
-    updatedAt: new Date().toISOString(),
+    updatedAt: nextRecordTimestamp(record),
   };
 
   // Recalculate duration if time or endTime changed
@@ -462,7 +350,7 @@ export function updateTaskInDay(date: string, taskId: string, updates: Partial<T
   newTasks[taskIndex] = merged;
 
   record.tasks = sortTasksByTime(newTasks);
-  record.updatedAt = new Date().toISOString();
+  record.updatedAt = merged.updatedAt!;
   all[date] = record;
   saveAllDays(all);
   syncDayToMongo(date);
@@ -475,7 +363,9 @@ export function deleteTaskFromDay(date: string, taskId: string): Task | null {
 
   const deletedTask = record.tasks.find((t) => t.id === taskId) || null;
   record.tasks = record.tasks.filter((t) => t.id !== taskId);
-  record.updatedAt = new Date().toISOString();
+  const deletedAt = nextRecordTimestamp(record);
+  record.deletedTaskIds = { ...record.deletedTaskIds, [taskId]: deletedAt };
+  record.updatedAt = deletedAt;
   all[date] = record;
   saveAllDays(all);
   syncDayToMongo(date);
@@ -485,8 +375,9 @@ export function deleteTaskFromDay(date: string, taskId: string): Task | null {
 export function restoreTaskToDay(date: string, task: Task): void {
   const all = loadAllDays();
   const record = all[date] || { date, tasks: [], updatedAt: new Date().toISOString() };
-  record.tasks = sortTasksByTime([...record.tasks, task]);
-  record.updatedAt = new Date().toISOString();
+  const restoredAt = nextRecordTimestamp(record);
+  record.tasks = sortTasksByTime([...record.tasks.filter(t => t.id !== task.id), { ...task, updatedAt: restoredAt }]);
+  record.updatedAt = restoredAt;
   all[date] = record;
   saveAllDays(all);
   syncDayToMongo(date);
@@ -572,39 +463,28 @@ export function getAllArchiveDays(): DayRecord[] {
 }
 
 export function resetToDefaults(): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_SEED_DATA));
-  localStorage.setItem(HABITS_KEY, JSON.stringify(INITIAL_HABITS));
+  const days = loadAllDays();
+  for (const record of Object.values(days)) {
+    const now = nextRecordTimestamp(record);
+    record.deletedTaskIds = { ...record.deletedTaskIds, ...Object.fromEntries(record.tasks.map(t => [t.id, now])) };
+    record.tasks = [];
+    record.notes = '';
+    record.dayNote = '';
+    record.updatedAt = now;
+  }
+  saveAllDays(days);
+  for (const record of Object.values(days)) enqueueDay(record);
+  saveHabits(structuredClone(INITIAL_HABITS));
 }
 
-export function apply24HourTemplate(dateStr: string, force = false): Task[] {
+// Fill missing slots without changing existing tasks, times or durations.
+export function apply24HourTemplate(dateStr: string, _force = false): Task[] {
   const all = loadAllDays();
   const record = all[dateStr] || { date: dateStr, tasks: [], updatedAt: new Date().toISOString() };
-  
-  const tasks: Task[] = [];
-  for (let h = 0; h < 24; h++) {
-    const timeStr = `${String(h).padStart(2, '0')}:00`;
-    const endHour = (h + 1) % 24;
-    const endTimeStr = `${String(endHour).padStart(2, '0')}:00`;
-    
-    const existing = record.tasks.find(t => t.time === timeStr);
-    if (existing && !force) {
-      tasks.push(existing);
-    } else {
-      tasks.push({
-        id: `t-${dateStr}-${timeStr}-${Math.random().toString(36).substr(2, 5)}`,
-        time: timeStr,
-        endTime: endTimeStr,
-        duration: 60,
-        title: existing?.title || '',
-        status: existing?.status || 'pending',
-        category: existing?.category || (h < 6 || h >= 23 ? 'sleep' : 'general'),
-        createdAt: new Date().toISOString(),
-      });
-    }
-  }
-
-  record.tasks = sortTasksByTime(tasks);
-  record.updatedAt = new Date().toISOString();
+  const changedAt = nextRecordTimestamp(record);
+  const missing = createEmpty24HourTasks(dateStr).filter(slot => !record.tasks.some(t => t.time === slot.time)).map(slot => ({ ...slot, updatedAt: changedAt }));
+  record.tasks = sortTasksByTime([...record.tasks, ...missing]);
+  record.updatedAt = changedAt;
   all[dateStr] = record;
   saveAllDays(all);
   syncDayToMongo(dateStr);

@@ -1,219 +1,108 @@
-import { DayRecord, HabitStreak, Task } from '../types';
-import { getAuthToken } from '../utils/auth';
-import { loadAllDays, saveAllDays, getDayRecord } from '../utils/storage';
-
+import type { DayRecord } from '../types';
+import { getStoredAuth } from '../utils/auth';
+import { loadAllDays, saveAllDays } from '../utils/storage';
+import { userStorage } from '../utils/scopedStorage';
+import { mergeDay } from '../shared/merge';
+import { requestApi } from './api';
+import { getQueue, saveQueue } from './syncQueue';
+export { getQueue, saveQueue } from './syncQueue';
 export type SyncState = 'synced' | 'syncing' | 'saving' | 'offline' | 'error';
+export interface SyncStatusInfo { status: SyncState; pendingCount: number; lastSyncedAt: string | null; errorMessage?: string; }
 
-export interface SyncStatusInfo {
-  status: SyncState;
-  pendingCount: number;
-  lastSyncedAt: string | null;
-  errorMessage?: string;
-}
-
-export interface QueueItem {
-  id: string;
-  type: 'day' | 'habits' | 'settings';
-  date?: string;
-  data: any;
-  clientTimestamp: number;
-}
-
-let currentStatus: SyncState = navigator.onLine ? 'synced' : 'offline';
-let lastSyncedTime: string | null = null;
-let lastError: string | undefined = undefined;
+let status: SyncState = 'saving';
+let lastSyncedAt: string | null = null;
+let errorMessage: string | undefined;
+let timer: ReturnType<typeof setTimeout> | undefined;
+let retryTimer: ReturnType<typeof setTimeout> | undefined;
+let inFlight: Promise<boolean> | null = null;
+let inFlightUser: string | undefined;
 const listeners = new Set<(info: SyncStatusInfo) => void>();
-
-function notifyListeners() {
-  const pending = getQueue().length;
-  const info: SyncStatusInfo = {
-    status: currentStatus,
-    pendingCount: pending,
-    lastSyncedAt: lastSyncedTime,
-    errorMessage: lastError,
-  };
-  listeners.forEach((fn) => fn(info));
-}
-
+function notify() { listeners.forEach(fn => fn({ status, pendingCount: getQueue().length, lastSyncedAt, errorMessage })); }
 export function subscribeToSyncStatus(listener: (info: SyncStatusInfo) => void): () => void {
-  listeners.add(listener);
-  notifyListeners();
-  return () => {
-    listeners.delete(listener);
-  };
+  listeners.add(listener); notify(); return () => { listeners.delete(listener); };
 }
 
-function getQueueKey(userId = 'active_user'): string {
-  return `mizan_sync_queue_${userId}`;
+function active(userId: string, token: string): boolean {
+  const session = getStoredAuth();
+  return session.user?.id === userId && session.token === token;
 }
 
-export function getQueue(userId = 'active_user'): QueueItem[] {
+async function sync(userId: string, token: string): Promise<boolean> {
+  status = 'syncing'; errorMessage = undefined; notify();
+  const sent = getQueue(userId);
   try {
-    const raw = localStorage.getItem(getQueueKey(userId));
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
-    }
-  } catch {
-    // ignore
-  }
-  return [];
-}
-
-export function saveQueue(queue: QueueItem[], userId = 'active_user'): void {
-  try {
-    localStorage.setItem(getQueueKey(userId), JSON.stringify(queue));
-    notifyListeners();
-  } catch {
-    // ignore
-  }
-}
-
-export function enqueueDayUpdate(date: string, tasks: Task[], notes = '', userId = 'active_user'): void {
-  const queue = getQueue(userId);
-  const existingIdx = queue.findIndex((item) => item.type === 'day' && item.date === date);
-
-  const newItem: QueueItem = {
-    id: `queue_${date}_${Date.now()}`,
-    type: 'day',
-    date,
-    data: { tasks, notes, clientUpdatedAt: new Date().toISOString() },
-    clientTimestamp: Date.now(),
-  };
-
-  if (existingIdx >= 0) {
-    queue[existingIdx] = newItem;
-  } else {
-    queue.push(newItem);
-  }
-
-  saveQueue(queue, userId);
-  triggerSync(userId);
-}
-
-let syncTimeout: any = null;
-let isSyncing = false;
-
-export async function triggerSync(userId = 'active_user', force = false): Promise<void> {
-  if (!navigator.onLine) {
-    currentStatus = 'offline';
-    notifyListeners();
-    return;
-  }
-
-  const token = getAuthToken();
-  if (!token) {
-    currentStatus = 'offline';
-    notifyListeners();
-    return;
-  }
-
-  if (syncTimeout) clearTimeout(syncTimeout);
-
-  syncTimeout = setTimeout(async () => {
-    if (isSyncing) return;
-    isSyncing = true;
-    currentStatus = 'syncing';
-    notifyListeners();
-
-    try {
-      const queue = getQueue(userId);
-      const daysPayload: Record<string, any> = {};
-
-      for (const item of queue) {
-        if (item.type === 'day' && item.date) {
-          daysPayload[item.date] = item.data;
-        }
+    const body: any = { days: {}, versions: {} };
+    for (const item of sent) {
+      if (item.type === 'day') body.days[item.date!] = item.data;
+      else {
+        body[item.type] = item.data;
+        body.versions[item.type] = item.clientTimestamp;
       }
-
-      // If queue is empty, still perform a heartbeat sync
-      const res = await fetch('/api/sync/batch', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ days: daysPayload }),
-      });
-
-      if (res.ok) {
-        const result = await res.json();
-        if (result.success && result.days) {
-          // Merge server days into local days using Conflict Resolution
-          resolveAndMergeDays(result.days);
-        }
-
-        // Clear processed queue
-        saveQueue([], userId);
-        currentStatus = 'synced';
-        lastSyncedTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        lastError = undefined;
-      } else if (res.status === 401) {
-        currentStatus = 'error';
-        lastError = 'انتهت الجلسة';
-      } else {
-        currentStatus = 'error';
-        lastError = 'تعذر الاتصال بالخادم';
-      }
-    } catch (err: any) {
-      currentStatus = navigator.onLine ? 'error' : 'offline';
-      lastError = err.message || 'خطأ في الشبكة';
-    } finally {
-      isSyncing = false;
-      notifyListeners();
     }
-  }, force ? 0 : 350);
+    const result = await requestApi('/sync/batch', body);
+    if (!result.success || !result.days) throw new Error('استجابة المزامنة غير صالحة');
+    if (!active(userId, token)) return false;
+    const acknowledged = new Set(sent.map(item => item.id));
+    // Edits made during the request have different IDs and stay queued.
+    const pending = getQueue(userId).filter(item => !acknowledged.has(item.id));
+    saveQueue(pending, userId);
+    const local = loadAllDays();
+    for (const [date, record] of Object.entries(result.days as Record<string, DayRecord>)) local[date] = mergeDay(local[date], record);
+    saveAllDays(local);
+    userStorage.setItem('sync_versions', JSON.stringify(result.versions || {}));
+    const keys = { habits: 'daily_habits_v8_saturday_schedule', recurring: 'daily_life_recurring_items_v2' };
+    for (const key of ['habits', 'recurring'] as const) {
+      if (!pending.some(item => item.type === key) && result.versions?.[key]) userStorage.setItem(keys[key], JSON.stringify(result[key]));
+    }
+    if (!pending.some(item => item.type === 'settings')) {
+      const settings = result.settings || {};
+      if (settings.theme) userStorage.setItem('daily_theme_v1', settings.theme);
+      if (settings.lang) userStorage.setItem('lang', settings.lang);
+      if (settings.prayerTimes) userStorage.setItem('daily_fixed_prayer_times_v1', JSON.stringify(settings.prayerTimes));
+      if (settings.prayerLocation) userStorage.setItem('daily_prayer_location_config_v3', JSON.stringify(settings.prayerLocation));
+    }
+    status = pending.length ? 'saving' : 'synced';
+    lastSyncedAt = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    window.dispatchEvent(new Event('mizan:data-synced'));
+    return true;
+  } catch (err) {
+    if (active(userId, token)) {
+      status = navigator.onLine ? 'error' : 'offline'; errorMessage = (err as Error).message;
+      retryTimer = setTimeout(() => { if (active(userId, token)) void triggerSync(userId, true); }, 15000);
+    }
+    return false;
+  } finally { if (active(userId, token)) notify(); }
 }
 
-// Conflict Resolution: Merges server records with local records preserving task integrity
-function resolveAndMergeDays(serverDays: Record<string, DayRecord>) {
-  const localDays = loadAllDays();
-  const merged: Record<string, DayRecord> = { ...localDays };
-
-  for (const [date, serverRec] of Object.entries(serverDays)) {
-    const localRec = localDays[date];
-
-    if (!localRec) {
-      merged[date] = serverRec;
-      continue;
-    }
-
-    const serverTime = new Date(serverRec.updatedAt || 0).getTime();
-    const localTime = new Date(localRec.updatedAt || 0).getTime();
-
-    // If server is strictly newer, check if we need task-level reconciliation
-    if (serverTime > localTime) {
-      // Merge tasks array by ID
-      const taskMap = new Map<string, Task>();
-      (serverRec.tasks || []).forEach((t) => taskMap.set(t.id, t));
-
-      // Check if any local tasks have pending changes not yet on server
-      (localRec.tasks || []).forEach((lt) => {
-        if (!taskMap.has(lt.id)) {
-          taskMap.set(lt.id, lt);
-        }
-      });
-
-      merged[date] = {
-        ...serverRec,
-        tasks: Array.from(taskMap.values()),
-      };
-    }
+export async function triggerSync(userId = getStoredAuth().user?.id, force = false): Promise<boolean> {
+  if (timer) clearTimeout(timer);
+  if (retryTimer) clearTimeout(retryTimer);
+  const session = getStoredAuth();
+  if (!userId || userId !== session.user?.id || !session.token) return false;
+  if (!navigator.onLine) { status = 'offline'; notify(); return false; }
+  if (!force) {
+    status = 'saving'; notify();
+    timer = setTimeout(() => { void triggerSync(userId, true); }, 350);
+    return false;
   }
-
-  saveAllDays(merged);
+  if (inFlight) {
+    if (inFlightUser === userId) return inFlight;
+    await inFlight;
+    if (!active(userId, session.token)) return false;
+  }
+  inFlightUser = userId;
+  inFlight = sync(userId, session.token);
+  const success = await inFlight;
+  inFlight = null; inFlightUser = undefined;
+  if (success && active(userId, session.token) && getQueue(userId).length) void triggerSync(userId);
+  return success;
 }
 
-// Online/Offline listeners
 if (typeof window !== 'undefined') {
-  window.addEventListener('online', () => {
-    currentStatus = 'syncing';
-    notifyListeners();
-    triggerSync('active_user', true);
-  });
-
-  window.addEventListener('offline', () => {
-    currentStatus = 'offline';
-    notifyListeners();
+  window.addEventListener('mizan:queue-changed', () => { void triggerSync(); });
+  window.addEventListener('online', () => { void triggerSync(undefined, true); });
+  window.addEventListener('offline', () => { status = 'offline'; notify(); });
+  window.addEventListener('mizan:session-cleared', () => {
+    clearTimeout(timer); clearTimeout(retryTimer); status = 'saving'; lastSyncedAt = null; errorMessage = undefined; notify();
   });
 }

@@ -51,6 +51,16 @@ export const PrayerTimesWidget: React.FC<PrayerTimesWidgetProps> = ({
   const [customCountryInput, setCustomCountryInput] = useState<string>('');
   const [selectedMethod, setSelectedMethod] = useState<number>(locationConfig.method);
 
+  useEffect(() => {
+    const refresh = () => {
+      const saved = getStoredLocationConfig();
+      setLocationConfig(previous => JSON.stringify(previous) === JSON.stringify(saved) ? previous : saved);
+      setSelectedMethod(saved.method);
+    };
+    window.addEventListener('mizan:data-synced', refresh);
+    return () => window.removeEventListener('mizan:data-synced', refresh);
+  }, []);
+
   const [currentTimeMinutes, setCurrentTimeMinutes] = useState(() => {
     const now = new Date();
     return now.getHours() * 60 + now.getMinutes();
