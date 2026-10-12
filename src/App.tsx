@@ -21,6 +21,7 @@ import { userStorage } from './utils/scopedStorage';
 import { Language, StatusFilter, Task, TaskStatus, Theme, User } from './types';
 import { getStoredAuth, clearStoredAuth } from './utils/auth';
 import { LoginScreen } from './components/LoginScreen';
+import { AuthLoadingScreen } from './components/AuthLoadingScreen';
 import { MainHeader } from './components/MainHeader';
 import { TodayProgress } from './components/TodayProgress';
 import { PrayerTimesWidget } from './components/PrayerTimesWidget';
@@ -39,6 +40,7 @@ import { CheckCircle2 } from 'lucide-react';
 export default function App() {
   // Authentication state
   const [currentUser, setCurrentUser] = useState<User | null>(() => getStoredAuth().user);
+  const [isPreparingWorkspace, setIsPreparingWorkspace] = useState(false);
 
   // Navigation & view states
   const [lang, setLang] = useState<Language>('ar');
@@ -89,7 +91,9 @@ export default function App() {
     const syncOnFocus = () => { void triggerSync(currentUser.id, true); };
     window.addEventListener('focus', syncOnFocus);
     const interval = setInterval(syncOnFocus, 30000);
-    void triggerSync(currentUser.id, true);
+    void triggerSync(currentUser.id, true).finally(() => {
+      if (!disposed) setIsPreparingWorkspace(false);
+    });
     return () => {
       disposed = true;
       clearInterval(interval);
@@ -280,6 +284,7 @@ export default function App() {
     setIsAddTaskOpen(false);
     setEditingTask(null);
     setIsExportModalOpen(false);
+    setIsPreparingWorkspace(false);
     setCurrentUser(null);
     showToast(lang === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Logged out successfully');
   };
@@ -289,6 +294,8 @@ export default function App() {
     return (
       <LoginScreen
         onLoginSuccess={(user) => {
+          // The initial sync effect dismisses the loader after preparing account data.
+          setIsPreparingWorkspace(true);
           setCurrentUser(user);
           showToast(lang === 'ar' ? `أهلاً بك، ${user.name || user.username}!` : `Welcome, ${user.name || user.username}!`);
         }}
@@ -296,6 +303,10 @@ export default function App() {
         theme={theme}
       />
     );
+  }
+
+  if (isPreparingWorkspace) {
+    return <AuthLoadingScreen stage="preparing" lang={lang} theme={theme} />;
   }
 
   return (

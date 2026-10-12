@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { 
   Scale, 
   User as UserIcon,
@@ -20,9 +20,10 @@ import { User, Language, Theme } from '../types';
 import { loginApi, registerApi } from '../services/api';
 import { saveStoredAuth } from '../utils/auth';
 import loginBackground from '../assets/images/login-background.jpg';
+import { AuthLoadingScreen, type AuthLoadingStage } from './AuthLoadingScreen';
 
 interface LoginScreenProps {
-  onLoginSuccess: (user: User, token: string) => void;
+  onLoginSuccess: (user: User, token: string) => void | Promise<void>;
   lang: Language;
   theme: Theme;
 }
@@ -30,6 +31,7 @@ interface LoginScreenProps {
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   onLoginSuccess,
   lang,
+  theme,
 }) => {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   
@@ -49,6 +51,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState<AuthLoadingStage>('login');
+  const submitting = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
@@ -56,6 +60,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   // Handle Login Submission
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting.current) return;
     setError(null);
     setSuccessMsg(null);
 
@@ -72,19 +77,23 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       return;
     }
 
+    submitting.current = true;
+    setLoadingStage('login');
     setIsLoading(true);
 
     try {
       const res = await loginApi(cleanUser, cleanPass);
       if (res.success && res.user && res.token) {
         saveStoredAuth(res.user, res.token);
-        onLoginSuccess(res.user, res.token);
+        setLoadingStage('preparing');
+        await onLoginSuccess(res.user, res.token);
       } else {
         setError(res.error || (lang === 'ar' ? 'اسم المستخدم أو كلمة المرور غير صحيحة' : 'Invalid username or password'));
       }
     } catch (err: any) {
       setError(err.message || (lang === 'ar' ? 'تعذر إتمام عملية الدخول' : 'Login failed'));
     } finally {
+      submitting.current = false;
       setIsLoading(false);
     }
   };
@@ -92,6 +101,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   // Handle Register Submission
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting.current) return;
     setError(null);
     setSuccessMsg(null);
 
@@ -126,27 +136,30 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       return;
     }
 
+    submitting.current = true;
+    setLoadingStage('register');
     setIsLoading(true);
 
     try {
       const res = await registerApi(cleanUser, cleanPass, cleanName, cleanEmail || undefined);
       if (res.success && res.user && res.token) {
-        const loggedUser = res.user;
-        const loggedToken = res.token;
-        saveStoredAuth(loggedUser, loggedToken);
-        setSuccessMsg(lang === 'ar' ? 'تم إنشاء حسابك بنجاح! جاري الدخول...' : 'Account created successfully! Logging in...');
-        setTimeout(() => {
-          onLoginSuccess(loggedUser, loggedToken);
-        }, 300);
+        saveStoredAuth(res.user, res.token);
+        setLoadingStage('preparing');
+        await onLoginSuccess(res.user, res.token);
       } else {
         setError(res.error || (lang === 'ar' ? 'تعذر إنشاء الحساب، يرجى المحاولة ثانية' : 'Registration failed'));
       }
     } catch (err: any) {
       setError(err.message || (lang === 'ar' ? 'تعذر إتمام عملية التسجيل' : 'Registration failed'));
     } finally {
+      submitting.current = false;
       setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return <AuthLoadingScreen stage={loadingStage} lang={lang} theme={theme} />;
+  }
 
   return (
     <div className="relative min-h-screen min-h-[100dvh] w-full flex items-center justify-center p-4 sm:p-6 lg:p-10 overflow-x-hidden font-['Alexandria','Cairo',sans-serif] bg-slate-950 text-white select-none">
@@ -310,7 +323,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
             {/* Error Message */}
             {error && (
-              <div className="mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs font-semibold flex items-start gap-2 animate-in fade-in">
+              <div role="alert" className="mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs font-semibold flex items-start gap-2 animate-in fade-in">
                 <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
                 <span className="leading-relaxed">{error}</span>
               </div>

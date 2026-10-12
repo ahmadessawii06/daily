@@ -2,6 +2,20 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Indeterminate progress follows the request; no artificial percentage or delay. */
+@keyframes auth-loading-progress {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(410%); }
+}
+
+.auth-loading-bar {
+  animation: auth-loading-progress 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-loading-bar { animation: none; margin-inline: auto; }
+}
+
 @layer base {
   :root {
     --font-arabic: 'Alexandria', 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
