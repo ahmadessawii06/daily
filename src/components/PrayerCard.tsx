@@ -1,4 +1,5 @@
-import { Moon, MoonStar, Pencil, Sun, SunMedium, Sunrise, Sunset, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { CheckCheck, Moon, MoonStar, Pencil, Sun, SunMedium, Sunrise, Sunset, Trash2 } from 'lucide-react';
 import type { Language, Task, TaskStatus } from '../types';
 import type { DailyPrayer } from '../utils/prayerTasks';
 import { nextTaskStatus } from '../utils/taskStatus';
@@ -7,6 +8,26 @@ import { StatCircle } from './StatCircle';
 import { TaskStatusIndicator } from './TaskStatusIndicator';
 
 const prayerIcons = { fajr: Sunrise, dhuhr: Sun, asr: SunMedium, maghrib: Sunset, isha: Moon };
+
+const prayerVerses = [
+  '﴿حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَىٰ وَقُومُوا لِلَّهِ قَانِتِينَ﴾',
+  '﴿إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا﴾',
+  '﴿إِنَّنِي أَنَا اللَّهُ لَا إِلَٰهَ إِلَّا أَنَا فَاعْبُدْنِي وَأَقِمِ الصَّلَاةَ لِذِكْرِي﴾',
+  '﴿وَالَّذِينَ هُمْ عَلَىٰ صَلَوَاتِهِمْ يُحَافِظُونَ﴾',
+  '﴿رَبِّ اجْعَلْنِي مُقِيمَ الصَّلَاةِ وَمِن ذُرِّيَّتِي رَبَّنَا وَتَقَبَّلْ دُعَاءِ﴾',
+];
+
+function PrayerCompletionMessage({ lang }: { lang: Language }) {
+  // Choose once per completed card, so ordinary UI updates do not shuffle the message.
+  const [verse] = useState(() => prayerVerses[Math.floor(Math.random() * prayerVerses.length)]);
+  return <div className="mt-4" data-prayer-completion>
+    <div role="status" className="flex items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300">
+      <span className="inline-flex items-center gap-2"><CheckCheck aria-hidden="true" className="h-4 w-4 shrink-0" />{lang === 'ar' ? 'اكتملت كل المهام' : 'All tasks complete'}</span>
+      <span dir="ltr" className="tabular-nums">100%</span>
+    </div>
+    <p lang="ar" dir="rtl" className="mt-2 px-1 text-center text-xs leading-7 text-emerald-800/80 dark:text-emerald-100/70">{verse}</p>
+  </div>;
+}
 
 interface PrayerCardProps {
   slots: { prayer: DailyPrayer; task?: Task }[];
@@ -38,9 +59,7 @@ export function PrayerCard({ slots, lang, onAddPrayer, onStatusChange, onEdit, o
           <StatCircle compact label={ar ? 'الإجمالي' : 'Total'} value={5} percentage={100} color="indigo" isActive={true} subLabel={ar ? 'صلوات' : 'prayers'} />
         </div>
       </div>
-      {done === 5 && <blockquote role="status" lang="ar" dir="rtl" className="mt-5 rounded-2xl border border-emerald-300/60 bg-emerald-100/70 px-4 py-4 text-center text-base leading-loose text-emerald-900 dark:border-emerald-400/25 dark:bg-emerald-400/10 dark:text-emerald-100 sm:text-lg">
-        ﴿حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَىٰ وَقُومُوا لِلَّهِ قَانِتِينَ﴾
-      </blockquote>}
+      {done === 5 && <PrayerCompletionMessage key={slots.map(slot => slot.task?.id).join(':')} lang={lang} />}
       <div className="mt-5 grid grid-cols-2 gap-3 border-t border-emerald-200/60 pt-4 dark:border-emerald-100/10 lg:grid-cols-5">
         {slots.map(({ prayer, task }, index) => {
           const status = task?.status || 'pending';
