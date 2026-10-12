@@ -11,6 +11,8 @@ import { TaskStatusIndicator } from './TaskStatusIndicator';
 import { StatCircle } from './StatCircle';
 import { calculateStats } from '../utils/storage';
 import { getTaskContextIcon } from '../utils/taskIconHelper';
+import { partitionPrayerTasks } from '../utils/prayerTasks';
+import { PrayerCard } from './PrayerCard';
 
 interface CardsDashboardProps {
   tasks: Task[];
@@ -19,6 +21,7 @@ interface CardsDashboardProps {
   onFilterChange: (filter: StatusFilter) => void;
   lang: Language;
   onAdd: (title: string, categoryId: string) => void;
+  onAddPrayer: (title: string) => void;
   onStatusChange: (id: string, status: TaskStatus) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
@@ -28,8 +31,9 @@ export function CardsDashboard(props: CardsDashboardProps) {
   const { tasks, workspace, filter, lang, onFilterChange } = props;
   const ar = lang === 'ar';
   const [editor, setEditor] = useState<PlannerCategory | 'new' | null>(null);
-  const categories = activeCategories(workspace);
-  const grouped = groupTasksByCategory(tasks, workspace);
+  const prayerTasks = partitionPrayerTasks(tasks);
+  const grouped = groupTasksByCategory(prayerTasks.otherTasks, workspace);
+  const categories = activeCategories(workspace).filter(category => category.id !== 'worship' || (grouped.get(category.id)?.length || 0) > 0);
   const unassigned = grouped.get(UNASSIGNED_CATEGORY) || [];
   const fallback: PlannerCategory = { id: UNASSIGNED_CATEGORY, name: 'غير مصنّف', nameEn: 'Unassigned', icon: 'layers', order: 0, updatedAt: WORKSPACE_EPOCH };
   const cards = unassigned.length || !categories.length ? [...categories, fallback] : categories;
@@ -43,6 +47,7 @@ export function CardsDashboard(props: CardsDashboardProps) {
       </div>
       {filter !== 'all' && <div className="flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs"><span>{ar ? 'عرض: ' : 'Showing: '}{filterName}</span><button type="button" onClick={() => onFilterChange('all')} className="inline-flex min-h-9 items-center gap-1 font-semibold"><X className="h-3 w-3" />{ar ? 'عرض الكل' : 'Show all'}</button></div>}
       <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <PrayerCard slots={prayerTasks.slots} lang={lang} onAddPrayer={props.onAddPrayer} onStatusChange={props.onStatusChange} onEdit={props.onEdit} onDelete={props.onDelete} />
         {cards.map(category => <CategoryCard key={category.id} {...props} category={category}
           tasks={grouped.get(category.id) || []}
           onCustomize={category.id === UNASSIGNED_CATEGORY ? undefined : () => setEditor(category)} />)}

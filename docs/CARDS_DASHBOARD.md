@@ -10,6 +10,7 @@ This change adds a category-based daily workspace beside the existing timeline. 
 - Removing a card leaves every associated task on its original date. Those tasks appear under **Unassigned**, and can be reassigned in the task editor.
 - Timeline retains inline editing, completion states, filters, arbitrary start times, and the optional 24-hour template. Untimed tasks have a separate section.
 - Prayer times, authentication, archive, statistics, language, themes and image export remain available. Exports temporarily reveal collapsed card contents and then restore the layout.
+- A full-width prayer card shows exactly five prayer slots. It reuses matching daily tasks; an empty slot creates a completed, untimed task only when clicked. Extra worship tasks and duplicate prayer records remain in category cards. Scheduling an existing prayer updates its time without duplicating or resetting its status.
 
 ## Data and compatibility
 
@@ -27,12 +28,12 @@ Cached sessions open immediately and synchronize in the background. A fresh sign
 
 | Area | Files |
 | --- | --- |
-| Dashboard UI | `src/components/CardsDashboard.tsx`, `CategoryEditor.tsx` |
+| Dashboard UI | `src/components/CardsDashboard.tsx`, `CategoryEditor.tsx`, `PrayerCard.tsx`, `src/utils/prayerTasks.ts` |
 | Shared view integration | `src/App.tsx`, `AddTaskModal.tsx`, `EditTaskModal.tsx`, `TaskList.tsx`, `TaskRow.tsx` |
 | Workspace model and persistence | `src/types/index.ts`, `src/shared/workspace.ts`, `src/utils/workspace.ts`, `src/utils/storage.ts` |
 | API and synchronization | `backend/app.ts`, `backend/repository.ts`, `src/services/api.ts`, `syncEngine.ts`, `syncQueue.ts`, `src/components/LoginScreen.tsx` |
 | Full-content export | `src/utils/exportDailyTrack.ts` |
-| Regression tests | `tests/dashboard.test.ts`, `client.test.ts`, `backend.test.ts`, `vercel.test.ts` |
+| Regression tests | `tests/dashboard.test.ts`, `prayerTasks.test.ts`, `client.test.ts`, `backend.test.ts`, `vercel.test.ts` |
 
 ## Validation
 

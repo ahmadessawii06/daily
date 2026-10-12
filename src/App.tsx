@@ -26,6 +26,7 @@ import { AuthLoadingScreen } from './components/AuthLoadingScreen';
 import { CardsDashboard } from './components/CardsDashboard';
 import { getPlannerWorkspace, readStoredWorkspace, setPlannerView } from './utils/workspace';
 import { activeCategories } from './shared/workspace';
+import { dailyPrayerId } from './utils/prayerTasks';
 import { MainHeader } from './components/MainHeader';
 import { TodayProgress } from './components/TodayProgress';
 import { PrayerTimesWidget } from './components/PrayerTimesWidget';
@@ -214,6 +215,13 @@ export default function App() {
   };
 
   const handleQuickAddPrayer = (title: string, time: string) => {
+    const prayerId = dailyPrayerId(title);
+    const existingPrayer = prayerId ? tasks.find(task => dailyPrayerId(task.title) === prayerId) : undefined;
+    if (existingPrayer) {
+      handleUpdateTask(existingPrayer.id, { time });
+      showToast(lang === 'ar' ? `تم تحديث وقت ${title}` : 'Prayer time updated');
+      return;
+    }
     const targetSlot = tasks.find((t) => t.time === time && !t.title.trim());
 
     if (targetSlot) {
@@ -383,6 +391,7 @@ export default function App() {
 
           {workspace.view === 'cards' ? <CardsDashboard tasks={tasks} workspace={workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
             onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
+            onAddPrayer={title => { handleAddTask({ title, categoryId: 'worship', time: '', status: 'done' }); playAchievementSound(); setCurrentFilter('all'); }}
             onStatusChange={handleStatusChange} onEdit={setEditingTask} onDelete={handleDeleteTask} /> : <TaskList
             tasks={tasks}
             onStatusChange={handleStatusChange}
