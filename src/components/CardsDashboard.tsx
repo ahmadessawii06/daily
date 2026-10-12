@@ -93,7 +93,12 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
           {visible.length === 0 && <p className="px-2 py-5 text-xs leading-6 text-slate-500 dark:text-zinc-400">{tasks.length ? (ar ? 'لا توجد مهام تطابق هذا الفلتر.' : 'No tasks match this filter.') : (ar ? 'ابدأ بمهمة صغيرة، وأكملها على إيقاعك.' : 'Start with something small. Make it your own.')}</p>}
           {visible.map(task => {
             const TaskIcon = getTaskContextIcon(task.title).icon;
-            return <div key={task.id} className="group flex items-start gap-2 rounded-xl px-1 py-2 transition-colors hover:bg-slate-50 dark:hover:bg-white/[0.02]">
+            const rowStyle = task.status === 'done'
+              ? 'border-emerald-300 border-s-emerald-500 bg-emerald-50/90 hover:bg-emerald-100/90 dark:border-emerald-400/35 dark:border-s-emerald-400 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15'
+              : task.status === 'not-done'
+                ? 'border-rose-300 border-s-rose-500 bg-rose-50/90 hover:bg-rose-100/90 dark:border-rose-400/35 dark:border-s-rose-400 dark:bg-rose-500/10 dark:hover:bg-rose-500/15'
+                : 'border-transparent hover:bg-slate-50 dark:hover:bg-white/[0.02]';
+            return <div key={task.id} data-card-task-status={task.status} className={`group flex items-start gap-2 rounded-xl border border-s-[3px] px-1 py-2 transition-colors motion-reduce:transition-none ${rowStyle}`}>
             <button type="button" data-task-status={task.status}
               aria-label={ar ? `تغيير حالة ${task.title}: ${statusLabels[task.status]}. التالي: ${statusLabels[nextTaskStatus(task.status)]}` : `Change status of ${task.title}: ${statusLabels[task.status]}. Next: ${statusLabels[nextTaskStatus(task.status)]}`}
               title={ar ? 'انقر للتبديل: متبقية ← مكتملة ← غير منجزة ← متبقية' : 'Click to cycle: Remaining → Completed → Not done → Remaining'}
@@ -101,9 +106,9 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
               className="group/status flex h-11 w-9 shrink-0 items-center justify-center rounded-lg cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-400"><TaskStatusIndicator status={task.status} /></button>
             <button type="button" onClick={() => onEdit(task)} aria-label={ar ? `تعديل ${task.title}` : `Edit ${task.title}`} className="min-h-11 min-w-0 flex-1 py-2 text-start">
               <span className="flex items-start gap-2">
-                <span data-task-context-icon aria-hidden="true" className="planner-card-task-icon mt-1 flex h-5 w-5 shrink-0 items-center justify-center"><TaskIcon className="h-4 w-4" strokeWidth={1.8} /></span>
+                <span data-task-context-icon aria-hidden="true" className={`mt-1 flex h-5 w-5 shrink-0 items-center justify-center ${task.status === 'done' ? 'text-emerald-700 dark:text-emerald-300' : task.status === 'not-done' ? 'text-rose-700 dark:text-rose-300' : 'planner-card-task-icon'}`}><TaskIcon className="h-4 w-4" strokeWidth={1.8} /></span>
                 <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-                  <span className={`min-w-0 max-w-full break-words text-xs font-medium leading-6 ${task.status === 'done' ? 'text-slate-400 line-through dark:text-zinc-500' : task.status === 'not-done' ? 'text-rose-600 dark:text-rose-300' : ''}`}>{task.title}</span>
+                  <span className={`min-w-0 max-w-full break-words text-xs font-medium leading-6 ${task.status === 'done' ? 'text-emerald-700 line-through decoration-emerald-500/50 dark:text-emerald-300' : task.status === 'not-done' ? 'text-rose-600 dark:text-rose-300' : ''}`}>{task.title}</span>
                 {task.status !== 'pending' && <span data-task-status-label={task.status} className={`inline-flex shrink-0 items-center gap-1 rounded-lg border px-1.5 py-0.5 text-[10px] font-semibold leading-4 ${task.status === 'done' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300' : 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300'}`}>{task.status === 'done' ? <Check aria-hidden="true" className="h-3 w-3" /> : <X aria-hidden="true" className="h-3 w-3" />}{statusLabels[task.status]}</span>}
                 </span>
               </span>
