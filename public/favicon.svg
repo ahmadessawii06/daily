@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Mizan — balance scale</title>
+  <rect width="64" height="64" rx="14" fill="#0E211B"/>
+  <g fill="none" stroke="#E4C27D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 13v38m-9 0h18M17 22l15-5 15 5"/>
+    <path d="m17 22-8 18h16l-8-18m30 0-8 18h16l-8-18"/>
+    <path d="M9 40q8 10 16 0m14 0q8 10 16 0"/>
+  </g>
+</svg>
