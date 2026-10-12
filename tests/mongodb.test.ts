@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { describeDbFailure } from '../src/db/mongodb.js';
+import { describeDbFailure } from '../backend/mongodb.js';
 import mongoose from 'mongoose';
 import { normalizeAccount, storageStatus, findAccount, updateState, type Account } from '../backend/repository.js';
 

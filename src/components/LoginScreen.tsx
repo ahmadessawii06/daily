@@ -19,6 +19,7 @@ import {
 import { User, Language, Theme } from '../types';
 import { loginApi, registerApi } from '../services/api';
 import { saveStoredAuth } from '../utils/auth';
+import loginBackground from '../assets/images/login-background.jpg';
 
 interface LoginScreenProps {
   onLoginSuccess: (user: User, token: string) => void;
@@ -153,7 +154,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       {/* 1. Cinematic Background with Quran, Flask, Sunrise Mountains Landscape */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <img
-          src="/src/assets/images/mizan_login_bg_1790796490412.jpg"
+          src={loginBackground}
           alt="ميزان - شروق الشمس والقرآن"
           className="w-full h-full object-cover object-center scale-105 filter brightness-[0.92] contrast-[1.05]"
           referrerPolicy="no-referrer"

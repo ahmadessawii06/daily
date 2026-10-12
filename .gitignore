@@ -6,7 +6,11 @@ coverage/
 *.log
 .env*
 !.env.example
-data/accounts.json
-data/.session-secret
-data/*.tmp
+data/
 .test-data/
+.vercel-esm-test-*/
+.preview-browser/
+.vercel/
+.netlify/
+.cache/
+*.tsbuildinfo

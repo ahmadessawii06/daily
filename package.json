@@ -1,8 +1,12 @@
 {
-  "name": "react-example",
+  "name": "mizan",
+  "description": "An Arabic-first daily planner with account-based sync, prayer times, and weekly insights.",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "tsx server.ts",
     "start": "tsx server.ts",
@@ -13,16 +17,13 @@
     "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
-    "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^6.1.1",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "html-to-image": "^1.11.13",
-    "html2canvas": "^1.4.1",
     "lucide-react": "^0.546.0",
     "mongoose": "^9.10.2",
-    "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "serverless-http": "^4.0.0",
@@ -33,7 +34,6 @@
     "@types/node": "^22.14.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "autoprefixer": "^10.4.21",
     "esbuild": "^0.28.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",

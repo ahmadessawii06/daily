@@ -6,7 +6,7 @@ import path from 'node:path';
 import type { Server } from 'node:http';
 import { createApiApp } from '../backend/app';
 import { createNetlifyHandler, handler as productionNetlifyHandler } from '../netlify/functions/api';
-import { DayModel } from '../src/db/mongodb';
+import mongoose from 'mongoose';
 
 test('API authentication, durable storage, isolation and conflicts', async t => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'mizan-test-'));
@@ -56,7 +56,7 @@ test('API authentication, durable storage, isolation and conflicts', async t => 
       const loaded = (await request(`/days/${day.date}`, undefined, token)).data;
       assert.deepEqual(loaded.tasks[0], task); assert.equal(loaded.dayNote, day.dayNote);
       assert.deepEqual((await request('/days', undefined, second.data.token)).data.days, {});
-      const mongoRecord = new DayModel({ userId: first.data.user.id, ...day }).toObject();
+      const mongoRecord = new mongoose.models.Account({ state: { days: { [day.date]: day } } }).toObject().state.days[day.date];
       for (const key of ['duration', 'endTime', 'priority', 'deadline', 'isTopFocus', 'recurringTemplateId', 'createdAt']) {
         assert.equal(mongoRecord.tasks[0][key], (task as any)[key]);
       }

@@ -2,8 +2,8 @@ import 'dotenv/config';
 import path from 'node:path';
 import express from 'express';
 import { createServer as createHttpServer } from 'node:http';
-import { createApiApp } from './backend/app';
-import { listenOnAvailablePort } from './backend/listen';
+import { createApiApp } from './backend/app.js';
+import { listenOnAvailablePort } from './backend/listen.js';
 
 export const app = createApiApp(process.env.NODE_ENV === 'production');
 const httpServer = createHttpServer(app);
