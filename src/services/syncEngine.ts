@@ -5,6 +5,8 @@ import { userStorage } from '../utils/scopedStorage';
 import { mergeDay } from '../shared/merge';
 import { requestApi } from './api';
 import { getQueue, saveQueue } from './syncQueue';
+import { mergeWorkspace, parseWorkspace } from '../shared/workspace';
+import { readStoredWorkspace, storeWorkspace } from '../utils/workspace';
 export { getQueue, saveQueue } from './syncQueue';
 export type SyncState = 'synced' | 'syncing' | 'saving' | 'offline' | 'error';
 export interface SyncStatusInfo { status: SyncState; pendingCount: number; lastSyncedAt: string | null; errorMessage?: string; }
@@ -41,10 +43,16 @@ async function sync(userId: string, token: string): Promise<boolean> {
     }
     const result = await requestApi('/sync/batch', body);
     if (!result.success || !result.days) throw new Error('استجابة المزامنة غير صالحة');
+    if (sent.some(item => item.type === 'workspace') && !result.workspace) throw new Error('الخادم الحالي لا يدعم مزامنة البطاقات بعد');
     if (!active(userId, token)) return false;
     const acknowledged = new Set(sent.map(item => item.id));
     // Edits made during the request have different IDs and stay queued.
     const pending = getQueue(userId).filter(item => !acknowledged.has(item.id));
+    if (result.workspace) {
+      const workspace = parseWorkspace(result.workspace);
+      storeWorkspace(mergeWorkspace(readStoredWorkspace(), workspace));
+      for (const item of pending) if (item.type === 'workspace') item.data = mergeWorkspace(item.data, workspace);
+    }
     saveQueue(pending, userId);
     const local = loadAllDays();
     for (const [date, record] of Object.entries(result.days as Record<string, DayRecord>)) local[date] = mergeDay(local[date], record);

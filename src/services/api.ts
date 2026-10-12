@@ -1,4 +1,5 @@
-import type { DayRecord, HabitStreak, Task, User } from '../types';
+import type { DayRecord, HabitStreak, PlannerWorkspace, Task, User } from '../types';
+import { parseWorkspace } from '../shared/workspace';
 import { getAuthToken } from '../utils/auth';
 import { enqueue, enqueueDay } from './syncQueue';
 import { triggerSync } from './syncEngine';
@@ -49,11 +50,12 @@ export async function migrateLocalDataToMongo(days: Record<string, DayRecord>, h
   return { success, importedCount: success ? Object.keys(days).length : 0 };
 }
 
-type AuthResponse = { success: boolean; user?: User; token?: string; error?: string };
+type AuthResponse = { success: boolean; user?: User; token?: string; error?: string; workspace?: PlannerWorkspace };
 async function authenticate(path: string, body: unknown): Promise<AuthResponse> {
   try {
     const result = await requestApi(path, body);
     if (!result.user?.id || !result.user?.userCode || !result.token) throw new Error('استجابة تسجيل الدخول غير صالحة');
+    if (result.workspace) result.workspace = parseWorkspace(result.workspace);
     return result;
   } catch (err) { return { success: false, error: (err as Error).message }; }
 }

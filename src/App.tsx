@@ -18,10 +18,13 @@ import {
 import { triggerSync } from './services/syncEngine';
 import { enqueue } from './services/syncQueue';
 import { userStorage } from './utils/scopedStorage';
-import { Language, StatusFilter, Task, TaskStatus, Theme, User } from './types';
+import { Language, PlannerView, StatusFilter, Task, TaskStatus, Theme, User } from './types';
 import { getStoredAuth, clearStoredAuth } from './utils/auth';
 import { LoginScreen } from './components/LoginScreen';
 import { AuthLoadingScreen } from './components/AuthLoadingScreen';
+import { CardsDashboard } from './components/CardsDashboard';
+import { getPlannerWorkspace, setPlannerView } from './utils/workspace';
+import { activeCategories } from './shared/workspace';
 import { MainHeader } from './components/MainHeader';
 import { TodayProgress } from './components/TodayProgress';
 import { PrayerTimesWidget } from './components/PrayerTimesWidget';
@@ -35,12 +38,13 @@ import { SettingsModal } from './components/SettingsModal';
 import { ExportScheduleModal } from './components/ExportScheduleModal';
 
 import { playAchievementSound, playFailureSound } from './utils/soundEffects';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, LayoutGrid, ListChecks } from 'lucide-react';
 
 export default function App() {
   // Authentication state
   const [currentUser, setCurrentUser] = useState<User | null>(() => getStoredAuth().user);
-  const [isPreparingWorkspace, setIsPreparingWorkspace] = useState(false);
+  const [isPreparingWorkspace, setIsPreparingWorkspace] = useState(() => Boolean(getStoredAuth().user));
+  const [workspace, setWorkspace] = useState(getPlannerWorkspace);
 
   // Navigation & view states
   const [lang, setLang] = useState<Language>('ar');
@@ -81,24 +85,27 @@ export default function App() {
     let disposed = false;
     const refresh = () => {
       if (disposed) return;
+      setWorkspace(getPlannerWorkspace());
       setTasks(getDayRecord(currentDate).tasks);
       setArchiveDays(getAllArchiveDays());
       setTheme(getStoredTheme());
       setLang(userStorage.getItem('lang') === 'en' ? 'en' : 'ar');
     };
-    refresh();
+    if (!isPreparingWorkspace) refresh();
     window.addEventListener('mizan:data-synced', refresh);
+    window.addEventListener('mizan:workspace-changed', refresh);
     const syncOnFocus = () => { void triggerSync(currentUser.id, true); };
     window.addEventListener('focus', syncOnFocus);
     const interval = setInterval(syncOnFocus, 30000);
     void triggerSync(currentUser.id, true).finally(() => {
-      if (!disposed) setIsPreparingWorkspace(false);
+      if (!disposed) { refresh(); setIsPreparingWorkspace(false); }
     });
     return () => {
       disposed = true;
       clearInterval(interval);
       window.removeEventListener('focus', syncOnFocus);
       window.removeEventListener('mizan:data-synced', refresh);
+      window.removeEventListener('mizan:workspace-changed', refresh);
     };
   }, [currentDate, currentUser?.id]);
 
@@ -142,7 +149,7 @@ export default function App() {
     refreshArchive();
   };
 
-  const handleAddTask = (taskInput: { title: string; time: string; status: TaskStatus; notes?: string }) => {
+  const handleAddTask = (taskInput: { title: string; time: string; status: TaskStatus; notes?: string; categoryId?: string }) => {
     addTaskToDay(currentDate, taskInput);
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
@@ -237,7 +244,12 @@ export default function App() {
     showToast(lang === 'ar' ? 'تم مسح المهام وإعادة ضبط العادات لهذا الحساب' : 'Tasks cleared and habits reset for this account');
   };
 
-  const stats = useMemo(() => calculateStats(tasks), [tasks]);
+  const handleChangeView = (view: PlannerView) => {
+    setWorkspace(setPlannerView(view));
+    setCurrentFilter('all');
+  };
+
+  const stats = useMemo(() => calculateStats(workspace.view === 'cards' ? tasks.filter(t => t.title.trim()) : tasks), [tasks, workspace.view]);
 
   const [isExportingImage, setIsExportingImage] = useState(false);
 
@@ -315,7 +327,7 @@ export default function App() {
       {/* Main Full-Width Centered Clean Canvas */}
       <main 
         id="daily-track-container" 
-        className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors"
+        className={`flex-1 w-full ${workspace.view === 'cards' ? 'max-w-6xl' : 'max-w-4xl'} mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors`}
       >
         <div className="space-y-4 sm:space-y-6">
           
@@ -358,8 +370,17 @@ export default function App() {
             lang={lang}
           />
 
-          {/* Always Displayed: Today's 24-Hour Tasks Section */}
-          <TaskList
+          <div role="group" aria-label={lang === 'ar' ? 'طريقة عرض المهام' : 'Planning view'} className="inline-flex max-w-full gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
+            {(['cards', 'timeline'] as const).map(view => {
+              const Icon = view === 'cards' ? LayoutGrid : ListChecks;
+              const label = view === 'cards' ? (lang === 'ar' ? 'البطاقات' : 'Cards') : (lang === 'ar' ? 'الجدول الزمني' : 'Timeline');
+              return <button key={view} type="button" aria-pressed={workspace.view === view} onClick={() => handleChangeView(view)} className={`inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold transition-colors ${workspace.view === view ? 'bg-white text-emerald-700 shadow-2xs dark:bg-[#1c2425] dark:text-emerald-300' : 'text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-100'}`}><Icon className="h-4 w-4" />{label}</button>;
+            })}
+          </div>
+
+          {workspace.view === 'cards' ? <CardsDashboard tasks={tasks} workspace={workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
+            onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
+            onStatusChange={handleStatusChange} onEdit={setEditingTask} onDelete={handleDeleteTask} /> : <TaskList
             tasks={tasks}
             onStatusChange={handleStatusChange}
             onEdit={(task) => setEditingTask(task)}
@@ -371,7 +392,7 @@ export default function App() {
             currentFilter={currentFilter}
             onFilterChange={setCurrentFilter}
             lang={lang}
-          />
+          />}
 
         </div>
       </main>
@@ -399,6 +420,8 @@ export default function App() {
         onClose={() => setIsAddTaskOpen(false)}
         onAdd={handleAddTask}
         lang={lang}
+        defaultTime={workspace.view === 'cards' ? '' : '08:00'}
+        categories={activeCategories(workspace)}
       />
 
       {/* Edit Task Modal */}
@@ -409,6 +432,7 @@ export default function App() {
         onUpdate={handleUpdateTask}
         onDelete={handleDeleteTask}
         lang={lang}
+        categories={activeCategories(workspace)}
       />
 
       {/* Settings Modal (Accessed via Settings Icon in Header) */}

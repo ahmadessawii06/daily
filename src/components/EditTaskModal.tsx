@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, AlertCircle, Trash2, Edit3 } from 'lucide-react';
-import { Language, Task, TaskStatus } from '../types';
+import { Language, PlannerCategory, Task, TaskStatus } from '../types';
+import { UNASSIGNED_CATEGORY } from '../shared/workspace';
 import { formatTime12h } from '../utils/date';
 import { getTaskContextIcon } from '../utils/taskIconHelper';
 
@@ -11,6 +12,7 @@ interface EditTaskModalProps {
   onUpdate: (taskId: string, updates: Partial<Task>) => void;
   onDelete: (taskId: string) => void;
   lang: Language;
+  categories?: PlannerCategory[];
 }
 
 export const EditTaskModal: React.FC<EditTaskModalProps> = ({
@@ -20,11 +22,13 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
   onUpdate,
   onDelete,
   lang,
+  categories = [],
 }) => {
   const [title, setTitle] = useState('');
   const [time, setTime] = useState('');
   const [status, setStatus] = useState<TaskStatus>('pending');
   const [notes, setNotes] = useState('');
+  const [categoryId, setCategoryId] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,6 +37,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
       setTime(task.time);
       setStatus(task.status);
       setNotes(task.notes || '');
+      setCategoryId(task.categoryId || task.category || UNASSIGNED_CATEGORY);
       setError(null);
     }
   }, [task]);
@@ -50,16 +55,12 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
       return;
     }
 
-    if (!trimmedTime) {
-      setError(lang === 'ar' ? 'يرجى إدخال الوقت' : 'Please enter time');
-      return;
-    }
-
     onUpdate(task.id, {
       title: trimmedTitle,
       time: trimmedTime,
       status,
       notes: notes.trim() || undefined,
+      categoryId,
     });
 
     onClose();
@@ -124,6 +125,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
               <input
                 type="text"
                 value={title}
+              aria-label={lang === 'ar' ? 'اسم المهمة' : 'Task name'}
                 onChange={(e) => {
                   setTitle(e.target.value);
                   if (error) setError(null);
@@ -133,12 +135,19 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
             </div>
           </div>
 
+          <label className="block space-y-2 text-xs font-semibold">
+            <span>{lang === 'ar' ? 'البطاقة' : 'Card'}</span>
+            <select value={categories.some(c => c.id === categoryId) ? categoryId : UNASSIGNED_CATEGORY} onChange={e => setCategoryId(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-3 text-sm dark:border-white/10 dark:bg-[#08090d]">
+              <option value={UNASSIGNED_CATEGORY}>{lang === 'ar' ? 'غير مصنّف' : 'Unassigned'}</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{lang === 'ar' ? c.name : c.nameEn || c.name}</option>)}
+            </select>
+          </label>
           {/* Time & Status */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-bold text-slate-800 dark:text-zinc-300 font-['Alexandria']">
-                  {lang === 'ar' ? 'الوقت' : 'Time'}
+                  {lang === 'ar' ? 'الوقت (اختياري)' : 'Time (optional)'}
                 </label>
                 {time && (
                   <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 font-['Alexandria']">
@@ -149,6 +158,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
               <input
                 type="time"
                 value={time}
+                aria-label={lang === 'ar' ? 'الوقت (اختياري)' : 'Time (optional)'}
                 onChange={(e) => {
                   setTime(e.target.value);
                   if (error) setError(null);

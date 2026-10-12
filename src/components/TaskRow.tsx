@@ -193,14 +193,14 @@ export const TaskRow: React.FC<TaskRowProps> = ({
 
             <div className={`font-numbers text-xs font-black tabular-nums shrink-0 px-2 py-1 rounded-xl border flex items-center gap-1.5 shadow-2xs ${statusConfig.timeClass}`}>
               <Clock className="w-3.5 h-3.5 opacity-75 shrink-0" />
-              <span className="font-extrabold tracking-wide">{t12.time12}</span>
-              <span className={`text-[10px] font-['Alexandria'] font-extrabold px-1.5 py-0.5 rounded-md ${
+              <span className="font-extrabold tracking-wide">{task.time ? t12.time12 : (lang === 'ar' ? 'بدون وقت' : 'Unscheduled')}</span>
+              {task.time && <span className={`text-[10px] font-['Alexandria'] font-extrabold px-1.5 py-0.5 rounded-md ${
                 t12.isPM 
                   ? 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30' 
                   : 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
               }`}>
                 {t12.period}
-              </span>
+              </span>}
             </div>
           </div>
 
@@ -346,14 +346,14 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         {/* 12-Hour Time Badge */}
         <div className={`font-numbers text-xs font-black tabular-nums shrink-0 px-2.5 py-1 rounded-xl border flex items-center gap-1.5 shadow-2xs ${statusConfig.timeClass}`}>
           <Clock className="w-3.5 h-3.5 opacity-75 shrink-0" />
-          <span className="font-extrabold tracking-wide">{t12.time12}</span>
-          <span className={`text-[11px] font-['Alexandria'] font-extrabold px-1.5 py-0.5 rounded-md ${
+          <span className="font-extrabold tracking-wide">{task.time ? t12.time12 : (lang === 'ar' ? 'بدون وقت' : 'Unscheduled')}</span>
+          {task.time && <span className={`text-[11px] font-['Alexandria'] font-extrabold px-1.5 py-0.5 rounded-md ${
             t12.isPM 
               ? 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30' 
               : 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
           }`}>
             {t12.period}
-          </span>
+          </span>}
         </div>
 
         {/* Title & Notes / Direct In-place Input */}

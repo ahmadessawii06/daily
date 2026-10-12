@@ -4,7 +4,7 @@ import type { DayRecord } from '../types';
 
 export interface QueueItem {
   id: string;
-  type: 'day' | 'habits' | 'recurring' | 'settings';
+  type: 'day' | 'habits' | 'recurring' | 'settings' | 'workspace';
   date?: string;
   data: any;
   clientTimestamp: number;

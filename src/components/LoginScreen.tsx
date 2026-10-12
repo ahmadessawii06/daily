@@ -21,6 +21,8 @@ import { loginApi, registerApi } from '../services/api';
 import { saveStoredAuth } from '../utils/auth';
 import loginBackground from '../assets/images/login-background.jpg';
 import { AuthLoadingScreen, type AuthLoadingStage } from './AuthLoadingScreen';
+import { readStoredWorkspace, storeWorkspace } from '../utils/workspace';
+import { mergeWorkspace } from '../shared/workspace';
 
 interface LoginScreenProps {
   onLoginSuccess: (user: User, token: string) => void | Promise<void>;
@@ -85,6 +87,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       const res = await loginApi(cleanUser, cleanPass);
       if (res.success && res.user && res.token) {
         saveStoredAuth(res.user, res.token);
+        if (res.workspace) storeWorkspace(mergeWorkspace(readStoredWorkspace(), res.workspace));
         setLoadingStage('preparing');
         await onLoginSuccess(res.user, res.token);
       } else {
@@ -144,6 +147,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       const res = await registerApi(cleanUser, cleanPass, cleanName, cleanEmail || undefined);
       if (res.success && res.user && res.token) {
         saveStoredAuth(res.user, res.token);
+        if (res.workspace) storeWorkspace(mergeWorkspace(readStoredWorkspace(), res.workspace));
         setLoadingStage('preparing');
         await onLoginSuccess(res.user, res.token);
       } else {

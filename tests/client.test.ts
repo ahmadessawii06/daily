@@ -20,6 +20,8 @@ const engine = await import('../src/services/syncEngine');
 const recurring = await import('../src/utils/recurring');
 const { userStorage, legacyBackup } = await import('../src/utils/scopedStorage');
 const { mergeDay } = await import('../src/shared/merge');
+const workspace = await import('../src/utils/workspace');
+const { createWorkspace } = await import('../src/shared/workspace');
 const user = { id: 'alice', userCode: 'ALICE', username: 'alice' };
 const task: Task = { id: 'one', time: '09:30', title: 'Study', status: 'pending', duration: 75, endTime: '10:45', createdAt: '2026-10-01T09:00:00Z', updatedAt: '2026-10-01T09:00:00Z' };
 const day: DayRecord = { date: '2026-10-01', tasks: [task, { ...task, id: 'two', time: '09:45' }, { ...task, id: 'flexible', time: '' }], updatedAt: task.updatedAt! };
@@ -91,6 +93,31 @@ test('client storage and sync regression cases', async t => {
     assert.equal(queue.getQueue().length, 1);
     assert.equal(storage.loadAllDays()[day.date].tasks.find(t => t.id === task.id)?.title, 'New edit');
     auth.clearStoredAuth(); auth.saveStoredAuth(user, 'signed-token');
+  });
+  await t.test('category edits made in flight merge remote cards and remain queued', async () => {
+    queue.saveQueue([]);
+    const baseline = createWorkspace('cards');
+    workspace.storeWorkspace(baseline); queue.enqueue('workspace', baseline);
+    let release!: (value: Response) => void;
+    globalThis.fetch = async () => new Promise<Response>(resolve => { release = resolve; });
+    const pending = engine.triggerSync(user.id, true);
+    const edited = workspace.createPlannerCategory('Created during sync', 'leaf');
+    const category = edited.categories.find(c => c.name === 'Created during sync')!;
+    const remote = { ...baseline, categories: [...baseline.categories, { ...category, id: 'remote-card', name: 'Remote category' }] };
+    release(new Response(JSON.stringify({ success: true, days: {}, workspace: remote, versions: { workspace: 1 } }), { headers: { 'content-type': 'application/json' } }));
+    assert.equal(await pending, true);
+    assert.equal(queue.getQueue().length, 1);
+    assert.ok(workspace.getPlannerWorkspace().categories.some(c => c.id === category.id));
+    assert.ok(workspace.getPlannerWorkspace().categories.some(c => c.id === 'remote-card'));
+    assert.ok(queue.getQueue()[0].data.categories.some((c: any) => c.id === 'remote-card'));
+    auth.clearStoredAuth(); auth.saveStoredAuth(user, 'signed-token');
+  });
+  await t.test('an older backend cannot silently acknowledge unsupported workspace edits', async () => {
+    queue.saveQueue([]); queue.enqueue('workspace', createWorkspace('cards'));
+    globalThis.fetch = async () => new Response(JSON.stringify({ success: true, days: {}, versions: {} }), { headers: { 'content-type': 'application/json' } });
+    assert.equal(await engine.triggerSync(user.id, true), false);
+    assert.equal(queue.getQueue().length, 1);
+    auth.clearStoredAuth(); auth.saveStoredAuth(user, 'signed-token'); queue.saveQueue([]);
   });
   await t.test('late responses from previous account never populate the active account', async () => {
     let release!: (value: Response) => void;

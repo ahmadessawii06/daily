@@ -15,6 +15,7 @@ export interface Task {
   status: TaskStatus;
   notes?: string;
   category?: TaskCategory;
+  categoryId?: string; // Optional dashboard category; legacy category remains intact.
   priority?: TaskPriority;
   deadline?: string; // "YYYY-MM-DD"
   isTopFocus?: boolean; // Pinned to top 3
@@ -87,6 +88,25 @@ export interface WeeklyDayData {
 }
 
 export type ViewMode = 'timeline' | 'periods' | 'list';
+export type PlannerView = 'cards' | 'timeline';
+export type CategoryIcon = 'book' | 'briefcase' | 'heart' | 'leaf' | 'moon' | 'layers';
+
+export interface PlannerCategory {
+  id: string;
+  name: string;
+  nameEn?: string;
+  icon: CategoryIcon;
+  order: number;
+  collapsed?: boolean;
+  updatedAt: string;
+  deletedAt?: string;
+}
+
+export interface PlannerWorkspace {
+  categories: PlannerCategory[];
+  view: PlannerView;
+  viewUpdatedAt: string;
+}
 export type ActiveTab = 'daily' | 'stats' | 'archive';
 export type StatusFilter = 'all' | 'scheduled' | 'done' | 'pending' | 'not-done';
 export type Language = 'ar' | 'en';

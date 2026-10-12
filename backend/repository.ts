@@ -3,7 +3,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import mongoose, { Schema } from 'mongoose';
 import { connectToDatabase, getDbLastError, isDbConnected } from './mongodb.js';
-import type { DayRecord, HabitStreak, RecurringItem, User } from '../src/types';
+import type { DayRecord, HabitStreak, PlannerWorkspace, RecurringItem, User } from '../src/types';
 
 export interface Account extends User {
   username: string;
@@ -15,6 +15,7 @@ export interface Account extends User {
     habits: HabitStreak[];
     recurring: RecurringItem[];
     settings: Record<string, any>;
+    workspace?: PlannerWorkspace;
     versions: Record<string, number>;
   };
 }
