@@ -115,6 +115,13 @@
   box-shadow: 0 0 0 1000px var(--task-input-bg) inset;
 }
 
+/* Keep the native time picker and keyboard editing; show a clear idle label. */
+.edit-task-time:not(:focus-within) { color: transparent; -webkit-text-fill-color: transparent; }
+.edit-task-time:not(:focus-within)::-webkit-datetime-edit { visibility: hidden; }
+.edit-task-time:focus-within { --task-input-bg: #ffffff; }
+.dark .edit-task-time:focus-within { --task-input-bg: #11131a; }
+.edit-task-time:focus-within + .edit-task-time-display { display: none; }
+
 /* Prevent auto-zoom on mobile inputs in iOS Safari */
 @media (max-width: 639px) {
   input[type="text"],
