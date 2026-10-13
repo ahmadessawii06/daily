@@ -46,7 +46,7 @@ export function CardsDashboard(props: CardsDashboardProps) {
       </div>
       {filter !== 'all' && <div className="flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs"><span>{ar ? 'عرض: ' : 'Showing: '}{filterName}</span><button type="button" onClick={() => onFilterChange('all')} className="inline-flex min-h-9 items-center gap-1 font-semibold"><X className="h-3 w-3" />{ar ? 'عرض الكل' : 'Show all'}</button></div>}
       <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <PrayerCard currentDate={props.currentDate} slots={prayerTasks.slots} lang={lang} onAddPrayer={props.onAddPrayer} onStatusChange={props.onStatusChange} onEdit={props.onEdit} onDelete={props.onDelete} />
+        <PrayerCard currentDate={props.currentDate} slots={prayerTasks.slots} lang={lang} onAddPrayer={props.onAddPrayer} onStatusChange={props.onStatusChange} />
         {cards.map(category => <CategoryCard key={category.id} {...props} category={category}
           creationRequest={props.creationTarget?.categoryId === category.id ? props.creationTarget.requestId : undefined}
           tasks={grouped.get(category.id) || []}

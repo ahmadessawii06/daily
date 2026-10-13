@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import { CheckCheck, MoonStar, Pencil, RefreshCw, Trash2 } from 'lucide-react';
+import { CheckCheck, MoonStar, RefreshCw } from 'lucide-react';
 import type { Language, Task, TaskStatus } from '../types';
 import type { DailyPrayer } from '../utils/prayerTasks';
 import { nextTaskStatus } from '../utils/taskStatus';
@@ -63,11 +63,9 @@ interface PrayerCardProps {
   lang: Language;
   onAddPrayer: (title: string, time: string) => void;
   onStatusChange: (id: string, status: TaskStatus) => void;
-  onEdit: (task: Task) => void;
-  onDelete: (id: string) => void;
 }
 
-export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChange, onEdit, onDelete }: PrayerCardProps) {
+export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChange }: PrayerCardProps) {
   const ar = lang === 'ar';
   const times = useNablusPrayerTimes(currentDate);
   const done = slots.filter(slot => slot.task?.status === 'done').length;
@@ -108,13 +106,7 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
               <div className="min-w-0"><p className="break-words text-sm font-bold">{name}</p><p className="mt-1 text-[11px] font-semibold tabular-nums text-emerald-800 dark:text-emerald-200">{time ? <time data-prayer-time dateTime={`${currentDate}T${time}`}>{formatTime12h(time, lang).formatted}</time> : <span>{times.loading ? (ar ? 'تحميل الوقت…' : 'Loading…') : (ar ? 'الوقت غير متاح' : 'Time unavailable')}</span>}</p></div>
               <button type="button" data-task-status={status} aria-label={ar ? `تغيير حالة ${name}: ${labels[status]}` : `Change status of ${name}: ${labels[status]}`} onClick={() => task ? onStatusChange(task.id, nextTaskStatus(status)) : onAddPrayer(`صلاة ${prayer.nameAr}`, time || '')} className="group/status flex h-11 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg focus-visible:outline-2 focus-visible:outline-emerald-400"><TaskStatusIndicator status={status} /></button>
             </div>
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-1">
-              {status !== 'pending' && <span className={`text-[10px] font-semibold ${status === 'done' ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>{labels[status]}</span>}
-              <span className="ms-auto inline-flex">
-                <button type="button" disabled={!task} aria-label={ar ? `تعديل ${task?.title || name}` : `Edit ${task?.title || name}`} title={!task ? (ar ? 'لا توجد بيانات محفوظة لهذه الصلاة بعد' : 'No saved prayer task yet') : undefined} onClick={() => { if (task) onEdit(task); }} className="flex h-9 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white/60 disabled:cursor-not-allowed disabled:hover:bg-transparent dark:text-zinc-400 dark:hover:bg-white/5 dark:disabled:hover:bg-transparent"><Pencil className="h-3 w-3" /></button>
-                <button type="button" disabled={!task} aria-label={ar ? `حذف ${task?.title || name}` : `Delete ${task?.title || name}`} title={!task ? (ar ? 'لا توجد بيانات محفوظة لحذفها' : 'No saved prayer task to delete') : undefined} onClick={() => { if (task) onDelete(task.id); }} className="flex h-9 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-rose-500 disabled:cursor-not-allowed disabled:hover:text-slate-500 dark:text-zinc-400 dark:disabled:hover:text-zinc-400"><Trash2 className="h-3 w-3" /></button>
-              </span>
-            </div>
+            {status !== 'pending' && <p className={`mt-3 text-[10px] font-semibold ${status === 'done' ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>{labels[status]}</p>}
           </div>;
         })}
       </div>
