@@ -1,20 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Plus, 
-  Sun, 
-  Moon, 
-  Sunrise, 
-  Camera, 
-  CircleUserRound, 
-  Power, 
-  Settings, 
-  BarChart3, 
-  Archive, 
-  ShieldCheck,
-  KeyRound,
-  Copy,
-  Check
-} from 'lucide-react';
+import React, { useState, useRef, useEffect, useId } from 'react';
+import { Plus, Sun, Moon, Camera, LogOut, Settings, BarChart3, Archive, KeyRound, Copy, Check, Scale, ChevronDown } from 'lucide-react';
 import { Language, Theme, User } from '../types';
 import { formatHeaderDate } from '../utils/date';
 import { SyncIndicator } from './SyncIndicator';
@@ -34,322 +19,153 @@ interface MainHeaderProps {
   onToggleTheme: () => void;
 }
 
+const toolButton = 'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-200/70 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-white/[0.07] dark:hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500';
+const accountAction = 'flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2 text-start text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-white/[0.06] dark:hover:text-white focus-visible:outline-2 focus-visible:outline-emerald-500';
+
 export const MainHeader: React.FC<MainHeaderProps> = ({
-  currentDate,
-  currentUser,
-  onLogout,
-  onOpenAddTask,
-  onOpenExportModal,
-  onOpenSettings,
-  onOpenStats,
-  onOpenArchive,
-  archiveDaysCount,
-  lang,
-  theme,
-  onToggleTheme,
+  currentDate, currentUser, onLogout, onOpenAddTask, onOpenExportModal,
+  onOpenSettings, onOpenStats, onOpenArchive, archiveDaysCount, lang, theme, onToggleTheme,
 }) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isCopiedCode, setIsCopiedCode] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const profilePanelId = useId();
+  const ar = lang === 'ar';
+  const accountName = currentUser?.name || currentUser?.username || (ar ? 'مستخدم ميزان' : 'Mizan user');
+  const avatarLetter = accountName.trim().charAt(0).toUpperCase() || 'M';
 
   const handleCopyCode = async (code: string) => {
     try {
       await navigator.clipboard.writeText(code);
       setIsCopiedCode(true);
-      setTimeout(() => setIsCopiedCode(false), 2000);
-    } catch {}
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setIsCopiedCode(false), 2000);
+    } catch { /* Leave the selectable code available if clipboard access fails. */ }
   };
 
-  // Close dropdown on click outside
+  useEffect(() => () => { if (copyTimerRef.current) clearTimeout(copyTimerRef.current); }, []);
+
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+    if (!isProfileMenuOpen) return;
+    const handlePointer = (event: PointerEvent) => {
+      if (!profileMenuRef.current?.contains(event.target as Node)) setIsProfileMenuOpen(false);
+    };
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
         setIsProfileMenuOpen(false);
+        profileButtonRef.current?.focus();
       }
-    }
-    if (isProfileMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    };
+    const handleFocus = (event: FocusEvent) => {
+      if (!profileMenuRef.current?.contains(event.target as Node)) setIsProfileMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', handlePointer);
+    document.addEventListener('keydown', handleKey);
+    document.addEventListener('focusin', handleFocus);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('pointerdown', handlePointer);
+      document.removeEventListener('keydown', handleKey);
+      document.removeEventListener('focusin', handleFocus);
     };
   }, [isProfileMenuOpen]);
 
-  const hour = new Date().getHours();
-
-  const getGreetingData = () => {
-    if (hour >= 5 && hour < 12) {
-      return {
-        text: lang === 'ar' ? 'صباح الخير والبركة' : 'Good morning',
-        icon: Sunrise,
-      };
-    }
-    if (hour >= 12 && hour < 17) {
-      return {
-        text: lang === 'ar' ? 'طاب يومك وإنجازك' : 'Good afternoon',
-        icon: Sun,
-      };
-    }
-    return {
-      text: lang === 'ar' ? 'مساء الخير والهمّة' : 'Good evening',
-      icon: Moon,
-    };
+  const openFromAccount = (action: () => void) => {
+    setIsProfileMenuOpen(false);
+    action();
   };
 
-  const greeting = getGreetingData();
-  const GreetingIcon = greeting.icon;
-  const headerDateStr = formatHeaderDate(currentDate, lang);
-
   return (
-    <header className="flex flex-col gap-3 pb-3 border-b border-slate-200/80 dark:border-white/[0.08] transition-colors relative">
-      
-      {/* 1. الصف العلوي: شريط الأيقونات والإجراءات المدمجة (Icons-only Header) */}
-      <div className="flex items-center justify-between gap-2">
-        
-        {/* يمين / البداية: اسم التطبيق ومؤشر المزامنة التفاعلي */}
-        <div className="flex items-center gap-2 min-w-0">
-          {/* اسم التطبيق وشعار الحالة المدمج: ميزان */}
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white text-xs font-bold font-['Alexandria'] shrink-0 shadow-2xs">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10e588] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10e588]"></span>
-            </span>
-            <span>ميزان</span>
+    <header className="relative flex flex-col gap-5 border-b border-slate-200/80 pb-5 transition-colors dark:border-white/[0.08]">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 rounded-3xl border border-slate-200/80 bg-white/90 p-3 shadow-xs dark:border-white/[0.08] dark:bg-[#101318]/90 sm:p-4 md:grid-cols-[minmax(0,1fr)_auto_auto]">
+        <div className="flex min-w-0 items-center gap-3">
+          <div aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300">
+            <Scale className="h-6 w-6" strokeWidth={1.7} />
           </div>
-
-          {/* مؤشر حالة المزامنة الحية (Saved / Saving / Offline / Synced) */}
-          <SyncIndicator lang={lang} userId={currentUser?.id} />
-
-          {/* أيقونة الترحيب المدمجة مع تلميح */}
-          <div
-            title={greeting.text}
-            className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl bg-slate-100/70 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06] text-slate-500 dark:text-zinc-400 shrink-0"
-          >
-            <GreetingIcon className="w-4 h-4 stroke-[2]" />
-          </div>
-        </div>
-
-        {/* يسار / النهاية: أزرار الأيقونات فقط */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          
-          {/* قائمة وحساب المستخدم (أفاتار مع قائمة منبثقة للإحصائيات والأرشيف) */}
-          {currentUser && (
-            <div className="relative" ref={profileMenuRef}>
-              <button
-                type="button"
-                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                title={`${lang === 'ar' ? 'الملف الشخصي والإحصائيات' : 'Profile & Insights'} (${currentUser.name || currentUser.username})`}
-                className="relative group flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 via-teal-500/10 to-emerald-500/5 dark:from-emerald-400/20 dark:via-teal-400/10 dark:to-emerald-500/5 border border-emerald-500/30 dark:border-emerald-400/30 text-emerald-600 dark:text-emerald-400 shrink-0 shadow-2xs hover:border-emerald-500/60 transition-all cursor-pointer active:scale-95"
-                aria-label="Profile Menu"
-              >
-                {currentUser ? (
-                  <span className="text-sm font-black uppercase text-emerald-700 dark:text-emerald-300 font-['Alexandria']">
-                    {(currentUser.name || currentUser.username || currentUser.userCode || 'M').trim().charAt(0)}
-                  </span>
-                ) : (
-                  <CircleUserRound className="w-5 h-5 stroke-[2.2]" />
-                )}
-                {/* مؤشر الحالة النشطة */}
-                <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 ring-2 ring-white dark:ring-[#0c1015]" />
-                </span>
-              </button>
-
-              {/* القائمة المنسدلة للبروفايل، الإحصائيات، والأرشيف */}
-              {isProfileMenuOpen && (
-                <div className="absolute end-0 top-12 z-50 w-72 p-2 bg-white dark:bg-[#0f111a] border border-slate-200 dark:border-white/[0.12] rounded-2xl shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 font-['Alexandria']">
-                  {/* معلومات المستخدم وكود ميزان */}
-                  <div className="px-3 py-2.5 mb-1.5 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.05]">
-                    <div className="flex items-center gap-2.5 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center font-bold text-emerald-600 dark:text-emerald-400 text-xs">
-                        {(currentUser.name || currentUser.userCode || 'M').trim().charAt(0).toUpperCase()}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                          {currentUser.name || 'مستخدم ميزان'}
-                        </p>
-                        <p className="text-[10px] text-slate-400 dark:text-zinc-400 truncate">
-                          حساب ميزان النشط
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* كود المستخدم مع زر النسخ للمزامنة بين الأجهزة */}
-                    {currentUser.userCode && (
-                      <div className="flex items-center justify-between gap-1.5 p-1.5 rounded-lg bg-emerald-500/10 dark:bg-emerald-400/10 border border-emerald-500/20 text-[11px]">
-                        <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300 font-mono font-bold">
-                          <KeyRound className="w-3.5 h-3.5 text-emerald-500" />
-                          <span>كودك: {currentUser.userCode}</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyCode(currentUser.userCode)}
-                          className="px-2 py-0.5 rounded-md bg-white dark:bg-black/40 border border-emerald-500/30 text-[10px] font-bold text-emerald-600 dark:text-emerald-300 hover:scale-105 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
-                          title="نسخ الكود لاستخدامه في أجهزة أخرى"
-                        >
-                          {isCopiedCode ? (
-                            <>
-                              <Check className="w-3 h-3 text-emerald-500" />
-                              <span>تم النسخ</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3 h-3 text-emerald-500" />
-                              <span>نسخ الكود</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-1">
-                    {/* خيار الإحصائيات */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsProfileMenuOpen(false);
-                        onOpenStats();
-                      }}
-                      className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl transition-colors cursor-pointer text-start"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <BarChart3 className="w-4 h-4 text-emerald-500" />
-                        <span>{lang === 'ar' ? 'الإحصائيات والتقرير الأسبوعي' : 'Weekly Statistics'}</span>
-                      </div>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.06] text-slate-500 dark:text-zinc-400">
-                        📊
-                      </span>
-                    </button>
-
-                    {/* خيار الأرشيف */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsProfileMenuOpen(false);
-                        onOpenArchive();
-                      }}
-                      className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 rounded-xl transition-colors cursor-pointer text-start"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Archive className="w-4 h-4 text-cyan-500" />
-                        <span>{lang === 'ar' ? 'الأرشيف وسجل الأيام' : 'Archive & History'}</span>
-                      </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
-                        {archiveDaysCount}
-                      </span>
-                    </button>
-
-                    {/* خيار الإعدادات من البروفايل أيضاً */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsProfileMenuOpen(false);
-                        onOpenSettings();
-                      }}
-                      className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-slate-700 dark:text-zinc-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] rounded-xl transition-colors cursor-pointer text-start"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Settings className="w-4 h-4 text-slate-500 dark:text-zinc-400" />
-                        <span>{lang === 'ar' ? 'الإعدادات والخيارات' : 'Settings'}</span>
-                      </div>
-                    </button>
-
-                    {/* خط فاصل */}
-                    <div className="my-1 border-t border-slate-100 dark:border-white/[0.06]" />
-
-                    {/* تسجيل الخروج */}
-                    {onLogout && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsProfileMenuOpen(false);
-                          onLogout();
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-colors cursor-pointer text-start"
-                      >
-                        <Power className="w-4 h-4 stroke-[2.2]" />
-                        <span>{lang === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-2">
+              <span className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">{ar ? 'ميزان' : 'Mizan'}</span>
+              {ar && <span className="text-[9px] font-semibold tracking-[0.2em] text-slate-400 dark:text-zinc-500" dir="ltr">MIZAN</span>}
             </div>
-          )}
-
-          {/* زر تسجيل الخروج المباشر */}
-          {currentUser && onLogout && (
-            <button
-              type="button"
-              onClick={onLogout}
-              title={lang === 'ar' ? 'تسجيل الخروج' : 'Logout'}
-              className="group w-10 h-10 text-slate-500 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-xl bg-slate-100 hover:bg-rose-500/10 dark:bg-white/[0.05] dark:hover:bg-rose-500/15 border border-slate-200/80 hover:border-rose-500/30 dark:border-white/[0.08] dark:hover:border-rose-500/30 transition-all duration-200 cursor-pointer flex items-center justify-center active:scale-95 shrink-0 shadow-2xs"
-              aria-label="Logout"
-            >
-              <Power className="w-4 h-4 stroke-[2.2] group-hover:scale-110 group-hover:rotate-12 transition-transform" />
-            </button>
-          )}
-
-          {/* زر الإعدادات والخيارات الجديد في الهيدر */}
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            title={lang === 'ar' ? 'الإعدادات والخيارات' : 'Settings'}
-            className="w-10 h-10 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.05] dark:hover:bg-white/[0.09] border border-slate-200/80 dark:border-white/[0.08] transition-colors cursor-pointer flex items-center justify-center shadow-2xs active:scale-95 shrink-0"
-            aria-label="Settings"
-          >
-            <Settings className="w-4 h-4 stroke-[2]" />
-          </button>
-
-          {/* زر الوضع الداكن/الفاتح */}
-          <button
-            type="button"
-            onClick={onToggleTheme}
-            title={theme === 'dark' ? (lang === 'ar' ? 'التبديل للوضع الفاتح' : 'Light Mode') : (lang === 'ar' ? 'التبديل للوضع الداكن' : 'Dark Mode')}
-            className="w-10 h-10 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.05] dark:hover:bg-white/[0.09] border border-slate-200/80 dark:border-white/[0.08] transition-colors cursor-pointer flex items-center justify-center shadow-2xs active:scale-95 shrink-0"
-            aria-label="Toggle Theme"
-          >
-            {theme === 'dark' ? (
-              <Sun className="w-4 h-4 text-amber-400 stroke-[2]" />
-            ) : (
-              <Moon className="w-4 h-4 text-slate-700 stroke-[2]" />
-            )}
-          </button>
-
-          {/* زر تصدير كصورة */}
-          <button
-            type="button"
-            onClick={onOpenExportModal}
-            title={lang === 'ar' ? 'تصدير جدول اليوم كصورة' : 'Export as Image'}
-            className="w-10 h-10 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.05] dark:hover:bg-white/[0.09] border border-slate-200/80 dark:border-white/[0.08] transition-colors cursor-pointer flex items-center justify-center shadow-2xs active:scale-95 shrink-0"
-            aria-label="Export schedule as image"
-          >
-            <Camera className="w-4 h-4 stroke-[2]" />
-          </button>
-
-          {/* زر إضافة مهمة جديدة */}
-          <button
-            type="button"
-            onClick={onOpenAddTask}
-            title={lang === 'ar' ? 'إضافة مهمة جديدة (N)' : 'Add Task (N)'}
-            className="w-10 h-10 flex items-center justify-center text-slate-950 bg-[#10e588] hover:bg-[#0fd07b] active:scale-95 rounded-xl transition-all shadow-sm hover:shadow-md cursor-pointer shrink-0"
-            aria-label="Add new task"
-          >
-            <Plus className="w-5 h-5 stroke-[2.8]" />
-          </button>
+            <SyncIndicator lang={lang} userId={currentUser?.id} variant="quiet" />
+          </div>
         </div>
 
+        <div className="order-3 col-span-2 flex items-center justify-between gap-2 md:order-2 md:col-span-1 md:justify-end">
+          <button type="button" onClick={onOpenAddTask} aria-label={ar ? 'إضافة مهمة جديدة' : 'Add new task'} title={ar ? 'إضافة مهمة جديدة (N)' : 'Add task (N)'} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#10e588] px-3 text-xs font-bold text-emerald-950 transition-colors hover:bg-[#0fd07b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 sm:px-4">
+            <Plus className="h-4 w-4" strokeWidth={2.5} />
+            <span>{ar ? 'مهمة جديدة' : 'New task'}</span>
+          </button>
+          <div role="group" aria-label={ar ? 'أدوات اليوم' : 'Day tools'} className="flex shrink-0 items-center rounded-2xl border border-slate-200/70 bg-slate-50 p-0.5 dark:border-white/[0.05] dark:bg-white/[0.025]">
+            <button type="button" onClick={onOpenExportModal} aria-label={ar ? 'تصدير جدول اليوم كصورة' : 'Export schedule as image'} title={ar ? 'تصدير صورة' : 'Export image'} className={toolButton}>
+              <Camera className="h-4 w-4" strokeWidth={1.8} />
+            </button>
+            <button type="button" onClick={onOpenSettings} aria-label={ar ? 'الإعدادات والخيارات' : 'Settings'} title={ar ? 'الإعدادات' : 'Settings'} className={toolButton}>
+              <Settings className="h-4 w-4" strokeWidth={1.8} />
+            </button>
+            <button type="button" onClick={onToggleTheme} aria-label={theme === 'dark' ? (ar ? 'التبديل للوضع الفاتح' : 'Switch to light theme') : (ar ? 'التبديل للوضع الداكن' : 'Switch to dark theme')} title={theme === 'dark' ? (ar ? 'الوضع الفاتح' : 'Light theme') : (ar ? 'الوضع الداكن' : 'Dark theme')} className={toolButton}>
+              {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-300" strokeWidth={1.8} /> : <Moon className="h-4 w-4" strokeWidth={1.8} />}
+            </button>
+          </div>
+        </div>
+
+        {currentUser && (
+          <div className="relative order-2 md:order-3" ref={profileMenuRef}>
+            <button ref={profileButtonRef} type="button" onClick={() => setIsProfileMenuOpen(open => !open)} aria-label={ar ? 'قائمة الحساب' : 'Account menu'} aria-expanded={isProfileMenuOpen} aria-controls={profilePanelId} title={accountName} className={`flex min-h-11 items-center gap-2.5 rounded-2xl p-1.5 text-slate-600 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:text-zinc-300 dark:hover:bg-white/[0.05] ${isProfileMenuOpen ? 'bg-slate-100 dark:bg-white/[0.05]' : ''}`}>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-xs font-bold text-slate-700 ring-1 ring-slate-200/80 dark:bg-[#222a2d] dark:text-emerald-200 dark:ring-white/[0.08]" aria-hidden="true">{avatarLetter}</span>
+              <span className="hidden max-w-28 truncate text-xs font-semibold lg:block"><bdi>{accountName}</bdi></span>
+              <ChevronDown aria-hidden="true" className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isProfileMenuOpen && (
+              <div id={profilePanelId} className="absolute end-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-3rem)] rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-white/[0.1] dark:bg-[#141820]">
+                <div className="mb-2 border-b border-slate-100 px-3 py-3 dark:border-white/[0.06]">
+                  <p className="truncate text-sm font-semibold text-slate-900 dark:text-white"><bdi>{accountName}</bdi></p>
+                  <p className="mt-1 text-[10px] text-slate-500 dark:text-zinc-400">{ar ? 'مساحتك اليومية في ميزان' : 'Your daily space in Mizan'}</p>
+                  {currentUser.userCode && (
+                    <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-2.5 py-2 dark:bg-white/[0.04]">
+                      <div className="flex min-w-0 items-center gap-2 text-xs text-slate-600 dark:text-zinc-300">
+                        <KeyRound aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                        <span className="truncate font-mono" dir="ltr">{currentUser.userCode}</span>
+                      </div>
+                      <button type="button" onClick={() => handleCopyCode(currentUser.userCode)} title={ar ? 'نسخ كود الحساب' : 'Copy account code'} className="flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg px-2 text-[10px] font-semibold text-emerald-700 hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-emerald-300 dark:hover:bg-emerald-400/10">
+                        {isCopiedCode ? <Check aria-hidden="true" className="h-3.5 w-3.5" /> : <Copy aria-hidden="true" className="h-3.5 w-3.5" />}
+                        <span aria-live="polite">{isCopiedCode ? (ar ? 'تم النسخ' : 'Copied') : (ar ? 'نسخ' : 'Copy')}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <button type="button" onClick={() => openFromAccount(onOpenStats)} className={accountAction}>
+                  <BarChart3 aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-400 dark:text-zinc-500" />
+                  <span>{ar ? 'الإحصائيات والتقرير الأسبوعي' : 'Weekly statistics'}</span>
+                </button>
+                <button type="button" onClick={() => openFromAccount(onOpenArchive)} className={accountAction}>
+                  <Archive aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-400 dark:text-zinc-500" />
+                  <span className="flex-1">{ar ? 'الأرشيف وسجل الأيام' : 'Archive & history'}</span>
+                  <span className="rounded-md bg-slate-100 px-1.5 py-1 text-[10px] tabular-nums text-slate-500 dark:bg-white/[0.05] dark:text-zinc-400">{archiveDaysCount}</span>
+                </button>
+                <button type="button" onClick={() => openFromAccount(onOpenSettings)} className={accountAction}>
+                  <Settings aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-400 dark:text-zinc-500" />
+                  <span>{ar ? 'الإعدادات والخيارات' : 'Settings'}</span>
+                </button>
+                {onLogout && (
+                  <div className="mt-2 border-t border-slate-100 pt-2 dark:border-white/[0.06]">
+                    <button type="button" onClick={() => openFromAccount(onLogout)} className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2 text-start text-xs font-medium text-rose-600 hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-rose-500 dark:text-rose-400 dark:hover:bg-rose-400/10">
+                      <LogOut aria-hidden="true" className="h-4 w-4" strokeWidth={1.8} />
+                      <span>{ar ? 'تسجيل الخروج' : 'Log out'}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* 2. الصف السفلي: التاريخ */}
-      <div className="pt-1">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight font-['Alexandria'] leading-tight">
-          {headerDateStr}
-        </h1>
-      </div>
-
+      <h1 className="text-xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-2xl md:text-3xl">
+        <time dateTime={currentDate}>{formatHeaderDate(currentDate, lang)}</time>
+      </h1>
     </header>
   );
 };
