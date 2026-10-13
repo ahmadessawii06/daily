@@ -115,7 +115,7 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
           </div>;
         })}
       </div>
-      <p className="mt-3 text-[10px] text-slate-500 dark:text-zinc-400">{ar ? 'المصدر: ' : 'Source: '}<a href="https://aladhan.com/prayer-times-api" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-emerald-600 dark:hover:text-emerald-300">Aladhan</a>{ar ? ' · حساب رابطة العالم الإسلامي' : ' · Muslim World League calculation'}</p>
+    
     </article>
   );
 }
