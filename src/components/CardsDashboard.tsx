@@ -93,31 +93,24 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
         <StatCircle compact label={ar ? 'الإجمالي' : 'Total'} value={stats.total} percentage={stats.total ? 100 : 0} color="indigo" isActive={true} subLabel={ar ? 'مهمة' : 'tasks'} />
       </div>
       <div id={regionId} data-planner-card-content hidden={collapsed} className="p-3 pt-2">
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {visible.length === 0 && <p className="px-2 py-5 text-xs leading-6 text-slate-500 dark:text-zinc-400">{tasks.length ? (ar ? 'لا توجد مهام تطابق هذا الفلتر.' : 'No tasks match this filter.') : (ar ? 'ابدأ بمهمة صغيرة، وأكملها على إيقاعك.' : 'Start with something small. Make it your own.')}</p>}
           {visible.map(task => {
-            const rowStyle = task.status === 'done'
-              ? 'border-emerald-300 border-s-emerald-500 bg-emerald-50/90 hover:bg-emerald-100/90 dark:border-emerald-400/35 dark:border-s-emerald-400 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15'
-              : task.status === 'not-done'
-                ? 'border-rose-300 border-s-rose-500 bg-rose-50/90 hover:bg-rose-100/90 dark:border-rose-400/35 dark:border-s-rose-400 dark:bg-rose-500/10 dark:hover:bg-rose-500/15'
-                : 'border-transparent hover:bg-slate-50 dark:hover:bg-white/[0.02]';
-            return <div key={task.id} data-card-task-status={task.status} className={`group flex items-start gap-2 rounded-xl border border-s-[3px] px-1 py-2 transition-colors motion-reduce:transition-none ${rowStyle}`}>
+            return <div key={task.id} data-card-task-status={task.status} className="group flex items-start gap-1 rounded-lg px-1 py-0.5 transition-colors hover:bg-slate-50 motion-reduce:transition-none dark:hover:bg-white/[0.02]">
             <button type="button" data-task-status={task.status}
               aria-label={ar ? `تغيير حالة ${task.title}: ${statusLabels[task.status]}. التالي: ${statusLabels[nextTaskStatus(task.status)]}` : `Change status of ${task.title}: ${statusLabels[task.status]}. Next: ${statusLabels[nextTaskStatus(task.status)]}`}
               title={ar ? 'انقر للتبديل: متبقية ← مكتملة ← غير منجزة ← متبقية' : 'Click to cycle: Remaining → Completed → Not done → Remaining'}
               onClick={() => onStatusChange(task.id, nextTaskStatus(task.status))}
-              className="group/status flex h-11 w-9 shrink-0 items-center justify-center rounded-lg cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-400"><TaskStatusIndicator status={task.status} /></button>
-            <button type="button" onClick={() => onEdit(task)} aria-label={ar ? `تعديل ${task.title}` : `Edit ${task.title}`} className="min-h-11 min-w-0 flex-1 py-2 text-start">
-              <span className="flex items-start gap-2">
+              className="group/status flex h-9 w-8 shrink-0 items-center justify-center rounded-lg cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-400"><TaskStatusIndicator status={task.status} /></button>
+            <button type="button" onClick={() => onEdit(task)} aria-label={ar ? `تعديل ${task.title}` : `Edit ${task.title}`} className="min-h-9 min-w-0 flex-1 py-1 text-start">
                 <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-                  <span className={`min-w-0 max-w-full break-words text-xs font-medium leading-6 ${task.status === 'done' ? 'text-emerald-700 line-through decoration-emerald-500/50 dark:text-emerald-300' : task.status === 'not-done' ? 'text-rose-600 dark:text-rose-300' : ''}`}>{task.title}</span>
+                  <span className={`min-w-0 max-w-full break-words text-xs font-medium leading-5 ${task.status === 'done' ? 'line-through decoration-slate-400/60 dark:decoration-zinc-500' : ''}`}>{task.title}</span>
                 {task.status !== 'pending' && <span data-task-status-label={task.status} className={`inline-flex shrink-0 items-center gap-1 rounded-lg border px-1.5 py-0.5 text-[10px] font-semibold leading-4 ${task.status === 'done' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300' : 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300'}`}>{task.status === 'done' ? <Check aria-hidden="true" className="h-3 w-3" /> : <X aria-hidden="true" className="h-3 w-3" />}{statusLabels[task.status]}</span>}
                 </span>
-              </span>
-              {(task.time || task.notes) && <span className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-400">{task.time && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime12h(task.time, lang).formatted}</span>}{task.notes && <StickyNote className="h-3 w-3" aria-label={ar ? 'توجد ملاحظة' : 'Has notes'} />}</span>}
+              {(task.time || task.notes) && <span className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-400">{task.time && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime12h(task.time, lang).formatted}</span>}{task.notes && <StickyNote className="h-3 w-3" aria-label={ar ? 'توجد ملاحظة' : 'Has notes'} />}</span>}
             </button>
-            <button type="button" onClick={() => onEdit(task)} aria-label={ar ? `تفاصيل ${task.title}` : `Details for ${task.title}`} className="flex h-11 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200"><Pencil className="h-3.5 w-3.5" /></button>
-            <button type="button" onClick={() => onDelete(task.id)} aria-label={ar ? `حذف ${task.title}` : `Delete ${task.title}`} className="flex h-11 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:text-rose-500 dark:text-zinc-600 dark:hover:text-rose-400"><Trash2 className="h-3.5 w-3.5" /></button>
+            <button type="button" onClick={() => onEdit(task)} aria-label={ar ? `تفاصيل ${task.title}` : `Details for ${task.title}`} className="flex h-9 w-7 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200"><Pencil className="h-3.5 w-3.5" /></button>
+            <button type="button" onClick={() => onDelete(task.id)} aria-label={ar ? `حذف ${task.title}` : `Delete ${task.title}`} className="flex h-9 w-7 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:text-rose-500 dark:text-zinc-600 dark:hover:text-rose-400"><Trash2 className="h-3.5 w-3.5" /></button>
           </div>;
           })}
         </div>
