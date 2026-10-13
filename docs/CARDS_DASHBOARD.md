@@ -15,6 +15,7 @@ This change adds a category-based daily workspace beside the existing timeline. 
 - The card reuses matching daily tasks; clicking an empty slot creates a completed task at its prayer time when available. Existing task times, notes and statuses remain untouched when the schedule loads. Extra worship tasks and duplicate prayer records remain in category cards. Viewing a day does not generate stored tasks.
 - The prayer card appears first on every selected day, with independent daily completion and prayer labels. Completing all five reveals a compact 100% completion banner beneath the heading, aligned beside a randomly selected Quranic verse badge beneath the statistics circles. These stack on narrow screens. The verse stays stable during ordinary UI updates; changing a prayer back to incomplete hides both messages.
 - Verses remain complete on one line. Their font size fits the measured badge width and readjusts when the viewport or loaded font changes.
+- The top daily progress summary counts named tasks plus all five prayer slots in both views. Missing prayers count as pending; saved prayers count once with their actual status. Blank hourly placeholders are excluded. Eight ordinary tasks plus five prayers total thirteen throughout prayer completion.
 
 ## Data and compatibility
 

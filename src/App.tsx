@@ -8,7 +8,6 @@ import {
   addTaskToDay, 
   updateTaskInDay, 
   deleteTaskFromDay, 
-  calculateStats, 
   getAllArchiveDays, 
   resetToDefaults,
   getStoredTheme,
@@ -27,6 +26,7 @@ import { CardsDashboard } from './components/CardsDashboard';
 import { getPlannerWorkspace, readStoredWorkspace, setPlannerView } from './utils/workspace';
 import { activeCategories } from './shared/workspace';
 import { partitionPrayerTasks } from './utils/prayerTasks';
+import { calculateDailyProgress } from './utils/dailyProgress';
 import { MainHeader } from './components/MainHeader';
 import { TodayProgress } from './components/TodayProgress';
 import { PrayerCard } from './components/PrayerCard';
@@ -240,7 +240,7 @@ export default function App() {
     setCurrentFilter('all');
   };
 
-  const stats = useMemo(() => calculateStats(workspace.view === 'cards' ? tasks.filter(t => t.title.trim()) : tasks), [tasks, workspace.view]);
+  const stats = useMemo(() => calculateDailyProgress(tasks), [tasks]);
 
   const [isExportingImage, setIsExportingImage] = useState(false);
 
