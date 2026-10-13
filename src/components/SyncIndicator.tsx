@@ -6,10 +6,9 @@ import { Language } from '../types';
 interface SyncIndicatorProps {
   lang: Language;
   userId?: string;
-  variant?: 'badge' | 'quiet';
 }
 
-export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId, variant = 'badge' }) => {
+export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId }) => {
   const [syncInfo, setSyncInfo] = useState<SyncStatusInfo>({
     status: navigator.onLine ? 'synced' : 'offline',
     pendingCount: 0,
@@ -78,11 +77,11 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId, vari
       onClick={handleManualSync}
       title={label}
       aria-label={label}
-      className={`inline-flex items-center gap-1.5 rounded-lg text-[10px] font-medium transition-colors cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${variant === 'quiet' ? 'min-h-6 -ms-1 px-1 hover:underline underline-offset-4 text-slate-500 dark:text-zinc-400' : `border px-2.5 py-1.5 ${current.color}`}`}
+      className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-2.5 text-[11px] font-semibold transition-colors cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${current.color}`}
     >
-      {variant === 'badge' && <span className={`w-2 h-2 rounded-full ${current.dot} shrink-0`} />}
+      <span className={`w-2 h-2 rounded-full ${current.dot} shrink-0`} />
       <Icon aria-hidden="true" className={`w-3.5 h-3.5 shrink-0 ${current.iconClass || ''}`} />
-      <span className={variant === 'quiet' ? '' : 'hidden sm:inline'}>{current.text}</span>
+      <span>{current.text}</span>
       {syncInfo.pendingCount > 0 && (
         <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] font-bold">
           {syncInfo.pendingCount}
