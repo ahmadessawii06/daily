@@ -126,6 +126,16 @@
   }
 }
 
+/* Row actions stay reachable by keyboard; touch devices use a compact menu. */
+.task-actions-desktop { display: flex; opacity: 0; pointer-events: none; }
+.task-row:hover .task-actions-desktop,
+.task-row:focus-within .task-actions-desktop { opacity: 1; pointer-events: auto; }
+.task-actions-mobile { display: none; }
+@media (max-width: 639px), (hover: none), (pointer: coarse) {
+  .task-actions-desktop { display: none; }
+  .task-actions-mobile { display: flex; }
+}
+
 /* Hide scrollbar utility for smooth horizontal pill scrollers on mobile */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

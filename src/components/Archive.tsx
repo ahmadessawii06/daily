@@ -211,7 +211,7 @@ export const Archive: React.FC<ArchiveProps> = ({
                                     <span>{t12.time12}</span>
                                     <span className="text-[10px] font-['Alexandria'] font-bold opacity-80">{t12.period}</span>
                                   </span>
-                                  <span className={`break-words font-['Alexandria'] ${isDone ? 'line-through text-slate-500 dark:text-zinc-500' : isNotDone ? 'text-rose-900 dark:text-rose-200 font-bold' : 'text-slate-900 dark:text-zinc-100 font-semibold'}`}>
+                                  <span className={`break-words font-['Alexandria'] ${isDone ? 'text-slate-500 dark:text-zinc-500' : isNotDone ? 'text-rose-900 dark:text-rose-200 font-bold' : 'text-slate-900 dark:text-zinc-100 font-semibold'}`}>
                                     {task.title}
                                   </span>
                                   {task.notes && (

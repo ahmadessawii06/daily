@@ -11,6 +11,7 @@ This change adds a category-based daily workspace beside the existing timeline. 
 - Create cards, edit names and icons, or collapse them. Preferences belong to the account and persist across dates.
 - Removing a card leaves every associated task on its original date. Those tasks appear under **Unassigned**, and can be reassigned in the task editor.
 - Timeline retains inline editing, completion states, filters, arbitrary start times, and the optional 24-hour template. Untimed tasks have a separate section.
+- Cards and Timeline use compact status indicators: a soft green check for completed tasks, a muted pink cross for not-done tasks, and no per-row status badges. Completed titles stay readable in gray without strikethrough. Desktop edit/delete controls appear on row hover or keyboard focus; touch devices use a keyboard-accessible **⋯** menu. Timeline's direct status selector remains available by right-clicking the status control or pressing Shift+F10.
 - Prayer times, authentication, archive, statistics, language, themes and image export remain available. Exports temporarily reveal collapsed card contents and then restore the layout.
 - A full-width prayer card shows exactly five prayer slots with daily Nablus, Palestine times from Aladhan (Muslim World League calculation, `Asia/Hebron`). It replaces the separate prayer-times widget in both views. Times follow the selected date, use a validated daily cache, and show loading/retry states instead of fabricated fallback times.
 - Location names are hidden in the card. Minute adjustments align the calculation with the supplied 13 October 2026 reference: Fajr 05:19, Dhuhr 12:25, Asr 15:41, Maghrib 18:16 and Isha 19:31. Adjustments are part of the cache key, so older unadjusted times cannot reappear. Other dates remain calculated daily; matching every date to an external authority has not been verified.
@@ -38,6 +39,7 @@ Cached sessions open immediately and synchronize in the background. A fresh sign
 | Dashboard UI | `src/components/CardsDashboard.tsx`, `CategoryEditor.tsx`, `PrayerCard.tsx`, `src/utils/prayerTasks.ts` |
 | Daily prayer schedule | `src/hooks/useNablusPrayerTimes.ts`, `src/utils/prayerTimes.ts`, `tests/prayerTimes.test.ts` |
 | Shared view integration | `src/App.tsx`, `AddTaskModal.tsx`, `EditTaskModal.tsx`, `TaskList.tsx`, `TaskRow.tsx` |
+| Shared task controls | `src/components/TaskStatusIndicator.tsx`, `TaskActions.tsx`, `src/index.css` |
 | Workspace model and persistence | `src/types/index.ts`, `src/shared/workspace.ts`, `src/utils/workspace.ts`, `src/utils/storage.ts` |
 | API and synchronization | `backend/app.ts`, `backend/repository.ts`, `src/services/api.ts`, `syncEngine.ts`, `syncQueue.ts`, `src/components/LoginScreen.tsx` |
 | Full-content export | `src/utils/exportDailyTrack.ts` |
