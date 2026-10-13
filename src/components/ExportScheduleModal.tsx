@@ -224,7 +224,7 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
               isEmpty
                 ? 'opacity-40 font-normal italic'
                 : t.status === 'done'
-                ? 'line-through opacity-75'
+                ? 'opacity-75'
                 : ''
             }`}
           >

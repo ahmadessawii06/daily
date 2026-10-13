@@ -1,5 +1,32 @@
-// Web Audio API Sound Effects Engine for Daily Track
-// Zero external files, zero latency, runs 100% in browser
+// Synthesized task sounds and the supplied completion clip, served by Mizan.
+
+let challengeAudio: HTMLAudioElement | null = null;
+
+function getChallengeAudio(): HTMLAudioElement | null {
+  if (typeof Audio === 'undefined') return null;
+  try {
+    if (!challengeAudio) {
+      challengeAudio = new Audio('/sounds/challenge-complete.mp3');
+      challengeAudio.preload = 'auto';
+      challengeAudio.load();
+    }
+    return challengeAudio;
+  } catch { return null; }
+}
+
+export function preloadChallengeCompleteSound(): void {
+  getChallengeAudio();
+}
+
+export function playChallengeCompleteSound(): void {
+  try {
+    const audio = getChallengeAudio();
+    if (!audio) return;
+    // Reuse one player so rapid completion of several cards cannot layer the clip.
+    audio.currentTime = 0;
+    void audio.play().catch(() => {});
+  } catch { /* A blocked or unavailable sound must not interrupt saving the task. */ }
+}
 
 let audioCtx: AudioContext | null = null;
 

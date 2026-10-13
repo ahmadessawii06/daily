@@ -2,6 +2,55 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Stable category hues, with theme-specific contrast and softly tinted surfaces. */
+@layer components {
+  .planner-card {
+    --card-accent: hsl(var(--card-hue) var(--card-saturation) 38%);
+    background-color: hsl(var(--card-hue) var(--card-saturation) 97%);
+    border-color: hsl(var(--card-hue) var(--card-saturation) 85%);
+    border-top-color: var(--card-accent);
+  }
+
+  .dark .planner-card {
+    --card-accent: hsl(var(--card-hue) var(--card-saturation) 72%);
+    background-color: hsl(var(--card-hue) 22% 10%);
+    border-color: hsl(var(--card-hue) 30% 24%);
+    border-top-color: var(--card-accent);
+  }
+
+  .planner-card[data-card-complete="true"] {
+    background-image: linear-gradient(135deg, transparent 45%, rgb(16 185 129 / 0.08));
+    box-shadow: inset 0 0 0 1px rgb(16 185 129 / 0.25);
+  }
+
+  .planner-card-icon {
+    color: var(--card-accent);
+    background-color: hsl(var(--card-hue) var(--card-saturation) 92%);
+    border-color: hsl(var(--card-hue) var(--card-saturation) 85%);
+  }
+
+  .planner-card-task-icon { color: var(--card-accent); }
+
+  .dark .planner-card-icon {
+    background-color: hsl(var(--card-hue) 35% 17%);
+    border-color: hsl(var(--card-hue) 35% 26%);
+  }
+
+  .planner-card-add {
+    background-color: var(--card-accent);
+  }
+
+  .planner-card-add { color: white; }
+  .dark .planner-card-add { color: #0f172a; }
+  .planner-card-add:enabled:hover { filter: brightness(1.1); }
+
+  .planner-card-form:focus-within {
+    border-color: var(--card-accent);
+    outline: 2px solid var(--card-accent);
+    outline-offset: 2px;
+  }
+}
+
 /* Indeterminate progress follows the request; no artificial percentage or delay. */
 @keyframes auth-loading-progress {
   from { transform: translateX(-110%); }
@@ -37,6 +86,49 @@
   }
 }
 
+/* Task editors own their text, caret and autofill colors in both themes. */
+.task-input {
+  --task-input-bg: #f8fafc;
+  --task-input-text: #0f172a;
+  background-color: var(--task-input-bg);
+  color: var(--task-input-text);
+  caret-color: var(--task-input-text);
+  -webkit-text-fill-color: var(--task-input-text);
+  color-scheme: light;
+}
+
+.task-input:focus { --task-input-bg: #ffffff; }
+
+.dark .task-input {
+  --task-input-bg: #08090d;
+  --task-input-text: #ffffff;
+  color-scheme: dark;
+}
+
+.dark .task-input:focus { --task-input-bg: #11131a; }
+.task-input::placeholder { -webkit-text-fill-color: currentColor; }
+.task-input::selection { background-color: #a7f3d0; color: #064e3b; -webkit-text-fill-color: #064e3b; }
+
+.task-input:autofill {
+  -webkit-text-fill-color: var(--task-input-text);
+  caret-color: var(--task-input-text);
+  box-shadow: 0 0 0 1000px var(--task-input-bg) inset;
+}
+
+/* Keep the native time picker and keyboard editing; show a clear idle label. */
+.edit-task-time:not(:focus-within) { color: transparent; -webkit-text-fill-color: transparent; }
+.edit-task-time:not(:focus-within)::-webkit-datetime-edit { visibility: hidden; }
+.edit-task-time:focus-within { --task-input-bg: #ffffff; }
+.dark .edit-task-time:focus-within { --task-input-bg: #11131a; }
+.edit-task-time:focus-within + .edit-task-time-display { display: none; }
+
+/* The category picker keeps native keyboard behavior with theme-matched options. */
+.edit-task-category option {
+  background-color: var(--task-input-bg);
+  color: var(--task-input-text);
+  -webkit-text-fill-color: var(--task-input-text);
+}
+
 /* Prevent auto-zoom on mobile inputs in iOS Safari */
 @media (max-width: 639px) {
   input[type="text"],
@@ -46,6 +138,16 @@
   textarea {
     font-size: 16px !important;
   }
+}
+
+/* Row actions stay reachable by keyboard; touch devices use a compact menu. */
+.task-actions-desktop { display: flex; opacity: 0; pointer-events: none; }
+.task-row:hover .task-actions-desktop,
+.task-row:focus-within .task-actions-desktop { opacity: 1; pointer-events: auto; }
+.task-actions-mobile { display: none; }
+@media (max-width: 639px), (hover: none), (pointer: coarse) {
+  .task-actions-desktop { display: none; }
+  .task-actions-mobile { display: flex; }
 }
 
 /* Hide scrollbar utility for smooth horizontal pill scrollers on mobile */

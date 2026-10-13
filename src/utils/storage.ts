@@ -6,6 +6,7 @@ import { SCHEDULE_TEMPLATES } from './templates';
 import { userStorage } from './scopedStorage';
 import { enqueue, enqueueDay } from '../services/syncQueue';
 import { nextRecordTimestamp } from '../shared/merge';
+import { getPlannerWorkspace } from './workspace';
 
 const STORAGE_KEY = 'daily_tasks_app_data_v8_saturday_schedule';
 const THEME_KEY = 'daily_theme_v1';
@@ -214,7 +215,7 @@ export function syncDayToMongo(date: string): void {
 export function getDayRecord(date: string): DayRecord {
   const all = loadAllDays();
   if (all[date] && Array.isArray(all[date].tasks)) return all[date];
-  const record: DayRecord = { date, tasks: createEmpty24HourTasks(date), updatedAt: new Date().toISOString() };
+  const record: DayRecord = { date, tasks: getPlannerWorkspace().view === 'timeline' ? createEmpty24HourTasks(date) : [], updatedAt: new Date().toISOString() };
   all[date] = record;
   saveAllDays(all);
   return record;
@@ -261,6 +262,7 @@ export function addTaskToDay(
     status?: Task['status'];
     notes?: string;
     category?: TaskCategory;
+    categoryId?: string;
     priority?: TaskPriority;
     deadline?: string;
     isTopFocus?: boolean;
@@ -271,7 +273,7 @@ export function addTaskToDay(
   const currentRecord = getDayRecord(date);
   
   const startTime = taskInput.time ? taskInput.time.trim() : '';
-  let duration = taskInput.duration || 45;
+  let duration = taskInput.duration ?? (startTime ? 45 : undefined);
   let endTime = taskInput.endTime?.trim();
 
   if (startTime) {
@@ -294,6 +296,7 @@ export function addTaskToDay(
     status: taskInput.status || 'pending',
     notes: taskInput.notes?.trim() || undefined,
     category,
+    categoryId: taskInput.categoryId,
     priority: taskInput.priority || 'medium',
     deadline: taskInput.deadline,
     isTopFocus: taskInput.isTopFocus,
@@ -330,14 +333,16 @@ export function updateTaskInDay(date: string, taskId: string, updates: Partial<T
   };
 
   // Recalculate duration if time or endTime changed
-  if (updates.time || updates.endTime) {
+  if (updates.time === '') {
+    merged.endTime = undefined;
+  } else if (updates.time !== undefined || updates.endTime !== undefined) {
     const s = updates.time || merged.time;
     const e = updates.endTime || merged.endTime;
     if (s && e) {
       const diff = timeToMinutes(e) - timeToMinutes(s);
       merged.duration = diff > 0 ? diff : (merged.duration || 60);
     }
-  } else if (updates.duration && updates.duration !== existing.duration) {
+  } else if (merged.time && updates.duration && updates.duration !== existing.duration) {
     merged.endTime = minutesToTime(timeToMinutes(merged.time) + updates.duration);
   }
 
@@ -394,7 +399,7 @@ export function calculateStats(tasks: Task[]): DayStats {
   let doneDurationMinutes = 0;
 
   for (const t of targetTasks) {
-    const dur = t.duration || 60;
+    const dur = t.duration ?? (t.time ? 60 : 0);
     totalDurationMinutes += dur;
     if (t.status === 'done') {
       done++;

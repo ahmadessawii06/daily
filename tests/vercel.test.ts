@@ -14,7 +14,7 @@ test('compiled Vercel entry loads in native Node ESM without a TypeScript loader
     await build({
       absWorkingDir: root,
       entryPoints: ['api/index.ts', 'backend/app.ts', 'backend/repository.ts',
-        'backend/security.ts', 'backend/mongodb.ts', 'src/shared/merge.ts'],
+        'backend/security.ts', 'backend/mongodb.ts', 'src/shared/merge.ts', 'src/shared/workspace.ts'],
       outbase: '.', outdir: output, bundle: false, platform: 'node', format: 'esm',
     });
     const entry = pathToFileURL(path.join(output, 'api/index.js'));

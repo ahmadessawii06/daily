@@ -1,21 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Check, 
-  Clock, 
-  X, 
-  Edit3, 
-  Trash2, 
-  StickyNote, 
-  Flame, 
-  Sparkles, 
-  BookOpen, 
-  Briefcase, 
-  CheckSquare2,
-  Plus
-} from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Check, Clock, X, StickyNote } from 'lucide-react';
 import { Language, Task, TaskStatus } from '../types';
 import { formatTime12h } from '../utils/date';
 import { getTaskContextIcon } from '../utils/taskIconHelper';
+import { nextTaskStatus } from '../utils/taskStatus';
+import { TaskStatusIndicator } from './TaskStatusIndicator';
+import { TaskActions } from './TaskActions';
 
 interface TaskRowProps {
   task: Task;
@@ -40,10 +31,44 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   onStartEdit,
   onEnterNext,
 }) => {
-  const [showStatusMenu, setShowStatusMenu] = useState(false);
+  const [statusMenuPosition, setStatusMenuPosition] = useState<{ left: number; top: number } | null>(null);
+  const statusMenuRef = useRef<HTMLDivElement>(null);
+  const statusTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const openStatusMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    statusTriggerRef.current = event.currentTarget;
+    setStatusMenuPosition({ left: Math.max(8, Math.min(event.clientX, window.innerWidth - 160)), top: Math.max(8, Math.min(event.clientY, window.innerHeight - 160)) });
+  };
+  const handleStatusKeys = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (!event.shiftKey || event.key !== 'F10') return;
+    event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    statusTriggerRef.current = event.currentTarget;
+    setStatusMenuPosition({ left: Math.max(8, Math.min(rect.left, window.innerWidth - 160)), top: Math.max(8, Math.min(rect.bottom, window.innerHeight - 160)) });
+  };
+  useEffect(() => {
+    if (!statusMenuPosition) return;
+    statusMenuRef.current?.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true });
+    const dismiss = () => setStatusMenuPosition(null);
+    const outside = (event: PointerEvent) => { if (!statusMenuRef.current?.contains(event.target as Node)) dismiss(); };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { dismiss(); statusTriggerRef.current?.focus({ preventScroll: true }); }
+    };
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', escape);
+    window.addEventListener('resize', dismiss);
+    window.addEventListener('scroll', dismiss, true);
+    return () => {
+      document.removeEventListener('pointerdown', outside);
+      document.removeEventListener('keydown', escape);
+      window.removeEventListener('resize', dismiss);
+      window.removeEventListener('scroll', dismiss, true);
+    };
+  }, [statusMenuPosition]);
   const [inlineTitle, setInlineTitle] = useState(task.title || '');
   const [isEditingInline, setIsEditingInline] = useState(isEditing);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
+  const desktopInputRef = useRef<HTMLInputElement>(null);
 
   // Sync internal editing state with prop
   useEffect(() => {
@@ -58,10 +83,20 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   }, [task.title, isEditingInline]);
 
   useEffect(() => {
-    if (isEditingInline && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
+    if (!isEditingInline) return;
+    const focusVisibleInput = () => {
+      const inputs = [mobileInputRef.current, desktopInputRef.current];
+      const active = document.activeElement;
+      if (active !== document.body && !inputs.includes(active as HTMLInputElement)) return;
+      const input = inputs.find(element => element && element.getClientRects().length > 0);
+      if (input && active !== input) {
+        input.focus();
+        input.select();
+      }
+    };
+    focusVisibleInput();
+    window.addEventListener('resize', focusVisibleInput);
+    return () => window.removeEventListener('resize', focusVisibleInput);
   }, [isEditingInline]);
 
   // 12-hour formatted time (with صباحًا / مساءً)
@@ -74,67 +109,42 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   const contextIconData = getTaskContextIcon(currentTitleForIcon);
   const ContextIcon = contextIconData.icon;
 
-  // Status visual configuration: Row coloring + Badges + Side accent strip
+  // Keep the row neutral; communicate status through the indicator and title tone.
   const statusConfig = isEmptySlot
     ? {
         label: lang === 'ar' ? 'ساعة متاحة' : 'Open Slot',
-        shortLabel: lang === 'ar' ? 'متاح' : 'Open',
-        symbol: '+',
         rowClass: 
           'bg-slate-50/40 hover:bg-slate-50 border-dashed border-slate-200/80 hover:border-slate-300 dark:bg-white/[0.01] dark:hover:bg-white/[0.03] dark:border-white/[0.06] dark:hover:border-white/[0.12]',
-        accentStrip: 'bg-slate-300 dark:bg-white/15',
-        triggerBg: 'bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-white/5 dark:text-zinc-400 dark:hover:bg-white/10',
-        badgeClass: 'text-slate-500 bg-slate-100 border-slate-200 dark:text-zinc-400 dark:bg-white/[0.04] dark:border-white/[0.08]',
         titleClass: 'text-slate-400 dark:text-zinc-500 font-normal',
         timeClass: 'text-slate-600 dark:text-zinc-400 bg-slate-100/70 dark:bg-white/[0.03] border-slate-200/70 dark:border-white/[0.06]',
       }
     : {
         done: {
           label: lang === 'ar' ? 'مكتملة' : 'Done',
-          shortLabel: lang === 'ar' ? 'تم' : 'Done',
-          symbol: '✓',
           rowClass: 
             'bg-white hover:bg-slate-50/70 border-slate-200/70 dark:bg-[#11131a] dark:hover:bg-[#141720] dark:border-white/[0.06]',
-          accentStrip: 'bg-[#10e588]',
-          triggerBg: 'bg-[#10e588] text-slate-950 font-black shadow-xs hover:bg-[#0fd07b]',
-          badgeClass: 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-300 dark:bg-emerald-500/15 dark:border-emerald-500/30 shadow-2xs',
-          titleClass: 'line-through text-slate-400 dark:text-zinc-500 font-medium',
+          titleClass: 'text-slate-500 dark:text-zinc-400 font-medium',
           timeClass: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50/60 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20',
         },
         pending: {
           label: '',
-          shortLabel: '',
-          symbol: '',
           rowClass: 
             'bg-white hover:bg-slate-50/70 border-slate-200/70 dark:bg-[#11131a] dark:hover:bg-[#141720] dark:border-white/[0.06]',
-          accentStrip: 'bg-transparent',
-          triggerBg: 'border-2 border-slate-300 dark:border-white/20 hover:border-[#10e588] text-transparent hover:text-[#10e588] bg-slate-50/40 dark:bg-white/[0.02]',
-          badgeClass: '',
           titleClass: 'text-slate-900 dark:text-zinc-100 font-bold',
           timeClass: 'text-slate-600 dark:text-zinc-400 bg-slate-100/70 dark:bg-white/[0.03] border-slate-200/70 dark:border-white/[0.06]',
         },
         'not-done': {
           label: lang === 'ar' ? 'غير منجزة' : 'Not Done',
-          shortLabel: lang === 'ar' ? 'لم تنجز' : 'Not Done',
-          symbol: '✕',
           rowClass: 
             'bg-white hover:bg-slate-50/70 border-slate-200/70 dark:bg-[#11131a] dark:hover:bg-[#141720] dark:border-white/[0.06]',
-          accentStrip: 'bg-[#ff6b81]',
-          triggerBg: 'bg-[#ff6b81] text-white font-black shadow-xs hover:bg-[#ff526c]',
-          badgeClass: 'text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-300 dark:bg-rose-500/15 dark:border-rose-500/30 shadow-2xs',
-          titleClass: 'text-rose-600 dark:text-rose-300 font-bold',
+          titleClass: 'text-slate-900 dark:text-zinc-100 font-bold',
           timeClass: 'text-rose-700 dark:text-rose-300 bg-rose-50/60 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20',
         },
       }[task.status];
 
   // Quick cycle between the 3 status states
   const handleCycleStatus = () => {
-    const cycleMap: Record<TaskStatus, TaskStatus> = {
-      pending: 'done',
-      done: 'not-done',
-      'not-done': 'pending',
-    };
-    onStatusChange(task.id, cycleMap[task.status]);
+    onStatusChange(task.id, nextTaskStatus(task.status));
   };
 
   const isCommittingRef = useRef(false);
@@ -162,14 +172,15 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   };
 
   return (
-    <div className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3.5 px-3 sm:px-4 py-2.5 sm:py-2.5 rounded-2xl border transition-all duration-200 overflow-hidden ${statusConfig.rowClass}`}>
+    <>
+    <div className={`task-row group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3.5 px-3 sm:px-4 py-2.5 sm:py-2.5 rounded-2xl border transition-all duration-200 overflow-hidden ${statusConfig.rowClass}`}>
       
       {/* ============================================================ */}
       {/* 1. MOBILE VIEW (< sm): 2-Tier Layout so titles NEVER cut off */}
       {/* ============================================================ */}
       <div className="flex sm:hidden flex-col gap-2 w-full">
         
-        {/* Mobile Top Bar: Checkbox + Time Badge on start, Status & Actions on end */}
+        {/* Mobile top bar: status and time, with a compact actions menu */}
         <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-black/[0.04] dark:border-white/[0.05]">
           
           {/* Start: Tactile Checkbox + 12h Time Badge */}
@@ -177,64 +188,29 @@ export const TaskRow: React.FC<TaskRowProps> = ({
             <button
               type="button"
               onClick={handleCycleStatus}
+              onContextMenu={openStatusMenu}
+              onKeyDown={handleStatusKeys}
+              aria-label={`${lang === 'ar' ? 'تغيير حالة' : 'Change status of'} ${task.title || task.time}: ${task.status === 'pending' ? (lang === 'ar' ? 'متبقية' : 'Remaining') : statusConfig.label}`}
               title={lang === 'ar' ? 'انقر لتغيير حالة المهمة' : 'Click to toggle status'}
-              className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150 cursor-pointer active:scale-90 ${statusConfig.triggerBg}`}
+              className="group/status w-9 h-9 rounded-lg flex items-center justify-center shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-400"
             >
-              {isEmptySlot ? (
-                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-              ) : task.status === 'done' ? (
-                <Check className="w-3.5 h-3.5 stroke-[3.5]" />
-              ) : task.status === 'not-done' ? (
-                <X className="w-3.5 h-3.5 stroke-[3.5]" />
-              ) : (
-                <Check className="w-3 h-3 stroke-[2.5] opacity-0 group-hover:opacity-40 transition-opacity text-slate-500 dark:text-zinc-400" />
-              )}
+              <TaskStatusIndicator status={task.status} isEmptySlot={isEmptySlot} />
             </button>
 
             <div className={`font-numbers text-xs font-black tabular-nums shrink-0 px-2 py-1 rounded-xl border flex items-center gap-1.5 shadow-2xs ${statusConfig.timeClass}`}>
               <Clock className="w-3.5 h-3.5 opacity-75 shrink-0" />
-              <span className="font-extrabold tracking-wide">{t12.time12}</span>
-              <span className={`text-[10px] font-['Alexandria'] font-extrabold px-1.5 py-0.5 rounded-md ${
+              <span className="font-extrabold tracking-wide">{task.time ? t12.time12 : (lang === 'ar' ? 'بدون وقت' : 'Unscheduled')}</span>
+              {task.time && <span className={`text-[10px] font-['Alexandria'] font-extrabold px-1.5 py-0.5 rounded-md ${
                 t12.isPM 
                   ? 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30' 
                   : 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
               }`}>
                 {t12.period}
-              </span>
+              </span>}
             </div>
           </div>
 
-          {/* End: Status Badge (Done/Not Done) + Edit & Delete Actions */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            {(!isEmptySlot && task.status !== 'pending') && (
-              <button
-                type="button"
-                onClick={handleCycleStatus}
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-extrabold border transition-all cursor-pointer min-h-[30px] active:scale-95 ${statusConfig.badgeClass}`}
-              >
-                <span className="font-black text-xs">{statusConfig.symbol}</span>
-                <span>{statusConfig.label}</span>
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={() => onEdit(task)}
-              title={lang === 'ar' ? 'تعديل المهمة والملاحظات' : 'Edit task details'}
-              className="p-1.5 text-slate-400 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-black/5 dark:hover:bg-white/[0.08] transition-colors cursor-pointer min-w-[32px] min-h-[32px] flex items-center justify-center active:scale-95"
-            >
-              <Edit3 className="w-3.5 h-3.5 stroke-[2.2]" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onDelete(task.id)}
-              title={isEmptySlot ? (lang === 'ar' ? 'حذف هذه الساعة' : 'Delete slot') : (lang === 'ar' ? 'حذف / تفريغ المهمة' : 'Clear / Delete')}
-              className="p-1.5 text-slate-400 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/20 transition-colors cursor-pointer min-w-[32px] min-h-[32px] flex items-center justify-center active:scale-95"
-            >
-              <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
-            </button>
-          </div>
+          <TaskActions task={task} lang={lang} onEdit={onEdit} onDelete={onDelete} />
 
         </div>
 
@@ -247,7 +223,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               </div>
 
               <input
-                ref={inputRef}
+                ref={mobileInputRef}
                 type="text"
                 value={inlineTitle}
                 onChange={(e) => setInlineTitle(e.target.value)}
@@ -265,7 +241,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   handleCommitTitle(false);
                 }}
                 placeholder={lang === 'ar' ? '+ اكتب اسم المهمة هنا واضغط Enter...' : '+ Write task name and press Enter...'}
-                className="w-full bg-white dark:bg-[#0b0d13] border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-2 text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[40px]"
+                className="task-input w-full border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-2 text-base font-semibold placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[40px]"
               />
               {inlineTitle.trim() && (
                 <button
@@ -329,31 +305,26 @@ export const TaskRow: React.FC<TaskRowProps> = ({
         <button
           type="button"
           onClick={handleCycleStatus}
+          onContextMenu={openStatusMenu}
+          onKeyDown={handleStatusKeys}
+          aria-label={`${lang === 'ar' ? 'تغيير حالة' : 'Change status of'} ${task.title || task.time}: ${task.status === 'pending' ? (lang === 'ar' ? 'متبقية' : 'Remaining') : statusConfig.label}`}
           title={lang === 'ar' ? 'انقر لتغيير حالة المهمة' : 'Click to toggle status'}
-          className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150 cursor-pointer active:scale-90 ${statusConfig.triggerBg}`}
+          className="group/status w-9 h-9 rounded-lg flex items-center justify-center shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-400"
         >
-          {isEmptySlot ? (
-            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-          ) : task.status === 'done' ? (
-            <Check className="w-3.5 h-3.5 stroke-[3.5]" />
-          ) : task.status === 'not-done' ? (
-            <X className="w-3.5 h-3.5 stroke-[3.5]" />
-          ) : (
-            <Check className="w-3 h-3 stroke-[2.5] opacity-0 group-hover:opacity-40 transition-opacity text-slate-500 dark:text-zinc-400" />
-          )}
+          <TaskStatusIndicator status={task.status} isEmptySlot={isEmptySlot} />
         </button>
 
         {/* 12-Hour Time Badge */}
         <div className={`font-numbers text-xs font-black tabular-nums shrink-0 px-2.5 py-1 rounded-xl border flex items-center gap-1.5 shadow-2xs ${statusConfig.timeClass}`}>
           <Clock className="w-3.5 h-3.5 opacity-75 shrink-0" />
-          <span className="font-extrabold tracking-wide">{t12.time12}</span>
-          <span className={`text-[11px] font-['Alexandria'] font-extrabold px-1.5 py-0.5 rounded-md ${
+          <span className="font-extrabold tracking-wide">{task.time ? t12.time12 : (lang === 'ar' ? 'بدون وقت' : 'Unscheduled')}</span>
+          {task.time && <span className={`text-[11px] font-['Alexandria'] font-extrabold px-1.5 py-0.5 rounded-md ${
             t12.isPM 
               ? 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30' 
               : 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'
           }`}>
             {t12.period}
-          </span>
+          </span>}
         </div>
 
         {/* Title & Notes / Direct In-place Input */}
@@ -365,7 +336,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               </div>
 
               <input
-                ref={inputRef}
+                ref={desktopInputRef}
                 type="text"
                 value={inlineTitle}
                 onChange={(e) => setInlineTitle(e.target.value)}
@@ -383,7 +354,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   handleCommitTitle(false);
                 }}
                 placeholder={lang === 'ar' ? '+ اكتب اسم المهمة هنا واضغط Enter...' : '+ Write task name and press Enter...'}
-                className="w-full bg-white dark:bg-[#0b0d13] border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-1.5 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[36px]"
+                className="task-input w-full border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-1.5 text-sm font-semibold placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[36px]"
               />
               {inlineTitle.trim() && (
                 <button
@@ -431,97 +402,52 @@ export const TaskRow: React.FC<TaskRowProps> = ({
 
       </div>
 
-      {/* Desktop/Tablet Right Side Actions */}
-      <div className="hidden sm:flex items-center gap-2 shrink-0">
-        {(!isEmptySlot && task.status !== 'pending') ? (
-          <div className="relative">
-            <button
-              type="button"
-              onClick={handleCycleStatus}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                setShowStatusMenu(!showStatusMenu);
-              }}
-              title={lang === 'ar' ? 'انقر للتبديل، أو زر يمين للقائمة' : 'Click to cycle, right click for menu'}
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold border transition-all cursor-pointer min-h-[30px] active:scale-95 ${statusConfig.badgeClass}`}
-            >
-              <span className="font-black text-xs">{statusConfig.symbol}</span>
-              <span>{statusConfig.label}</span>
-            </button>
-
-            {/* Quick status selector */}
-            {showStatusMenu && (
-              <div 
-                className="absolute end-0 top-full mt-2 z-40 w-36 bg-white dark:bg-[#13151f] border border-slate-200 dark:border-white/[0.15] rounded-xl p-1.5 shadow-2xl text-xs space-y-1 backdrop-blur-xl"
-                onMouseLeave={() => setShowStatusMenu(false)}
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    onStatusChange(task.id, 'done');
-                    setShowStatusMenu(false);
-                  }}
-                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-emerald-800 dark:text-emerald-300 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/20"
-                >
-                  <Check className="w-3.5 h-3.5 stroke-[3]" />
-                  <span>{lang === 'ar' ? 'مكتملة' : 'Done'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onStatusChange(task.id, 'not-done');
-                    setShowStatusMenu(false);
-                  }}
-                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-800 dark:text-rose-300 font-bold hover:bg-rose-50 dark:hover:bg-rose-500/20"
-                >
-                  <X className="w-3.5 h-3.5 stroke-[3]" />
-                  <span>{lang === 'ar' ? 'غير منجزة' : 'Not Done'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onStatusChange(task.id, 'pending');
-                    setShowStatusMenu(false);
-                  }}
-                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-slate-700 dark:text-zinc-300 font-bold hover:bg-slate-100 dark:hover:bg-white/10"
-                >
-                  <span>{lang === 'ar' ? 'بدون حالة' : 'No status'}</span>
-                </button>
-              </div>
-            )}
-          </div>
-        ) : isEmptySlot ? (
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border transition-all min-h-[30px] opacity-60">
-            <span>{statusConfig.symbol}</span>
-            <span>{statusConfig.label}</span>
-          </div>
-        ) : null}
-
-        {/* Actions (Edit / Delete) - ALWAYS VISIBLE */}
-        <div className="flex items-center gap-1">
-          {/* Edit icon button */}
+      <div className="hidden sm:flex shrink-0">
+        <TaskActions task={task} lang={lang} onEdit={onEdit} onDelete={onDelete} />
+      </div>
+    </div>
+      {statusMenuPosition && createPortal(
+        <div ref={statusMenuRef} style={statusMenuPosition} dir={lang === 'ar' ? 'rtl' : 'ltr'} role="group" aria-label={lang === 'ar' ? 'حالة المهمة' : 'Task status'}
+          className="fixed z-[100] w-36 bg-white dark:bg-[#13151f] border border-slate-200 dark:border-white/[0.15] rounded-xl p-1.5 shadow-2xl text-xs space-y-1 backdrop-blur-xl"
+          onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setStatusMenuPosition(null); }}
+        >
           <button
             type="button"
-            onClick={() => onEdit(task)}
-            title={lang === 'ar' ? 'تعديل المهمة والملاحظات' : 'Edit task details'}
-            className="p-1.5 text-slate-400 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-black/5 dark:hover:bg-white/[0.08] transition-colors cursor-pointer min-w-[30px] min-h-[30px] flex items-center justify-center active:scale-95"
+            onClick={() => {
+              onStatusChange(task.id, 'done');
+              setStatusMenuPosition(null);
+              statusTriggerRef.current?.focus();
+            }}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-emerald-800 dark:text-emerald-300 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/20"
           >
-            <Edit3 className="w-3.5 h-3.5 stroke-[2.2]" />
+            <Check className="w-3.5 h-3.5 stroke-[3]" />
+            <span>{lang === 'ar' ? 'مكتملة' : 'Done'}</span>
           </button>
-          
-          {/* Delete icon button */}
           <button
             type="button"
-            onClick={() => onDelete(task.id)}
-            title={isEmptySlot ? (lang === 'ar' ? 'حذف هذه الساعة' : 'Delete slot') : (lang === 'ar' ? 'حذف / تفريغ المهمة' : 'Clear / Delete')}
-            className="p-1.5 text-slate-400 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/20 transition-colors cursor-pointer min-w-[30px] min-h-[30px] flex items-center justify-center active:scale-95"
+            onClick={() => {
+              onStatusChange(task.id, 'not-done');
+              setStatusMenuPosition(null);
+              statusTriggerRef.current?.focus();
+            }}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-800 dark:text-rose-300 font-bold hover:bg-rose-50 dark:hover:bg-rose-500/20"
           >
-            <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
+            <X className="w-3.5 h-3.5 stroke-[3]" />
+            <span>{lang === 'ar' ? 'غير منجزة' : 'Not Done'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onStatusChange(task.id, 'pending');
+              setStatusMenuPosition(null);
+              statusTriggerRef.current?.focus();
+            }}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-slate-700 dark:text-zinc-300 font-bold hover:bg-slate-100 dark:hover:bg-white/10"
+          >
+            <span>{lang === 'ar' ? 'بدون حالة' : 'No status'}</span>
           </button>
         </div>
-
-      </div>
-
-    </div>
+      , document.body)}
+    </>
   );
 };

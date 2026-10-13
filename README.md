@@ -28,7 +28,7 @@
 <table>
   <tr>
     <td width="50%"><strong>🗓️ A flexible daily plan</strong><br>Exact times, multiple tasks per hour, untimed tasks, and quick schedule templates.</td>
-    <td width="50%"><strong>🕌 Prayer times in context</strong><br>Location and calculation settings, with manual prayer-time configuration.</td>
+    <td width="50%"><strong>🕌 Prayer times in context</strong><br>Five daily prayers with Nablus, Palestine times integrated into the prayer card.</td>
   </tr>
   <tr>
     <td><strong>📊 Progress you can see</strong><br>Completion indicators, archived days, and weekly reports.</td>

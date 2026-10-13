@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Cloud, CloudCheck, CloudOff, RefreshCw, AlertCircle } from 'lucide-react';
+import { CloudCheck, CloudOff, RefreshCw, AlertCircle } from 'lucide-react';
 import { subscribeToSyncStatus, triggerSync, SyncStatusInfo } from '../services/syncEngine';
 import { Language } from '../types';
 
@@ -33,7 +33,7 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId }) =>
         return {
           text: lang === 'ar' ? 'جارٍ المزامنة...' : 'Syncing...',
           icon: RefreshCw,
-          color: 'text-amber-500 bg-amber-500/10 border-amber-500/25',
+          color: 'text-amber-700 dark:text-amber-400 bg-amber-500/10 border-amber-500/25',
           iconClass: 'animate-spin text-amber-500',
           dot: 'bg-amber-400',
         };
@@ -41,7 +41,7 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId }) =>
         return {
           text: lang === 'ar' ? 'وضع عدم الاتصال' : 'Offline Mode',
           icon: CloudOff,
-          color: 'text-zinc-400 bg-zinc-500/10 border-zinc-500/20',
+          color: 'text-zinc-600 dark:text-zinc-400 bg-zinc-500/10 border-zinc-500/20',
           iconClass: 'text-zinc-400',
           dot: 'bg-zinc-400',
         };
@@ -49,7 +49,7 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId }) =>
         return {
           text: lang === 'ar' ? 'إعادة المحاولة' : 'Retry Sync',
           icon: AlertCircle,
-          color: 'text-rose-500 bg-rose-500/10 border-rose-500/25',
+          color: 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/25',
           iconClass: 'text-rose-500',
           dot: 'bg-rose-500',
         };
@@ -67,23 +67,23 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId }) =>
 
   const current = getStatusDisplay();
   const Icon = current.icon;
+  const label = lang === 'ar'
+    ? `حالة المزامنة: ${current.text}${syncInfo.pendingCount > 0 ? ` (${syncInfo.pendingCount} معلقة)` : ''} — انقر للمزامنة الفورية`
+    : `Sync status: ${current.text}${syncInfo.pendingCount > 0 ? ` (${syncInfo.pendingCount} pending)` : ''} — Click to sync now`;
 
   return (
     <button
       type="button"
       onClick={handleManualSync}
-      title={
-        lang === 'ar'
-          ? `حالة المزامنة: ${current.text} ${syncInfo.pendingCount > 0 ? `(${syncInfo.pendingCount} معلقة)` : ''} - انقر للمزامنة الفورية`
-          : `Sync Status: ${current.text} - Click to sync now`
-      }
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer select-none active:scale-95 ${current.color}`}
+      title={label}
+      aria-label={label}
+      className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-2.5 text-[11px] font-semibold transition-colors cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${current.color}`}
     >
       <span className={`w-2 h-2 rounded-full ${current.dot} shrink-0`} />
-      <Icon className={`w-3.5 h-3.5 shrink-0 ${current.iconClass || ''}`} />
-      <span className="hidden sm:inline font-['Alexandria']">{current.text}</span>
+      <Icon aria-hidden="true" className={`w-3.5 h-3.5 shrink-0 ${current.iconClass || ''}`} />
+      <span>{current.text}</span>
       {syncInfo.pendingCount > 0 && (
-        <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
+        <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] font-bold">
           {syncInfo.pendingCount}
         </span>
       )}

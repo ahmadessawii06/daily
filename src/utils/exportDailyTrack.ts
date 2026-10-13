@@ -17,6 +17,21 @@ interface SavedStyle {
   height: string;
 }
 
+// Include collapsed card tasks in exports without changing saved layout preferences.
+function revealCardContents(target: HTMLElement): HTMLElement[] {
+  const collapsed = [...target.querySelectorAll<HTMLElement>('[data-planner-card-content][hidden]')];
+  collapsed.forEach(element => { element.hidden = false; });
+  return collapsed;
+}
+
+function restoreCardContents(elements: HTMLElement[]): void {
+  for (const element of elements) {
+    const toggle = [...(element.closest('article')?.querySelectorAll('button[aria-controls]') || [])]
+      .find(button => button.getAttribute('aria-controls') === element.id);
+    element.hidden = toggle?.getAttribute('aria-expanded') !== 'true';
+  }
+}
+
 /**
  * Robust full-content screenshot exporter for Daily Track.
  * 
@@ -65,6 +80,7 @@ export const exportDailyTrackToImage = async ({
     el.style.height = 'auto';
   };
 
+  const collapsedCards = revealCardContents(target);
   try {
     // Unclip target element itself
     saveAndUnclip(target);
@@ -167,6 +183,7 @@ export const exportDailyTrackToImage = async ({
 
     return dataUrl;
   } finally {
+    restoreCardContents(collapsedCards);
     // 8. Restore scroll position if modified
     if (window.scrollX !== originalScrollX || window.scrollY !== originalScrollY) {
       window.scrollTo(originalScrollX, originalScrollY);
@@ -223,6 +240,7 @@ export const copyDailyTrackToClipboard = async ({
     el.style.height = 'auto';
   };
 
+  const collapsedCards = revealCardContents(target);
   try {
     saveAndUnclip(target);
 
@@ -314,6 +332,7 @@ export const copyDailyTrackToClipboard = async ({
     }
     return false;
   } finally {
+    restoreCardContents(collapsedCards);
     if (window.scrollX !== originalScrollX || window.scrollY !== originalScrollY) {
       window.scrollTo(originalScrollX, originalScrollY);
     }

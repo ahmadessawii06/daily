@@ -4,6 +4,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { createAccount, findAccount, storageStatus, updateState, type Account } from './repository.js';
 import { hashPassword, matchesPassword, signToken, verifyToken } from './security.js';
 import { mergeDay } from '../src/shared/merge.js';
+import { createWorkspace, mergeWorkspace, parseWorkspace } from '../src/shared/workspace.js';
 import type { DayRecord } from '../src/types';
 
 function publicUser(account: Account) {
@@ -26,6 +27,7 @@ export function validateDay(date: string, data: any): DayRecord {
     if (!t || typeof t.id !== 'string' || !t.id || seen.has(t.id) || typeof t.title !== 'string' || typeof t.time !== 'string' ||
       !['done', 'pending', 'not-done'].includes(t.status) || (t.time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(t.time))) badRequest('Invalid task');
     seen.add(t.id);
+    if (t.categoryId !== undefined && (typeof t.categoryId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(t.categoryId))) badRequest('Invalid task category');
     for (const key of ['createdAt', 'updatedAt']) if (t[key] && !Number.isFinite(Date.parse(t[key]))) badRequest('Invalid task timestamp');
   }
   const updatedAt = data.updatedAt || data.clientUpdatedAt || new Date().toISOString();
@@ -66,13 +68,13 @@ export function createApiApp(production = false) {
       name: typeof name === 'string' ? name.trim().slice(0, 100) : username.trim(),
       ...(typeof email === 'string' && email.trim() ? { email: email.trim().toLowerCase() } : {}),
       createdAt: new Date().toISOString(), salt: randomBytes(16).toString('hex'), passwordHash: '', revision: 0,
-      state: { days: {}, habits: [], recurring: [], settings: {}, versions: {} },
+      state: { days: {}, habits: [], recurring: [], settings: {}, versions: {}, workspace: createWorkspace('cards', new Date().toISOString()) },
     };
     account.passwordHash = await hashPassword(password, account.salt);
     // Fail configuration before persisting a new account.
     const token = signToken(account.id);
     await createAccount(account);
-    res.status(201).json({ success: true, user: publicUser(account), token });
+    res.status(201).json({ success: true, user: publicUser(account), token, workspace: account.state.workspace });
   }));
 
   api.post('/auth/login', asyncRoute(async (req, res) => {
@@ -82,7 +84,7 @@ export function createApiApp(production = false) {
     if (!account || !await matchesPassword(password, account.salt, account.passwordHash)) {
       return res.status(401).json({ success: false, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
     }
-    res.json({ success: true, user: publicUser(account), token: signToken(account.id) });
+    res.json({ success: true, user: publicUser(account), token: signToken(account.id), workspace: account.state.workspace });
   }));
 
   api.use((req, res, next) => {
@@ -110,6 +112,7 @@ export function createApiApp(production = false) {
 
   api.post('/sync/batch', asyncRoute(async (req, res) => {
     const body = req.body || {};
+    const workspace = body.workspace === undefined ? undefined : parseWorkspace(body.workspace);
     const days: DayRecord[] = [];
     if (body.days) {
       if (typeof body.days !== 'object' || Array.isArray(body.days) || Object.keys(body.days).length > 5000) badRequest('Invalid days');
@@ -124,6 +127,12 @@ export function createApiApp(production = false) {
       if (body.settings.lang !== undefined && !['ar', 'en'].includes(body.settings.lang)) badRequest('Invalid language');
     }
     const state = await updateState(res.locals.account.id, state => {
+      if (workspace) {
+        const version = body.versions?.workspace;
+        if (!Number.isFinite(version) || version <= 0) badRequest('Invalid workspace version');
+        state.workspace = mergeWorkspace(state.workspace, workspace);
+        state.versions.workspace = Math.max(state.versions.workspace || 0, version);
+      }
       for (const day of days) state.days[day.date] = mergeDay(state.days[day.date], day);
       for (const key of ['habits', 'recurring', 'settings'] as const) {
         if (body[key] === undefined) continue;

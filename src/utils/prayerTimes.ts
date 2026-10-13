@@ -114,7 +114,7 @@ export const POPULAR_CITIES: PresetCity[] = [
 ];
 
 const LOCATION_STORAGE_KEY = 'daily_prayer_location_config_v3';
-const PRAYER_CACHE_PREFIX = 'daily_prayer_cache_v3_';
+const PRAYER_CACHE_PREFIX = 'daily_prayer_cache_v4_';
 
 export function getDefaultLocationConfig(): PrayerLocationConfig {
   return {
@@ -126,7 +126,11 @@ export function getDefaultLocationConfig(): PrayerLocationConfig {
     countryDisplayEn: 'Palestine',
     latitude: 32.2211,
     longitude: 35.2544,
-    method: 3, // رابطة العالم الإسلامي (prayertimes.me standard for Jerusalem & Nablus)
+    method: 3,
+    timezone: 'Asia/Hebron',
+    // Minute adjustments calibrated against the supplied 13 October 2026 reference.
+    // Aladhan order: Imsak, Fajr, Sunrise, Dhuhr, Asr, Maghrib, Sunset, Isha, Midnight.
+    tune: '0,-1,0,0,-1,7,0,5,0',
   };
 }
 
@@ -155,14 +159,13 @@ export function saveStoredLocationConfig(config: PrayerLocationConfig): void {
 
 // Clean time string from API (e.g., "05:14 (EEST)" -> "05:14")
 function cleanTimeString(timeStr?: string): string {
-  if (!timeStr) return '05:00';
-  const match = timeStr.match(/(\d{1,2}):(\d{2})/);
-  if (match) {
+  const match = typeof timeStr === 'string' ? timeStr.match(/^(\d{1,2}):(\d{2})(?:\s|$)/) : null;
+  if (match && Number(match[1]) < 24 && Number(match[2]) < 60) {
     const hours = match[1].padStart(2, '0');
     const minutes = match[2];
     return `${hours}:${minutes}`;
   }
-  return timeStr.slice(0, 5);
+  throw new Error('Invalid prayer time returned by Aladhan');
 }
 
 // Format "YYYY-MM-DD" to "DD-MM-YYYY" for Aladhan API
@@ -180,16 +183,19 @@ function formatForAladhan(dateStr: string): string {
 
 export async function fetchOfficialPrayerTimes(
   dateStr: string,
-  config: PrayerLocationConfig
+  config: PrayerLocationConfig,
+  forceRefresh = false
 ): Promise<PrayerTimesDayResponse> {
-  const cacheKey = `${PRAYER_CACHE_PREFIX}_${dateStr}_${config.city}_${config.country}_${config.method}_${config.latitude || ''}_${config.longitude || ''}`;
+  const cacheKey = `${PRAYER_CACHE_PREFIX}_${dateStr}_${config.city}_${config.country}_${config.method}_${config.latitude ?? ''}_${config.longitude ?? ''}_${config.timezone || ''}_${config.tune || ''}`;
 
   // 1. Try Cache First
   try {
-    const cached = userStorage.getItem(cacheKey);
+    const cached = forceRefresh ? null : userStorage.getItem(cacheKey);
     if (cached) {
       const parsed = JSON.parse(cached) as PrayerTimesDayResponse;
-      if (parsed && Array.isArray(parsed.prayers) && parsed.prayers.length === 5) {
+      const expectedIds = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+      if (parsed?.date === dateStr && Array.isArray(parsed.prayers) && parsed.prayers.length === 5 &&
+          parsed.prayers.every((prayer, index) => prayer?.id === expectedIds[index] && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(prayer.time))) {
         return parsed;
       }
     }
@@ -200,18 +206,19 @@ export async function fetchOfficialPrayerTimes(
   const aladhanDate = formatForAladhan(dateStr);
   let url = '';
 
-  if (config.latitude && config.longitude) {
+  if (config.latitude != null && config.longitude != null) {
     url = `https://api.aladhan.com/v1/timings/${aladhanDate}?latitude=${config.latitude}&longitude=${config.longitude}&method=${config.method}`;
   } else {
     url = `https://api.aladhan.com/v1/timingsByCity/${aladhanDate}?city=${encodeURIComponent(config.city)}&country=${encodeURIComponent(config.country)}&method=${config.method}`;
   }
+  if (config.timezone) url += `&timezonestring=${encodeURIComponent(config.timezone)}`;
+  if (config.tune) url += `&tune=${encodeURIComponent(config.tune)}`;
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
 
     const response = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`Aladhan API HTTP ${response.status}`);
@@ -226,6 +233,8 @@ export async function fetchOfficialPrayerTimes(
     }
 
     if (json && json.code === 200 && json.data && json.data.timings) {
+      if (json.data.date?.gregorian?.date && json.data.date.gregorian.date !== aladhanDate) throw new Error('Prayer schedule date mismatch');
+      if (config.timezone && json.data.meta?.timezone && json.data.meta.timezone !== config.timezone) throw new Error('Prayer schedule timezone mismatch');
       const timings = json.data.timings;
       const hijri = json.data.date?.hijri;
 
@@ -242,7 +251,7 @@ export async function fetchOfficialPrayerTimes(
       const result: PrayerTimesDayResponse = {
         date: dateStr,
         prayers,
-        sunrise: cleanTimeString(timings.Sunrise),
+        sunrise: timings.Sunrise ? cleanTimeString(timings.Sunrise) : undefined,
         hijriDay: hijri?.day,
         hijriMonth: hijri?.month?.ar || hijri?.month?.en,
         hijriYear: hijri?.year,
@@ -262,24 +271,8 @@ export async function fetchOfficialPrayerTimes(
 
       return result;
     }
-  } catch (err) {
-    console.warn('Aladhan API fetch failed, using fallback calculation:', err);
+    throw new Error('Invalid prayer schedule returned by Aladhan');
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  // Fallback calculation in case of network issue
-  const fallbackPrayers: PrayerTimeItem[] = [
-    { id: 'fajr', nameAr: 'الفجر', nameEn: 'Fajr', time: '04:45' },
-    { id: 'dhuhr', nameAr: 'الظهر', nameEn: 'Dhuhr', time: '12:15' },
-    { id: 'asr', nameAr: 'العصر', nameEn: 'Asr', time: '15:35' },
-    { id: 'maghrib', nameAr: 'المغرب', nameEn: 'Maghrib', time: '18:10' },
-    { id: 'isha', nameAr: 'العشاء', nameEn: 'Isha', time: '19:40' },
-  ];
-
-  return {
-    date: dateStr,
-    prayers: fallbackPrayers,
-    sunrise: '06:05',
-    locationNameAr: config.cityDisplayAr || config.city,
-    locationNameEn: config.cityDisplayEn || config.city,
-  };
 }

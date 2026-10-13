@@ -7,6 +7,7 @@ import type { Server } from 'node:http';
 import { createApiApp } from '../backend/app';
 import { createNetlifyHandler, handler as productionNetlifyHandler } from '../netlify/functions/api';
 import mongoose from 'mongoose';
+import { createWorkspace } from '../src/shared/workspace';
 
 test('API authentication, durable storage, isolation and conflicts', async t => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'mizan-test-'));
@@ -36,6 +37,7 @@ test('API authentication, durable storage, isolation and conflicts', async t => 
     await t.test('registration returns consistent user identity and real signed token', () => {
       assert.equal(first.status, 201); assert.ok(first.data.user.userCode); assert.equal(token.split('.').length, 3);
       assert.equal(first.data.user.passwordHash, undefined);
+      assert.equal(first.data.workspace.view, 'cards');
     });
     await t.test('password whitespace remains significant and duplicates are rejected', async () => {
       assert.equal((await request('/auth/login', { username: 'alice', password: 'secret pass' })).status, 401);
@@ -81,6 +83,34 @@ test('API authentication, durable storage, isolation and conflicts', async t => 
       const result = (await request('/sync/batch', { days: {} }, token)).data;
       assert.deepEqual(result.habits, []); assert.deepEqual(result.recurring, []);
       assert.equal(result.settings.theme, 'light'); assert.equal(result.settings.userId, undefined);
+    });
+    await t.test('workspace sync preserves untimed tasks, merges category edits, and isolates accounts', async () => {
+      const baseline = createWorkspace('cards', '2026-11-01T00:00:00Z');
+      const firstEdit = structuredClone(baseline), secondEdit = structuredClone(baseline);
+      firstEdit.categories[0].name = 'Personal study'; firstEdit.categories[0].updatedAt = '2026-11-02T00:00:00Z';
+      firstEdit.view = 'timeline'; firstEdit.viewUpdatedAt = '2026-11-02T00:00:00Z';
+      secondEdit.categories[1].name = 'Personal work'; secondEdit.categories[1].updatedAt = '2026-11-03T00:00:00Z';
+      const flexible = { ...task, id: 'flexible', title: 'Without a time', time: '', endTime: undefined, duration: undefined, categoryId: 'study' };
+      const date = '2026-10-02';
+      const firstResult = await request('/sync/batch', { workspace: firstEdit, days: { [date]: { date, tasks: [flexible], updatedAt: task.updatedAt } }, versions: { workspace: 10 } }, token);
+      assert.equal(firstResult.status, 200);
+      // Per-category timestamps preserve independent changes even with older collection versions.
+      const secondResult = await request('/sync/batch', { workspace: secondEdit, versions: { workspace: 9 } }, token);
+      assert.equal(secondResult.data.workspace.categories.find((c: any) => c.id === 'study').name, 'Personal study');
+      assert.equal(secondResult.data.workspace.categories.find((c: any) => c.id === 'work').name, 'Personal work');
+      assert.equal(secondResult.data.workspace.view, 'timeline');
+      const deleted = structuredClone(secondResult.data.workspace);
+      deleted.categories.find((c: any) => c.id === 'study').deletedAt = '2026-11-04T00:00:00Z';
+      await request('/sync/batch', { workspace: deleted, versions: { workspace: 11 } }, token);
+      const after = await request('/sync/batch', { workspace: baseline, versions: { workspace: 1 } }, token);
+      assert.ok(after.data.workspace.categories.find((c: any) => c.id === 'study').deletedAt);
+      assert.equal(after.data.days[date].tasks[0].id, flexible.id);
+      assert.equal(after.data.days[date].tasks[0].time, '');
+      assert.equal(after.data.days[day.date].tasks[0].time, task.time);
+      const other = await request('/sync/batch', { days: {} }, second.data.token);
+      assert.equal(other.data.workspace.view, 'cards'); assert.deepEqual(other.data.days, {});
+      assert.equal((await request('/sync/batch', { workspace: { ...baseline, view: 'bad' }, versions: { workspace: 12 } }, token)).status, 400);
+      assert.equal((await request('/auth/login', { username: 'alice', password: 'secret pass ' })).data.workspace.view, 'timeline');
     });
     await t.test('server restart retains accounts and data', async () => {
       await stop(); await start();

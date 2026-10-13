@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { 
-  getTodayDateString 
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import {
+  getTodayDateString
 } from './utils/date';
-import { 
-  getDayRecord, 
-  addTaskToDay, 
-  updateTaskInDay, 
-  deleteTaskFromDay, 
-  calculateStats, 
-  getAllArchiveDays, 
+import {
+  getDayRecord,
+  loadAllDays,
+  addTaskToDay,
+  updateTaskInDay,
+  deleteTaskFromDay,
+  getAllArchiveDays,
   resetToDefaults,
   getStoredTheme,
   setStoredTheme,
@@ -18,29 +18,40 @@ import {
 import { triggerSync } from './services/syncEngine';
 import { enqueue } from './services/syncQueue';
 import { userStorage } from './utils/scopedStorage';
-import { Language, StatusFilter, Task, TaskStatus, Theme, User } from './types';
+import { Language, PlannerView, StatusFilter, Task, TaskStatus, Theme, User } from './types';
 import { getStoredAuth, clearStoredAuth } from './utils/auth';
 import { LoginScreen } from './components/LoginScreen';
 import { AuthLoadingScreen } from './components/AuthLoadingScreen';
+import { CardsDashboard } from './components/CardsDashboard';
+import { getPlannerWorkspace, readStoredWorkspace, setPlannerView, updatePlannerCategory } from './utils/workspace';
+import { activeCategories, UNASSIGNED_CATEGORY } from './shared/workspace';
+import { getTaskCardCategories } from './utils/cardCategories';
+import { partitionPrayerTasks } from './utils/prayerTasks';
+import { calculateDailyProgress } from './utils/dailyProgress';
+import { shouldPlayListCompletionSound } from './utils/listCompletion';
 import { MainHeader } from './components/MainHeader';
 import { TodayProgress } from './components/TodayProgress';
-import { PrayerTimesWidget } from './components/PrayerTimesWidget';
+import { PrayerCard } from './components/PrayerCard';
 import { DateNavigation } from './components/DateNavigation';
 import { TaskList } from './components/TaskList';
 import { StatsModal } from './components/StatsModal';
 import { ArchiveModal } from './components/ArchiveModal';
 import { AddTaskModal } from './components/AddTaskModal';
+import { TaskDestinationDialog } from './components/TaskDestinationDialog';
 import { EditTaskModal } from './components/EditTaskModal';
 import { SettingsModal } from './components/SettingsModal';
 import { ExportScheduleModal } from './components/ExportScheduleModal';
 
-import { playAchievementSound, playFailureSound } from './utils/soundEffects';
-import { CheckCircle2 } from 'lucide-react';
+import { playAchievementSound, playFailureSound, playChallengeCompleteSound, preloadChallengeCompleteSound } from './utils/soundEffects';
+import { CheckCircle2, LayoutGrid, ListChecks } from 'lucide-react';
 
 export default function App() {
   // Authentication state
   const [currentUser, setCurrentUser] = useState<User | null>(() => getStoredAuth().user);
-  const [isPreparingWorkspace, setIsPreparingWorkspace] = useState(false);
+  const [isPreparingWorkspace, setIsPreparingWorkspace] = useState(() => Boolean(
+    getStoredAuth().user && !readStoredWorkspace() && Object.keys(loadAllDays()).length === 0
+  ));
+  const [workspace, setWorkspace] = useState(getPlannerWorkspace);
 
   // Navigation & view states
   const [lang, setLang] = useState<Language>('ar');
@@ -50,6 +61,9 @@ export default function App() {
 
   // Modals state
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
+  const [isTaskDestinationOpen, setIsTaskDestinationOpen] = useState(false);
+  const [cardCreationTarget, setCardCreationTarget] = useState<{ categoryId: string; requestId: number } | null>(null);
+  const cardCreationRequest = useRef(0);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
@@ -63,6 +77,8 @@ export default function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   // Archive days
   const [archiveDays, setArchiveDays] = useState(() => getAllArchiveDays());
+
+  useEffect(() => { if (currentUser) preloadChallengeCompleteSound(); }, [currentUser?.id]);
 
   // Apply the active account?s theme to the document.
   useEffect(() => {
@@ -81,24 +97,27 @@ export default function App() {
     let disposed = false;
     const refresh = () => {
       if (disposed) return;
+      setWorkspace(getPlannerWorkspace());
       setTasks(getDayRecord(currentDate).tasks);
       setArchiveDays(getAllArchiveDays());
       setTheme(getStoredTheme());
       setLang(userStorage.getItem('lang') === 'en' ? 'en' : 'ar');
     };
-    refresh();
+    if (!isPreparingWorkspace) refresh();
     window.addEventListener('mizan:data-synced', refresh);
+    window.addEventListener('mizan:workspace-changed', refresh);
     const syncOnFocus = () => { void triggerSync(currentUser.id, true); };
     window.addEventListener('focus', syncOnFocus);
     const interval = setInterval(syncOnFocus, 30000);
     void triggerSync(currentUser.id, true).finally(() => {
-      if (!disposed) setIsPreparingWorkspace(false);
+      if (!disposed) { refresh(); setIsPreparingWorkspace(false); }
     });
     return () => {
       disposed = true;
       clearInterval(interval);
       window.removeEventListener('focus', syncOnFocus);
       window.removeEventListener('mizan:data-synced', refresh);
+      window.removeEventListener('mizan:workspace-changed', refresh);
     };
   }, [currentDate, currentUser?.id]);
 
@@ -129,41 +148,41 @@ export default function App() {
   };
 
   // Handlers
-  const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
-    if (newStatus === 'done') {
-      playAchievementSound();
-    } else if (newStatus === 'not-done') {
-      playFailureSound();
-    }
+  const playStatusFeedback = (before: Task[], after: Task[], taskId: string, status: TaskStatus) => {
+    if (before.find(task => task.id === taskId)?.status === status || after.find(task => task.id === taskId)?.status !== status) return;
+    if (status === 'done') {
+      const currentWorkspace = getPlannerWorkspace();
+      if (shouldPlayListCompletionSound(before, after, currentWorkspace, currentWorkspace.view, taskId)) playChallengeCompleteSound();
+      else playAchievementSound();
+    } else if (status === 'not-done') playFailureSound();
+  };
 
+  const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
+    const before = getDayRecord(currentDate).tasks;
     updateTaskInDay(currentDate, taskId, { status: newStatus });
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
     refreshArchive();
+    playStatusFeedback(before, rec.tasks, taskId, newStatus);
   };
 
-  const handleAddTask = (taskInput: { title: string; time: string; status: TaskStatus; notes?: string }) => {
-    addTaskToDay(currentDate, taskInput);
+  const handleAddTask = (taskInput: { title: string; time: string; status: TaskStatus; notes?: string; categoryId?: string }) => {
+    const before = getDayRecord(currentDate).tasks;
+    const added = addTaskToDay(currentDate, taskInput);
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
     refreshArchive();
+    playStatusFeedback(before, rec.tasks, added.id, added.status);
     showToast(lang === 'ar' ? 'تمت إضافة المهمة بنجاح' : 'Task added successfully');
   };
 
   const handleUpdateTask = (taskId: string, updates: Partial<Task>) => {
-    const existing = tasks.find((t) => t.id === taskId);
-    if (updates.status && updates.status !== existing?.status) {
-      if (updates.status === 'done') {
-        playAchievementSound();
-      } else if (updates.status === 'not-done') {
-        playFailureSound();
-      }
-    }
-
+    const before = getDayRecord(currentDate).tasks;
     updateTaskInDay(currentDate, taskId, updates);
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
     refreshArchive();
+    if (updates.status) playStatusFeedback(before, rec.tasks, taskId, updates.status);
     showToast(lang === 'ar' ? 'تم حفظ التعديل' : 'Changes saved');
   };
 
@@ -182,8 +201,8 @@ export default function App() {
     setTasks(updatedTasks);
     refreshArchive();
     showToast(
-      lang === 'ar' 
-        ? 'تم تجهيز قالب الـ 24 ساعة لليوم بنجاح' 
+      lang === 'ar'
+        ? 'تم تجهيز قالب الـ 24 ساعة لليوم بنجاح'
         : '24-hour template ready'
     );
   };
@@ -203,23 +222,9 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleQuickAddPrayer = (title: string, time: string) => {
-    const targetSlot = tasks.find((t) => t.time === time && !t.title.trim());
-
-    if (targetSlot) {
-      handleUpdateTask(targetSlot.id, {
-        title,
-        category: 'worship',
-        status: targetSlot.status || 'pending',
-      });
-      showToast(lang === 'ar' ? `تم إدراج ${title} في الساعة ${time}` : `Scheduled ${title} at ${time}`);
-    } else {
-      handleAddTask({
-        title,
-        time,
-        status: 'pending',
-      });
-    }
+  const handleCompletePrayer = (title: string, time: string) => {
+    handleAddTask({ title, categoryId: 'worship', time, status: 'done' });
+    setCurrentFilter('all');
   };
 
   const handleToggleLang = () => {
@@ -237,7 +242,28 @@ export default function App() {
     showToast(lang === 'ar' ? 'تم مسح المهام وإعادة ضبط العادات لهذا الحساب' : 'Tasks cleared and habits reset for this account');
   };
 
-  const stats = useMemo(() => calculateStats(tasks), [tasks]);
+  const handleChangeView = (view: PlannerView) => {
+    setCardCreationTarget(null);
+    setWorkspace(setPlannerView(view));
+    setCurrentFilter('all');
+  };
+
+  const handleCreateInTimeline = () => {
+    handleChangeView('timeline');
+    setIsTaskDestinationOpen(false);
+    setIsAddTaskOpen(true);
+  };
+
+  const handleCreateInCard = (categoryId: string) => {
+    const category = activeCategories(getPlannerWorkspace()).find(card => card.id === categoryId);
+    if (!category && categoryId !== UNASSIGNED_CATEGORY) return;
+    handleChangeView('cards');
+    if (category?.collapsed) setWorkspace(updatePlannerCategory(categoryId, { collapsed: false }));
+    setCardCreationTarget({ categoryId, requestId: ++cardCreationRequest.current });
+    setIsTaskDestinationOpen(false);
+  };
+
+  const stats = useMemo(() => calculateDailyProgress(tasks), [tasks]);
 
   const [isExportingImage, setIsExportingImage] = useState(false);
 
@@ -246,11 +272,11 @@ export default function App() {
     try {
       setIsExportingImage(true);
       showToast(
-        lang === 'ar' 
-          ? '⏳ جارٍ تصدير لوحة جدول ميزان كاملة كصورة فائقة الدقة...' 
+        lang === 'ar'
+          ? '⏳ جارٍ تصدير لوحة جدول ميزان كاملة كصورة فائقة الدقة...'
           : '⏳ Exporting full Mizan schedule image...'
       );
-      
+
       await (await import('./utils/exportDailyTrack')).exportDailyTrackToImage({
         elementId: 'daily-track-container',
         fileName: `Mizan-Schedule-${currentDate}.png`,
@@ -258,15 +284,15 @@ export default function App() {
       });
 
       showToast(
-        lang === 'ar' 
-          ? '✓ تم تصدير وحفظ جدول ميزان بالكامل بنجاح!' 
+        lang === 'ar'
+          ? '✓ تم تصدير وحفظ جدول ميزان بالكامل بنجاح!'
           : '✓ Full Mizan schedule saved successfully!'
       );
     } catch (error) {
       console.error('Export failed:', error);
       showToast(
-        lang === 'ar' 
-          ? '✕ حدث خطأ أثناء تصدير الصورة' 
+        lang === 'ar'
+          ? '✕ حدث خطأ أثناء تصدير الصورة'
           : '✕ Failed to export image'
       );
     } finally {
@@ -282,6 +308,8 @@ export default function App() {
     setIsStatsModalOpen(false);
     setIsArchiveModalOpen(false);
     setIsAddTaskOpen(false);
+    setIsTaskDestinationOpen(false);
+    setCardCreationTarget(null);
     setEditingTask(null);
     setIsExportModalOpen(false);
     setIsPreparingWorkspace(false);
@@ -311,20 +339,20 @@ export default function App() {
 
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-[#07080b] bg-mesh text-slate-900 dark:text-zinc-100 flex flex-col font-['Alexandria','Cairo',sans-serif] transition-colors duration-200`}>
-      
+
       {/* Main Full-Width Centered Clean Canvas */}
-      <main 
-        id="daily-track-container" 
-        className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors"
+      <main
+        id="daily-track-container"
+        className={`flex-1 w-full ${workspace.view === 'cards' ? 'max-w-6xl' : 'max-w-4xl'} mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors`}
       >
         <div className="space-y-4 sm:space-y-6">
-          
+
           {/* Main Header with clean icons: Profile (with Stats & Archive), Settings, Theme, Export, + Add Task */}
           <MainHeader
             currentDate={currentDate}
             currentUser={currentUser}
             onLogout={handleLogout}
-            onOpenAddTask={() => setIsAddTaskOpen(true)}
+            onOpenAddTask={() => setIsTaskDestinationOpen(true)}
             onOpenExportModal={handleExportDailyTrackImage}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenStats={() => setIsStatsModalOpen(true)}
@@ -343,14 +371,6 @@ export default function App() {
             lang={lang}
           />
 
-          {/* Automated Prayer Times Widget */}
-          <PrayerTimesWidget
-            currentDate={currentDate}
-            lang={lang}
-            onAddTaskToSchedule={handleQuickAddPrayer}
-            todayTasks={tasks}
-          />
-
           {/* Date Navigation (Previous Day, Today, Next Day) */}
           <DateNavigation
             currentDate={currentDate}
@@ -358,20 +378,33 @@ export default function App() {
             lang={lang}
           />
 
-          {/* Always Displayed: Today's 24-Hour Tasks Section */}
-          <TaskList
-            tasks={tasks}
-            onStatusChange={handleStatusChange}
-            onEdit={(task) => setEditingTask(task)}
-            onDelete={handleDeleteTask}
-            onUpdateTitle={handleUpdateTaskTitle}
-            onOpenAddTask={() => setIsAddTaskOpen(true)}
-            onApply24HourTemplate={handleApply24HourTemplate}
-            onOpenExportModal={handleExportDailyTrackImage}
-            currentFilter={currentFilter}
-            onFilterChange={setCurrentFilter}
-            lang={lang}
-          />
+          <div role="group" aria-label={lang === 'ar' ? 'طريقة عرض المهام' : 'Planning view'} className="inline-flex max-w-full gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
+            {(['cards', 'timeline'] as const).map(view => {
+              const Icon = view === 'cards' ? LayoutGrid : ListChecks;
+              const label = view === 'cards' ? (lang === 'ar' ? 'البطاقات' : 'Cards') : (lang === 'ar' ? 'الجدول' : 'Timeline');
+              return <button key={view} type="button" aria-pressed={workspace.view === view} onClick={() => handleChangeView(view)} className={`inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold transition-colors ${workspace.view === view ? 'bg-white text-emerald-700 shadow-2xs dark:bg-[#1c2425] dark:text-emerald-300' : 'text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-100'}`}><Icon className="h-4 w-4" />{label}</button>;
+            })}
+          </div>
+
+          {workspace.view === 'cards' ? <CardsDashboard currentDate={currentDate} tasks={tasks} workspace={workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
+            creationTarget={cardCreationTarget}
+            onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
+            onAddPrayer={handleCompletePrayer}
+            onStatusChange={handleStatusChange} onEdit={setEditingTask} onDelete={handleDeleteTask} /> : <>
+            <PrayerCard currentDate={currentDate} slots={partitionPrayerTasks(tasks).slots} lang={lang} onAddPrayer={handleCompletePrayer} onStatusChange={handleStatusChange} />
+            <TaskList
+              tasks={tasks}
+              onStatusChange={handleStatusChange}
+              onEdit={(task) => setEditingTask(task)}
+              onDelete={handleDeleteTask}
+              onUpdateTitle={handleUpdateTaskTitle}
+              onOpenAddTask={() => setIsAddTaskOpen(true)}
+              onApply24HourTemplate={handleApply24HourTemplate}
+              onOpenExportModal={handleExportDailyTrackImage}
+              currentFilter={currentFilter}
+              onFilterChange={setCurrentFilter}
+              lang={lang}
+            /></>}
 
         </div>
       </main>
@@ -394,11 +427,16 @@ export default function App() {
       />
 
       {/* Add Task Modal */}
+      {isTaskDestinationOpen && <TaskDestinationDialog lang={lang} cards={getTaskCardCategories(tasks, workspace, true)}
+        onClose={() => setIsTaskDestinationOpen(false)} onTimeline={handleCreateInTimeline}
+        onCards={() => handleChangeView('cards')} onCard={handleCreateInCard} />}
       <AddTaskModal
         isOpen={isAddTaskOpen}
         onClose={() => setIsAddTaskOpen(false)}
         onAdd={handleAddTask}
         lang={lang}
+        defaultTime="08:00"
+        categories={activeCategories(workspace)}
       />
 
       {/* Edit Task Modal */}
@@ -409,6 +447,7 @@ export default function App() {
         onUpdate={handleUpdateTask}
         onDelete={handleDeleteTask}
         lang={lang}
+        categories={activeCategories(workspace)}
       />
 
       {/* Settings Modal (Accessed via Settings Icon in Header) */}

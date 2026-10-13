@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Clock, AlertCircle, Sparkles, BookOpen, Flame, Briefcase } from 'lucide-react';
-import { Language, TaskStatus } from '../types';
+import { Language, PlannerCategory, TaskStatus } from '../types';
 import { formatTime12h } from '../utils/date';
 import { getTaskContextIcon } from '../utils/taskIconHelper';
 
 interface AddTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (task: { title: string; time: string; status: TaskStatus; notes?: string }) => void;
+  onAdd: (task: { title: string; time: string; status: TaskStatus; notes?: string; categoryId?: string }) => void;
+  defaultTime?: string;
+  categories?: PlannerCategory[];
   lang: Language;
 }
 
@@ -16,12 +18,18 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
   onClose,
   onAdd,
   lang,
+  defaultTime = '08:00',
+  categories = [],
 }) => {
   const [title, setTitle] = useState('');
-  const [time, setTime] = useState('08:00');
+  const [time, setTime] = useState(defaultTime);
+  const [categoryId, setCategoryId] = useState('');
   const [status, setStatus] = useState<TaskStatus>('pending');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // Adapt an empty form to its view without resetting a draft during remote sync.
+  useEffect(() => { if (!isOpen && !title.trim() && !notes.trim()) setTime(defaultTime); }, [isOpen, defaultTime, title, notes]);
 
   if (!isOpen) return null;
 
@@ -41,12 +49,14 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
       time: trimmedTime,
       status,
       notes: notes.trim() || undefined,
+      categoryId: categoryId || undefined,
     });
 
 
     // Reset form
     setTitle('');
-    setTime('08:00');
+    setTime(defaultTime);
+    setCategoryId('');
     setStatus('pending');
     setNotes('');
     setError(null);
@@ -145,22 +155,30 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 type="text"
                 autoFocus
                 value={title}
+                aria-label={lang === 'ar' ? 'اسم المهمة' : 'Task name'}
                 onChange={(e) => {
                   setTitle(e.target.value);
                   if (error) setError(null);
                 }}
                 placeholder={lang === 'ar' ? 'مثال: صلاة الفجر، تمرين رياضي، عمل...' : 'e.g. Study, Gym, Meeting...'}
-                className="w-full bg-slate-50 dark:bg-[#08090d] border border-slate-300 dark:border-white/[0.1] rounded-xl ps-12 pe-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80 focus:bg-white transition-colors"
+                className="task-input w-full border border-slate-300 dark:border-white/[0.1] rounded-xl ps-12 pe-4 py-2.5 text-sm font-medium placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80 transition-colors"
               />
             </div>
           </div>
 
+          <label className="block space-y-2 text-xs font-semibold">
+            <span>{lang === 'ar' ? 'البطاقة (اختياري)' : 'Card (optional)'}</span>
+            <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-3 text-sm dark:border-white/10 dark:bg-[#08090d]">
+              <option value="">{lang === 'ar' ? 'تصنيف تلقائي' : 'Automatic category'}</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{lang === 'ar' ? c.name : c.nameEn || c.name}</option>)}
+            </select>
+          </label>
           {/* Time & Initial Status */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-bold text-slate-800 dark:text-zinc-300 font-['Alexandria']">
-                  {lang === 'ar' ? 'الوقت' : 'Time'} *
+                  {lang === 'ar' ? 'الوقت (اختياري)' : 'Time (optional)'}
                 </label>
                 {time && (
                   <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 font-['Alexandria']">
@@ -172,11 +190,12 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 <input
                   type="time"
                   value={time}
+                  aria-label={lang === 'ar' ? 'الوقت (اختياري)' : 'Time (optional)'}
                   onChange={(e) => {
                     setTime(e.target.value);
                     if (error) setError(null);
                   }}
-                  className="w-full bg-slate-50 dark:bg-[#08090d] border border-slate-300 dark:border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white font-mono font-bold focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80 focus:bg-white transition-colors"
+                  className="task-input w-full border border-slate-300 dark:border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80 transition-colors"
                 />
               </div>
             </div>
@@ -207,7 +226,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder={lang === 'ar' ? 'مثال: مراجعة الشابتر الأول...' : 'Any details...'}
-              className="w-full bg-slate-50 dark:bg-[#08090d] border border-slate-300 dark:border-white/[0.1] rounded-xl px-4 py-2.5 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80 focus:bg-white transition-colors"
+              className="task-input w-full border border-slate-300 dark:border-white/[0.1] rounded-xl px-4 py-2.5 text-xs font-medium placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80 transition-colors"
             />
           </div>
 
