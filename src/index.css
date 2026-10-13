@@ -122,6 +122,13 @@
 .dark .edit-task-time:focus-within { --task-input-bg: #11131a; }
 .edit-task-time:focus-within + .edit-task-time-display { display: none; }
 
+/* The category picker keeps native keyboard behavior with theme-matched options. */
+.edit-task-category option {
+  background-color: var(--task-input-bg);
+  color: var(--task-input-text);
+  -webkit-text-fill-color: var(--task-input-text);
+}
+
 /* Prevent auto-zoom on mobile inputs in iOS Safari */
 @media (max-width: 639px) {
   input[type="text"],

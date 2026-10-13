@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useId, useRef } from 'react';
-import { X, AlertCircle, Trash2, Check, Circle, Layers3, Clock3, StickyNote } from 'lucide-react';
+import { X, AlertCircle, Trash2, Check, Circle, Layers3, Clock3, ChevronDown } from 'lucide-react';
 import { Language, PlannerCategory, Task, TaskStatus } from '../types';
 import { UNASSIGNED_CATEGORY } from '../shared/workspace';
 import { formatTime12h } from '../utils/date';
@@ -27,7 +27,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
   const [title, setTitle] = useState('');
   const [time, setTime] = useState('');
   const [status, setStatus] = useState<TaskStatus>('pending');
-  const [notes, setNotes] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [error, setError] = useState<string | null>(null);
   const formId = useId();
@@ -41,7 +40,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
       setTitle(task.title);
       setTime(task.time);
       setStatus(task.status);
-      setNotes(task.notes || '');
       setCategoryId(task.categoryId || task.category || UNASSIGNED_CATEGORY);
       setError(null);
     }
@@ -76,7 +74,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
       title: trimmedTitle,
       time: trimmedTime,
       status,
-      notes: notes.trim() || undefined,
       categoryId,
     });
 
@@ -89,8 +86,9 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
   };
 
   const ContextIcon = getTaskContextIcon(title).icon;
+  const selectedCategory = categories.find(category => category.id === categoryId);
   const states = [
-    { value: 'pending', label: ar ? 'متبقية' : 'Remaining', icon: Circle, active: 'border-slate-400 bg-slate-100 text-slate-800 dark:border-white/30 dark:bg-white/[0.08] dark:text-white' },
+    { value: 'pending', label: ar ? 'متبقية' : 'Remaining', icon: Circle, active: 'border-amber-300/70 bg-amber-50 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/[0.08] dark:text-amber-300' },
     { value: 'done', label: ar ? 'مكتملة' : 'Complete', icon: Check, active: 'border-emerald-400/60 bg-emerald-50 text-emerald-700 dark:border-emerald-400/40 dark:bg-emerald-400/10 dark:text-emerald-300' },
     { value: 'not-done', label: ar ? 'غير منجزة' : 'Not done', icon: X, active: 'border-rose-300 bg-rose-50 text-rose-600 dark:border-rose-400/35 dark:bg-rose-400/10 dark:text-rose-300' },
   ] as const;
@@ -98,11 +96,11 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 backdrop-blur-md sm:p-6">
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={`${formId}-heading`} tabIndex={-1}
-        className="flex max-h-[90dvh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-2xl outline-none dark:border-white/10 dark:bg-[#101218] dark:text-zinc-100"
+        className="flex max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-2xl outline-none dark:border-white/10 dark:bg-[#101218] dark:text-zinc-100"
         onKeyDown={event => {
           if (event.key === 'Escape' && !event.defaultPrevented) { event.preventDefault(); event.stopPropagation(); onClose(); }
           if (event.key !== 'Tab') return;
-          const elements = [...event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)')];
+          const elements = [...event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled)')];
           const first = elements[0], last = elements[elements.length - 1];
           if (event.shiftKey && (document.activeElement === first || document.activeElement === event.currentTarget)) { event.preventDefault(); last?.focus(); }
           if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
@@ -117,51 +115,44 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div data-editor-body className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-            <div className="grid sm:grid-cols-[minmax(0,1fr)_12rem]">
-              <div className="min-w-0 space-y-6 p-5 sm:p-6">
-                <div>
-                  <label htmlFor={`${formId}-title`} className={labelClass}>{ar ? 'اسم المهمة' : 'Task name'}</label>
-                  <input id={`${formId}-title`} type="text" value={title} aria-label={ar ? 'اسم المهمة' : 'Task name'} aria-invalid={Boolean(error)} aria-describedby={error ? `${formId}-error` : undefined}
-                    onChange={event => { setTitle(event.target.value); if (error) setError(null); }}
-                    className={`${fieldClass} min-h-12 px-4 text-base`} />
-                  {error && <p id={`${formId}-error`} role="alert" className="mt-2 flex items-center gap-2 text-xs leading-5 text-rose-600 dark:text-rose-300"><AlertCircle aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />{error}</p>}
-                </div>
-
-                <fieldset>
-                  <legend className={labelClass}>{ar ? 'حالة المهمة' : 'Task status'}</legend>
-                  <div className="grid grid-cols-3 gap-2">
-                    {states.map(({ value, label, icon: Icon, active }) => <label key={value} className="relative min-w-0 cursor-pointer">
-                      <input type="radio" name={`${formId}-status`} value={value} checked={status === value} onChange={() => setStatus(value)} className="peer sr-only" />
-                      <span className={`flex min-h-[68px] flex-col items-center justify-center gap-2 rounded-xl border px-1 py-2 text-[11px] font-medium transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-emerald-400 sm:text-xs ${status === value ? active : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50 dark:border-white/[0.08] dark:text-zinc-400 dark:hover:border-white/20 dark:hover:bg-white/[0.03]'}`}><Icon aria-hidden="true" className="h-4 w-4" strokeWidth={1.8} /><span className="whitespace-nowrap">{label}</span></span>
-                    </label>)}
-                  </div>
-                </fieldset>
-
-                <div>
-                  <label htmlFor={`${formId}-notes`} className={`${labelClass} flex items-center gap-2`}><StickyNote aria-hidden="true" className="h-3.5 w-3.5 text-slate-400 dark:text-zinc-500" />{ar ? 'ملاحظة' : 'Note'}<span className="ms-auto text-[10px] font-normal text-slate-400 dark:text-zinc-500">{ar ? 'اختياري' : 'Optional'}</span></label>
-                  <textarea id={`${formId}-notes`} value={notes} onChange={event => setNotes(event.target.value)} rows={3} placeholder={ar ? 'أضف التفاصيل التي تحتاجها…' : 'Add the details you need…'} className={`${fieldClass} min-h-28 resize-y px-4 py-3 leading-6`} />
-                </div>
+            <div className="min-w-0 space-y-6 p-5 sm:p-6">
+              <div>
+                <label htmlFor={`${formId}-title`} className={labelClass}>{ar ? 'اسم المهمة' : 'Task name'}</label>
+                <input id={`${formId}-title`} type="text" value={title} aria-label={ar ? 'اسم المهمة' : 'Task name'} aria-invalid={Boolean(error)} aria-describedby={error ? `${formId}-error` : undefined}
+                  onChange={event => { setTitle(event.target.value); if (error) setError(null); }}
+                  className={`${fieldClass} min-h-12 px-4 text-base`} />
+                {error && <p id={`${formId}-error`} role="alert" className="mt-2 flex items-center gap-2 text-xs leading-5 text-rose-600 dark:text-rose-300"><AlertCircle aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />{error}</p>}
               </div>
 
-              <aside className="min-w-0 border-t border-slate-200/80 bg-slate-50/70 p-5 dark:border-white/[0.07] dark:bg-white/[0.02] sm:border-s sm:border-t-0 sm:p-5">
-                <h3 className="mb-5 text-[11px] font-medium text-slate-500 dark:text-zinc-400">{ar ? 'تنظيم المهمة' : 'Organization'}</h3>
-                <div className="grid gap-5 min-[360px]:grid-cols-2 sm:grid-cols-1">
-                  <div className="min-w-0">
-                    <label htmlFor={`${formId}-category`} className={`${labelClass} flex items-center gap-2`}><Layers3 aria-hidden="true" className="h-3.5 w-3.5" />{ar ? 'البطاقة' : 'Card'}</label>
-                    <select id={`${formId}-category`} value={categories.some(category => category.id === categoryId) ? categoryId : UNASSIGNED_CATEGORY} onChange={event => setCategoryId(event.target.value)} className={fieldClass}>
+              <fieldset>
+                <legend className={labelClass}>{ar ? 'حالة المهمة' : 'Task status'}</legend>
+                <div className="grid grid-cols-3 gap-2">
+                  {states.map(({ value, label, icon: Icon, active }) => <label key={value} className="relative min-w-0 cursor-pointer">
+                    <input type="radio" name={`${formId}-status`} value={value} checked={status === value} onChange={() => setStatus(value)} className="peer sr-only" />
+                    <span className={`flex min-h-[68px] flex-col items-center justify-center gap-2 rounded-xl border px-1 py-2 text-[11px] font-medium transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-emerald-400 sm:text-xs ${status === value ? active : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50 dark:border-white/[0.08] dark:text-zinc-400 dark:hover:border-white/20 dark:hover:bg-white/[0.03]'}`}><Icon aria-hidden="true" className="h-4 w-4" strokeWidth={1.8} /><span className="whitespace-nowrap">{label}</span></span>
+                  </label>)}
+                </div>
+              </fieldset>
+
+              <div data-editor-details className="grid grid-cols-1 gap-4 rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-white/[0.07] dark:bg-white/[0.02] min-[520px]:grid-cols-2">
+                <div className="min-w-0">
+                  <label htmlFor={`${formId}-category`} className={`${labelClass} flex items-center gap-2`}><Layers3 aria-hidden="true" className="h-3.5 w-3.5" />{ar ? 'البطاقة' : 'Card'}</label>
+                  <div className="group/category relative">
+                    <select id={`${formId}-category`} title={selectedCategory ? (ar ? selectedCategory.name : selectedCategory.nameEn || selectedCategory.name) : (ar ? 'غير مصنّف' : 'Unassigned')} value={selectedCategory?.id || UNASSIGNED_CATEGORY} onChange={event => setCategoryId(event.target.value)} className={`${fieldClass} edit-task-category cursor-pointer appearance-none pe-10 hover:border-slate-400 dark:hover:border-white/20`}>
                       <option value={UNASSIGNED_CATEGORY}>{ar ? 'غير مصنّف' : 'Unassigned'}</option>
                       {categories.map(category => <option key={category.id} value={category.id}>{ar ? category.name : category.nameEn || category.name}</option>)}
                     </select>
-                  </div>
-                  <div className="min-w-0">
-                    <label htmlFor={`${formId}-time`} className={`${labelClass} flex items-center gap-2`}><Clock3 aria-hidden="true" className="h-3.5 w-3.5" />{ar ? 'الوقت' : 'Time'}<span className="sr-only">{ar ? ' (اختياري)' : ' (optional)'}</span></label>
-                    <div className="relative" dir="ltr">
-                      <input id={`${formId}-time`} type="time" value={time} aria-label={ar ? 'الوقت (اختياري)' : 'Time (optional)'} onChange={event => setTime(event.target.value)} className={`${fieldClass} edit-task-time focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/10 dark:focus-within:border-emerald-400/70`} />
-                      <span aria-hidden="true" className={`edit-task-time-display pointer-events-none absolute inset-y-0 left-3 right-9 flex items-center whitespace-nowrap text-xs font-normal ${time ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-zinc-500'}`}>{time ? formatTime12h(time, lang).formatted : (ar ? 'اختر الوقت' : 'Choose time')}</span>
-                    </div>
+                    <ChevronDown aria-hidden="true" className="pointer-events-none absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within/category:text-emerald-600 dark:text-zinc-500 dark:group-focus-within/category:text-emerald-300" strokeWidth={1.8} />
                   </div>
                 </div>
-              </aside>
+                <div className="min-w-0">
+                  <label htmlFor={`${formId}-time`} className={`${labelClass} flex items-center gap-2`}><Clock3 aria-hidden="true" className="h-3.5 w-3.5" />{ar ? 'الوقت' : 'Time'}<span className="ms-auto text-[10px] font-normal text-slate-400 dark:text-zinc-500">{ar ? 'اختياري' : 'Optional'}</span></label>
+                  <div className="relative" dir="ltr">
+                    <input id={`${formId}-time`} type="time" value={time} aria-label={ar ? 'الوقت (اختياري)' : 'Time (optional)'} onChange={event => setTime(event.target.value)} className={`${fieldClass} edit-task-time focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/10 dark:focus-within:border-emerald-400/70`} />
+                    <span aria-hidden="true" className={`edit-task-time-display pointer-events-none absolute inset-y-0 left-3 right-9 flex items-center whitespace-nowrap text-xs font-normal ${time ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-zinc-500'}`}>{time ? formatTime12h(time, lang).formatted : (ar ? 'اختر الوقت' : 'Choose time')}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
