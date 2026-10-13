@@ -8,7 +8,7 @@ Object.defineProperty(globalThis, 'localStorage', { value: {
   setItem: (key: string, value: string) => values.set(key, value),
 }, configurable: true });
 const payload = (date = '13-10-2026', timezone = 'Asia/Hebron') => ({ code: 200, data: {
-  timings: { Fajr: '5:20 (EEST)', Dhuhr: '12:25', Asr: '15:42', Maghrib: '18:09', Isha: '19:26' },
+  timings: { Fajr: '5:19 (EEST)', Dhuhr: '12:25', Asr: '15:41', Maghrib: '18:16', Isha: '19:31' },
   date: { gregorian: { date } }, meta: { timezone },
 } });
 
@@ -25,15 +25,16 @@ test('Nablus schedules use the selected date and Palestine timezone with validat
       assert.equal(url.searchParams.get('longitude'), '35.2544');
       assert.equal(url.searchParams.get('method'), '3');
       assert.equal(url.searchParams.get('timezonestring'), 'Asia/Hebron');
+      assert.equal(url.searchParams.get('tune'), '0,-1,0,0,-1,7,0,5,0');
       return new Response(JSON.stringify(payload()));
     });
     const result = await fetchOfficialPrayerTimes('2026-10-13', config);
-    assert.deepEqual(result.prayers.map(p => p.time), ['05:20', '12:25', '15:42', '18:09', '19:26']);
+    assert.deepEqual(result.prayers.map(p => p.time), ['05:19', '12:25', '15:41', '18:16', '19:31']);
     assert.equal(result.date, '2026-10-13');
     assert.equal(values.size, 1);
     assert.ok([...values.keys()][0].includes('daily_prayer_cache_v4_'));
   });
-  await t.test('cache never crosses dates or timezones, and refresh bypasses it', async t => {
+  await t.test('cache never crosses dates, timezones or timing adjustments, and refresh bypasses it', async t => {
     values.clear();
     let requests = 0;
     t.mock.method(globalThis, 'fetch', async (input: string) => {
@@ -47,8 +48,9 @@ test('Nablus schedules use the selected date and Palestine timezone with validat
     assert.equal(requests, 1);
     await fetchOfficialPrayerTimes('2026-10-14', config);
     await fetchOfficialPrayerTimes('2026-10-13', { ...config, timezone: 'UTC' });
+    await fetchOfficialPrayerTimes('2026-10-13', { ...config, tune: '0,0,0,0,0,0,0,0,0' });
     await fetchOfficialPrayerTimes('2026-10-13', config, true);
-    assert.equal(requests, 4);
+    assert.equal(requests, 5);
   });
   await t.test('network failures and partial or mismatched schedules never return invented times', async t => {
     values.clear();

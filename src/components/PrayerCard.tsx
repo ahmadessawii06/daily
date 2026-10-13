@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import { CheckCheck, MapPin, MoonStar, Pencil, RefreshCw, Trash2 } from 'lucide-react';
+import { CheckCheck, MoonStar, Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import type { Language, Task, TaskStatus } from '../types';
 import type { DailyPrayer } from '../utils/prayerTasks';
 import { nextTaskStatus } from '../utils/taskStatus';
@@ -80,7 +80,7 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
       <div className="grid grid-cols-1 items-center gap-x-5 gap-y-3 md:grid-cols-[minmax(0,1fr)_20rem]">
         <div data-prayer-heading className="order-1 flex min-w-0 items-center gap-3">
           <div aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-amber-300/50 bg-amber-100/70 text-amber-700 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-200"><MoonStar className="h-6 w-6" strokeWidth={1.6} /></div>
-          <div><h3 className="text-base font-bold">{ar ? 'الصلوات الخمس' : 'Five daily prayers'}</h3><p className="mt-1 text-xs text-emerald-800/80 dark:text-emerald-100/60">{ar ? `${done} من 5 مكتملة · لحظات ثابتة في يومك` : `${done} of 5 complete · A steady daily rhythm`}</p><p data-prayer-location className="mt-2 flex items-center gap-1 text-[10px] text-slate-500 dark:text-zinc-400"><MapPin aria-hidden="true" className="h-3 w-3 shrink-0" />{ar ? 'نابلس، فلسطين · توقيت فلسطين' : 'Nablus, Palestine · Asia/Hebron'}</p></div>
+          <div><h3 className="text-base font-bold">{ar ? 'الصلوات الخمس' : 'Five daily prayers'}</h3><p className="mt-1 text-xs text-emerald-800/80 dark:text-emerald-100/60">{ar ? `${done} من 5 مكتملة · لحظات ثابتة في يومك` : `${done} of 5 complete · A steady daily rhythm`}</p></div>
         </div>
         <div data-prayer-stats role="group" aria-label={ar ? 'إحصائيات الصلوات' : 'Prayer statistics'} className="order-2 grid grid-cols-4 gap-3">
           <StatCircle compact label={labels.done} value={done} percentage={done * 20} color="emerald" isActive={false} subLabel={`${done * 20}%`} />
@@ -94,7 +94,7 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
           <span dir="ltr" className="tabular-nums">100%</span>
         </div>}
       </div>
-      {times.error && <div role="status" className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-300/40 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-300/5 dark:text-amber-200"><span>{ar ? 'تعذر تحميل مواقيت نابلس. تحقق من الاتصال وأعد المحاولة.' : 'Could not load Nablus prayer times. Check your connection and retry.'}</span><button type="button" onClick={times.refresh} className="inline-flex min-h-9 items-center gap-1 font-semibold"><RefreshCw aria-hidden="true" className="h-3 w-3" />{ar ? 'إعادة المحاولة' : 'Retry'}</button></div>}
+      {times.error && <div role="status" className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-300/40 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-300/5 dark:text-amber-200"><span>{ar ? 'تعذر تحميل مواقيت الصلاة. تحقق من الاتصال وأعد المحاولة.' : 'Could not load prayer times. Check your connection and retry.'}</span><button type="button" onClick={times.refresh} className="inline-flex min-h-9 items-center gap-1 font-semibold"><RefreshCw aria-hidden="true" className="h-3 w-3" />{ar ? 'إعادة المحاولة' : 'Retry'}</button></div>}
       <div className="mt-5 grid grid-cols-2 gap-3 border-t border-emerald-200/60 pt-4 dark:border-emerald-100/10 lg:grid-cols-5">
         {slots.map(({ prayer, task }, index) => {
           const status = task?.status || 'pending';

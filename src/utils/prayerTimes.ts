@@ -128,6 +128,9 @@ export function getDefaultLocationConfig(): PrayerLocationConfig {
     longitude: 35.2544,
     method: 3,
     timezone: 'Asia/Hebron',
+    // Minute adjustments calibrated against the supplied 13 October 2026 reference.
+    // Aladhan order: Imsak, Fajr, Sunrise, Dhuhr, Asr, Maghrib, Sunset, Isha, Midnight.
+    tune: '0,-1,0,0,-1,7,0,5,0',
   };
 }
 
@@ -183,7 +186,7 @@ export async function fetchOfficialPrayerTimes(
   config: PrayerLocationConfig,
   forceRefresh = false
 ): Promise<PrayerTimesDayResponse> {
-  const cacheKey = `${PRAYER_CACHE_PREFIX}_${dateStr}_${config.city}_${config.country}_${config.method}_${config.latitude ?? ''}_${config.longitude ?? ''}_${config.timezone || ''}`;
+  const cacheKey = `${PRAYER_CACHE_PREFIX}_${dateStr}_${config.city}_${config.country}_${config.method}_${config.latitude ?? ''}_${config.longitude ?? ''}_${config.timezone || ''}_${config.tune || ''}`;
 
   // 1. Try Cache First
   try {
@@ -209,6 +212,7 @@ export async function fetchOfficialPrayerTimes(
     url = `https://api.aladhan.com/v1/timingsByCity/${aladhanDate}?city=${encodeURIComponent(config.city)}&country=${encodeURIComponent(config.country)}&method=${config.method}`;
   }
   if (config.timezone) url += `&timezonestring=${encodeURIComponent(config.timezone)}`;
+  if (config.tune) url += `&tune=${encodeURIComponent(config.tune)}`;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 6000);
