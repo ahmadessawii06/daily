@@ -86,6 +86,35 @@
   }
 }
 
+/* Task editors own their text, caret and autofill colors in both themes. */
+.task-input {
+  --task-input-bg: #f8fafc;
+  --task-input-text: #0f172a;
+  background-color: var(--task-input-bg);
+  color: var(--task-input-text);
+  caret-color: var(--task-input-text);
+  -webkit-text-fill-color: var(--task-input-text);
+  color-scheme: light;
+}
+
+.task-input:focus { --task-input-bg: #ffffff; }
+
+.dark .task-input {
+  --task-input-bg: #08090d;
+  --task-input-text: #ffffff;
+  color-scheme: dark;
+}
+
+.dark .task-input:focus { --task-input-bg: #11131a; }
+.task-input::placeholder { -webkit-text-fill-color: currentColor; }
+.task-input::selection { background-color: #a7f3d0; color: #064e3b; -webkit-text-fill-color: #064e3b; }
+
+.task-input:autofill {
+  -webkit-text-fill-color: var(--task-input-text);
+  caret-color: var(--task-input-text);
+  box-shadow: 0 0 0 1000px var(--task-input-bg) inset;
+}
+
 /* Prevent auto-zoom on mobile inputs in iOS Safari */
 @media (max-width: 639px) {
   input[type="text"],

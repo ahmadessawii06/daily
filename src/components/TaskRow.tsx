@@ -45,7 +45,8 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [inlineTitle, setInlineTitle] = useState(task.title || '');
   const [isEditingInline, setIsEditingInline] = useState(isEditing);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
+  const desktopInputRef = useRef<HTMLInputElement>(null);
 
   // Sync internal editing state with prop
   useEffect(() => {
@@ -60,10 +61,20 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   }, [task.title, isEditingInline]);
 
   useEffect(() => {
-    if (isEditingInline && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
+    if (!isEditingInline) return;
+    const focusVisibleInput = () => {
+      const inputs = [mobileInputRef.current, desktopInputRef.current];
+      const active = document.activeElement;
+      if (active !== document.body && !inputs.includes(active as HTMLInputElement)) return;
+      const input = inputs.find(element => element && element.getClientRects().length > 0);
+      if (input && active !== input) {
+        input.focus();
+        input.select();
+      }
+    };
+    focusVisibleInput();
+    window.addEventListener('resize', focusVisibleInput);
+    return () => window.removeEventListener('resize', focusVisibleInput);
   }, [isEditingInline]);
 
   // 12-hour formatted time (with صباحًا / مساءً)
@@ -232,7 +243,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               </div>
 
               <input
-                ref={inputRef}
+                ref={mobileInputRef}
                 type="text"
                 value={inlineTitle}
                 onChange={(e) => setInlineTitle(e.target.value)}
@@ -250,7 +261,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   handleCommitTitle(false);
                 }}
                 placeholder={lang === 'ar' ? '+ اكتب اسم المهمة هنا واضغط Enter...' : '+ Write task name and press Enter...'}
-                className="w-full bg-white dark:bg-[#0b0d13] border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-2 text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[40px]"
+                className="task-input w-full border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-2 text-base font-semibold placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[40px]"
               />
               {inlineTitle.trim() && (
                 <button
@@ -342,7 +353,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
               </div>
 
               <input
-                ref={inputRef}
+                ref={desktopInputRef}
                 type="text"
                 value={inlineTitle}
                 onChange={(e) => setInlineTitle(e.target.value)}
@@ -360,7 +371,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   handleCommitTitle(false);
                 }}
                 placeholder={lang === 'ar' ? '+ اكتب اسم المهمة هنا واضغط Enter...' : '+ Write task name and press Enter...'}
-                className="w-full bg-white dark:bg-[#0b0d13] border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-1.5 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[36px]"
+                className="task-input w-full border border-slate-300 dark:border-white/[0.15] focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-3 py-1.5 text-sm font-semibold placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none transition-all shadow-2xs min-h-[36px]"
               />
               {inlineTitle.trim() && (
                 <button
