@@ -6,6 +6,7 @@ This change adds a category-based daily workspace beside the existing timeline. 
 
 - New accounts start in Cards. Accounts without workspace metadata retain Timeline; their first explicit switch is saved and synchronized.
 - Add a task inside a card by entering a title and pressing Enter. Its start time, end time and duration remain unset unless supplied later.
+- The header's **+** button first offers **Timeline** or **Cards**. Timeline opens the existing task form; Cards lets you choose a category, expands it if needed, then scrolls to and focuses its quick-add field. Both paths use the selected date and the same task store. Cancelling the chooser creates no task.
 - Create cards, edit names and icons, or collapse them. Preferences belong to the account and persist across dates.
 - Removing a card leaves every associated task on its original date. Those tasks appear under **Unassigned**, and can be reassigned in the task editor.
 - Timeline retains inline editing, completion states, filters, arbitrary start times, and the optional 24-hour template. Untimed tasks have a separate section.

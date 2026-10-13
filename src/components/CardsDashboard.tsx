@@ -1,8 +1,9 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Check, CheckCheck, ChevronDown, Clock, MoreHorizontal, Plus, StickyNote, Pencil, Trash2, X } from 'lucide-react';
 import type { Language, PlannerCategory, PlannerWorkspace, StatusFilter, Task, TaskStatus } from '../types';
-import { activeCategories, groupTasksByCategory, UNASSIGNED_CATEGORY, WORKSPACE_EPOCH } from '../shared/workspace';
+import { groupTasksByCategory, UNASSIGNED_CATEGORY } from '../shared/workspace';
+import { getTaskCardCategories } from '../utils/cardCategories';
 import { createPlannerCategory, deletePlannerCategory, updatePlannerCategory } from '../utils/workspace';
 import { formatTime12h } from '../utils/date';
 import { nextTaskStatus } from '../utils/taskStatus';
@@ -25,6 +26,7 @@ interface CardsDashboardProps {
   onStatusChange: (id: string, status: TaskStatus) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
+  creationTarget?: { categoryId: string; requestId: number } | null;
 }
 
 export function CardsDashboard(props: CardsDashboardProps) {
@@ -33,10 +35,7 @@ export function CardsDashboard(props: CardsDashboardProps) {
   const [editor, setEditor] = useState<PlannerCategory | 'new' | null>(null);
   const prayerTasks = partitionPrayerTasks(tasks);
   const grouped = groupTasksByCategory(prayerTasks.otherTasks, workspace);
-  const categories = activeCategories(workspace).filter(category => category.id !== 'worship' || (grouped.get(category.id)?.length || 0) > 0);
-  const unassigned = grouped.get(UNASSIGNED_CATEGORY) || [];
-  const fallback: PlannerCategory = { id: UNASSIGNED_CATEGORY, name: 'غير مصنّف', nameEn: 'Unassigned', icon: 'layers', order: 0, updatedAt: WORKSPACE_EPOCH };
-  const cards = unassigned.length || !categories.length ? [...categories, fallback] : categories;
+  const cards = getTaskCardCategories(tasks, workspace, props.creationTarget?.categoryId === UNASSIGNED_CATEGORY);
   const filterName = { all: '', scheduled: ar ? 'المهام المحددة' : 'Named tasks', pending: ar ? 'المتبقية' : 'Remaining', done: ar ? 'المكتملة' : 'Completed', 'not-done': ar ? 'غير المنجزة' : 'Not done' }[filter];
 
   return (
@@ -49,6 +48,7 @@ export function CardsDashboard(props: CardsDashboardProps) {
       <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
         <PrayerCard currentDate={props.currentDate} slots={prayerTasks.slots} lang={lang} onAddPrayer={props.onAddPrayer} onStatusChange={props.onStatusChange} onEdit={props.onEdit} onDelete={props.onDelete} />
         {cards.map(category => <CategoryCard key={category.id} {...props} category={category}
+          creationRequest={props.creationTarget?.categoryId === category.id ? props.creationTarget.requestId : undefined}
           tasks={grouped.get(category.id) || []}
           onCustomize={category.id === UNASSIGNED_CATEGORY ? undefined : () => setEditor(category)} />)}
       </div>
@@ -59,18 +59,28 @@ export function CardsDashboard(props: CardsDashboardProps) {
   );
 }
 
-function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, onStatusChange, onCustomize }: CardsDashboardProps & { category: PlannerCategory; onCustomize?: () => void }) {
+function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, onStatusChange, onCustomize, creationRequest }: CardsDashboardProps & { category: PlannerCategory; onCustomize?: () => void; creationRequest?: number }) {
   const ar = lang === 'ar';
   const name = ar ? category.name : category.nameEn || category.name;
   const Icon = CARD_ICONS[category.icon];
   const regionId = useId();
   const [title, setTitle] = useState('');
   const [notice, setNotice] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+  const handledCreationRef = useRef<number | undefined>(undefined);
   const stats = calculateStats(tasks);
   const completed = stats.done;
   const isComplete = tasks.length > 0 && completed === tasks.length;
   const visible = tasks.filter(task => filter === 'all' || filter === 'scheduled' || task.status === filter);
   const collapsed = Boolean(category.collapsed);
+  useEffect(() => {
+    if (!creationRequest || collapsed || handledCreationRef.current === creationRequest) return;
+    const input = inputRef.current;
+    if (!input) return;
+    handledCreationRef.current = creationRequest;
+    input.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    input.focus({ preventScroll: true });
+  }, [creationRequest, collapsed]);
   const statusLabels = ar
     ? { pending: 'متبقية', done: 'مكتملة', 'not-done': 'غير منجزة' }
     : { pending: 'Remaining', done: 'Completed', 'not-done': 'Not done' };
@@ -115,7 +125,7 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
           })}
         </div>
         <form className="planner-card-form mt-2 flex items-center gap-1 rounded-xl border border-slate-200/80 bg-white/60 dark:border-white/[0.07] dark:bg-white/[0.02]" onSubmit={e => { e.preventDefault(); if (!title.trim()) return; onAdd(title.trim(), category.id); setTitle(''); setNotice(ar ? 'تمت إضافة المهمة' : 'Task added'); }}>
-          <input aria-label={ar ? `مهمة جديدة في ${name}` : `New task in ${name}`} maxLength={300} value={title} onChange={e => { setTitle(e.target.value); setNotice(''); }} onKeyDown={e => { if (e.nativeEvent.isComposing && e.key === 'Enter') e.preventDefault(); }} placeholder={ar ? 'أضف مهمة…' : 'Add a task…'} className="min-h-11 min-w-0 flex-1 rounded-xl bg-transparent px-3 text-xs outline-none placeholder:text-slate-500 dark:placeholder:text-zinc-400" />
+          <input ref={inputRef} aria-label={ar ? `مهمة جديدة في ${name}` : `New task in ${name}`} maxLength={300} value={title} onChange={e => { setTitle(e.target.value); setNotice(''); }} onKeyDown={e => { if (e.nativeEvent.isComposing && e.key === 'Enter') e.preventDefault(); }} placeholder={ar ? 'أضف مهمة…' : 'Add a task…'} className="min-h-11 min-w-0 flex-1 rounded-xl bg-transparent px-3 text-xs outline-none placeholder:text-slate-500 dark:placeholder:text-zinc-400" />
           <button type="submit" disabled={!title.trim()} aria-label={ar ? `إضافة مهمة إلى ${name}` : `Add task to ${name}`} className="planner-card-add m-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg disabled:bg-transparent disabled:text-slate-400 dark:disabled:text-zinc-600"><Plus className="h-4 w-4" /></button>
         </form>
         <p role="status" aria-live="polite" className="sr-only">{notice}</p>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { 
   getTodayDateString 
 } from './utils/date';
@@ -23,8 +23,9 @@ import { getStoredAuth, clearStoredAuth } from './utils/auth';
 import { LoginScreen } from './components/LoginScreen';
 import { AuthLoadingScreen } from './components/AuthLoadingScreen';
 import { CardsDashboard } from './components/CardsDashboard';
-import { getPlannerWorkspace, readStoredWorkspace, setPlannerView } from './utils/workspace';
-import { activeCategories } from './shared/workspace';
+import { getPlannerWorkspace, readStoredWorkspace, setPlannerView, updatePlannerCategory } from './utils/workspace';
+import { activeCategories, UNASSIGNED_CATEGORY } from './shared/workspace';
+import { getTaskCardCategories } from './utils/cardCategories';
 import { partitionPrayerTasks } from './utils/prayerTasks';
 import { calculateDailyProgress } from './utils/dailyProgress';
 import { MainHeader } from './components/MainHeader';
@@ -35,6 +36,7 @@ import { TaskList } from './components/TaskList';
 import { StatsModal } from './components/StatsModal';
 import { ArchiveModal } from './components/ArchiveModal';
 import { AddTaskModal } from './components/AddTaskModal';
+import { TaskDestinationDialog } from './components/TaskDestinationDialog';
 import { EditTaskModal } from './components/EditTaskModal';
 import { SettingsModal } from './components/SettingsModal';
 import { ExportScheduleModal } from './components/ExportScheduleModal';
@@ -58,6 +60,9 @@ export default function App() {
 
   // Modals state
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
+  const [isTaskDestinationOpen, setIsTaskDestinationOpen] = useState(false);
+  const [cardCreationTarget, setCardCreationTarget] = useState<{ categoryId: string; requestId: number } | null>(null);
+  const cardCreationRequest = useRef(0);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
@@ -236,8 +241,24 @@ export default function App() {
   };
 
   const handleChangeView = (view: PlannerView) => {
+    setCardCreationTarget(null);
     setWorkspace(setPlannerView(view));
     setCurrentFilter('all');
+  };
+
+  const handleCreateInTimeline = () => {
+    handleChangeView('timeline');
+    setIsTaskDestinationOpen(false);
+    setIsAddTaskOpen(true);
+  };
+
+  const handleCreateInCard = (categoryId: string) => {
+    const category = activeCategories(getPlannerWorkspace()).find(card => card.id === categoryId);
+    if (!category && categoryId !== UNASSIGNED_CATEGORY) return;
+    handleChangeView('cards');
+    if (category?.collapsed) setWorkspace(updatePlannerCategory(categoryId, { collapsed: false }));
+    setCardCreationTarget({ categoryId, requestId: ++cardCreationRequest.current });
+    setIsTaskDestinationOpen(false);
   };
 
   const stats = useMemo(() => calculateDailyProgress(tasks), [tasks]);
@@ -285,6 +306,8 @@ export default function App() {
     setIsStatsModalOpen(false);
     setIsArchiveModalOpen(false);
     setIsAddTaskOpen(false);
+    setIsTaskDestinationOpen(false);
+    setCardCreationTarget(null);
     setEditingTask(null);
     setIsExportModalOpen(false);
     setIsPreparingWorkspace(false);
@@ -327,7 +350,7 @@ export default function App() {
             currentDate={currentDate}
             currentUser={currentUser}
             onLogout={handleLogout}
-            onOpenAddTask={() => setIsAddTaskOpen(true)}
+            onOpenAddTask={() => setIsTaskDestinationOpen(true)}
             onOpenExportModal={handleExportDailyTrackImage}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenStats={() => setIsStatsModalOpen(true)}
@@ -362,6 +385,7 @@ export default function App() {
           </div>
 
           {workspace.view === 'cards' ? <CardsDashboard currentDate={currentDate} tasks={tasks} workspace={workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
+            creationTarget={cardCreationTarget}
             onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
             onAddPrayer={handleCompletePrayer}
             onStatusChange={handleStatusChange} onEdit={setEditingTask} onDelete={handleDeleteTask} /> : <>
@@ -401,12 +425,15 @@ export default function App() {
       />
 
       {/* Add Task Modal */}
+      {isTaskDestinationOpen && <TaskDestinationDialog lang={lang} cards={getTaskCardCategories(tasks, workspace, true)}
+        onClose={() => setIsTaskDestinationOpen(false)} onTimeline={handleCreateInTimeline}
+        onCards={() => handleChangeView('cards')} onCard={handleCreateInCard} />}
       <AddTaskModal
         isOpen={isAddTaskOpen}
         onClose={() => setIsAddTaskOpen(false)}
         onAdd={handleAddTask}
         lang={lang}
-        defaultTime={workspace.view === 'cards' ? '' : '08:00'}
+        defaultTime="08:00"
         categories={activeCategories(workspace)}
       />
 
