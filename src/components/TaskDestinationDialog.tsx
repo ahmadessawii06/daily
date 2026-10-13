@@ -47,7 +47,7 @@ export function TaskDestinationDialog({ lang, cards, onClose, onTimeline, onCard
           <button type="button" onClick={onClose} aria-label={ar ? 'إغلاق اختيار مكان المهمة' : 'Close task destination'} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-zinc-400 dark:hover:bg-white/5"><X aria-hidden="true" className="h-4 w-4" /></button>
         </div>
         {step === 'view' ? <div className="space-y-2">
-          <button ref={firstChoiceRef} type="button" data-task-destination="timeline" onClick={onTimeline} className={choiceClass}><ListChecks aria-hidden="true" className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />{ar ? 'الجدول الزمني' : 'Timeline'}</button>
+          <button ref={firstChoiceRef} type="button" data-task-destination="timeline" onClick={onTimeline} className={choiceClass}><ListChecks aria-hidden="true" className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />{ar ? 'الجدول' : 'Timeline'}</button>
           <button type="button" data-task-destination="cards" onClick={() => { onCards(); setStep('card'); }} className={choiceClass}><LayoutGrid aria-hidden="true" className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />{ar ? 'البطاقات' : 'Cards'}</button>
         </div> : <>
           <div className="max-h-[55dvh] space-y-2 overflow-y-auto p-1">

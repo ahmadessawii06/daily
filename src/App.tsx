@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { 
-  getTodayDateString 
+import {
+  getTodayDateString
 } from './utils/date';
-import { 
-  getDayRecord, 
+import {
+  getDayRecord,
   loadAllDays,
-  addTaskToDay, 
-  updateTaskInDay, 
-  deleteTaskFromDay, 
-  getAllArchiveDays, 
+  addTaskToDay,
+  updateTaskInDay,
+  deleteTaskFromDay,
+  getAllArchiveDays,
   resetToDefaults,
   getStoredTheme,
   setStoredTheme,
@@ -201,8 +201,8 @@ export default function App() {
     setTasks(updatedTasks);
     refreshArchive();
     showToast(
-      lang === 'ar' 
-        ? 'تم تجهيز قالب الـ 24 ساعة لليوم بنجاح' 
+      lang === 'ar'
+        ? 'تم تجهيز قالب الـ 24 ساعة لليوم بنجاح'
         : '24-hour template ready'
     );
   };
@@ -272,11 +272,11 @@ export default function App() {
     try {
       setIsExportingImage(true);
       showToast(
-        lang === 'ar' 
-          ? '⏳ جارٍ تصدير لوحة جدول ميزان كاملة كصورة فائقة الدقة...' 
+        lang === 'ar'
+          ? '⏳ جارٍ تصدير لوحة جدول ميزان كاملة كصورة فائقة الدقة...'
           : '⏳ Exporting full Mizan schedule image...'
       );
-      
+
       await (await import('./utils/exportDailyTrack')).exportDailyTrackToImage({
         elementId: 'daily-track-container',
         fileName: `Mizan-Schedule-${currentDate}.png`,
@@ -284,15 +284,15 @@ export default function App() {
       });
 
       showToast(
-        lang === 'ar' 
-          ? '✓ تم تصدير وحفظ جدول ميزان بالكامل بنجاح!' 
+        lang === 'ar'
+          ? '✓ تم تصدير وحفظ جدول ميزان بالكامل بنجاح!'
           : '✓ Full Mizan schedule saved successfully!'
       );
     } catch (error) {
       console.error('Export failed:', error);
       showToast(
-        lang === 'ar' 
-          ? '✕ حدث خطأ أثناء تصدير الصورة' 
+        lang === 'ar'
+          ? '✕ حدث خطأ أثناء تصدير الصورة'
           : '✕ Failed to export image'
       );
     } finally {
@@ -339,14 +339,14 @@ export default function App() {
 
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-[#07080b] bg-mesh text-slate-900 dark:text-zinc-100 flex flex-col font-['Alexandria','Cairo',sans-serif] transition-colors duration-200`}>
-      
+
       {/* Main Full-Width Centered Clean Canvas */}
-      <main 
-        id="daily-track-container" 
+      <main
+        id="daily-track-container"
         className={`flex-1 w-full ${workspace.view === 'cards' ? 'max-w-6xl' : 'max-w-4xl'} mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors`}
       >
         <div className="space-y-4 sm:space-y-6">
-          
+
           {/* Main Header with clean icons: Profile (with Stats & Archive), Settings, Theme, Export, + Add Task */}
           <MainHeader
             currentDate={currentDate}
@@ -381,7 +381,7 @@ export default function App() {
           <div role="group" aria-label={lang === 'ar' ? 'طريقة عرض المهام' : 'Planning view'} className="inline-flex max-w-full gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
             {(['cards', 'timeline'] as const).map(view => {
               const Icon = view === 'cards' ? LayoutGrid : ListChecks;
-              const label = view === 'cards' ? (lang === 'ar' ? 'البطاقات' : 'Cards') : (lang === 'ar' ? 'الجدول الزمني' : 'Timeline');
+              const label = view === 'cards' ? (lang === 'ar' ? 'البطاقات' : 'Cards') : (lang === 'ar' ? 'الجدول' : 'Timeline');
               return <button key={view} type="button" aria-pressed={workspace.view === view} onClick={() => handleChangeView(view)} className={`inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold transition-colors ${workspace.view === view ? 'bg-white text-emerald-700 shadow-2xs dark:bg-[#1c2425] dark:text-emerald-300' : 'text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-100'}`}><Icon className="h-4 w-4" />{label}</button>;
             })}
           </div>
@@ -393,18 +393,18 @@ export default function App() {
             onStatusChange={handleStatusChange} onEdit={setEditingTask} onDelete={handleDeleteTask} /> : <>
             <PrayerCard currentDate={currentDate} slots={partitionPrayerTasks(tasks).slots} lang={lang} onAddPrayer={handleCompletePrayer} onStatusChange={handleStatusChange} />
             <TaskList
-            tasks={tasks}
-            onStatusChange={handleStatusChange}
-            onEdit={(task) => setEditingTask(task)}
-            onDelete={handleDeleteTask}
-            onUpdateTitle={handleUpdateTaskTitle}
-            onOpenAddTask={() => setIsAddTaskOpen(true)}
-            onApply24HourTemplate={handleApply24HourTemplate}
-            onOpenExportModal={handleExportDailyTrackImage}
-            currentFilter={currentFilter}
-            onFilterChange={setCurrentFilter}
-            lang={lang}
-          /></>}
+              tasks={tasks}
+              onStatusChange={handleStatusChange}
+              onEdit={(task) => setEditingTask(task)}
+              onDelete={handleDeleteTask}
+              onUpdateTitle={handleUpdateTaskTitle}
+              onOpenAddTask={() => setIsAddTaskOpen(true)}
+              onApply24HourTemplate={handleApply24HourTemplate}
+              onOpenExportModal={handleExportDailyTrackImage}
+              currentFilter={currentFilter}
+              onFilterChange={setCurrentFilter}
+              lang={lang}
+            /></>}
 
         </div>
       </main>

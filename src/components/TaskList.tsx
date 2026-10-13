@@ -61,44 +61,39 @@ export const TaskList: React.FC<TaskListProps> = ({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold">{lang === 'ar' ? 'الجدول الزمني' : 'Timeline'}</h2>
+        <h2 className="text-sm font-semibold">{lang === 'ar' ? 'الجدول' : 'Timeline'}</h2>
         <button type="button" onClick={onApply24HourTemplate} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 px-3 text-xs text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:text-zinc-400 dark:hover:bg-white/5"><LayoutTemplate className="h-4 w-4" />{lang === 'ar' ? 'إضافة خانات ٢٤ ساعة' : 'Add 24-hour slots'}</button>
       </div>
       {/* Active filter notification bar (only displayed when a circle is clicked to filter) */}
       {currentFilter !== 'all' && (
-        <div className={`flex items-center justify-between px-3.5 py-2 rounded-xl border text-xs ${
-          currentFilter === 'not-done'
+        <div className={`flex items-center justify-between px-3.5 py-2 rounded-xl border text-xs ${currentFilter === 'not-done'
             ? 'bg-rose-400/[0.08] border-rose-400/25 dark:bg-rose-400/[0.1] dark:border-rose-400/30'
             : 'bg-emerald-400/[0.08] border-emerald-400/25 dark:bg-emerald-400/[0.1] dark:border-emerald-400/30'
-        }`}>
+          }`}>
           <div className="flex items-center gap-2">
-            <Filter className={`w-3.5 h-3.5 stroke-[2.5] ${
-              currentFilter === 'not-done' ? 'text-[#ff6b81]' : 'text-[#10e588]'
-            }`} />
+            <Filter className={`w-3.5 h-3.5 stroke-[2.5] ${currentFilter === 'not-done' ? 'text-[#ff6b81]' : 'text-[#10e588]'
+              }`} />
             <span className="text-slate-500 dark:text-zinc-400 font-medium">
               {lang === 'ar' ? 'عرض:' : 'Showing:'}
             </span>
-            <span className={`font-bold font-['Alexandria'] ${
-              currentFilter === 'not-done' ? 'text-rose-700 dark:text-rose-200' : 'text-emerald-800 dark:text-emerald-200'
-            }`}>
+            <span className={`font-bold font-['Alexandria'] ${currentFilter === 'not-done' ? 'text-rose-700 dark:text-rose-200' : 'text-emerald-800 dark:text-emerald-200'
+              }`}>
               {getFilterLabel()}
             </span>
-            <span className={`font-numbers text-[11px] px-2 py-0.5 font-bold rounded-md ${
-              currentFilter === 'not-done'
+            <span className={`font-numbers text-[11px] px-2 py-0.5 font-bold rounded-md ${currentFilter === 'not-done'
                 ? 'bg-rose-400/20 text-rose-700 dark:text-rose-300'
                 : 'bg-emerald-400/20 text-emerald-800 dark:text-emerald-300'
-            }`}>
+              }`}>
               {filteredTasks.length}
             </span>
           </div>
           <button
             type="button"
             onClick={() => onFilterChange('all')}
-            className={`inline-flex items-center gap-1 text-xs font-bold hover:underline cursor-pointer active:scale-95 ${
-              currentFilter === 'not-done'
+            className={`inline-flex items-center gap-1 text-xs font-bold hover:underline cursor-pointer active:scale-95 ${currentFilter === 'not-done'
                 ? 'text-rose-600 dark:text-rose-300 hover:text-rose-700'
                 : 'text-emerald-700 dark:text-emerald-300 hover:text-emerald-800'
-            }`}
+              }`}
           >
             <X className="w-3 h-3 stroke-[2.5]" />
             <span>{lang === 'ar' ? 'عرض جميع الساعات' : 'Show all'}</span>
@@ -119,8 +114,8 @@ export const TaskList: React.FC<TaskListProps> = ({
                   {lang === 'ar' ? 'قالب اليوم جاهز للتعبئة' : 'Ready for your tasks'}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1 font-medium leading-relaxed">
-                  {lang === 'ar' 
-                    ? 'اضغط زر قالب الـ 24 ساعة لإنشاء جدول الساعات بالكامل، وابدأ بتسجيل مهامك فورًا.' 
+                  {lang === 'ar'
+                    ? 'اضغط زر قالب الـ 24 ساعة لإنشاء جدول الساعات بالكامل، وابدأ بتسجيل مهامك فورًا.'
                     : 'Click 24h Template to generate all hourly slots and start naming your tasks.'}
                 </p>
               </div>
@@ -154,26 +149,26 @@ export const TaskList: React.FC<TaskListProps> = ({
         <div className="space-y-2">
           {orderedTasks.map((task, index) => (
             <React.Fragment key={task.id}>
-            {!task.time && (index === 0 || orderedTasks[index - 1].time) && <h3 className="pb-1 pt-4 text-xs font-semibold text-slate-500 dark:text-zinc-400">{lang === 'ar' ? 'مهام بدون وقت' : 'Unscheduled tasks'}</h3>}
-            <TaskRow
-              key={task.id}
-              task={task}
-              isEditing={editingTaskId === task.id}
-              onStartEdit={() => setEditingTaskId(task.id)}
-              onEnterNext={() => {
-                const nextTask = orderedTasks[index + 1];
-                if (nextTask) {
-                  setEditingTaskId(nextTask.id);
-                } else {
-                  setEditingTaskId(null);
-                }
-              }}
-              onStatusChange={onStatusChange}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onUpdateTitle={onUpdateTitle}
-              lang={lang}
-            />
+              {!task.time && (index === 0 || orderedTasks[index - 1].time) && <h3 className="pb-1 pt-4 text-xs font-semibold text-slate-500 dark:text-zinc-400">{lang === 'ar' ? 'مهام بدون وقت' : 'Unscheduled tasks'}</h3>}
+              <TaskRow
+                key={task.id}
+                task={task}
+                isEditing={editingTaskId === task.id}
+                onStartEdit={() => setEditingTaskId(task.id)}
+                onEnterNext={() => {
+                  const nextTask = orderedTasks[index + 1];
+                  if (nextTask) {
+                    setEditingTaskId(nextTask.id);
+                  } else {
+                    setEditingTaskId(null);
+                  }
+                }}
+                onStatusChange={onStatusChange}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onUpdateTitle={onUpdateTitle}
+                lang={lang}
+              />
             </React.Fragment>
           ))}
         </div>
