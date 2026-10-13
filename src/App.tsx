@@ -28,6 +28,7 @@ import { activeCategories, UNASSIGNED_CATEGORY } from './shared/workspace';
 import { getTaskCardCategories } from './utils/cardCategories';
 import { partitionPrayerTasks } from './utils/prayerTasks';
 import { calculateDailyProgress } from './utils/dailyProgress';
+import { shouldPlayListCompletionSound } from './utils/listCompletion';
 import { MainHeader } from './components/MainHeader';
 import { TodayProgress } from './components/TodayProgress';
 import { PrayerCard } from './components/PrayerCard';
@@ -41,7 +42,7 @@ import { EditTaskModal } from './components/EditTaskModal';
 import { SettingsModal } from './components/SettingsModal';
 import { ExportScheduleModal } from './components/ExportScheduleModal';
 
-import { playAchievementSound, playFailureSound } from './utils/soundEffects';
+import { playAchievementSound, playFailureSound, playChallengeCompleteSound, preloadChallengeCompleteSound } from './utils/soundEffects';
 import { CheckCircle2, LayoutGrid, ListChecks } from 'lucide-react';
 
 export default function App() {
@@ -76,6 +77,8 @@ export default function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   // Archive days
   const [archiveDays, setArchiveDays] = useState(() => getAllArchiveDays());
+
+  useEffect(() => { if (currentUser) preloadChallengeCompleteSound(); }, [currentUser?.id]);
 
   // Apply the active account?s theme to the document.
   useEffect(() => {
@@ -145,41 +148,41 @@ export default function App() {
   };
 
   // Handlers
-  const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
-    if (newStatus === 'done') {
-      playAchievementSound();
-    } else if (newStatus === 'not-done') {
-      playFailureSound();
-    }
+  const playStatusFeedback = (before: Task[], after: Task[], taskId: string, status: TaskStatus) => {
+    if (before.find(task => task.id === taskId)?.status === status || after.find(task => task.id === taskId)?.status !== status) return;
+    if (status === 'done') {
+      const currentWorkspace = getPlannerWorkspace();
+      if (shouldPlayListCompletionSound(before, after, currentWorkspace, currentWorkspace.view, taskId)) playChallengeCompleteSound();
+      else playAchievementSound();
+    } else if (status === 'not-done') playFailureSound();
+  };
 
+  const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
+    const before = getDayRecord(currentDate).tasks;
     updateTaskInDay(currentDate, taskId, { status: newStatus });
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
     refreshArchive();
+    playStatusFeedback(before, rec.tasks, taskId, newStatus);
   };
 
   const handleAddTask = (taskInput: { title: string; time: string; status: TaskStatus; notes?: string; categoryId?: string }) => {
-    addTaskToDay(currentDate, taskInput);
+    const before = getDayRecord(currentDate).tasks;
+    const added = addTaskToDay(currentDate, taskInput);
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
     refreshArchive();
+    playStatusFeedback(before, rec.tasks, added.id, added.status);
     showToast(lang === 'ar' ? 'تمت إضافة المهمة بنجاح' : 'Task added successfully');
   };
 
   const handleUpdateTask = (taskId: string, updates: Partial<Task>) => {
-    const existing = tasks.find((t) => t.id === taskId);
-    if (updates.status && updates.status !== existing?.status) {
-      if (updates.status === 'done') {
-        playAchievementSound();
-      } else if (updates.status === 'not-done') {
-        playFailureSound();
-      }
-    }
-
+    const before = getDayRecord(currentDate).tasks;
     updateTaskInDay(currentDate, taskId, updates);
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
     refreshArchive();
+    if (updates.status) playStatusFeedback(before, rec.tasks, taskId, updates.status);
     showToast(lang === 'ar' ? 'تم حفظ التعديل' : 'Changes saved');
   };
 
@@ -221,7 +224,6 @@ export default function App() {
 
   const handleCompletePrayer = (title: string, time: string) => {
     handleAddTask({ title, categoryId: 'worship', time, status: 'done' });
-    playAchievementSound();
     setCurrentFilter('all');
   };
 
