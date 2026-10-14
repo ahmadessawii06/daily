@@ -5,8 +5,8 @@ import { enqueue, enqueueDay } from './syncQueue';
 import { triggerSync } from './syncEngine';
 
 export interface DbHealthStatus { connected: boolean; database?: string; error?: string; ipWhitelistNeeded?: boolean; }
-export async function requestApi(path: string, body?: unknown): Promise<any> {
-  const token = getAuthToken();
+export async function requestApi(path: string, body?: unknown, overrideToken?: string): Promise<any> {
+  const token = overrideToken ?? getAuthToken();
   const response = await fetch(`/api${path}`, {
     method: body === undefined ? 'GET' : 'POST',
     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
@@ -15,7 +15,10 @@ export async function requestApi(path: string, body?: unknown): Promise<any> {
   });
   if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('الخادم غير متاح');
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'تعذر إكمال الطلب');
+  if (!response.ok) {
+    if (response.status === 401 && !overrideToken && token && token === getAuthToken() && !['/auth/login', '/auth/register', '/auth/reset-password'].includes(path) && typeof window !== 'undefined') window.dispatchEvent(new Event('mizan:auth-expired'));
+    throw new Error(data.error || 'تعذر إكمال الطلب');
+  }
   return data;
 }
 

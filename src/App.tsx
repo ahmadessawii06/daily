@@ -19,7 +19,10 @@ import { triggerSync } from './services/syncEngine';
 import { enqueue } from './services/syncQueue';
 import { userStorage } from './utils/scopedStorage';
 import { Language, PlannerView, StatusFilter, Task, TaskStatus, Theme, User } from './types';
-import { getStoredAuth, clearStoredAuth } from './utils/auth';
+import { getStoredAuth, clearStoredAuth, saveStoredAuth, beginSupportSession, originalAdminSession, clearSupportSession } from './utils/auth';
+import { requestApi } from './services/api';
+import { hasPermission } from './shared/admin';
+import { ResetPasswordScreen } from './components/ResetPasswordScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { AuthLoadingScreen } from './components/AuthLoadingScreen';
 import { CardsDashboard } from './components/CardsDashboard';
@@ -45,9 +48,68 @@ import { ExportScheduleModal } from './components/ExportScheduleModal';
 import { playAchievementSound, playFailureSound, playChallengeCompleteSound, preloadChallengeCompleteSound } from './utils/soundEffects';
 import { CheckCircle2, LayoutGrid, ListChecks } from 'lucide-react';
 
+const AdminPanel = React.lazy(() => import('./components/AdminPanel').then(module => ({ default: module.AdminPanel })));
+
 export default function App() {
   // Authentication state
   const [currentUser, setCurrentUser] = useState<User | null>(() => getStoredAuth().user);
+  const [isAdminOpen, setIsAdminOpen] = useState(() => location.hash === '#admin');
+  const [resetToken, setResetToken] = useState(() => {
+    const match = /^#reset=([a-f0-9]{64})$/.exec(location.hash);
+    return match?.[1] || null;
+  });
+  useEffect(() => { if (resetToken && location.hash.startsWith('#reset=')) history.replaceState(null, '', location.pathname + location.search); }, [resetToken]);
+  const [endingSupport, setEndingSupport] = useState(false);
+  const [supportError, setSupportError] = useState('');
+  const endingSupportRef = useRef(false);
+  const support = currentUser?.impersonation;
+  const endSupport = useCallback(async () => {
+    const grantId = getStoredAuth().user?.impersonation?.id;
+    if (!grantId || endingSupportRef.current) return;
+    endingSupportRef.current = true; setEndingSupport(true); setSupportError('');
+    const original = originalAdminSession();
+    try {
+      if (!original?.token) { clearStoredAuth(); location.reload(); return; }
+      const response = await requestApi('/auth/impersonation/end', { grantId }, original.token);
+      clearSupportSession(); saveStoredAuth(response.user, original.token);
+      location.hash = '#admin'; location.reload();
+    } catch (e) {
+      // Keep the visible banner until the server acknowledges the end or the operator signs out.
+      setSupportError((e as Error).message); endingSupportRef.current = false; setEndingSupport(false);
+    }
+  }, []);
+  useEffect(() => {
+    const authExpired = () => {
+      if (getStoredAuth().user?.impersonation) { void endSupport(); return; }
+      clearStoredAuth(); setCurrentUser(null); setIsAdminOpen(false);
+    };
+    const hashChanged = () => {
+      const reset = /^#reset=([a-f0-9]{64})$/.exec(location.hash);
+      if (reset) { setResetToken(reset[1]); history.replaceState(null, '', location.pathname + location.search); }
+      setIsAdminOpen(location.hash === '#admin');
+    };
+    window.addEventListener('mizan:auth-expired', authExpired);
+    window.addEventListener('hashchange', hashChanged);
+    return () => { window.removeEventListener('mizan:auth-expired', authExpired); window.removeEventListener('hashchange', hashChanged); };
+  }, [endSupport]);
+  useEffect(() => {
+    if (!support) return;
+    const timer = setTimeout(() => { void endSupport(); }, Math.max(0, Date.parse(support.expiresAt) - Date.now()));
+    return () => clearTimeout(timer);
+  }, [support?.id, endSupport]);
+  useEffect(() => {
+    if (!currentUser) return;
+    let disposed = false;
+    const verify = async () => {
+      const session = getStoredAuth();
+      try {
+        const result = await requestApi('/auth/me');
+        if (!disposed && session.token === getStoredAuth().token) { saveStoredAuth(result.user, session.token!); setCurrentUser(result.user); }
+      } catch { /* requestApi handles a revoked or expired session. */ }
+    };
+    void verify(); const timer = setInterval(() => { void verify(); }, 30000);
+    return () => { disposed = true; clearInterval(timer); };
+  }, [currentUser?.id]);
   const [isPreparingWorkspace, setIsPreparingWorkspace] = useState(() => Boolean(
     getStoredAuth().user && !readStoredWorkspace() && Object.keys(loadAllDays()).length === 0
   ));
@@ -158,6 +220,7 @@ export default function App() {
   };
 
   const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
+    if (support) return;
     const before = getDayRecord(currentDate).tasks;
     updateTaskInDay(currentDate, taskId, { status: newStatus });
     const rec = getDayRecord(currentDate);
@@ -167,6 +230,7 @@ export default function App() {
   };
 
   const handleAddTask = (taskInput: { title: string; time: string; status: TaskStatus; notes?: string; categoryId?: string }) => {
+    if (support) return;
     const before = getDayRecord(currentDate).tasks;
     const added = addTaskToDay(currentDate, taskInput);
     const rec = getDayRecord(currentDate);
@@ -177,6 +241,7 @@ export default function App() {
   };
 
   const handleUpdateTask = (taskId: string, updates: Partial<Task>) => {
+    if (support) return;
     const before = getDayRecord(currentDate).tasks;
     updateTaskInDay(currentDate, taskId, updates);
     const rec = getDayRecord(currentDate);
@@ -187,6 +252,7 @@ export default function App() {
   };
 
   const handleUpdateTaskTitle = (taskId: string, newTitle: string) => {
+    if (support) return;
     updateTaskInDay(currentDate, taskId, { title: newTitle });
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
@@ -197,6 +263,7 @@ export default function App() {
   };
 
   const handleApply24HourTemplate = () => {
+    if (support) return;
     const updatedTasks = apply24HourTemplate(currentDate, true);
     setTasks(updatedTasks);
     refreshArchive();
@@ -208,6 +275,7 @@ export default function App() {
   };
 
   const handleDeleteTask = (taskId: string) => {
+    if (support) return;
     deleteTaskFromDay(currentDate, taskId);
     const updated = tasks.filter((t) => t.id !== taskId);
     setTasks(updated);
@@ -235,6 +303,7 @@ export default function App() {
   };
 
   const handleResetData = () => {
+    if (support) return;
     resetToDefaults();
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
@@ -301,6 +370,8 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    if (support) { void endSupport(); return; }
+    void requestApi('/auth/logout', {}).catch(() => {});
     clearStoredAuth();
     setTasks([]);
     setArchiveDays([]);
@@ -317,6 +388,8 @@ export default function App() {
     showToast(lang === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Logged out successfully');
   };
 
+  const supportBanner = support && <aside role="alert" dir={lang === 'ar' ? 'rtl' : 'ltr'} className="sticky top-0 z-[80] border-b border-amber-500/30 bg-amber-100 px-4 py-3 text-amber-950 shadow-sm dark:bg-[#292311] dark:text-amber-100"><div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3"><div><p className="text-sm font-semibold">{lang === 'ar' ? 'جلسة دعم — عرض فقط' : 'Support session — read only'} · <bdi>{currentUser?.name || currentUser?.username}</bdi></p><p className="mt-1 text-xs opacity-80">{lang === 'ar' ? 'تنتهي الساعة ' : 'Expires at '}{new Date(support.expiresAt).toLocaleTimeString(lang === 'ar' ? 'ar-PS' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}</p>{supportError && <p className="mt-2 text-xs">{supportError}</p>}</div><div className="flex gap-2"><button disabled={endingSupport} onClick={() => { void endSupport(); }} className="min-h-10 rounded-xl bg-amber-950 px-4 text-xs font-semibold text-amber-50 disabled:opacity-50 dark:bg-amber-100 dark:text-amber-950">{lang === 'ar' ? 'إنهاء والعودة لحسابي' : 'End & return to my account'}</button>{supportError && <button onClick={() => { clearStoredAuth(); location.reload(); }} className="min-h-10 px-3 text-xs underline">{lang === 'ar' ? 'تسجيل الخروج' : 'Sign out'}</button>}</div></div></aside>;
+  if (resetToken && !support) return <ResetPasswordScreen token={resetToken} lang={lang} onDone={() => { clearStoredAuth(); setCurrentUser(null); setResetToken(null); }} />;
   // If user is not authenticated, show Lock / Login Screen
   if (!currentUser) {
     return (
@@ -334,11 +407,14 @@ export default function App() {
   }
 
   if (isPreparingWorkspace) {
-    return <AuthLoadingScreen stage="preparing" lang={lang} theme={theme} />;
+    return <>{supportBanner}<AuthLoadingScreen stage="preparing" lang={lang} theme={theme} /></>;
   }
+
+  if (isAdminOpen && !support && hasPermission(currentUser.role, 'users.read')) return <React.Suspense fallback={<AuthLoadingScreen stage="preparing" lang={lang} theme={theme} />}><AdminPanel currentUser={currentUser} lang={lang} onClose={() => { location.hash = ''; setIsAdminOpen(false); }} onImpersonate={(user, token) => { beginSupportSession(user, token); location.hash = ''; location.reload(); }} /></React.Suspense>;
 
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-[#07080b] bg-mesh text-slate-900 dark:text-zinc-100 flex flex-col font-['Alexandria','Cairo',sans-serif] transition-colors duration-200`}>
+      {supportBanner}
 
       {/* Main Full-Width Centered Clean Canvas */}
       <main
@@ -348,10 +424,11 @@ export default function App() {
         <div className="space-y-4 sm:space-y-6">
 
           {/* Main Header with clean icons: Profile (with Stats & Archive), Settings, Theme, Export, + Add Task */}
-          <MainHeader
+          {!support ? <MainHeader
             currentDate={currentDate}
             currentUser={currentUser}
             onLogout={handleLogout}
+            onOpenAdmin={hasPermission(currentUser.role, 'users.read') ? () => { location.hash = '#admin'; setIsAdminOpen(true); } : undefined}
             onOpenAddTask={() => setIsTaskDestinationOpen(true)}
             onOpenExportModal={handleExportDailyTrackImage}
             onOpenSettings={() => setIsSettingsOpen(true)}
@@ -361,7 +438,7 @@ export default function App() {
             lang={lang}
             theme={theme}
             onToggleTheme={handleToggleTheme}
-          />
+          /> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
 
           {/* Today Progress Section (bar & metrics) */}
           <TodayProgress
@@ -386,16 +463,17 @@ export default function App() {
             })}
           </div>
 
-          {workspace.view === 'cards' ? <CardsDashboard currentDate={currentDate} tasks={tasks} workspace={workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
+          <fieldset disabled={!!support} className="min-w-0 border-0 p-0 m-0">
+          {workspace.view === 'cards' ? <CardsDashboard currentDate={currentDate} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
             creationTarget={cardCreationTarget}
             onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
             onAddPrayer={handleCompletePrayer}
-            onStatusChange={handleStatusChange} onEdit={setEditingTask} onDelete={handleDeleteTask} /> : <>
+            onStatusChange={handleStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} /> : <>
             <PrayerCard currentDate={currentDate} slots={partitionPrayerTasks(tasks).slots} lang={lang} onAddPrayer={handleCompletePrayer} onStatusChange={handleStatusChange} />
             <TaskList
               tasks={tasks}
               onStatusChange={handleStatusChange}
-              onEdit={(task) => setEditingTask(task)}
+              onEdit={(task) => { if (!support) setEditingTask(task); }}
               onDelete={handleDeleteTask}
               onUpdateTitle={handleUpdateTaskTitle}
               onOpenAddTask={() => setIsAddTaskOpen(true)}
@@ -405,6 +483,7 @@ export default function App() {
               onFilterChange={setCurrentFilter}
               lang={lang}
             /></>}
+          </fieldset>
 
         </div>
       </main>

@@ -1,6 +1,8 @@
 import { getStoredAuth } from './auth';
 
 export function scopedKey(key: string, userId = getStoredAuth().user?.id): string {
+  const support = getStoredAuth().user?.impersonation;
+  if (support && userId === getStoredAuth().user?.id) return `mizan_support_${support.id}:${key}`;
   return `mizan_user_${encodeURIComponent(userId || 'signed_out')}:${key}`;
 }
 

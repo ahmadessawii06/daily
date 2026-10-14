@@ -41,7 +41,8 @@ async function sync(userId: string, token: string): Promise<boolean> {
         body.versions[item.type] = item.clientTimestamp;
       }
     }
-    const result = await requestApi('/sync/batch', body);
+    const support = !!getStoredAuth().user?.impersonation;
+    const result = support ? await requestApi('/sync/read') : await requestApi('/sync/batch', body);
     if (!result.success || !result.days) throw new Error('استجابة المزامنة غير صالحة');
     if (sent.some(item => item.type === 'workspace') && !result.workspace) throw new Error('الخادم الحالي لا يدعم مزامنة البطاقات بعد');
     if (!active(userId, token)) return false;
@@ -50,11 +51,11 @@ async function sync(userId: string, token: string): Promise<boolean> {
     const pending = getQueue(userId).filter(item => !acknowledged.has(item.id));
     if (result.workspace) {
       const workspace = parseWorkspace(result.workspace);
-      storeWorkspace(mergeWorkspace(readStoredWorkspace(), workspace));
+      storeWorkspace(support ? workspace : mergeWorkspace(readStoredWorkspace(), workspace));
       for (const item of pending) if (item.type === 'workspace') item.data = mergeWorkspace(item.data, workspace);
     }
     saveQueue(pending, userId);
-    const local = loadAllDays();
+    const local = support ? {} : loadAllDays();
     for (const [date, record] of Object.entries(result.days as Record<string, DayRecord>)) local[date] = mergeDay(local[date], record);
     saveAllDays(local);
     userStorage.setItem('sync_versions', JSON.stringify(result.versions || {}));

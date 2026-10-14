@@ -8,6 +8,7 @@ interface MainHeaderProps {
   currentDate: string;
   currentUser?: User | null;
   onLogout?: () => void;
+  onOpenAdmin?: () => void;
   onOpenAddTask: () => void;
   onOpenExportModal: () => void;
   onOpenSettings: () => void;
@@ -24,7 +25,7 @@ const accountAction = 'flex min-h-11 w-full items-center gap-3 rounded-xl px-3 p
 
 export const MainHeader: React.FC<MainHeaderProps> = ({
   currentDate, currentUser, onLogout, onOpenAddTask, onOpenExportModal,
-  onOpenSettings, onOpenStats, onOpenArchive, archiveDaysCount, lang, theme, onToggleTheme,
+  onOpenSettings, onOpenStats, onOpenArchive, archiveDaysCount, lang, theme, onToggleTheme, onOpenAdmin,
 }) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isCopiedCode, setIsCopiedCode] = useState(false);
@@ -125,6 +126,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
                     <Settings aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-400 dark:text-zinc-500" />
                     <span>{ar ? 'الإعدادات والخيارات' : 'Settings'}</span>
                   </button>
+                  {onOpenAdmin && <button type="button" onClick={() => openFromAccount(onOpenAdmin)} className={accountAction}><KeyRound aria-hidden="true" className="h-4 w-4 text-emerald-500" /><span>{ar ? 'إدارة المستخدمين' : 'User management'}</span></button>}
                   {onLogout && (
                     <div className="mt-2 border-t border-slate-100 pt-2 dark:border-white/[0.06]">
                       <button type="button" onClick={() => openFromAccount(onLogout)} className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2 text-start text-xs font-medium text-rose-600 hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-rose-500 dark:text-rose-400 dark:hover:bg-rose-400/10">
