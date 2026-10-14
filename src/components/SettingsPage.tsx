@@ -52,7 +52,7 @@ function SectionHeading({ id, title, description }: { id: string; title: string;
 
 function ActionRow({ icon: Icon, title, description, onClick, ar, disabled = false }: { icon: LucideIcon; title: string; description: string; onClick: () => void; ar: boolean; disabled?: boolean }) {
   const Arrow = ar ? ArrowUpLeft : ArrowUpRight;
-  return <button type="button" onClick={onClick} disabled={disabled} className="group flex w-full items-center gap-3 px-4 py-5 text-start transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-500 disabled:cursor-wait disabled:opacity-50 dark:hover:bg-white/[.025] sm:gap-4 sm:px-6">
+  return <button type="button" onClick={onClick} disabled={disabled} className="group flex w-full items-center gap-3 px-4 py-4 text-start transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-500 disabled:cursor-wait disabled:opacity-50 dark:hover:bg-white/[.025] sm:gap-4 sm:px-5">
     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50 text-slate-500 transition-colors group-hover:border-emerald-500/20 group-hover:text-emerald-600 dark:border-white/[.06] dark:bg-white/[.025] dark:text-zinc-400 dark:group-hover:text-emerald-300"><Icon aria-hidden="true" size={18} strokeWidth={1.7} /></span>
     <span className="min-w-0 flex-1"><span className="block text-xs font-medium">{title}</span><span className="mt-1 block text-[11px] font-normal leading-6 text-slate-500 dark:text-zinc-400">{description}</span></span>
     <Arrow aria-hidden="true" size={16} className="shrink-0 text-slate-400 transition-colors group-hover:text-emerald-500 dark:text-zinc-600" />
@@ -62,7 +62,7 @@ function ActionRow({ icon: Icon, title, description, onClick, ar, disabled = fal
 function ThemePreview({ value, selected, label, onSelect }: { value: Theme; selected: boolean; label: string; onSelect: () => void }) {
   const dark = value === 'dark', Icon = dark ? Moon : Sun;
   return <button type="button" aria-pressed={selected} onClick={onSelect} className={`group min-w-0 rounded-xl border p-2 text-start transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${selected ? 'border-emerald-500 bg-emerald-500/[.04] dark:border-emerald-400/70' : 'border-slate-200 hover:border-slate-400 dark:border-white/10 dark:hover:border-white/25'}`}>
-    <span aria-hidden="true" className={`flex h-24 overflow-hidden rounded-lg border sm:h-28 ${dark ? 'border-white/5 bg-[#0b0e13]' : 'border-slate-200/70 bg-[#f3f6f5]'}`}>
+    <span aria-hidden="true" className={`flex h-20 overflow-hidden rounded-lg border sm:h-24 ${dark ? 'border-white/5 bg-[#0b0e13]' : 'border-slate-200/70 bg-[#f3f6f5]'}`}>
       <span className={`flex w-10 shrink-0 flex-col gap-2 border-e px-2.5 pt-3 ${dark ? 'border-white/5 bg-[#12171b]' : 'border-slate-200/60 bg-white'}`}><span className="h-2 w-2 rounded-full bg-emerald-500" />{[0, 1, 2].map(i => <span key={i} className={`h-1 w-4 rounded-full ${dark ? 'bg-white/10' : 'bg-slate-200'}`} />)}</span>
       <span className="min-w-0 flex-1 p-3"><span className={`mb-3 block h-1.5 w-1/2 rounded-full ${dark ? 'bg-zinc-500' : 'bg-slate-400'}`} /><span className="mb-2 block h-1 w-3/4 rounded-full bg-emerald-500/40" /><span className="grid grid-cols-2 gap-2">{[0, 1].map(i => <span key={i} className={`h-9 rounded border ${dark ? 'border-white/[.07] bg-white/[.025]' : 'border-slate-200 bg-white'}`} />)}</span></span>
     </span>
@@ -75,11 +75,12 @@ export function SettingsPage(props: SettingsPageProps) {
   const ar = lang === 'ar', t = (a: string, e: string) => ar ? a : e;
   const [health, setHealth] = useState<DbHealthStatus & { checking: boolean }>({ connected: false, checking: true });
   const [syncing, setSyncing] = useState(false);
-  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [result, setResult] = useState<{ ok: boolean; text: string; source: 'sync' | 'tools' } | null>(null);
   const [copied, setCopied] = useState(false), [copyError, setCopyError] = useState(false);
   const [legacy] = useState(legacyBackup);
   const [activeSection, setActiveSection] = useState<SectionId>('account');
-  const requestedSection = useRef<SectionId | null>(null);
+  const [verticalTabs, setVerticalTabs] = useState(false);
+  const tabRefs = useRef<Partial<Record<SectionId, HTMLButtonElement | null>>>({});
   const alive = useRef(true), copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     alive.current = true;
@@ -88,46 +89,31 @@ export function SettingsPage(props: SettingsPageProps) {
   }, []);
 
   useEffect(() => {
-    let frame = 0;
-    const update = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        let current: SectionId = 'account';
-        for (const section of sections) {
-          const element = document.getElementById(`settings-${section.id}`);
-          if (element && element.getBoundingClientRect().top <= 160) current = section.id;
-        }
-        if (window.scrollY > 0 && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 8) current = 'session';
-        // A section near the page end cannot always reach the top of the viewport.
-        setActiveSection(requestedSection.current || current);
-      });
-    };
-    const followScroll = () => { requestedSection.current = null; update(); };
-    const followKeyboard = (event: KeyboardEvent) => {
-      if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(event.key) && !(event.target instanceof Element && event.target.closest('button, input, select, textarea'))) followScroll();
-    };
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', followScroll);
-    window.addEventListener('wheel', followScroll, { passive: true });
-    window.addEventListener('touchstart', followScroll, { passive: true });
-    window.addEventListener('keydown', followKeyboard);
+    const media = window.matchMedia('(min-width: 1024px)');
+    const update = () => setVerticalTabs(media.matches);
     update();
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', followScroll);
-      window.removeEventListener('wheel', followScroll);
-      window.removeEventListener('touchstart', followScroll);
-      window.removeEventListener('keydown', followKeyboard);
-    };
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
   }, []);
 
   const goToSection = (id: SectionId) => {
-    requestedSection.current = id;
-    const element = document.getElementById(`settings-${id}`);
-    element?.focus({ preventScroll: true });
-    element?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
     setActiveSection(id);
+    // Every section starts at the same place, without scrolling through the others.
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+  const handleTabKey = (event: React.KeyboardEvent<HTMLButtonElement>, id: SectionId) => {
+    const index = sections.findIndex(section => section.id === id);
+    const nextKey = verticalTabs ? 'ArrowDown' : ar ? 'ArrowLeft' : 'ArrowRight';
+    const previousKey = verticalTabs ? 'ArrowUp' : ar ? 'ArrowRight' : 'ArrowLeft';
+    let next = index;
+    if (event.key === nextKey) next = (index + 1) % sections.length;
+    else if (event.key === previousKey) next = (index - 1 + sections.length) % sections.length;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = sections.length - 1;
+    else return;
+    event.preventDefault();
+    goToSection(sections[next].id);
+    tabRefs.current[sections[next].id]?.focus({ preventScroll: true });
   };
 
   const copyCode = async () => {
@@ -145,10 +131,10 @@ export function SettingsPage(props: SettingsPageProps) {
     try {
       const response = await migrateLocalDataToMongo(loadAllDays(), getStoredHabits());
       if (alive.current) {
-        setResult({ ok: response.success, text: response.success ? t('تمت مزامنة بيانات حسابك بنجاح.', 'Your account is up to date.') : t('تعذرت المزامنة. بياناتك محفوظة محليًا ويمكنك إعادة المحاولة.', 'Sync failed. Your local changes are saved; you can retry.') });
+        setResult({ source: 'sync', ok: response.success, text: response.success ? t('تمت مزامنة بيانات حسابك بنجاح.', 'Your account is up to date.') : t('تعذرت المزامنة. بياناتك محفوظة محليًا ويمكنك إعادة المحاولة.', 'Sync failed. Your local changes are saved; you can retry.') });
         if (response.success) onSyncComplete();
       }
-    } catch { if (alive.current) setResult({ ok: false, text: t('تعذر الاتصال بالخادم. أعد المحاولة لاحقًا.', 'Unable to reach the server. Please retry.') }); }
+    } catch { if (alive.current) setResult({ source: 'sync', ok: false, text: t('تعذر الاتصال بالخادم. أعد المحاولة لاحقًا.', 'Unable to reach the server. Please retry.') }); }
     finally {
       const data = await checkDbHealth();
       if (alive.current) { setHealth({ ...data, checking: false }); setSyncing(false); }
@@ -164,8 +150,8 @@ export function SettingsPage(props: SettingsPageProps) {
       saveAllDays(merged); for (const day of Object.values(merged)) enqueueDay(day);
       const habits = legacy['daily_habits_v8_saturday_schedule']; if (Array.isArray(habits)) saveHabits(habits);
       const recurring = legacy['daily_life_recurring_items_v2']; if (Array.isArray(recurring)) saveStoredRecurringItems(recurring);
-      onSyncComplete(); setResult({ ok: true, text: t('تم الاستيراد. النسخة القديمة بقيت محفوظة.', 'Imported. The old copy is preserved.') });
-    } catch (error) { setResult({ ok: false, text: (error as Error).message }); }
+      onSyncComplete(); setResult({ source: 'tools', ok: true, text: t('تم الاستيراد. النسخة القديمة بقيت محفوظة.', 'Imported. The old copy is preserved.') });
+    } catch (error) { setResult({ source: 'tools', ok: false, text: (error as Error).message }); }
   };
   const backupLegacy = () => {
     const url = URL.createObjectURL(new Blob([JSON.stringify(legacy, null, 2)], { type: 'application/json' }));
@@ -175,18 +161,18 @@ export function SettingsPage(props: SettingsPageProps) {
   const role = { user: t('حساب شخصي', 'Personal account'), support: t('الدعم', 'Support'), admin: t('أدمن', 'Admin'), super_admin: t('مشرف أعلى', 'Super Admin') }[currentUser.role || 'user'];
   const accountName = currentUser.name || currentUser.username || t('مستخدم ميزان', 'Mizan user');
 
-  return <AccountPage lang={lang} title={t('الإعدادات', 'Settings')} description={t('مساحة تناسبك. اضبط التفاصيل، وخلّي تركيزك على يومك.', 'Make yourself at home. Set the details, then get back to your day.')} onBack={onBack}>
-    <div className="grid items-start gap-6 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-12">
-      <aside className="sticky top-0 z-20 -mx-3 border-b border-slate-200/80 bg-slate-50 px-3 py-3 dark:border-white/[.07] dark:bg-[#07080b] sm:mx-0 sm:rounded-xl lg:top-8 lg:border-0 lg:p-0">
-        <p className="mb-5 hidden px-3 text-[10px] font-medium text-slate-400 dark:text-zinc-500 lg:block">{t('إعدادات مساحتك', 'YOUR WORKSPACE')}</p>
-        <nav aria-label={t('أقسام الإعدادات', 'Settings sections')} className="grid grid-cols-5 gap-1 lg:grid-cols-1 lg:gap-2">
-          {sections.map(({ id, icon: Icon, ar: arabic, en }) => <button key={id} type="button" aria-controls={`settings-${id}`} aria-current={activeSection === id ? 'location' : undefined} onClick={() => goToSection(id)} className={`flex min-h-12 flex-col items-center justify-center gap-2 rounded-xl px-1 py-2.5 text-[9px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-emerald-500 sm:text-[11px] lg:flex-row lg:justify-start lg:gap-3 lg:px-3 ${activeSection === id ? 'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-800 dark:text-zinc-400 dark:hover:bg-white/[.04] dark:hover:text-zinc-200'}`}><Icon aria-hidden="true" size={17} strokeWidth={1.7} />{ar ? arabic : en}<span aria-hidden="true" className={`ms-auto hidden h-1.5 w-1.5 rounded-full bg-emerald-500 lg:block ${activeSection === id ? 'opacity-100' : 'opacity-0'}`} /></button>)}
-        </nav>
-        <div className="mx-3 mt-8 hidden border-t border-slate-200 pt-5 dark:border-white/[.07] lg:block"><p className="text-[11px] font-medium text-slate-600 dark:text-zinc-300">{t('على طريقتك، كل يوم.', 'Your day. Your way.')}</p><p className="mt-2 text-[10px] leading-6 text-slate-400 dark:text-zinc-500">{t('تُحفظ تفضيلات المظهر واللغة تلقائيًا.', 'Appearance and language preferences are saved automatically.')}</p></div>
+  return <AccountPage lang={lang} compact title={t('الإعدادات', 'Settings')} description={t('مساحتك، على طريقتك. اختَر قسمًا واضبط التفاصيل.', 'Your space, your way. Choose a section to make it yours.')} onBack={onBack}>
+    <div className="grid rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[.02] dark:border-white/[.09] dark:bg-[#101219] dark:shadow-none lg:grid-cols-[200px_minmax(0,1fr)]">
+      <aside className="sticky top-0 z-20 self-start rounded-t-2xl border-b border-slate-200/80 bg-slate-50 px-2 py-3 dark:border-white/[.07] dark:bg-[#0d0f15] lg:static lg:flex lg:h-full lg:flex-col lg:rounded-none lg:rounded-s-2xl lg:border-b-0 lg:border-e lg:p-4">
+        <p className="mb-5 hidden px-3 pt-2 text-[10px] font-medium text-slate-400 dark:text-zinc-500 lg:block">{t('إعدادات مساحتك', 'YOUR WORKSPACE')}</p>
+        <div role="tablist" aria-label={t('أقسام الإعدادات', 'Settings sections')} aria-orientation={verticalTabs ? 'vertical' : 'horizontal'} className="grid grid-cols-5 gap-1 lg:grid-cols-1 lg:gap-2">
+          {sections.map(({ id, icon: Icon, ar: arabic, en }) => <button key={id} ref={element => { tabRefs.current[id] = element; }} id={`settings-tab-${id}`} type="button" role="tab" aria-controls={`settings-${id}`} aria-selected={activeSection === id} tabIndex={activeSection === id ? 0 : -1} onClick={() => goToSection(id)} onKeyDown={event => handleTabKey(event, id)} className={`flex min-h-12 flex-col items-center justify-center gap-2 rounded-xl px-1 py-2.5 text-[9px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-emerald-500 sm:text-[11px] lg:flex-row lg:justify-start lg:gap-3 lg:px-3 ${activeSection === id ? 'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-800 dark:text-zinc-400 dark:hover:bg-white/[.04] dark:hover:text-zinc-200'}`}><Icon aria-hidden="true" size={17} strokeWidth={1.7} />{ar ? arabic : en}<span aria-hidden="true" className={`ms-auto hidden h-1.5 w-1.5 rounded-full bg-emerald-500 lg:block ${activeSection === id ? 'opacity-100' : 'opacity-0'}`} /></button>)}
+        </div>
+        <div className="mt-auto hidden pt-8 lg:block"><div className="flex items-center gap-2.5 border-t border-slate-200 px-2 pt-4 dark:border-white/[.07]"><span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-500/15 bg-emerald-500/[.06] text-xs text-emerald-700 dark:text-emerald-300">{accountName.trim().charAt(0).toUpperCase()}</span><div className="min-w-0"><p className="truncate text-[11px] font-medium"><bdi>{accountName}</bdi></p><p className="mt-1 text-[10px] text-slate-500 dark:text-zinc-500">{role}</p></div></div></div>
       </aside>
 
-      <div className="min-w-0 space-y-10 sm:space-y-12">
-        <section id="settings-account" aria-labelledby="settings-account-heading" tabIndex={-1} className={`${panel} scroll-mt-28 outline-none lg:scroll-mt-8`}>
+      <div className="min-w-0 p-4 sm:p-6 lg:min-h-[490px] lg:p-7">
+        <section id="settings-account" role="tabpanel" aria-labelledby="settings-tab-account" hidden={activeSection !== 'account'} tabIndex={0} className={`${panel} outline-none`}>
           <div className="relative overflow-hidden px-5 pb-6 pt-7 sm:px-7 sm:pb-7 sm:pt-8">
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.09),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.1),transparent_70%)]" />
             <div className="relative flex items-start gap-4 sm:gap-5">
@@ -200,7 +186,7 @@ export function SettingsPage(props: SettingsPageProps) {
           </div>
         </section>
 
-        <section id="settings-preferences" aria-labelledby="settings-preferences-heading" tabIndex={-1} className="scroll-mt-28 outline-none lg:scroll-mt-8">
+        <section id="settings-preferences" role="tabpanel" aria-labelledby="settings-tab-preferences" hidden={activeSection !== 'preferences'} tabIndex={0} className="outline-none">
           <SectionHeading id="settings-preferences-heading" title={t('تجربة تشبهك', 'A space that feels like you')} description={t('ألوان أريح، ولغتك المفضلة. التفاصيل الصغيرة بتفرق.', 'A comfortable look and your preferred language. Small details, better days.')} />
           <div className={panel}>
             <div className="grid gap-5 p-5 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-7 sm:p-6">
@@ -214,7 +200,7 @@ export function SettingsPage(props: SettingsPageProps) {
           </div>
         </section>
 
-        <section id="settings-sync" aria-labelledby="settings-sync-heading" tabIndex={-1} className="scroll-mt-28 outline-none lg:scroll-mt-8">
+        <section id="settings-sync" role="tabpanel" aria-labelledby="settings-tab-sync" hidden={activeSection !== 'sync'} tabIndex={0} className="outline-none">
           <SectionHeading id="settings-sync-heading" title={t('يومك، على كل أجهزتك', 'One day. Every device.')} description={t('تابع حالة الاتصال، وزامن آخر تعديلات حسابك.', 'Check your connection and sync the latest changes to your account.')} />
           <div className={`${panel} p-5 sm:p-6`}>
             <div className="grid grid-cols-[48px_minmax(0,1fr)] items-start gap-4 sm:flex">
@@ -225,22 +211,23 @@ export function SettingsPage(props: SettingsPageProps) {
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200/80 pt-4 dark:border-white/[.07]"><p className="text-[11px] leading-6 text-slate-500 dark:text-zinc-400">{t('تعديلاتك المحلية تبقى محفوظة عند انقطاع الاتصال.', 'Your local changes stay saved when you are offline.')}</p><SyncIndicator lang={lang} userId={currentUser.id} interactive={false} /></div>
             {!health.connected && !health.checking && <p className="mt-3 text-[11px] leading-6 text-amber-700 dark:text-amber-300">{t('ستُستأنف المزامنة عند عودة الاتصال.', 'Sync will resume when the connection is restored.')}</p>}
           </div>
-          {result && <p role={result.ok ? 'status' : 'alert'} className={`mt-3 rounded-xl border px-4 py-3 text-xs leading-6 ${result.ok ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300'}`}>{result.text}</p>}
+          {result?.source === 'sync' && <p role={result.ok ? 'status' : 'alert'} className={`mt-3 rounded-xl border px-4 py-3 text-xs leading-6 ${result.ok ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300'}`}>{result.text}</p>}
         </section>
 
-        <section id="settings-tools" aria-labelledby="settings-tools-heading" tabIndex={-1} className="scroll-mt-28 outline-none lg:scroll-mt-8">
+        <section id="settings-tools" role="tabpanel" aria-labelledby="settings-tab-tools" hidden={activeSection !== 'tools'} tabIndex={0} className="outline-none">
           <SectionHeading id="settings-tools-heading" title={t('مساحة أكبر ليومك', 'Get more from your day')} description={t('كل أدواتك، بدون ما تزدحم لوحة يومك.', 'Your everyday tools, with room to focus in your planner.')} />
-          <div className={`${panel} divide-y divide-slate-200/80 dark:divide-white/[.07]`}>
-            <ActionRow icon={BarChart3} title={t('الإحصائيات والتقرير الأسبوعي', 'Weekly statistics')} description={t('راجع إنجازك وعاداتك خلال الأسبوع.', 'See your progress and habits for the week.')} onClick={onOpenStats} ar={ar} />
-            <ActionRow icon={Archive} title={t('الأرشيف وسجل الأيام', 'Archive & history')} description={t(`${archiveDaysCount} يومًا محفوظًا — ارجع لأي يوم بسهولة.`, `${archiveDaysCount} saved days — pick up where you left off.`)} onClick={onOpenArchive} ar={ar} />
-            <ActionRow icon={Camera} title={exporting ? t('جارٍ تجهيز الصورة…', 'Preparing your image…') : t('تصدير صورة اليوم', 'Export today as an image')} description={t('احفظ لوحة اليوم كصورة للمشاركة أو المراجعة.', 'Save your daily planner to share or look back on.')} onClick={onExport} ar={ar} disabled={exporting} />
-            {hasPermission(currentUser.role, 'users.read') && <ActionRow icon={ShieldCheck} title={t('إدارة المستخدمين', 'User management')} description={t('إدارة الحسابات والصلاحيات وسجل التدقيق.', 'Manage accounts, permissions and audit history.')} onClick={onOpenAdmin} ar={ar} />}
+          <div className={`${panel} grid divide-y divide-slate-200/80 dark:divide-white/[.07] md:grid-cols-2 md:divide-y-0 md:[&>button]:border-b md:[&>button]:border-slate-200/80 md:dark:[&>button]:border-white/[.07] md:[&>button:nth-child(odd)]:border-e`}>
+            <ActionRow icon={BarChart3} title={t('الإحصائيات والتقرير الأسبوعي', 'Weekly statistics')} description={t('إنجازك وعاداتك خلال الأسبوع.', 'Your weekly progress and habits.')} onClick={onOpenStats} ar={ar} />
+            <ActionRow icon={Archive} title={t('الأرشيف وسجل الأيام', 'Archive & history')} description={t(`${archiveDaysCount} يومًا محفوظًا للمراجعة.`, `${archiveDaysCount} saved days to revisit.`)} onClick={onOpenArchive} ar={ar} />
+            <ActionRow icon={Camera} title={exporting ? t('جارٍ تجهيز الصورة…', 'Preparing your image…') : t('تصدير صورة اليوم', 'Export today as an image')} description={t('نسخة من يومك، جاهزة للمشاركة.', 'Your day, ready to share.')} onClick={onExport} ar={ar} disabled={exporting} />
+            {hasPermission(currentUser.role, 'users.read') && <ActionRow icon={ShieldCheck} title={t('إدارة المستخدمين', 'User management')} description={t('الحسابات والصلاحيات وسجل التدقيق.', 'Accounts, permissions and audit log.')} onClick={onOpenAdmin} ar={ar} />}
           </div>
           <div className="mt-4 flex flex-col gap-4 rounded-xl border border-dashed border-slate-300/80 p-5 dark:border-white/15 sm:flex-row sm:items-center sm:justify-between"><div className="flex gap-3"><LayoutTemplate aria-hidden="true" size={18} className="mt-0.5 shrink-0 text-slate-400 dark:text-zinc-500" /><div><h3 className="text-xs font-medium">{t('قالب الـ 24 ساعة', '24-hour template')}</h3><p className="mt-2 text-[11px] leading-6 text-slate-500 dark:text-zinc-400">{t('جهّز جدول اليوم من 00:00 إلى 23:00.', 'Set up today’s timeline from 00:00 to 23:00.')}</p></div></div><button type="button" className={`${button} shrink-0`} onClick={() => { onApply24HourTemplate(); onBack(); }}>{t('تطبيق على اليوم المحدد', 'Apply to the selected day')}</button></div>
           {Object.keys(legacy).length > 0 && <div className={`${panel} mt-4 p-5 sm:p-6`}><h3 className="text-xs font-medium">{t('بيانات النسخة القديمة', 'Legacy browser data')}</h3><p className="mt-2 text-[11px] leading-6 text-slate-500 dark:text-zinc-400">{t('نزّل نسخة احتياطية أو ادمجها مع هذا الحساب.', 'Download a backup or merge it into this account.')}</p><div className="mt-4 flex flex-wrap gap-2"><button type="button" className={button} onClick={backupLegacy}><Download aria-hidden="true" size={14} />{t('تنزيل نسخة', 'Download backup')}</button><button type="button" className={button} onClick={importLegacy}>{t('استيراد لهذا الحساب', 'Import into this account')}</button></div></div>}
+          {result?.source === 'tools' && <p role={result.ok ? 'status' : 'alert'} className={`mt-3 rounded-xl border px-4 py-3 text-xs leading-6 ${result.ok ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300'}`}>{result.text}</p>}
         </section>
 
-        <section id="settings-session" aria-labelledby="settings-session-heading" tabIndex={-1} className="scroll-mt-28 pb-6 outline-none lg:scroll-mt-8">
+        <section id="settings-session" role="tabpanel" aria-labelledby="settings-tab-session" hidden={activeSection !== 'session'} tabIndex={0} className="outline-none">
           <SectionHeading id="settings-session-heading" title={t('حسابك وبياناتك', 'Account & data')} description={t('إدارة الجلسة وإعادة الضبط، بخطوات واضحة.', 'Manage your session and data with clear, deliberate actions.')} />
           <div className={panel}>
             <div className="flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center sm:p-6"><div><h3 className="text-xs font-medium">{t('جلسة الحساب', 'Account session')}</h3><p className="mt-2 text-[11px] leading-6 text-slate-500 dark:text-zinc-400">{t('سجّل الخروج من حسابك على هذا الجهاز.', 'Sign out of your account on this device.')}</p></div><button type="button" className={`${button} shrink-0`} onClick={onLogout}><LogOut aria-hidden="true" size={14} />{t('تسجيل الخروج', 'Sign out')}</button></div>

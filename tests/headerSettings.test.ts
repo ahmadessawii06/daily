@@ -21,13 +21,18 @@ test('the planner header has exactly two actions and keeps sync status accessibl
 
 const settings = (currentUser: User, lang: 'ar' | 'en' = 'en') => renderToStaticMarkup(React.createElement(SettingsPage, { currentUser, lang, theme: 'dark', archiveDaysCount: 3, exporting: false, onBack: noop, onToggleLang: noop, onSetTheme: noop, onResetData: noop, onApply24HourTemplate: noop, onSyncComplete: noop, onOpenStats: noop, onOpenArchive: noop, onOpenAdmin: noop, onExport: noop, onLogout: noop }));
 
-test('settings is a page containing all account tools and existing preferences, with no settings dialog', () => {
+test('settings keeps all tools in accessible tabs with only the account panel initially visible', () => {
   const html = settings(user);
   assert.ok(html.startsWith('<main'));
   assert.ok(!html.includes('role="dialog"'));
   for (const feature of ['Appearance', 'Language', 'Sync now', 'Weekly statistics', 'Archive &amp; history', 'Export today as an image', '24-hour template', 'Sign out', 'Reset tasks &amp; habits', user.userCode]) assert.ok(html.includes(feature), feature);
   assert.ok(html.includes('Checking…'), 'Health loading is distinct from an offline failure');
   assert.ok(!html.includes('User management'));
+  assert.equal((html.match(/role="tab"/g) || []).length, 5);
+  assert.equal((html.match(/role="tabpanel"/g) || []).length, 5);
+  assert.equal((html.match(/aria-selected="true"/g) || []).length, 1);
+  assert.equal((html.match(/hidden=""/g) || []).length, 4, 'Inactive panels do not lengthen the page or expose hidden controls');
+  assert.ok(html.includes('id="settings-account" role="tabpanel" aria-labelledby="settings-tab-account" tabindex="0"'));
 });
 
 test('the management tile follows permissions and legacy cached identities remain renderable', () => {
