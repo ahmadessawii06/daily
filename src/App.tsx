@@ -22,6 +22,7 @@ import { Language, PlannerView, StatusFilter, Task, TaskStatus, Theme, User } fr
 import { getStoredAuth, clearStoredAuth, saveStoredAuth, beginSupportSession, originalAdminSession, clearSupportSession } from './utils/auth';
 import { requestApi } from './services/api';
 import { hasPermission } from './shared/admin';
+import { pageFromHash, pageHash, type AppPage } from './utils/navigation';
 import { ResetPasswordScreen } from './components/ResetPasswordScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { AuthLoadingScreen } from './components/AuthLoadingScreen';
@@ -37,23 +38,29 @@ import { TodayProgress } from './components/TodayProgress';
 import { PrayerCard } from './components/PrayerCard';
 import { DateNavigation } from './components/DateNavigation';
 import { TaskList } from './components/TaskList';
-import { StatsModal } from './components/StatsModal';
-import { ArchiveModal } from './components/ArchiveModal';
+import { WeeklyReview } from './components/WeeklyReview';
+import { Archive } from './components/Archive';
+import { AccountPage } from './components/AccountPage';
 import { AddTaskModal } from './components/AddTaskModal';
 import { TaskDestinationDialog } from './components/TaskDestinationDialog';
 import { EditTaskModal } from './components/EditTaskModal';
-import { SettingsModal } from './components/SettingsModal';
 import { ExportScheduleModal } from './components/ExportScheduleModal';
 
 import { playAchievementSound, playFailureSound, playChallengeCompleteSound, preloadChallengeCompleteSound } from './utils/soundEffects';
 import { CheckCircle2, LayoutGrid, ListChecks } from 'lucide-react';
 
 const AdminPanel = React.lazy(() => import('./components/AdminPanel').then(module => ({ default: module.AdminPanel })));
+const SettingsPage = React.lazy(() => import('./components/SettingsPage').then(module => ({ default: module.SettingsPage })));
 
 export default function App() {
   // Authentication state
   const [currentUser, setCurrentUser] = useState<User | null>(() => getStoredAuth().user);
-  const [isAdminOpen, setIsAdminOpen] = useState(() => location.hash === '#admin');
+  const [page, setPage] = useState<AppPage>(() => pageFromHash(location.hash));
+  const navigate = (next: AppPage) => {
+    location.hash = pageHash(next);
+    setPage(next);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
   const [resetToken, setResetToken] = useState(() => {
     const match = /^#reset=([a-f0-9]{64})$/.exec(location.hash);
     return match?.[1] || null;
@@ -81,12 +88,14 @@ export default function App() {
   useEffect(() => {
     const authExpired = () => {
       if (getStoredAuth().user?.impersonation) { void endSupport(); return; }
-      clearStoredAuth(); setCurrentUser(null); setIsAdminOpen(false);
+      clearStoredAuth(); setCurrentUser(null); setPage('planner');
+      history.replaceState(null, '', location.pathname + location.search);
     };
     const hashChanged = () => {
       const reset = /^#reset=([a-f0-9]{64})$/.exec(location.hash);
       if (reset) { setResetToken(reset[1]); history.replaceState(null, '', location.pathname + location.search); }
-      setIsAdminOpen(location.hash === '#admin');
+      setPage(pageFromHash(location.hash));
+      window.scrollTo({ top: 0, behavior: 'instant' });
     };
     window.addEventListener('mizan:auth-expired', authExpired);
     window.addEventListener('hashchange', hashChanged);
@@ -127,9 +136,6 @@ export default function App() {
   const [cardCreationTarget, setCardCreationTarget] = useState<{ categoryId: string; requestId: number } | null>(null);
   const cardCreationRequest = useRef(0);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
-  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Toast state
@@ -189,6 +195,22 @@ export default function App() {
   }, [lang]);
 
   useEffect(() => {
+    const titles = lang === 'ar'
+      ? { planner: 'ميزان', settings: 'الإعدادات', statistics: 'التقرير الأسبوعي', archive: 'الأرشيف', admin: 'إدارة المستخدمين' }
+      : { planner: 'Mizan', settings: 'Settings', statistics: 'Weekly statistics', archive: 'Archive', admin: 'User management' };
+    document.title = page === 'planner' ? titles.planner : `${titles[page]} · ${lang === 'ar' ? 'ميزان' : 'Mizan'}`;
+  }, [page, lang]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    const destination = support && page !== 'planner' ? 'planner' : page === 'admin' && !hasPermission(currentUser.role, 'users.read') ? 'settings' : null;
+    if (destination) {
+      history.replaceState(null, '', location.pathname + location.search + pageHash(destination));
+      setPage(destination);
+    }
+  }, [page, currentUser?.role, currentUser?.id, support?.id]);
+
+  useEffect(() => {
     if (!currentUser) return;
     setTheme(getStoredTheme());
     setLang(userStorage.getItem('lang') === 'en' ? 'en' : 'ar');
@@ -203,10 +225,6 @@ export default function App() {
     setTimeout(() => {
       setToastMessage((prev) => (prev === msg ? null : prev));
     }, 2200);
-  };
-
-  const handleToggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark'; setStoredTheme(next); setTheme(next);
   };
 
   // Handlers
@@ -285,8 +303,7 @@ export default function App() {
 
   const handleOpenInDaily = (date: string) => {
     setCurrentDate(date);
-    setIsArchiveModalOpen(false);
-    setIsStatsModalOpen(false);
+    navigate('planner');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -335,6 +352,17 @@ export default function App() {
   const stats = useMemo(() => calculateDailyProgress(tasks), [tasks]);
 
   const [isExportingImage, setIsExportingImage] = useState(false);
+  const [exportRequested, setExportRequested] = useState(false);
+
+  useEffect(() => {
+    if (page === 'planner') return;
+    setIsAddTaskOpen(false);
+    setIsTaskDestinationOpen(false);
+    setEditingTask(null);
+    setCardCreationTarget(null);
+    setIsExportModalOpen(false);
+    setExportRequested(false);
+  }, [page]);
 
   const handleExportDailyTrackImage = async () => {
     if (isExportingImage) return;
@@ -369,20 +397,29 @@ export default function App() {
     }
   };
 
+  useEffect(() => {
+    if (!exportRequested || page !== 'planner' || !currentUser || isPreparingWorkspace) return;
+    const frame = requestAnimationFrame(() => {
+      setExportRequested(false);
+      void handleExportDailyTrackImage();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [exportRequested, page, currentUser?.id, isPreparingWorkspace, currentDate, theme]);
+
   const handleLogout = () => {
     if (support) { void endSupport(); return; }
     void requestApi('/auth/logout', {}).catch(() => {});
     clearStoredAuth();
     setTasks([]);
     setArchiveDays([]);
-    setIsSettingsOpen(false);
-    setIsStatsModalOpen(false);
-    setIsArchiveModalOpen(false);
+    setPage('planner');
+    history.replaceState(null, '', location.pathname + location.search);
     setIsAddTaskOpen(false);
     setIsTaskDestinationOpen(false);
     setCardCreationTarget(null);
     setEditingTask(null);
     setIsExportModalOpen(false);
+    setExportRequested(false);
     setIsPreparingWorkspace(false);
     setCurrentUser(null);
     showToast(lang === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Logged out successfully');
@@ -410,7 +447,27 @@ export default function App() {
     return <>{supportBanner}<AuthLoadingScreen stage="preparing" lang={lang} theme={theme} /></>;
   }
 
-  if (isAdminOpen && !support && hasPermission(currentUser.role, 'users.read')) return <React.Suspense fallback={<AuthLoadingScreen stage="preparing" lang={lang} theme={theme} />}><AdminPanel currentUser={currentUser} lang={lang} onClose={() => { location.hash = ''; setIsAdminOpen(false); }} onImpersonate={(user, token) => { beginSupportSession(user, token); location.hash = ''; location.reload(); }} /></React.Suspense>;
+  const feedback = toastMessage && <div role="status" className="fixed bottom-6 start-1/2 z-50 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-900 shadow-xl dark:border-white/15 dark:bg-[#121319] dark:text-zinc-100"><CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-500" /><span>{toastMessage}</span></div>;
+
+  if (page === 'admin' && !support && hasPermission(currentUser.role, 'users.read')) return <React.Suspense fallback={<AuthLoadingScreen stage="preparing" lang={lang} theme={theme} />}><AdminPanel currentUser={currentUser} lang={lang} onClose={() => navigate('settings')} onImpersonate={(user, token) => { beginSupportSession(user, token); location.hash = ''; location.reload(); }} /></React.Suspense>;
+
+  if (page === 'settings' && !support) return <React.Suspense fallback={<AuthLoadingScreen stage="preparing" lang={lang} theme={theme} />}>
+    <SettingsPage currentUser={currentUser} lang={lang} theme={theme} archiveDaysCount={archiveDays.length} exporting={isExportingImage || exportRequested}
+      onBack={() => navigate('planner')} onToggleLang={handleToggleLang} onSetTheme={next => { setStoredTheme(next); setTheme(next); }}
+      onResetData={handleResetData} onApply24HourTemplate={handleApply24HourTemplate}
+      onSyncComplete={() => { setTasks(getDayRecord(currentDate).tasks); refreshArchive(); }}
+      onOpenStats={() => navigate('statistics')} onOpenArchive={() => navigate('archive')} onOpenAdmin={() => navigate('admin')}
+      onExport={() => { setExportRequested(true); navigate('planner'); }} onLogout={handleLogout} />
+    {feedback}
+  </React.Suspense>;
+
+  if ((page === 'statistics' || page === 'archive') && !support) return <>
+    <AccountPage key={page} lang={lang} title={page === 'statistics' ? (lang === 'ar' ? 'الإحصائيات والتقرير الأسبوعي' : 'Weekly statistics') : (lang === 'ar' ? 'الأرشيف وسجل الأيام' : 'Archive & history')}
+      description={page === 'statistics' ? (lang === 'ar' ? 'راجع إنجازك وعاداتك خلال الأسبوع.' : 'Review your progress and habits for the week.') : (lang === 'ar' ? 'أيامك السابقة محفوظة هنا، اختر يومًا للعودة إليه.' : 'Your previous days, ready to revisit.')}
+      onBack={() => navigate('settings')} backLabel={lang === 'ar' ? 'الإعدادات' : 'Settings'}>
+      {page === 'statistics' ? <WeeklyReview lang={lang} onNavigateToDay={handleOpenInDaily} /> : <Archive days={archiveDays} lang={lang} onOpenInDaily={handleOpenInDaily} />}
+    </AccountPage>{feedback}
+  </>;
 
   return (
     <div className={`min-h-screen bg-slate-50 dark:bg-[#07080b] bg-mesh text-slate-900 dark:text-zinc-100 flex flex-col font-['Alexandria','Cairo',sans-serif] transition-colors duration-200`}>
@@ -423,21 +480,13 @@ export default function App() {
       >
         <div className="space-y-4 sm:space-y-6">
 
-          {/* Main Header with clean icons: Profile (with Stats & Archive), Settings, Theme, Export, + Add Task */}
+          {/* Two primary actions; account tools live on the settings page. */}
           {!support ? <MainHeader
             currentDate={currentDate}
             currentUser={currentUser}
-            onLogout={handleLogout}
-            onOpenAdmin={hasPermission(currentUser.role, 'users.read') ? () => { location.hash = '#admin'; setIsAdminOpen(true); } : undefined}
             onOpenAddTask={() => setIsTaskDestinationOpen(true)}
-            onOpenExportModal={handleExportDailyTrackImage}
-            onOpenSettings={() => setIsSettingsOpen(true)}
-            onOpenStats={() => setIsStatsModalOpen(true)}
-            onOpenArchive={() => setIsArchiveModalOpen(true)}
-            archiveDaysCount={archiveDays.length}
+            onOpenSettings={() => navigate('settings')}
             lang={lang}
-            theme={theme}
-            onToggleTheme={handleToggleTheme}
           /> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
 
           {/* Today Progress Section (bar & metrics) */}
@@ -488,23 +537,6 @@ export default function App() {
         </div>
       </main>
 
-      {/* Dedicated Statistics Modal (Accessed via Profile Icon in Header) */}
-      <StatsModal
-        isOpen={isStatsModalOpen}
-        onClose={() => setIsStatsModalOpen(false)}
-        lang={lang}
-        onNavigateToDay={handleOpenInDaily}
-      />
-
-      {/* Dedicated Archive Modal (Accessed via Profile Icon in Header) */}
-      <ArchiveModal
-        isOpen={isArchiveModalOpen}
-        onClose={() => setIsArchiveModalOpen(false)}
-        days={archiveDays}
-        lang={lang}
-        onOpenInDaily={handleOpenInDaily}
-      />
-
       {/* Add Task Modal */}
       {isTaskDestinationOpen && <TaskDestinationDialog lang={lang} cards={getTaskCardCategories(tasks, workspace, true)}
         onClose={() => setIsTaskDestinationOpen(false)} onTimeline={handleCreateInTimeline}
@@ -529,19 +561,6 @@ export default function App() {
         categories={activeCategories(workspace)}
       />
 
-      {/* Settings Modal (Accessed via Settings Icon in Header) */}
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        lang={lang}
-        onToggleLang={handleToggleLang}
-        onResetData={handleResetData}
-        onApply24HourTemplate={handleApply24HourTemplate}
-        theme={theme}
-        onSetTheme={(next) => { setStoredTheme(next); setTheme(next); }}
-        onSyncComplete={() => { setTasks(getDayRecord(currentDate).tasks); refreshArchive(); }}
-      />
-
       {/* Export Schedule as Image Modal */}
       <ExportScheduleModal
         isOpen={isExportModalOpen}
@@ -554,12 +573,7 @@ export default function App() {
       />
 
       {/* Toast Feedback */}
-      {toastMessage && (
-        <div className="fixed bottom-6 start-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#121319] border border-slate-300 dark:border-white/[0.15] text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-2xl shadow-xl animate-in fade-in duration-150">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 stroke-[2.5]" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      {feedback}
 
     </div>
   );

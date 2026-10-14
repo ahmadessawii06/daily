@@ -6,9 +6,11 @@ import { Language } from '../types';
 interface SyncIndicatorProps {
   lang: Language;
   userId?: string;
+  interactive?: boolean;
+  compact?: boolean;
 }
 
-export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId }) => {
+export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId, interactive = true, compact = false }) => {
   const [syncInfo, setSyncInfo] = useState<SyncStatusInfo>({
     status: navigator.onLine ? 'synced' : 'offline',
     pendingCount: 0,
@@ -68,25 +70,21 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId }) =>
   const current = getStatusDisplay();
   const Icon = current.icon;
   const label = lang === 'ar'
-    ? `حالة المزامنة: ${current.text}${syncInfo.pendingCount > 0 ? ` (${syncInfo.pendingCount} معلقة)` : ''} — انقر للمزامنة الفورية`
-    : `Sync status: ${current.text}${syncInfo.pendingCount > 0 ? ` (${syncInfo.pendingCount} pending)` : ''} — Click to sync now`;
+    ? `حالة المزامنة: ${current.text}${syncInfo.pendingCount > 0 ? ` (${syncInfo.pendingCount} معلقة)` : ''}${interactive ? ' — انقر للمزامنة الفورية' : ''}`
+    : `Sync status: ${current.text}${syncInfo.pendingCount > 0 ? ` (${syncInfo.pendingCount} pending)` : ''}${interactive ? ' — Click to sync now' : ''}`;
 
-  return (
-    <button
-      type="button"
-      onClick={handleManualSync}
-      title={label}
-      aria-label={label}
-      className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-2.5 text-[11px] font-semibold transition-colors cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${current.color}`}
-    >
+  const content = <>
       <span className={`w-2 h-2 rounded-full ${current.dot} shrink-0`} />
       <Icon aria-hidden="true" className={`w-3.5 h-3.5 shrink-0 ${current.iconClass || ''}`} />
-      <span>{current.text}</span>
+      <span className={compact ? 'hidden sm:inline' : undefined}>{current.text}</span>
       {syncInfo.pendingCount > 0 && (
         <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] font-bold">
           {syncInfo.pendingCount}
         </span>
       )}
-    </button>
-  );
+    </>;
+  const classes = `inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-2.5 text-[11px] font-semibold select-none ${current.color}`;
+  return interactive
+    ? <button type="button" onClick={handleManualSync} title={label} aria-label={label} className={`${classes} cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500`}>{content}</button>
+    : <div role="status" title={label} aria-label={label} className={classes}>{content}</div>;
 };
