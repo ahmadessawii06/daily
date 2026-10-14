@@ -145,6 +145,12 @@
 .task-row:hover .task-actions-desktop,
 .task-row:focus-within .task-actions-desktop { opacity: 1; pointer-events: auto; }
 .task-actions-mobile { display: none; }
+.task-actions-menu { display: flex; opacity: 0; pointer-events: none; }
+.task-row:hover .task-actions-menu,
+.task-row:focus-within .task-actions-menu { opacity: 1; pointer-events: auto; }
+@media (hover: none), (max-width: 639px) {
+  .task-actions-menu { opacity: 1; pointer-events: auto; }
+}
 @media (max-width: 639px), (hover: none), (pointer: coarse) {
   .task-actions-desktop { display: none; }
   .task-actions-mobile { display: flex; }

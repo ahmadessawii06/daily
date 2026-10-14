@@ -20,6 +20,14 @@ This change adds a category-based daily workspace beside the existing timeline. 
 - Verses remain complete on one line. Their font size fits the measured badge width and readjusts when the viewport or loaded font changes.
 - The top daily progress summary counts named tasks plus all five prayer slots in both views. Missing prayers count as pending; saved prayers count once with their actual status. Blank hourly placeholders are excluded. Eight ordinary tasks plus five prayers total thirteen throughout prayer completion.
 
+## Manual planning tools
+
+- Deleting a task in either view offers **Undo** for 10 seconds. Hovering or focusing the message pauses expiry. Several quick deletions can be restored together, to their original dates. Undo respects newer deletions or replacements received through sync, and is cleared on sign-out or data reset.
+- **Your top 3** appears above the workspace in both views. Choose tasks from its searchable picker or pin one through its **⋯** menu. It projects the existing `Task.isTopFocus` flag; it does not copy tasks or count them twice. Completion, editing, deletion and sync update the same original task. A deterministic projection shows at most three even after concurrent offline pins.
+- The **⋯** menu can move an unfinished named task to the day after the selected date. The toolbar can move all unfinished tasks after confirmation. Completed tasks, the five daily prayers and blank hourly slots stay put. This is an explicit action, with no automatic carryover.
+- Moves retain task IDs, notes, category, timing and other metadata. The destination status becomes pending and its day-specific pin is cleared. Existing destination tasks and notes remain intact. Source deletion markers prevent stale uploads from resurrecting moved tasks; both changed days enter the existing batch queue together.
+- These tools use account-scoped daily records. No database migration or additional dependency is needed. `tests/taskPlanning.test.ts` covers restoration, pin limits, cross-day moves, stale merges, account isolation and rollback when queue storage fails.
+
 ## Data and compatibility
 
 `DayRecord.tasks` remains the only task store. `Task.categoryId` is optional; legacy `category`, task IDs, timestamps, notes, duration and completion history are retained. Cards hide unnamed hourly placeholders without deleting them.

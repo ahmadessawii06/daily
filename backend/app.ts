@@ -24,6 +24,7 @@ export function validateDay(date: string, data: any): DayRecord {
     if (!t || typeof t.id !== 'string' || !t.id || seen.has(t.id) || typeof t.title !== 'string' || typeof t.time !== 'string' ||
       !['done', 'pending', 'not-done'].includes(t.status) || (t.time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(t.time))) badRequest('Invalid task');
     seen.add(t.id);
+    if (t.isTopFocus !== undefined && typeof t.isTopFocus !== 'boolean') badRequest('Invalid focus flag');
     if (t.categoryId !== undefined && (typeof t.categoryId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(t.categoryId))) badRequest('Invalid task category');
     for (const key of ['createdAt', 'updatedAt']) if (t[key] && !Number.isFinite(Date.parse(t[key]))) badRequest('Invalid task timestamp');
   }

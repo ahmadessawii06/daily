@@ -66,6 +66,7 @@ test('API authentication, durable storage, isolation and conflicts', async t => 
     await t.test('invalid dates and tasks return 400 rather than apparent success', async () => {
       assert.equal((await request('/days/2026-02-30', day, token)).status, 400);
       assert.equal((await request(`/days/${day.date}`, { ...day, tasks: [{ ...task, status: 'invalid' }] }, token)).status, 400);
+      assert.equal((await request(`/days/${day.date}`, { ...day, tasks: [{ ...task, isTopFocus: 'yes' }] }, token)).status, 400);
       assert.equal((await request('/missing-endpoint', undefined, token)).status, 404);
     });
     await t.test('deletion survives stale offline uploads and explicit restoration works', async () => {

@@ -1,12 +1,13 @@
 import { DayRecord, DayStats, HabitStreak, PrayerTimeItem, Task, TaskCategory, TaskPriority, Theme, WeeklyDayData } from '../types';
 
-import { sortTasksByTime } from './date';
+import { addDays, sortTasksByTime } from './date';
 import { autoDetectCategory } from './categories';
 import { SCHEDULE_TEMPLATES } from './templates';
 import { userStorage } from './scopedStorage';
-import { enqueue, enqueueDay } from '../services/syncQueue';
+import { enqueue, enqueueDay, enqueueDays } from '../services/syncQueue';
 import { nextRecordTimestamp } from '../shared/merge';
 import { getPlannerWorkspace } from './workspace';
+import { canMoveTask, getFocusTasks, isFocusTaskEligible, MAX_FOCUS_TASKS } from '../shared/taskPlanning';
 
 const STORAGE_KEY = 'daily_tasks_app_data_v8_saturday_schedule';
 const THEME_KEY = 'daily_theme_v1';
@@ -199,17 +200,29 @@ export function loadAllDays(): Record<string, DayRecord> {
   }
 }
 
-export function saveAllDays(days: Record<string, DayRecord>): void {
+export function saveAllDays(days: Record<string, DayRecord>): boolean {
   try {
     userStorage.setItem(STORAGE_KEY, JSON.stringify(days));
+    return true;
   } catch (err) {
     console.error('Error saving data to localStorage:', err);
+    return false;
   }
 }
 
 export function syncDayToMongo(date: string): void {
   const record = loadAllDays()[date];
   if (record) enqueueDay(record);
+}
+
+function saveTaskChanges(previous: Record<string, DayRecord>, updated: Record<string, DayRecord>, dates: string[]): boolean {
+  if (!saveAllDays(updated)) return false;
+  try { enqueueDays(dates.map(date => updated[date])); return true; }
+  catch {
+    // A full queue must not leave a local edit that can never be synchronized.
+    saveAllDays(previous);
+    return false;
+  }
 }
 
 export function getDayRecord(date: string): DayRecord {
@@ -367,25 +380,55 @@ export function deleteTaskFromDay(date: string, taskId: string): Task | null {
   if (!record) return null;
 
   const deletedTask = record.tasks.find((t) => t.id === taskId) || null;
-  record.tasks = record.tasks.filter((t) => t.id !== taskId);
+  if (!deletedTask) return null;
   const deletedAt = nextRecordTimestamp(record);
-  record.deletedTaskIds = { ...record.deletedTaskIds, [taskId]: deletedAt };
-  record.updatedAt = deletedAt;
-  all[date] = record;
-  saveAllDays(all);
-  syncDayToMongo(date);
+  const updated = { ...all, [date]: { ...record, tasks: record.tasks.filter(t => t.id !== taskId),
+    deletedTaskIds: { ...record.deletedTaskIds, [taskId]: deletedAt }, updatedAt: deletedAt } };
+  if (!saveTaskChanges(all, updated, [date])) return null;
   return deletedTask;
 }
 
-export function restoreTaskToDay(date: string, task: Task): void {
+export function restoreTaskToDay(date: string, task: Task, expectedDeletion?: string): boolean {
   const all = loadAllDays();
   const record = all[date] || { date, tasks: [], updatedAt: new Date().toISOString() };
-  const restoredAt = nextRecordTimestamp(record);
-  record.tasks = sortTasksByTime([...record.tasks.filter(t => t.id !== task.id), { ...task, updatedAt: restoredAt }]);
-  record.updatedAt = restoredAt;
-  all[date] = record;
-  saveAllDays(all);
-  syncDayToMongo(date);
+  if (expectedDeletion && (record.deletedTaskIds?.[task.id] !== expectedDeletion || record.tasks.some(t => t.id === task.id))) return false;
+  if (record.tasks.length >= 1000 && !record.tasks.some(t => t.id === task.id)) return false;
+  const restoredAt = nextRecordTimestamp({ ...record, tasks: [...record.tasks, task] });
+  const restored = { ...task, updatedAt: restoredAt };
+  if (restored.isTopFocus && getFocusTasks(record.tasks.filter(t => t.id !== task.id)).length >= MAX_FOCUS_TASKS) restored.isTopFocus = false;
+  const updated = { ...all, [date]: { ...record, tasks: sortTasksByTime([...record.tasks.filter(t => t.id !== task.id), restored]), updatedAt: restoredAt } };
+  return saveTaskChanges(all, updated, [date]);
+}
+
+export function toggleTaskFocus(date: string, taskId: string): 'pinned' | 'unpinned' | 'limit' | 'missing' {
+  const all = loadAllDays(), record = all[date];
+  const task = record?.tasks.find(task => task.id === taskId);
+  if (!task || !isFocusTaskEligible(task)) return 'missing';
+  if (!task.isTopFocus && getFocusTasks(record.tasks).length >= MAX_FOCUS_TASKS) return 'limit';
+  const updatedAt = nextRecordTimestamp(record), pinned = !task.isTopFocus;
+  const updated = { ...all, [date]: { ...record, tasks: record.tasks.map(item => item.id === taskId ? { ...item, isTopFocus: pinned, updatedAt } : item), updatedAt } };
+  if (!saveTaskChanges(all, updated, [date])) throw new Error('LOCAL_SAVE_FAILED');
+  return pinned ? 'pinned' : 'unpinned';
+}
+
+export function moveTasksToNextDay(date: string, taskIds: string[]): { date: string; tasks: Task[] } {
+  const all = loadAllDays(), source = all[date], nextDate = addDays(date, 1);
+  const previous = { ...all };
+  const ids = new Set(taskIds);
+  const moving = (source?.tasks || []).filter(task => ids.has(task.id) && canMoveTask(task));
+  if (!moving.length) return { date: nextDate, tasks: [] };
+  const target = all[nextDate] || { date: nextDate, tasks: getPlannerWorkspace().view === 'timeline' ? createEmpty24HourTasks(nextDate) : [], updatedAt: source.updatedAt };
+  if (target.tasks.some(task => moving.some(item => item.id === task.id))) throw new Error('TASK_MOVE_CONFLICT');
+  if (target.tasks.length + moving.length > 1000) throw new Error('DAY_TASK_LIMIT');
+  const updatedAt = new Date(Math.max(Date.parse(nextRecordTimestamp(source)), Date.parse(nextRecordTimestamp(target)))).toISOString();
+  const movingIds = new Set(moving.map(task => task.id));
+  const moved = moving.map(task => ({ ...task, status: 'pending' as const, isTopFocus: false, updatedAt }));
+  all[date] = { ...source, tasks: source.tasks.filter(task => !movingIds.has(task.id)), updatedAt,
+    deletedTaskIds: { ...source.deletedTaskIds, ...Object.fromEntries(moving.map(task => [task.id, updatedAt])) } };
+  all[nextDate] = { ...target, tasks: sortTasksByTime([...target.tasks, ...moved]), updatedAt };
+  // Both days are saved together before either is queued for the existing batch sync.
+  if (!saveTaskChanges(previous, all, [date, nextDate])) throw new Error('LOCAL_SAVE_FAILED');
+  return { date: nextDate, tasks: moved };
 }
 
 export function calculateStats(tasks: Task[]): DayStats {

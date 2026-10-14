@@ -13,6 +13,8 @@ interface TaskRowProps {
   onStatusChange: (taskId: string, newStatus: TaskStatus) => void;
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
+  onMove?: (taskId: string) => void;
+  onToggleFocus?: (taskId: string) => void;
   onUpdateTitle?: (taskId: string, newTitle: string) => void;
   lang: Language;
   isEditing?: boolean;
@@ -25,6 +27,8 @@ export const TaskRow: React.FC<TaskRowProps> = ({
   onStatusChange,
   onEdit,
   onDelete,
+  onMove,
+  onToggleFocus,
   onUpdateTitle,
   lang,
   isEditing = false,
@@ -210,7 +214,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
             </div>
           </div>
 
-          <TaskActions task={task} lang={lang} onEdit={onEdit} onDelete={onDelete} />
+          <TaskActions task={task} lang={lang} onEdit={onEdit} onDelete={onDelete} onMove={onMove} onToggleFocus={onToggleFocus} />
 
         </div>
 
@@ -403,7 +407,7 @@ export const TaskRow: React.FC<TaskRowProps> = ({
       </div>
 
       <div className="hidden sm:flex shrink-0">
-        <TaskActions task={task} lang={lang} onEdit={onEdit} onDelete={onDelete} />
+        <TaskActions task={task} lang={lang} onEdit={onEdit} onDelete={onDelete} onMove={onMove} onToggleFocus={onToggleFocus} />
       </div>
     </div>
       {statusMenuPosition && createPortal(
