@@ -155,6 +155,10 @@ export interface User {
   username?: string;
   email?: string;
   createdAt?: string;
+  role?: import('../shared/admin').Role;
+  status?: 'active' | 'suspended' | 'deleted';
+  lastLoginAt?: string;
+  impersonation?: { id: string; actorId: string; expiresAt: string };
 }
 
 

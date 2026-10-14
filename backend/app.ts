@@ -2,15 +2,12 @@ import 'dotenv/config';
 import express from 'express';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { createAccount, findAccount, storageStatus, updateState, type Account } from './repository.js';
-import { hashPassword, matchesPassword, signToken, verifyToken } from './security.js';
+import { hashPassword, matchesPassword } from './security.js';
+import { authenticateRequest, installAdminRoutes, installResetRoute, newSession, publicUser, requestClaims, usable, fail, type ResetMailer } from './admin.js';
+import { securityTransaction } from './repository.js';
 import { mergeDay } from '../src/shared/merge.js';
 import { createWorkspace, mergeWorkspace, parseWorkspace } from '../src/shared/workspace.js';
 import type { DayRecord } from '../src/types';
-
-function publicUser(account: Account) {
-  const { id, userCode, username, name, email, createdAt } = account;
-  return { id, userCode, username, name, email, createdAt };
-}
 
 function badRequest(message: string): never {
   throw Object.assign(new Error(message), { status: 400 });
@@ -41,7 +38,7 @@ export function validateDay(date: string, data: any): DayRecord {
     dayNote: typeof data.dayNote === 'string' ? data.dayNote : undefined, updatedAt, deletedTaskIds };
 }
 
-export function createApiApp(production = false) {
+export function createApiApp(production = false, options: { resetMailer?: ResetMailer } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '5mb' }));
@@ -54,6 +51,12 @@ export function createApiApp(production = false) {
   });
   const asyncRoute = (fn: (req: express.Request, res: express.Response) => Promise<any>) =>
     (req: express.Request, res: express.Response, next: express.NextFunction) => { fn(req, res).catch(next); };
+  api.use((_req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
+  api.use((req, _res, next) => {
+    if (req.method !== 'GET' && requestClaims(req)?.actor) return next(Object.assign(new Error('جلسة الدعم للقراءة فقط'), { status: 403 }));
+    next();
+  });
+  installResetRoute(api, asyncRoute);
 
   api.get('/health', asyncRoute(async (_req, res) => {
     res.json({ connected: true, database: await storageStatus() });
@@ -68,11 +71,13 @@ export function createApiApp(production = false) {
       name: typeof name === 'string' ? name.trim().slice(0, 100) : username.trim(),
       ...(typeof email === 'string' && email.trim() ? { email: email.trim().toLowerCase() } : {}),
       createdAt: new Date().toISOString(), salt: randomBytes(16).toString('hex'), passwordHash: '', revision: 0,
+      role: 'user', status: 'active', authVersion: 0, sessions: [],
       state: { days: {}, habits: [], recurring: [], settings: {}, versions: {}, workspace: createWorkspace('cards', new Date().toISOString()) },
     };
     account.passwordHash = await hashPassword(password, account.salt);
     // Fail configuration before persisting a new account.
-    const token = signToken(account.id);
+    const { token, ...session } = newSession(account);
+    Object.assign(account, session);
     await createAccount(account);
     res.status(201).json({ success: true, user: publicUser(account), token, workspace: account.state.workspace });
   }));
@@ -81,24 +86,30 @@ export function createApiApp(production = false) {
     const { username, password } = req.body || {};
     if (typeof username !== 'string' || typeof password !== 'string' || password.length > 200) badRequest('Invalid credentials');
     const account = await findAccount(username.trim().toLowerCase());
-    if (!account || !await matchesPassword(password, account.salt, account.passwordHash)) {
+    if (!account || !usable(account) || !await matchesPassword(password, account.salt, account.passwordHash)) {
       return res.status(401).json({ success: false, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
     }
-    res.json({ success: true, user: publicUser(account), token: signToken(account.id), workspace: account.state.workspace });
+    const result = await securityTransaction(async tx => {
+      const fresh = await tx.account(account.id);
+      if (!fresh || !usable(fresh) || fresh.passwordHash !== account.passwordHash) fail(401, 'الحساب غير متاح');
+      const { token, ...session } = newSession(fresh);
+      await tx.patch(fresh.id, session);
+      await tx.audit({ id: randomUUID(), actorId: fresh.id, actorName: fresh.name || fresh.username, action: 'auth.login', targetId: fresh.id, at: session.lastLoginAt, reason: 'Successful credential sign-in' });
+      return { success: true, user: publicUser({ ...fresh, ...session }), token, workspace: fresh.state.workspace };
+    });
+    res.json(result);
   }));
 
   api.use((req, res, next) => {
     (async () => {
-      const token = req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : '';
-      const id = token ? verifyToken(token) : null;
-      const account = id ? await findAccount(id, true) : null;
-      if (!account) return res.status(401).json({ success: false, error: 'يرجى تسجيل الدخول' });
-      res.locals.account = account;
+      await authenticateRequest(req, res);
+      if (res.locals.impersonation && req.method !== 'GET') fail(403, 'جلسة الدعم للقراءة فقط؛ لا يسمح بتعديل البيانات أو كلمات المرور أو الصلاحيات أو العمليات المالية');
       next();
     })().catch(next);
   });
 
-  api.get('/auth/me', (_req, res) => res.json({ success: true, user: publicUser(res.locals.account) }));
+  api.get('/auth/me', (_req, res) => res.json({ success: true, user: { ...publicUser(res.locals.account), ...(res.locals.impersonation ? { impersonation: res.locals.impersonation } : {}) } }));
+  installAdminRoutes(api, asyncRoute, options.resetMailer);
   api.get('/days', (_req, res) => res.json({ days: res.locals.account.state.days }));
   api.get('/days/:date', (req, res) => {
     const day = res.locals.account.state.days[req.params.date];
@@ -157,7 +168,7 @@ export function createApiApp(production = false) {
   app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     const status = err.code === 11000 ? 409 : err.status || 503;
     if (status >= 500) console.error('API failure:', err.message);
-    res.status(status).json({ success: false, connected: false, error: status === 409 ? 'اسم المستخدم أو البريد مستخدم بالفعل' : status >= 500 ? 'الخادم أو قاعدة البيانات غير متاحين، يرجى المحاولة لاحقًا' : err.message });
+    res.status(status).json({ success: false, connected: false, error: err.code === 11000 ? 'اسم المستخدم أو البريد مستخدم بالفعل' : status >= 500 && !err.expose ? 'الخادم أو قاعدة البيانات غير متاحين، يرجى المحاولة لاحقًا' : err.message });
   });
   return app;
 }

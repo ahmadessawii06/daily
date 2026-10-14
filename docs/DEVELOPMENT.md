@@ -2,6 +2,8 @@
 
 [← Back to the README](../README.md)
 
+For administrator setup, permissions, account recovery, and support sessions, see [User administration](ADMIN.md).
+
 ## Local setup
 
 Use Node.js **22.12 or newer** and npm. From the repository root:

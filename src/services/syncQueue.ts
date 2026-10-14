@@ -20,6 +20,7 @@ export function saveQueue(queue: QueueItem[], userId = getStoredAuth().user?.id)
 }
 
 export function enqueue(type: QueueItem['type'], data: any, date?: string): void {
+  if (getStoredAuth().user?.impersonation) return;
   const userId = getStoredAuth().user?.id;
   if (!userId) return;
   if (type === 'settings') {

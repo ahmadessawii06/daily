@@ -10,6 +10,11 @@
 | `JWT_SECRET` | Stable random secret, at least 32 characters, used to sign sessions. | Required in production. |
 | `PORT` | Local server port; defaults to `3000`. | Optional. |
 | `DATA_DIR` | Alternative directory for the local file store. | Optional. |
+| `APP_URL` | Trusted public HTTPS origin for password reset links. | Required for recovery email. |
+| `RESEND_API_KEY` | Server-side Resend API key. | Required for recovery email. |
+| `RESET_EMAIL_FROM` | Sender address on a verified Resend domain. | Required for recovery email. |
+
+See [User administration](ADMIN.md) for first-admin bootstrap and role setup. Account administration uses MongoDB transactions and requires Atlas or another replica set.
 
 Generate a signing secret locally:
 

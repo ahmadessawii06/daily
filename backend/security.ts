@@ -33,14 +33,16 @@ export async function matchesPassword(password: string, salt: string, stored: st
   return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
 }
 
-export function signToken(id: string): string {
+export interface TokenClaims { sub: string; exp: number; ver?: number; sid?: string; actor?: string; actorVersion?: number; grant?: string; }
+export function signToken(id: string, options: { ver?: number; sid?: string; actor?: string; actorVersion?: number; grant?: string; ttl?: number } = {}): string {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
-  const payload = Buffer.from(JSON.stringify({ sub: id, exp: Math.floor(Date.now() / 1000) + 30 * 86400 })).toString('base64url');
+  const { ttl = 30 * 86400, ...claims } = options;
+  const payload = Buffer.from(JSON.stringify({ sub: id, exp: Math.floor(Date.now() / 1000) + ttl, ...claims })).toString('base64url');
   const data = `${header}.${payload}`;
   return `${data}.${crypto.createHmac('sha256', secret()).update(data).digest('base64url')}`;
 }
 
-export function verifyToken(token: string): string | null {
+export function verifyTokenClaims(token: string): TokenClaims | null {
   const key = secret();
   try {
     const [header, payload, signature, extra] = token.split('.');
@@ -50,6 +52,11 @@ export function verifyToken(token: string): string | null {
     const actual = Buffer.from(signature, 'base64url');
     if (actual.length !== expected.length || !crypto.timingSafeEqual(actual, expected)) return null;
     const parsed = JSON.parse(Buffer.from(payload, 'base64url').toString());
-    return typeof parsed.sub === 'string' && typeof parsed.exp === 'number' && parsed.exp > Date.now() / 1000 ? parsed.sub : null;
+    if (typeof parsed.sub !== 'string' || typeof parsed.exp !== 'number' || parsed.exp <= Date.now() / 1000) return null;
+    if (parsed.ver !== undefined && (!Number.isSafeInteger(parsed.ver) || parsed.ver < 0)) return null;
+    if (parsed.sid !== undefined && typeof parsed.sid !== 'string') return null;
+    if (parsed.actor !== undefined && (typeof parsed.actor !== 'string' || typeof parsed.grant !== 'string' || !Number.isSafeInteger(parsed.actorVersion))) return null;
+    return parsed;
   } catch { return null; }
 }
+export function verifyToken(token: string): string | null { return verifyTokenClaims(token)?.sub || null; }
