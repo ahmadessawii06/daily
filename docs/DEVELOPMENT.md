@@ -4,6 +4,12 @@
 
 For administrator setup, permissions, account recovery, and support sessions, see [User administration](ADMIN.md).
 
+## Application navigation
+
+The planner header contains **Settings** and **Add task**. Settings opens a full page at `/#settings`, with appearance, language, sync, account tools, export, template, and reset controls. Weekly statistics and archive use `/#settings/statistics` and `/#settings/archive`; authorized user management remains at `/#admin` and returns to settings. These hash routes support refresh and browser back/forward without additional hosting rewrites. The selected planning date and view remain in the mounted application state while navigating.
+
+The header's sync indicator is read-only; manual sync is available on the settings page. Exporting from settings returns to the planner and waits for it to render before capturing the image. Legacy browser import/backup and destructive reset confirmations are preserved. Impersonation sessions cannot open account settings.
+
 ## Local setup
 
 Use Node.js **22.12 or newer** and npm. From the repository root:

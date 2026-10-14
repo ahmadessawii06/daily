@@ -1,6 +1,6 @@
 # User administration
 
-Mizan includes a persisted user management panel with an overview, searchable user table, account details, and audit history. Open **User management** from the account menu after signing in with an authorized account. The panel also opens at `/#admin`.
+Mizan includes a persisted user management panel with an overview, searchable user table, account details, and audit history. Open **Settings → User management** after signing in with an authorized account. The panel also opens at `/#admin`; its back button returns to settings.
 
 ## First administrator
 
