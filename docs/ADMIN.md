@@ -16,6 +16,18 @@ Mizan includes a persisted user management panel with an overview, searchable us
 
 Bootstrap runs only when no active Super Admin exists. Registration never accepts a privileged role. Subsequent promotions require a Super Admin and an audited reason. The panel prevents self-deletion, self-suspension, and self-demotion. A transaction protects the last active Super Admin, including concurrent requests.
 
+## Transfer an existing local account to Atlas
+
+Set `MONGODB_URI` privately to the target deployment's connection string, including the actual application database name. Never put credentials in command arguments. The operator-only transfer command performs a read-only preflight by default:
+
+```sh
+npm run account:transfer -- your_username --source path/to/accounts.json
+```
+
+After reviewing the target database and record counts, add `--apply` to perform the transfer. The account ID, account code, profile, password hash/salt, role, complete planner state, timestamps, and related audit entries are preserved. Active sessions, support grants, and outstanding reset links are excluded; the imported account requires a fresh sign-in using the same password. Existing Atlas accounts are never overwritten: collisions on ID, username, account code, email, or audit IDs stop the operation.
+
+An ignored backup is saved under `data/transfer-backups/` before writing. The account and audit entries commit together using a MongoDB transaction, followed by a read-back comparison. The source remains intact; this is a snapshot transfer, not ongoing synchronization between a local JSON server and Atlas. Use a deployment connected to Atlas for subsequent edits across devices. This is a trusted terminal tool with no public API route.
+
 ## Roles
 
 | Capability | User | Support | Admin | Super Admin |

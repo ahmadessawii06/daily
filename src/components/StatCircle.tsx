@@ -31,28 +31,28 @@ export const StatCircle: React.FC<StatCircleProps> = ({
       bgGlow: 'bg-emerald-400/15 dark:bg-emerald-400/20',
       text: 'text-emerald-600 dark:text-emerald-300',
       activeRing: 'ring-2 ring-[#10e588] ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
-      track: 'text-emerald-400/20 dark:text-emerald-400/15',
+      track: 'text-emerald-400/20',
     },
     amber: {
       stroke: '#f59e0b',
       bgGlow: 'bg-amber-500/10 dark:bg-amber-500/15',
       text: 'text-amber-600 dark:text-amber-400',
       activeRing: 'ring-2 ring-amber-500 ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
-      track: 'text-amber-500/15 dark:text-amber-500/10',
+      track: 'text-amber-500/15',
     },
     rose: {
       stroke: '#ff6b81',
       bgGlow: 'bg-rose-400/15 dark:bg-rose-400/20',
       text: 'text-rose-500 dark:text-rose-300',
       activeRing: 'ring-2 ring-[#ff6b81] ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
-      track: 'text-rose-400/20 dark:text-rose-400/15',
+      track: 'text-rose-400/20',
     },
     indigo: {
       stroke: '#6366f1',
       bgGlow: 'bg-indigo-500/10 dark:bg-indigo-500/15',
       text: 'text-indigo-600 dark:text-indigo-400',
       activeRing: 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
-      track: 'text-indigo-500/15 dark:text-indigo-500/10',
+      track: 'text-indigo-500/15',
     },
   }[color];
 
@@ -76,7 +76,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
             fill="none"
             stroke="currentColor"
             strokeWidth="3.5"
-            className={colorConfig.track}
+            className={`${colorConfig.track} dark:text-zinc-300/75`}
           />
           {/* Active progress arc */}
           {percentage > 0 && (

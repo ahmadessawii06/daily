@@ -192,7 +192,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="7"
-                  className="text-slate-100 dark:text-white/[0.08]"
+                  className="text-slate-100 dark:text-zinc-300/75"
                 />
 
                 {/* Active progress arc (pure green) */}
