@@ -27,6 +27,8 @@ interface CardsDashboardProps {
   onStatusChange: (id: string, status: TaskStatus) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
+  onMove?: (id: string) => void;
+  onToggleFocus?: (id: string) => void;
   creationTarget?: { categoryId: string; requestId: number } | null;
 }
 
@@ -60,7 +62,7 @@ export function CardsDashboard(props: CardsDashboardProps) {
   );
 }
 
-function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, onStatusChange, onCustomize, creationRequest }: CardsDashboardProps & { category: PlannerCategory; onCustomize?: () => void; creationRequest?: number }) {
+function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, onMove, onToggleFocus, onStatusChange, onCustomize, creationRequest }: CardsDashboardProps & { category: PlannerCategory; onCustomize?: () => void; creationRequest?: number }) {
   const ar = lang === 'ar';
   const name = ar ? category.name : category.nameEn || category.name;
   const Icon = CARD_ICONS[category.icon];
@@ -117,7 +119,7 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
               <span data-card-task-title className={`line-clamp-2 min-w-0 text-xs font-medium leading-5 [overflow-wrap:anywhere] ${task.status === 'done' ? 'text-slate-500 dark:text-zinc-400' : ''}`}>{task.title}</span>
               {(task.time || task.notes) && <span className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-400">{task.time && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime12h(task.time, lang).formatted}</span>}{task.notes && <StickyNote className="h-3 w-3" aria-label={ar ? 'توجد ملاحظة' : 'Has notes'} />}</span>}
             </button>
-            <TaskActions task={task} lang={lang} onEdit={onEdit} onDelete={onDelete} />
+            <TaskActions task={task} lang={lang} onEdit={onEdit} onDelete={onDelete} onMove={onMove} onToggleFocus={onToggleFocus} />
           </div>;
           })}
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
-  getTodayDateString
+  getTodayDateString, formatShortDate
 } from './utils/date';
 import {
   getDayRecord,
@@ -8,6 +8,9 @@ import {
   addTaskToDay,
   updateTaskInDay,
   deleteTaskFromDay,
+  restoreTaskToDay,
+  moveTasksToNextDay,
+  toggleTaskFocus,
   getAllArchiveDays,
   resetToDefaults,
   getStoredTheme,
@@ -33,6 +36,8 @@ import { getTaskCardCategories } from './utils/cardCategories';
 import { partitionPrayerTasks } from './utils/prayerTasks';
 import { calculateDailyProgress } from './utils/dailyProgress';
 import { shouldPlayListCompletionSound } from './utils/listCompletion';
+import { canMoveTask } from './shared/taskPlanning';
+import { TopFocus } from './components/TopFocus';
 import { MainHeader } from './components/MainHeader';
 import { TodayProgress } from './components/TodayProgress';
 import { PrayerCard } from './components/PrayerCard';
@@ -47,7 +52,7 @@ import { EditTaskModal } from './components/EditTaskModal';
 import { ExportScheduleModal } from './components/ExportScheduleModal';
 
 import { playAchievementSound, playFailureSound, playChallengeCompleteSound, preloadChallengeCompleteSound } from './utils/soundEffects';
-import { CheckCircle2, LayoutGrid, ListChecks } from 'lucide-react';
+import { AlertCircle, CalendarArrowUp, CheckCircle2, LayoutGrid, ListChecks, Undo2, X } from 'lucide-react';
 
 const AdminPanel = React.lazy(() => import('./components/AdminPanel').then(module => ({ default: module.AdminPanel })));
 const SettingsPage = React.lazy(() => import('./components/SettingsPage').then(module => ({ default: module.SettingsPage })));
@@ -140,6 +145,17 @@ export default function App() {
 
   // Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastSuccess, setToastSuccess] = useState(true);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current); }, []);
+  const [deletedTasks, setDeletedTasks] = useState<{ ownerId: string; date: string; task: Task; deletedAt: string; expiresAt: number }[]>([]);
+  const [undoPaused, setUndoPaused] = useState(false);
+  useEffect(() => { setDeletedTasks([]); setUndoPaused(false); }, [currentUser?.id, support?.id]);
+  useEffect(() => {
+    if (!deletedTasks.length || undoPaused) return;
+    const timer = setTimeout(() => setDeletedTasks(entries => entries.filter(entry => entry.expiresAt > Date.now())), Math.max(0, Math.min(...deletedTasks.map(entry => entry.expiresAt)) - Date.now()));
+    return () => clearTimeout(timer);
+  }, [deletedTasks, undoPaused]);
 
   // Tasks for currentDate
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -220,9 +236,11 @@ export default function App() {
     setArchiveDays(getAllArchiveDays());
   }, []);
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string, success = true) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToastSuccess(success);
     setToastMessage(msg);
-    setTimeout(() => {
+    toastTimer.current = setTimeout(() => {
       setToastMessage((prev) => (prev === msg ? null : prev));
     }, 2200);
   };
@@ -294,11 +312,63 @@ export default function App() {
 
   const handleDeleteTask = (taskId: string) => {
     if (support) return;
-    deleteTaskFromDay(currentDate, taskId);
-    const updated = tasks.filter((t) => t.id !== taskId);
-    setTasks(updated);
+    const removed = deleteTaskFromDay(currentDate, taskId);
+    if (!removed) { showToast(lang === 'ar' ? 'تعذر حذف المهمة أو حفظ التغيير.' : 'The task could not be deleted or saved.', false); return; }
+    const record = getDayRecord(currentDate);
+    setDeletedTasks(entries => [...entries, { ownerId: currentUser!.id, date: currentDate, task: removed, deletedAt: record.deletedTaskIds![taskId], expiresAt: Date.now() + 10000 }]);
+    setTasks(record.tasks);
     refreshArchive();
-    showToast(lang === 'ar' ? 'تم حذف المهمة' : 'Task deleted');
+  };
+
+  const handleUndoDeletion = () => {
+    if (support || getStoredAuth().user?.id !== currentUser?.id) return;
+    let restored = 0;
+    const retry: typeof deletedTasks = [];
+    for (const entry of deletedTasks) {
+      if (entry.ownerId !== currentUser?.id || (!undoPaused && entry.expiresAt <= Date.now())) continue;
+      if (restoreTaskToDay(entry.date, entry.task, entry.deletedAt)) restored++;
+      else {
+        const record = getDayRecord(entry.date);
+        if (record.deletedTaskIds?.[entry.task.id] === entry.deletedAt && !record.tasks.some(task => task.id === entry.task.id)) retry.push({ ...entry, expiresAt: Date.now() + 10000 });
+      }
+    }
+    setDeletedTasks(retry);
+    setUndoPaused(false);
+    setTasks(getDayRecord(currentDate).tasks);
+    refreshArchive();
+    showToast(restored ? (lang === 'ar' ? `تمت استعادة ${restored} من المهام` : `Restored ${restored} task(s)`) : (lang === 'ar' ? 'تعذر الاسترجاع؛ تغيّرت المهمة أو تعذر حفظها.' : 'Cannot restore: the task changed or could not be saved.'), restored > 0);
+  };
+  const resumeUndoTimer = () => {
+    setDeletedTasks(entries => entries.map(entry => ({ ...entry, expiresAt: Date.now() + 10000 })));
+    setUndoPaused(false);
+  };
+
+  const handleToggleFocus = (taskId: string) => {
+    if (support) return;
+    try {
+      const result = toggleTaskFocus(currentDate, taskId);
+      if (result === 'limit') { showToast(lang === 'ar' ? 'الحد الأقصى 3 مهام. ألغِ تثبيت مهمة أولًا.' : 'Your top 3 is full. Unpin a task first.', false); return; }
+      setTasks(getDayRecord(currentDate).tasks);
+      refreshArchive();
+    } catch { showToast(lang === 'ar' ? 'تعذر حفظ التثبيت على هذا الجهاز.' : 'Unable to save your pinned tasks on this device.', false); }
+  };
+
+  const handleMoveTasks = (taskIds: string[]) => {
+    if (support) return;
+    try {
+      const moved = moveTasksToNextDay(currentDate, taskIds);
+      if (!moved.tasks.length) return;
+      setTasks(getDayRecord(currentDate).tasks);
+      setEditingTask(null);
+      refreshArchive();
+      showToast(lang === 'ar' ? `نُقلت ${moved.tasks.length} من المهام إلى ${formatShortDate(moved.date, lang)}` : `Moved ${moved.tasks.length} task(s) to ${formatShortDate(moved.date, lang)}`);
+    } catch { showToast(lang === 'ar' ? 'تعذر نقل المهام. تحقق من مساحة التخزين أو وجود المهمة في اليوم التالي.' : 'Unable to move tasks. Check device storage or whether the task already exists on the next day.', false); }
+  };
+  const handleMoveRemaining = () => {
+    if (support) return;
+    const remaining = getDayRecord(currentDate).tasks.filter(canMoveTask);
+    if (!remaining.length) return;
+    if (window.confirm(lang === 'ar' ? `نقل ${remaining.length} من المهام غير المكتملة إلى اليوم التالي؟ تبقى الصلوات والمهام المكتملة في يومها.` : `Move ${remaining.length} unfinished task(s) to the next day? Prayers and completed tasks stay on their day.`)) handleMoveTasks(remaining.map(task => task.id));
   };
 
   const handleOpenInDaily = (date: string) => {
@@ -321,6 +391,7 @@ export default function App() {
 
   const handleResetData = () => {
     if (support) return;
+    setDeletedTasks([]);
     resetToDefaults();
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
@@ -410,6 +481,7 @@ export default function App() {
     if (support) { void endSupport(); return; }
     void requestApi('/auth/logout', {}).catch(() => {});
     clearStoredAuth();
+    setDeletedTasks([]);
     setTasks([]);
     setArchiveDays([]);
     setPage('planner');
@@ -447,7 +519,10 @@ export default function App() {
     return <>{supportBanner}<AuthLoadingScreen stage="preparing" lang={lang} theme={theme} /></>;
   }
 
-  const feedback = toastMessage && <div role="status" className="fixed bottom-6 start-1/2 z-50 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-900 shadow-xl dark:border-white/15 dark:bg-[#121319] dark:text-zinc-100"><CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-500" /><span>{toastMessage}</span></div>;
+  const feedback = (toastMessage || deletedTasks.length > 0) && <div dir={lang === 'ar' ? 'rtl' : 'ltr'} className="fixed bottom-6 left-1/2 z-[110] flex w-max max-w-[calc(100%-2rem)] -translate-x-1/2 flex-col items-center gap-2">
+    {deletedTasks.length > 0 && <div data-delete-undo onMouseEnter={() => setUndoPaused(true)} onMouseLeave={resumeUndoTimer} onFocus={() => setUndoPaused(true)} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) resumeUndoTimer(); }} className="flex max-w-full flex-wrap items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-2 text-xs text-slate-900 shadow-xl dark:border-white/15 dark:bg-[#171b23] dark:text-zinc-100"><span role="status">{lang === 'ar' ? (deletedTasks.length === 1 ? 'تم حذف المهمة' : `تم حذف ${deletedTasks.length} من المهام`) : (deletedTasks.length === 1 ? 'Task deleted' : `${deletedTasks.length} tasks deleted`)}</span><button type="button" onClick={handleUndoDeletion} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 font-semibold text-emerald-700 hover:bg-emerald-500/10 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-emerald-300"><Undo2 aria-hidden="true" size={14} />{lang === 'ar' ? 'تراجع' : 'Undo'}</button><button type="button" aria-label={lang === 'ar' ? 'إغلاق رسالة التراجع' : 'Dismiss undo'} onClick={() => { setDeletedTasks([]); setUndoPaused(false); }} className="flex h-9 w-7 items-center justify-center rounded-lg text-slate-400 focus-visible:outline-2 focus-visible:outline-emerald-500"><X aria-hidden="true" size={14} /></button></div>}
+    {toastMessage && <div role="status" className="flex max-w-full items-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-900 shadow-xl dark:border-white/15 dark:bg-[#121319] dark:text-zinc-100">{toastSuccess ? <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-500" /> : <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-500" />}<span>{toastMessage}</span></div>}
+  </div>;
 
   if (page === 'admin' && !support && hasPermission(currentUser.role, 'users.read')) return <React.Suspense fallback={<AuthLoadingScreen stage="preparing" lang={lang} theme={theme} />}><AdminPanel currentUser={currentUser} lang={lang} onClose={() => navigate('settings')} onImpersonate={(user, token) => { beginSupportSession(user, token); location.hash = ''; location.reload(); }} /></React.Suspense>;
 
@@ -504,26 +579,29 @@ export default function App() {
             lang={lang}
           />
 
-          <div role="group" aria-label={lang === 'ar' ? 'طريقة عرض المهام' : 'Planning view'} className="inline-flex max-w-full gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
+          <div className="flex flex-wrap items-center justify-between gap-3"><div role="group" aria-label={lang === 'ar' ? 'طريقة عرض المهام' : 'Planning view'} className="inline-flex max-w-full gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
             {(['cards', 'timeline'] as const).map(view => {
               const Icon = view === 'cards' ? LayoutGrid : ListChecks;
               const label = view === 'cards' ? (lang === 'ar' ? 'البطاقات' : 'Cards') : (lang === 'ar' ? 'الجدول' : 'Timeline');
               return <button key={view} type="button" aria-pressed={workspace.view === view} onClick={() => handleChangeView(view)} className={`inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold transition-colors ${workspace.view === view ? 'bg-white text-emerald-700 shadow-2xs dark:bg-[#1c2425] dark:text-emerald-300' : 'text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-100'}`}><Icon className="h-4 w-4" />{label}</button>;
             })}
-          </div>
+          </div>{!support && <button type="button" onClick={handleMoveRemaining} disabled={!tasks.some(canMoveTask)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-600 hover:border-emerald-500/40 focus-visible:outline-2 focus-visible:outline-emerald-500 disabled:opacity-40 dark:border-white/10 dark:bg-white/[.02] dark:text-zinc-300"><CalendarArrowUp aria-hidden="true" size={15} />{lang === 'ar' ? 'نقل غير المكتمل لليوم التالي' : 'Move unfinished to next day'}</button>}</div>
 
           <fieldset disabled={!!support} className="min-w-0 border-0 p-0 m-0">
+          <TopFocus key={`${currentUser.id}-${currentDate}`} tasks={tasks} lang={lang} onToggleFocus={handleToggleFocus} onStatusChange={handleStatusChange} readOnly={!!support} />
           {workspace.view === 'cards' ? <CardsDashboard currentDate={currentDate} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
             creationTarget={cardCreationTarget}
             onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
             onAddPrayer={handleCompletePrayer}
-            onStatusChange={handleStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} /> : <>
+            onStatusChange={handleStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} onMove={id => handleMoveTasks([id])} onToggleFocus={handleToggleFocus} /> : <>
             <PrayerCard currentDate={currentDate} slots={partitionPrayerTasks(tasks).slots} lang={lang} onAddPrayer={handleCompletePrayer} onStatusChange={handleStatusChange} />
             <TaskList
               tasks={tasks}
               onStatusChange={handleStatusChange}
               onEdit={(task) => { if (!support) setEditingTask(task); }}
               onDelete={handleDeleteTask}
+              onMove={id => handleMoveTasks([id])}
+              onToggleFocus={handleToggleFocus}
               onUpdateTitle={handleUpdateTaskTitle}
               onOpenAddTask={() => setIsAddTaskOpen(true)}
               onApply24HourTemplate={handleApply24HourTemplate}

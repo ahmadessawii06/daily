@@ -8,6 +8,8 @@ interface TaskListProps {
   onStatusChange: (taskId: string, newStatus: TaskStatus) => void;
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
+  onMove?: (taskId: string) => void;
+  onToggleFocus?: (taskId: string) => void;
   onUpdateTitle: (taskId: string, newTitle: string) => void;
   onOpenAddTask: () => void;
   onApply24HourTemplate: () => void;
@@ -22,6 +24,8 @@ export const TaskList: React.FC<TaskListProps> = ({
   onStatusChange,
   onEdit,
   onDelete,
+  onMove,
+  onToggleFocus,
   onUpdateTitle,
   onApply24HourTemplate,
   currentFilter,
@@ -166,6 +170,8 @@ export const TaskList: React.FC<TaskListProps> = ({
                 onStatusChange={onStatusChange}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onMove={onMove}
+                onToggleFocus={onToggleFocus}
                 onUpdateTitle={onUpdateTitle}
                 lang={lang}
               />

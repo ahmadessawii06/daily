@@ -39,3 +39,15 @@ export function enqueue(type: QueueItem['type'], data: any, date?: string): void
 }
 
 export function enqueueDay(record: DayRecord): void { enqueue('day', record, record.date); }
+
+// Cross-day edits must enter the queue together, never as a half-finished move.
+export function enqueueDays(records: DayRecord[]): void {
+  const session = getStoredAuth(), userId = session.user?.id;
+  if (!userId || session.user?.impersonation) return;
+  const existing = getQueue(userId), dates = new Set(records.map(record => record.date));
+  const queue = existing.filter(item => item.type !== 'day' || !dates.has(item.date!));
+  let clientTimestamp = Math.max(Date.now(), ...existing.map(item => item.clientTimestamp + 1));
+  for (const record of records) queue.push({ id: Array.from(crypto.getRandomValues(new Uint32Array(4))).join('-'), type: 'day', date: record.date, data: record, clientTimestamp: clientTimestamp++ });
+  saveQueue(queue, userId);
+  window.dispatchEvent(new Event('mizan:queue-changed'));
+}
