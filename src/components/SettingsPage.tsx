@@ -131,7 +131,7 @@ export function SettingsPage(props: SettingsPageProps) {
     try {
       const response = await migrateLocalDataToMongo(loadAllDays(), getStoredHabits());
       if (alive.current) {
-        setResult({ source: 'sync', ok: response.success, text: response.success ? t('تمت مزامنة بيانات حسابك بنجاح.', 'Your account is up to date.') : t('تعذرت المزامنة. بياناتك محفوظة محليًا ويمكنك إعادة المحاولة.', 'Sync failed. Your local changes are saved; you can retry.') });
+        setResult({ source: 'sync', ok: response.success, text: response.success ? t('تمت مزامنة بيانات حسابك بنجاح.', 'Your account is up to date.') : [t('تعذرت المزامنة. بياناتك محفوظة محليًا ويمكنك إعادة المحاولة.', 'Sync failed. Your local changes are saved; you can retry.'), response.error].filter(Boolean).join(' ') });
         if (response.success) onSyncComplete();
       }
     } catch { if (alive.current) setResult({ source: 'sync', ok: false, text: t('تعذر الاتصال بالخادم. أعد المحاولة لاحقًا.', 'Unable to reach the server. Please retry.') }); }

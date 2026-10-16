@@ -19,6 +19,7 @@ let retryTimer: ReturnType<typeof setTimeout> | undefined;
 let inFlight: Promise<boolean> | null = null;
 let inFlightUser: string | undefined;
 const listeners = new Set<(info: SyncStatusInfo) => void>();
+export function getSyncError(): string | undefined { return errorMessage; }
 function notify() { listeners.forEach(fn => fn({ status, pendingCount: getQueue().length, lastSyncedAt, errorMessage })); }
 export function subscribeToSyncStatus(listener: (info: SyncStatusInfo) => void): () => void {
   listeners.add(listener); notify(); return () => { listeners.delete(listener); };

@@ -58,7 +58,18 @@ export function groupTasksByCategory(tasks: Task[], workspace: PlannerWorkspace)
 export function parseWorkspace(value: unknown): PlannerWorkspace {
   const invalid = (): never => { throw Object.assign(new Error('Invalid planner workspace'), { status: 400 }); };
   if (!value || typeof value !== 'object') return invalid();
-  const data = value as PlannerWorkspace;
+  // Older stored workspaces predate the sync timestamps and category metadata.
+  // Fill only absent metadata, retaining IDs, names, order and deletion markers.
+  const raw = value as PlannerWorkspace;
+  const data = { ...raw, viewUpdatedAt: raw.viewUpdatedAt ?? WORKSPACE_EPOCH,
+    categories: Array.isArray(raw.categories) ? raw.categories.map((category, index) => {
+      if (!category || typeof category !== 'object') return category;
+      const seed = createWorkspace().categories.find(seed => seed.id === category.id);
+      return { ...category, icon: category.icon ?? seed?.icon ?? 'layers',
+        order: category.order ?? index, updatedAt: category.updatedAt ?? WORKSPACE_EPOCH,
+        nameEn: category.nameEn ?? undefined, collapsed: category.collapsed ?? undefined,
+        deletedAt: category.deletedAt ?? undefined };
+    }) : raw.categories };
   if (!['cards', 'timeline'].includes(data.view) || typeof data.viewUpdatedAt !== 'string' || !Number.isFinite(Date.parse(data.viewUpdatedAt)) ||
     !Array.isArray(data.categories) || data.categories.length > 1000) return invalid();
   const seen = new Set<string>();

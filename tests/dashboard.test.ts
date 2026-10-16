@@ -89,6 +89,19 @@ test('workspace merge retains independent edits and category deletion despite st
   assert.equal(mergeWorkspace(merged, base).view, 'timeline');
 });
 
+test('legacy metadata upgrades without losing categories or deletion markers', () => {
+  const legacy = { view: 'cards', categories: [
+    { id: 'study', name: 'My study' },
+    { id: 'custom', name: 'My card', deletedAt: '2026-10-01T00:00:00Z' },
+  ] };
+  const upgraded = parseWorkspace(legacy);
+  assert.deepEqual(upgraded.categories.map(c => c.id), ['study', 'custom']);
+  assert.equal(upgraded.categories[0].name, 'My study');
+  assert.equal(upgraded.categories[0].icon, 'book');
+  assert.equal(upgraded.categories[1].deletedAt, legacy.categories[1].deletedAt);
+  assert.deepEqual(parseWorkspace(JSON.parse(JSON.stringify(upgraded))), upgraded);
+});
+
 test('workspace rejects invalid metadata without silently inventing categories', () => {
   const base = createWorkspace('cards');
   for (const value of [{ ...base, view: 'bad' }, { ...base, categories: [base.categories[0], base.categories[0]] },

@@ -30,7 +30,7 @@ test('login accepts valid credentials even when optional workspace metadata is i
   const originalFetch = globalThis.fetch;
   const { loginApi } = await import('../src/services/api');
   try {
-    for (const metadata of [{ view: 'cards', categories: [] }, createWorkspace('cards')]) {
+    for (const metadata of [{ view: 'invalid', categories: [] }, createWorkspace('cards')]) {
       globalThis.fetch = async () => new Response(JSON.stringify({ success: true, user, token: 'valid-token', workspace: metadata }), { headers: { 'content-type': 'application/json' } });
       const result = await loginApi('alice', 'password');
       assert.equal(result.success, true);
@@ -44,6 +44,18 @@ test('login accepts valid credentials even when optional workspace metadata is i
 
 test('client storage and sync regression cases', async t => {
   auth.saveStoredAuth(user, 'signed-token');
+  await t.test('sync acknowledges changes when server workspace lacks legacy metadata', async () => {
+    const originalFetch = globalThis.fetch;
+    queue.saveQueue([{ id: 'legacy-sync', type: 'settings', data: { lang: 'ar' }, clientTimestamp: 1 }]);
+    globalThis.fetch = async () => new Response(JSON.stringify({ success: true, days: {}, workspace: {
+      view: 'cards', categories: [{ id: 'custom', name: 'Keep my card' }],
+    }, versions: { settings: 1 } }), { headers: { 'content-type': 'application/json' } });
+    try {
+      assert.equal(await engine.triggerSync(user.id, true), true);
+      assert.deepEqual(queue.getQueue(), []);
+      assert.equal(workspace.readStoredWorkspace()?.categories[0].name, 'Keep my card');
+    } finally { globalThis.fetch = originalFetch; }
+  });
   await t.test('reading preserves arbitrary minutes, multiple tasks per hour and untimed tasks', () => {
     storage.saveAllDays({ [day.date]: day });
     assert.deepEqual(storage.loadAllDays()[day.date], day);

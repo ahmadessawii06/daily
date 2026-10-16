@@ -5,6 +5,7 @@ import mongoose, { Schema } from 'mongoose';
 import { connectToDatabase, getDbLastError, isDbConnected } from './mongodb.js';
 import type { DayRecord, HabitStreak, PlannerWorkspace, RecurringItem, User } from '../src/types';
 import { ROLES, type Role, type AuthSession, type AuditEntry, type SupportGrant } from '../src/shared/admin.js';
+import { parseWorkspace } from '../src/shared/workspace.js';
 
 export interface Account extends User {
   username: string;
@@ -60,6 +61,11 @@ export function normalizeAccount(account: Account | null): Account | null {
   account.state.recurring ??= [];
   account.state.settings ??= {};
   account.state.versions ??= {};
+  if (account.state.workspace) {
+    // Upgrade legacy metadata before it participates in a server-side merge.
+    // Preserve unrecognized documents for diagnosis rather than replacing them.
+    try { account.state.workspace = parseWorkspace(account.state.workspace); } catch {}
+  }
   return account;
 }
 

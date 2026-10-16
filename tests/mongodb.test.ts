@@ -76,4 +76,7 @@ test('new accounts retain empty sync objects and older accounts get missing fiel
   assert.deepEqual(document.state, empty);
   assert.deepEqual(normalizeAccount({ state: undefined } as unknown as Account)?.state, empty);
   assert.equal(normalizeAccount(null), null);
+  const legacy = normalizeAccount({ state: { workspace: { view: 'cards', categories: [{ id: 'custom', name: 'Keep me' }] } } } as unknown as Account);
+  assert.equal(legacy?.state.workspace?.categories[0].name, 'Keep me');
+  assert.equal(legacy?.state.workspace?.categories[0].updatedAt, '1970-01-01T00:00:00.000Z');
 });
