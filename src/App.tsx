@@ -39,6 +39,7 @@ import { shouldPlayListCompletionSound } from './utils/listCompletion';
 import { canMoveTask } from './shared/taskPlanning';
 import { TopFocus } from './components/TopFocus';
 import { MainHeader } from './components/MainHeader';
+import { applyColorTheme, readColorTheme } from './utils/colorThemes';
 import { TodayProgress } from './components/TodayProgress';
 import { PrayerCard } from './components/PrayerCard';
 import { DateNavigation } from './components/DateNavigation';
@@ -58,6 +59,7 @@ const AdminPanel = React.lazy(() => import('./components/AdminPanel').then(modul
 const SettingsPage = React.lazy(() => import('./components/SettingsPage').then(module => ({ default: module.SettingsPage })));
 
 export default function App() {
+  useEffect(() => { applyColorTheme(readColorTheme()); }, []);
   // Authentication state
   const [currentUser, setCurrentUser] = useState<User | null>(() => getStoredAuth().user);
   const [page, setPage] = useState<AppPage>(() => pageFromHash(location.hash));

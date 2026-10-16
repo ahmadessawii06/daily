@@ -1,0 +1,35 @@
+/* Moods change the material and silhouette as well as the palette. */
+html:root[data-color-theme="github"] { --mood-radius: 7px; --mood-shadow: 0 1px 0 rgb(0 0 0 / .12); }
+html:root[data-color-theme="hacker"] { --mood-radius: 3px; --mood-shadow: 0 0 18px rgb(74 222 128 / .1); }
+html:root[data-color-theme="red-dark"] { --mood-radius: 12px; --mood-shadow: 0 8px 32px rgb(251 113 133 / .12); }
+html:root[data-color-theme="ocean"] { --mood-radius: 28px; --mood-shadow: 0 12px 32px rgb(34 211 238 / .12); }
+html:root[data-color-theme="sunset"] { --mood-radius: 24px; --mood-shadow: 0 10px 32px rgb(251 171 126 / .16); }
+html:root[data-color-theme="olive"] { --mood-radius: 18px; --mood-shadow: 4px 5px 0 rgb(135 151 71 / .12); }
+html:root[data-color-theme="night"] { --mood-radius: 24px; --mood-shadow: 0 0 30px rgb(165 148 249 / .1); }
+html:root[data-color-theme="paper"] { --mood-radius: 5px; --mood-shadow: 3px 4px 0 rgb(130 90 50 / .16), 5px 7px 0 rgb(130 90 50 / .06); }
+html:root[data-color-theme]:not([data-color-theme="default"]) :is(.planner-card, [data-prayer-card], [data-top-focus]) {
+  border-radius: var(--mood-radius);
+  box-shadow: var(--mood-shadow);
+}
+html:root[data-color-theme]:not([data-color-theme="default"]) :is(.planner-card-icon, .planner-card-add, [data-prayer-slot]) { border-radius: clamp(3px, var(--mood-radius), 14px); }
+html:root[data-color-theme="github"] :is(.planner-card, [data-prayer-card]) { border-top-width: 1px; background-image: none; }
+html:root[data-color-theme="github"] .planner-card > div:first-child { background: color-mix(in srgb, var(--mood-accent) 9%, transparent); border-bottom: 1px solid var(--theme-border); }
+html:root[data-color-theme="hacker"] .bg-mesh {
+  background-image: radial-gradient(ellipse at 50% 0, rgb(74 222 128 / .09), transparent 65%), url('/matrix-code.svg');
+  background-size: 100% 100%, 480px 440px;
+  background-repeat: no-repeat, repeat;
+}
+html:root[data-color-theme="hacker"] :is(.planner-card, [data-prayer-card]) { border-style: dashed; border-top-style: solid; background-image: none; }
+html:root[data-color-theme="paper"] .planner-card {
+  background-image: repeating-linear-gradient(0deg, transparent 0 31px, rgb(160 120 70 / .08) 31px 32px);
+  border-top-width: 1px;
+  border-inline-start: 4px solid var(--card-accent);
+}
+html:root[data-color-theme="olive"] .bg-mesh { background-image: radial-gradient(ellipse at 0 0, rgb(135 151 71 / .18), transparent 60%), radial-gradient(ellipse at 100% 100%, rgb(180 150 100 / .12), transparent 55%); }
+html:root[data-color-theme="night"] .bg-mesh { background-image: radial-gradient(circle at 15% 5%, rgb(165 148 249 / .2), transparent 40%), radial-gradient(circle at 85% 70%, rgb(90 110 210 / .14), transparent 45%); }
+html:root[data-color-theme="ocean"] .bg-mesh { background-image: radial-gradient(ellipse at 10% 20%, rgb(34 211 238 / .2), transparent 55%), radial-gradient(ellipse at 90% 80%, rgb(30 90 180 / .18), transparent 55%); }
+html:root[data-color-theme="sunset"] .bg-mesh { background-image: radial-gradient(ellipse at 50% 0, rgb(251 171 126 / .25), transparent 65%), radial-gradient(ellipse at 100% 100%, rgb(210 80 100 / .1), transparent 55%); }
+html:root[data-color-theme="red-dark"] .bg-mesh { background-image: radial-gradient(ellipse at 0 0, rgb(251 113 133 / .18), transparent 50%), linear-gradient(135deg, transparent 65%, rgb(251 113 133 / .035) 65%); }
+html:root[data-color-theme="red-dark"] .planner-card { border-top-width: 4px; }
+.theme-dock::backdrop { background: transparent; }
+.theme-dock:popover-open { display: flex; flex-direction: column; }

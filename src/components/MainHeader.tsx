@@ -3,6 +3,7 @@ import { Archive, BarChart3, Camera, Loader2, Power, Moon, Plus, Settings, Sun }
 import { Language, Theme, User } from '../types';
 import { formatHeaderDate } from '../utils/date';
 import { SyncIndicator } from './SyncIndicator';
+import { ColorThemePicker } from './ColorThemePicker';
 
 interface MainHeaderProps {
   currentDate: string;
@@ -37,6 +38,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ currentDate, currentUser
           <SyncIndicator lang={lang} userId={currentUser?.id} interactive={false} compact />
         </div>
         <div role="group" aria-label={ar ? 'أدوات اليوم' : 'Day tools'} className="flex max-w-full flex-wrap items-center gap-2">
+          <ColorThemePicker lang={lang} className={control} />
           <button type="button" onClick={onLogout} aria-label={ar ? 'تسجيل الخروج' : 'Sign out'} title={ar ? 'تسجيل الخروج' : 'Sign out'} className={`${ar ? 'order-last' : 'order-first'} group flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-[#e51010] bg-[#e51010] text-black transition-[transform,background-color,border-color,box-shadow] duration-200 hover:border-[#d00f0f] hover:bg-[#d00f0f] hover:shadow-[0_6px_20px_-6px_rgba(229,16,16,0.4)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-95 motion-reduce:transition-none`}><Power aria-hidden="true" size={19} strokeWidth={2} className={`${iconMotion} motion-safe:group-hover:scale-110 motion-safe:group-hover:-rotate-12 motion-safe:group-focus-visible:scale-110`} /></button>
           <button type="button" onClick={onOpenArchive} aria-label={ar ? 'الأرشيف وسجل الأيام' : 'Archive & history'} title={ar ? 'الأرشيف وسجل الأيام' : 'Archive & history'} className={control}><Archive aria-hidden="true" size={18} className={`${iconMotion} motion-safe:group-hover:translate-y-0.5 motion-safe:group-focus-visible:translate-y-0.5`} /></button>
           <button type="button" onClick={onOpenStats} aria-label={ar ? 'الإحصائيات والتقرير الأسبوعي' : 'Statistics & weekly report'} title={ar ? 'الإحصائيات والتقرير الأسبوعي' : 'Statistics & weekly report'} className={control}><BarChart3 aria-hidden="true" size={18} className={`${iconMotion} origin-bottom motion-safe:group-hover:scale-y-125 motion-safe:group-focus-visible:scale-y-125`} /></button>

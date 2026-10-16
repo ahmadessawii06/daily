@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="440" viewBox="0 0 480 440">
+  <defs>
+    <linearGradient id="fade" x2="0" y2="1">
+      <stop stop-color="#4ade80" stop-opacity="0"/>
+      <stop offset=".55" stop-color="#4ade80" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#4ade80" stop-opacity=".04"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#fade)" font-family="monospace" font-size="12" text-anchor="middle">
+    <text x="28" y="-60"><tspan x="28" dy="20">0</tspan><tspan x="28" dy="20">1</tspan><tspan x="28" dy="20">1</tspan><tspan x="28" dy="20">0</tspan><tspan x="28" dy="20">1</tspan><tspan x="28" dy="20">0</tspan><tspan x="28" dy="20">0</tspan><tspan x="28" dy="20">1</tspan><tspan x="28" dy="20">0</tspan><tspan x="28" dy="20">1</tspan><tspan x="28" dy="20">1</tspan><tspan x="28" dy="20">0</tspan></text>
+    <text x="110" y="140"><tspan x="110" dy="20">1</tspan><tspan x="110" dy="20">0</tspan><tspan x="110" dy="20">1</tspan><tspan x="110" dy="20">1</tspan><tspan x="110" dy="20">0</tspan><tspan x="110" dy="20">0</tspan><tspan x="110" dy="20">1</tspan><tspan x="110" dy="20">0</tspan><tspan x="110" dy="20">1</tspan></text>
+    <text x="220" y="25"><tspan x="220" dy="20">0</tspan><tspan x="220" dy="20">1</tspan><tspan x="220" dy="20">0</tspan><tspan x="220" dy="20">0</tspan><tspan x="220" dy="20">1</tspan><tspan x="220" dy="20">1</tspan><tspan x="220" dy="20">0</tspan><tspan x="220" dy="20">1</tspan><tspan x="220" dy="20">0</tspan><tspan x="220" dy="20">1</tspan></text>
+    <text x="320" y="210"><tspan x="320" dy="20">1</tspan><tspan x="320" dy="20">0</tspan><tspan x="320" dy="20">0</tspan><tspan x="320" dy="20">1</tspan><tspan x="320" dy="20">0</tspan><tspan x="320" dy="20">1</tspan><tspan x="320" dy="20">1</tspan><tspan x="320" dy="20">0</tspan></text>
+    <text x="420" y="-10"><tspan x="420" dy="20">1</tspan><tspan x="420" dy="20">1</tspan><tspan x="420" dy="20">0</tspan><tspan x="420" dy="20">1</tspan><tspan x="420" dy="20">0</tspan><tspan x="420" dy="20">0</tspan><tspan x="420" dy="20">1</tspan><tspan x="420" dy="20">0</tspan><tspan x="420" dy="20">1</tspan><tspan x="420" dy="20">0</tspan></text>
+  </g>
+</svg>

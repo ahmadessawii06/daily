@@ -1,20 +1,191 @@
 @import "tailwindcss";
+@import "./theme-surfaces.css";
+@import "./theme-personalities.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+html[data-color-theme]:not([data-color-theme="default"]) {
+  --theme-progress-main: var(--color-emerald-600);
+  --progress-done: #15803d;
+  --progress-pending: #b45309;
+  --progress-missed: #be123c;
+  --progress-total: #4f46e5;
+}
+html[data-color-theme]:not([data-color-theme="default"]).dark {
+  --theme-progress-main: var(--mood-accent);
+  --progress-done: #4ade80;
+  --progress-pending: #fbbf24;
+  --progress-missed: #fb7185;
+  --progress-total: #a5b4fc;
+}
+html[data-color-theme]:not([data-color-theme="default"]) [data-progress-tone="emerald"] { --progress-color: color-mix(in oklab, var(--progress-done) 92%, var(--theme-progress-main)); }
+html[data-color-theme]:not([data-color-theme="default"]) [data-progress-tone="amber"] { --progress-color: color-mix(in oklab, var(--progress-pending) 92%, var(--theme-progress-main)); }
+html[data-color-theme]:not([data-color-theme="default"]) [data-progress-tone="rose"] { --progress-color: color-mix(in oklab, var(--progress-missed) 92%, var(--theme-progress-main)); }
+html[data-color-theme]:not([data-color-theme="default"]) [data-progress-tone="indigo"] { --progress-color: color-mix(in oklab, var(--progress-total) 85%, var(--theme-progress-main)); }
+html[data-color-theme]:not([data-color-theme="default"]) [data-progress-tone] .progress-body {
+  background-color: color-mix(in srgb, var(--progress-color) 16%, transparent);
+  --tw-ring-color: var(--progress-color);
+  --tw-ring-offset-color: var(--theme-surface);
+}
+html[data-color-theme]:not([data-color-theme="default"]) [data-progress-tone] .progress-value { color: var(--progress-color); }
+html[data-color-theme]:not([data-color-theme="default"]) [data-progress-tone] .progress-track { color: color-mix(in srgb, var(--progress-color) 25%, transparent); }
+
+/* Reserve real layout space for the theme dock instead of covering the planner. */
+html:has(.theme-dock:popover-open) #root {
+  width: calc(100% - 310px);
+  margin-right: 310px;
+  min-width: 0;
+}
+@media (max-width: 640px) {
+  html:has(.theme-dock:popover-open) #root {
+    width: 100%;
+    margin-right: 0;
+    height: 55dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .theme-dock:popover-open {
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    height: 45dvh;
+    max-height: 45dvh;
+    border-radius: 16px 16px 0 0;
+  }
+}
+
+/* Color moods remain independent of the light/dark preference. */
+html[data-color-theme="github"] { --mood-hue: 212; --mood-saturation: 48%; --mood-bg: #f6f8fa; --mood-surface: #ffffff; --mood-night: #0d1117; --mood-night-surface: #161b22; --mood-accent: #58a6ff; }
+html[data-color-theme="hacker"] { --mood-hue: 142; --mood-saturation: 60%; --mood-bg: #eefbf1; --mood-surface: #f8fff9; --mood-night: #080e0a; --mood-night-surface: #101c13; --mood-accent: #4ade80; }
+html[data-color-theme="red-dark"] { --mood-hue: 350; --mood-saturation: 58%; --mood-bg: #fff1f3; --mood-surface: #fff9fa; --mood-night: #180d12; --mood-night-surface: #27171e; --mood-accent: #fb7185; }
+html[data-color-theme="ocean"] { --mood-hue: 190; --mood-saturation: 60%; --mood-bg: #eefbff; --mood-surface: #f7fdff; --mood-night: #081720; --mood-night-surface: #112833; --mood-accent: #22d3ee; }
+html[data-color-theme="sunset"] { --mood-hue: 22; --mood-saturation: 58%; --mood-bg: #fff4eb; --mood-surface: #fffaf5; --mood-night: #21150f; --mood-night-surface: #322118; --mood-accent: #fbab7e; }
+html[data-color-theme="olive"] { --mood-hue: 78; --mood-saturation: 30%; --mood-bg: #f3efdf; --mood-surface: #faf8ee; --mood-night: #171b12; --mood-night-surface: #22291c; --mood-accent: #a5ba61; }
+html[data-color-theme="night"] { --mood-hue: 250; --mood-saturation: 60%; --mood-bg: #edf0fc; --mood-surface: #f8f8ff; --mood-night: #0d1225; --mood-night-surface: #171e36; --mood-accent: #ae9bff; }
+html[data-color-theme="paper"] { --mood-hue: 29; --mood-saturation: 40%; --mood-bg: #f5ebd8; --mood-surface: #fff9ee; --mood-night: #201a15; --mood-night-surface: #30271f; --mood-accent: #e1b183; }
+html[data-color-theme]:not([data-color-theme="default"]) {
+  --theme-surface: color-mix(in srgb, var(--mood-accent) 6%, var(--mood-surface));
+  --theme-raised: color-mix(in srgb, var(--mood-accent) 13%, var(--mood-surface));
+  --theme-border: color-mix(in srgb, var(--mood-accent) 35%, var(--mood-surface));
+  --color-emerald-50: hsl(var(--mood-hue) var(--mood-saturation) 96%);
+  --color-emerald-100: hsl(var(--mood-hue) var(--mood-saturation) 91%);
+  --color-emerald-200: hsl(var(--mood-hue) var(--mood-saturation) 82%);
+  --color-emerald-300: hsl(var(--mood-hue) var(--mood-saturation) 74%);
+  --color-emerald-400: hsl(var(--mood-hue) var(--mood-saturation) 63%);
+  --color-emerald-500: hsl(var(--mood-hue) var(--mood-saturation) 43%);
+  --color-emerald-600: hsl(var(--mood-hue) var(--mood-saturation) 35%);
+  --color-emerald-700: hsl(var(--mood-hue) var(--mood-saturation) 28%);
+  --color-emerald-800: hsl(var(--mood-hue) var(--mood-saturation) 22%);
+  --color-emerald-950: hsl(var(--mood-hue) var(--mood-saturation) 10%);
+  --color-slate-50: var(--mood-bg);
+  --color-slate-100: hsl(var(--mood-hue) 20% 91%);
+  --color-slate-200: hsl(var(--mood-hue) 15% 83%);
+}
+html[data-color-theme]:not([data-color-theme="default"]).dark {
+  --theme-surface: color-mix(in srgb, var(--mood-accent) 7%, var(--mood-night-surface));
+  --theme-raised: color-mix(in srgb, var(--mood-accent) 17%, var(--mood-night-surface));
+  --theme-border: color-mix(in srgb, var(--mood-accent) 32%, var(--mood-night-surface));
+}
+html[data-color-theme]:not([data-color-theme="default"]) :is([class~="bg-white"], [class~="bg-white/70"]) { background-color: var(--mood-surface); }
+html[data-color-theme]:not([data-color-theme="default"]).dark :is(body, [class~="dark:bg-[#07080b]"], [class~="dark:bg-[#0b0c10]"]) { background-color: var(--mood-night); }
+html[data-color-theme]:not([data-color-theme="default"]).dark :is([class~="bg-white"], [class~="bg-white/70"], [class~="dark:bg-[#101219]"], [class~="dark:bg-[#121319]"], [class~="dark:bg-[#0d0f15]"]) { background-color: var(--mood-night-surface); }
+html[data-color-theme]:not([data-color-theme="default"]) [class~="bg-[#10e588]"] { background-color: var(--mood-accent); }
+html[data-color-theme]:not([data-color-theme="default"]) [class~="hover:bg-[#0fd07b]"]:hover { background-color: var(--mood-accent); filter: brightness(0.94); }
+html[data-color-theme="paper"] .bg-mesh { background-image: repeating-linear-gradient(0deg, transparent, transparent 31px, rgb(160 120 70 / .07) 31px, rgb(160 120 70 / .07) 32px); }
+
+html[data-color-theme]:not([data-color-theme="default"]) {
+  --color-emerald-900: hsl(var(--mood-hue) var(--mood-saturation) 16%);
+  --color-slate-300: hsl(var(--mood-hue) 14% 74%);
+  --color-slate-400: hsl(var(--mood-hue) 12% 50%);
+  --color-slate-500: hsl(var(--mood-hue) 14% 38%);
+  --color-slate-600: hsl(var(--mood-hue) 16% 30%);
+  --color-slate-700: hsl(var(--mood-hue) 18% 23%);
+  --color-slate-800: hsl(var(--mood-hue) 20% 17%);
+  --color-slate-900: hsl(var(--mood-hue) 22% 12%);
+  --color-zinc-100: hsl(var(--mood-hue) 20% 94%);
+  --color-zinc-200: hsl(var(--mood-hue) 18% 86%);
+  --color-zinc-300: hsl(var(--mood-hue) 16% 78%);
+  --color-zinc-400: hsl(var(--mood-hue) 14% 68%);
+  --color-zinc-500: hsl(var(--mood-hue) 12% 56%);
+  --color-indigo-50: hsl(calc(var(--mood-hue) + 12) 35% 96%);
+  --color-indigo-100: hsl(calc(var(--mood-hue) + 12) 35% 91%);
+  --color-indigo-200: hsl(calc(var(--mood-hue) + 12) 40% 82%);
+  --color-indigo-300: hsl(calc(var(--mood-hue) + 12) 50% 75%);
+  --color-indigo-400: hsl(calc(var(--mood-hue) + 12) 55% 65%);
+  --color-indigo-500: hsl(calc(var(--mood-hue) + 12) 55% 48%);
+  --color-indigo-600: hsl(calc(var(--mood-hue) + 12) 55% 38%);
+  --color-indigo-700: hsl(calc(var(--mood-hue) + 12) 55% 30%);
+}
+html[data-color-theme]:not([data-color-theme="default"]) .planner-card {
+  /* A close family of hues retains category identity within the chosen mood. */
+  --mood-card-hue: calc(var(--mood-hue) + (var(--card-hue) - 180) * .1);
+  --mood-card-saturation: var(--mood-saturation);
+}
+html[data-color-theme]:not([data-color-theme="default"]) .planner-card[data-card-complete="true"] {
+  background-image: linear-gradient(135deg, transparent 45%, color-mix(in srgb, var(--mood-accent) 12%, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mood-accent) 30%, transparent);
+}
+html[data-color-theme]:not([data-color-theme="default"]) [data-prayer-card] {
+  background-image: linear-gradient(135deg, var(--mood-surface), color-mix(in srgb, var(--mood-accent) 13%, var(--mood-surface)));
+}
+html[data-color-theme]:not([data-color-theme="default"]).dark [data-prayer-card] {
+  background-image: linear-gradient(135deg, var(--mood-night-surface), color-mix(in srgb, var(--mood-accent) 12%, var(--mood-night)));
+}
+/* Explicit paired surfaces and text prevent light utilities overriding dark slots. */
+html[data-color-theme]:not([data-color-theme="default"]) [data-prayer-slot] {
+  color: var(--color-slate-900);
+  background-color: var(--mood-surface);
+  border-color: var(--color-emerald-200);
+}
+html[data-color-theme]:not([data-color-theme="default"]).dark [data-prayer-slot] {
+  color: var(--color-zinc-100);
+  background-color: var(--mood-night-surface);
+  border-color: color-mix(in srgb, var(--mood-accent) 24%, transparent);
+}
+html[data-color-theme]:not([data-color-theme="default"]) [data-prayer-status="done"] {
+  background-color: color-mix(in srgb, var(--mood-accent) 14%, var(--mood-surface));
+}
+html[data-color-theme]:not([data-color-theme="default"]).dark [data-prayer-status="done"] {
+  background-color: color-mix(in srgb, var(--mood-accent) 15%, var(--mood-night-surface));
+}
+html[data-color-theme]:not([data-color-theme="default"]) [data-prayer-status="not-done"] {
+  background-color: color-mix(in srgb, #f43f5e 10%, var(--mood-surface));
+  border-color: #f43f5e80;
+}
+html[data-color-theme]:not([data-color-theme="default"]).dark [data-prayer-status="not-done"] {
+  background-color: color-mix(in srgb, #f43f5e 14%, var(--mood-night-surface));
+}
+html[data-color-theme]:not([data-color-theme="default"]).dark :is([data-top-focus], [class~="dark:bg-[#11131a]"], [class~="dark:bg-[#121319]"], [class~="dark:bg-[#1c2425]"], [class~="dark:bg-[#171b23]"], [class~="dark:bg-[#0c0f14]"], [class~="dark:bg-[#1c2028]"]) { background-color: var(--mood-night-surface); }
+html[data-color-theme]:not([data-color-theme="default"]) .task-input {
+  --task-input-bg: var(--mood-surface);
+  --task-input-text: var(--color-slate-900);
+}
+html[data-color-theme]:not([data-color-theme="default"]).dark .task-input {
+  --task-input-bg: var(--mood-night-surface);
+  --task-input-text: var(--color-zinc-100);
+}
+html[data-color-theme]:not([data-color-theme="default"]) [class~="text-[#10e588]"] { color: var(--color-emerald-600); }
+html[data-color-theme]:not([data-color-theme="default"]).dark [class~="text-[#10e588]"] { color: var(--mood-accent); }
+html[data-color-theme]:not([data-color-theme="default"]) .bg-mesh {
+  background-image: radial-gradient(at 10% 0%, color-mix(in srgb, var(--mood-accent) 10%, transparent), transparent 55%);
+}
+html[data-color-theme="paper"] .bg-mesh {
+  background-image: repeating-linear-gradient(0deg, transparent 0 31px, rgb(160 120 70 / .07) 31px 32px);
+}
 
 /* Stable category hues, with theme-specific contrast and softly tinted surfaces. */
 @layer components {
   .planner-card {
-    --card-accent: hsl(var(--card-hue) var(--card-saturation) 38%);
-    background-color: hsl(var(--card-hue) var(--card-saturation) 97%);
-    border-color: hsl(var(--card-hue) var(--card-saturation) 85%);
+    --card-accent: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 38%);
+    background-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 97%);
+    border-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 85%);
     border-top-color: var(--card-accent);
   }
 
   .dark .planner-card {
-    --card-accent: hsl(var(--card-hue) var(--card-saturation) 72%);
-    background-color: hsl(var(--card-hue) 22% 10%);
-    border-color: hsl(var(--card-hue) 30% 24%);
+    --card-accent: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 72%);
+    background-color: hsl(var(--mood-card-hue, var(--card-hue)) 22% 10%);
+    border-color: hsl(var(--mood-card-hue, var(--card-hue)) 30% 24%);
     border-top-color: var(--card-accent);
   }
 
@@ -25,15 +196,15 @@
 
   .planner-card-icon {
     color: var(--card-accent);
-    background-color: hsl(var(--card-hue) var(--card-saturation) 92%);
-    border-color: hsl(var(--card-hue) var(--card-saturation) 85%);
+    background-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 92%);
+    border-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 85%);
   }
 
   .planner-card-task-icon { color: var(--card-accent); }
 
   .dark .planner-card-icon {
-    background-color: hsl(var(--card-hue) 35% 17%);
-    border-color: hsl(var(--card-hue) 35% 26%);
+    background-color: hsl(var(--mood-card-hue, var(--card-hue)) 35% 17%);
+    border-color: hsl(var(--mood-card-hue, var(--card-hue)) 35% 26%);
   }
 
   .planner-card-add {

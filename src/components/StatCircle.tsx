@@ -60,7 +60,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
     <>
       {/* Circle Body */}
       <div
-        className={`relative ${compact ? 'w-12 h-12' : 'w-14 h-14 sm:w-16 sm:h-16'} rounded-full flex items-center justify-center transition-all duration-200 motion-reduce:transition-none shadow-2xs ${
+        className={`progress-body relative ${compact ? 'w-12 h-12' : 'w-14 h-14 sm:w-16 sm:h-16'} rounded-full flex items-center justify-center transition-all duration-200 motion-reduce:transition-none shadow-2xs ${
           colorConfig.bgGlow
         } ${isActive ? colorConfig.activeRing : 'hover:shadow-xs'}`}
       >
@@ -76,7 +76,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
             fill="none"
             stroke="currentColor"
             strokeWidth="3.5"
-            className={`${colorConfig.track} dark:text-zinc-300/75`}
+            className={`progress-track ${colorConfig.track} dark:text-zinc-300/75`}
           />
           {/* Active progress arc */}
           {percentage > 0 && (
@@ -85,7 +85,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
               cy="27"
               r={radius}
               fill="none"
-              stroke={colorConfig.stroke}
+              stroke={`var(--progress-color, ${colorConfig.stroke})`}
               strokeWidth="3.5"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
@@ -97,7 +97,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
 
         {/* Number inside Circle */}
         <span
-          className={`font-numbers ${compact ? 'text-base' : 'text-base sm:text-lg'} font-black tracking-tight ${colorConfig.text}`}
+          className={`progress-value font-numbers ${compact ? 'text-base' : 'text-base sm:text-lg'} font-black tracking-tight ${colorConfig.text}`}
         >
           {value}
         </span>
@@ -124,10 +124,10 @@ export const StatCircle: React.FC<StatCircleProps> = ({
     isActive ? 'scale-105' : 'opacity-90'
   }`;
   return onClick ? (
-    <button type="button" onClick={onClick} aria-label={`${label}: ${value}`} aria-pressed={isActive}
+    <button data-progress-tone={color} data-progress-active={isActive} type="button" onClick={onClick} aria-label={`${label}: ${value}`} aria-pressed={isActive}
       className={`${classes} cursor-pointer hover:scale-105 hover:opacity-100 active:scale-95 motion-reduce:transform-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-500 rounded-lg`}>
       {content}
     </button>
-  ) : <div aria-label={`${label}: ${value}`} className={classes}>{content}</div>;
+  ) : <div data-progress-tone={color} data-progress-active={isActive} aria-label={`${label}: ${value}`} className={classes}>{content}</div>;
 };
 

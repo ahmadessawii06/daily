@@ -1,0 +1,62 @@
+html[data-color-theme]:not([data-color-theme="default"]).dark :is(
+  [class~="dark:bg-[#08090d]"],
+  [class~="dark:bg-[#090d12]"],
+  [class~="dark:bg-[#0c0d13]"],
+  [class~="dark:bg-[#0c0f14]"],
+  [class~="dark:bg-[#0c1016]"],
+  [class~="dark:bg-[#0d0e14]"],
+  [class~="dark:bg-[#0e1017]"],
+  [class~="dark:bg-[#0e1717]"],
+  [class~="dark:bg-[#101218]"],
+  [class~="dark:bg-[#101219]"],
+  [class~="dark:bg-[#10121a]"],
+  [class~="dark:bg-[#10141b]"],
+  [class~="dark:bg-[#11131a]"],
+  [class~="dark:bg-[#11161e]"],
+  [class~="dark:bg-[#12141e]"],
+  [class~="dark:bg-[#13151f]"],
+  [class~="dark:bg-[#171a23]"],
+  [class~="dark:bg-[#1a2527]"]
+) { background-color: var(--theme-surface); }
+
+/* Shared surfaces, controls and category cards follow the full palette. */
+html[data-color-theme]:not([data-color-theme="default"]) :is(.planner-card, [data-prayer-slot], [data-top-focus]) {
+  background-color: var(--theme-surface);
+  border-color: var(--theme-border);
+}
+html[data-color-theme]:not([data-color-theme="default"]) .planner-card {
+  --card-accent: var(--color-emerald-700);
+  border-top-color: var(--card-accent);
+  background-image: linear-gradient(135deg, color-mix(in srgb, var(--mood-accent) 9%, transparent), transparent 65%);
+}
+html[data-color-theme]:not([data-color-theme="default"]).dark .planner-card {
+  --card-accent: var(--mood-accent);
+  background-color: var(--theme-surface);
+  border-color: var(--theme-border);
+  border-top-color: var(--card-accent);
+}
+html[data-color-theme]:not([data-color-theme="default"]) :is(.planner-card-icon, [class~="bg-slate-100/70"], [class~="bg-slate-100/80"]) {
+  background-color: var(--theme-raised);
+  border-color: var(--theme-border);
+  color: var(--color-emerald-700);
+}
+html[data-color-theme]:not([data-color-theme="default"]).dark :is(.planner-card-icon, [class~="bg-slate-100/70"], [class~="bg-slate-100/80"]) {
+  background-color: var(--theme-raised);
+  color: var(--mood-accent);
+}
+html[data-color-theme]:not([data-color-theme="default"]) .planner-card-add {
+  background-color: var(--color-emerald-700);
+  color: white;
+}
+html[data-color-theme]:not([data-color-theme="default"]).dark .planner-card-add {
+  background-color: var(--mood-accent);
+  color: #101419;
+}
+html[data-color-theme]:not([data-color-theme="default"]) :is(input:not([type="checkbox"]), textarea, select) {
+  background-color: var(--theme-surface);
+  border-color: var(--theme-border);
+  accent-color: var(--color-emerald-600);
+}
+html[data-color-theme]:not([data-color-theme="default"]).dark :is(input:not([type="checkbox"]), textarea, select) { color: var(--color-zinc-100); }
+html[data-color-theme]:not([data-color-theme="default"]) [class*="border-white/"] { border-color: var(--theme-border); }
+html[data-color-theme]:not([data-color-theme="default"]) ::selection { background: var(--mood-accent); color: #101419; }

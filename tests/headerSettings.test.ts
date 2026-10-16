@@ -11,7 +11,10 @@ const noop = () => {};
 test('the planner header exposes language and theme beside daily actions and sync status', () => {
   for (const lang of ['ar', 'en'] as const) {
     const html = renderToStaticMarkup(React.createElement(MainHeader, { currentDate: '2026-10-15', currentUser: user, lang, theme: 'dark', onToggleTheme: noop, onToggleLang: noop, onExport: noop, exporting: false, onLogout: noop, onOpenArchive: noop, onOpenStats: noop, onOpenAddTask: noop, onOpenSettings: noop }));
-    assert.equal((html.match(/<button\b/g) || []).length, 8);
+    assert.equal((html.match(/<button\b/g) || []).length, 19, 'Nine toolbar actions, nine themes, and the popover close button');
+    assert.ok(html.includes('popover="manual"'), 'Theme choices stay in a fixed non-blocking side panel');
+    assert.ok(!html.includes('Search themes'));
+    assert.ok(html.includes(lang === 'ar' ? 'ثيمات الألوان' : 'Color themes'));
     assert.ok(html.includes(lang === 'ar' ? 'تصدير صورة اليوم' : 'Export today as an image'));
     assert.ok(html.includes(lang === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'));
     assert.ok(html.includes(lang === 'ar' ? 'تفعيل الوضع الفاتح' : 'Switch to light mode'));
