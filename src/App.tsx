@@ -566,6 +566,7 @@ export default function App() {
             onExport={() => { void handleExportDailyTrackImage(); }}
             onOpenArchive={() => navigate('archive')}
             onOpenStats={() => navigate('statistics')}
+            onLogout={handleLogout}
             exporting={isExportingImage || exportRequested}
             onToggleLang={handleToggleLang}
             onToggleTheme={() => { const next = theme === 'dark' ? 'light' : 'dark'; setStoredTheme(next); setTheme(next); }}

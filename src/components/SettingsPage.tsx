@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ArrowUpLeft, ArrowUpRight, Check, Cloud, Copy, Download,
-  KeyRound, LayoutTemplate, Loader2, LogOut, RefreshCw, RotateCcw, ShieldCheck, UserRound,
+  KeyRound, LayoutTemplate, Loader2, RefreshCw, RotateCcw, ShieldCheck, UserRound,
   Search, Grid2X2, type LucideIcon,
 } from 'lucide-react';
 import type { Language, Theme, User } from '../types';
@@ -61,7 +61,7 @@ function ActionRow({ icon: Icon, title, description, onClick, ar, disabled = fal
 }
 
 export function SettingsPage(props: SettingsPageProps) {
-  const { currentUser, lang, onBack, onResetData, onSyncComplete, onOpenAdmin, onLogout } = props;
+  const { currentUser, lang, onBack, onResetData, onSyncComplete, onOpenAdmin } = props;
   const ar = lang === 'ar', t = (a: string, e: string) => ar ? a : e;
   const [health, setHealth] = useState<DbHealthStatus & { checking: boolean }>({ connected: false, checking: true });
   const [syncing, setSyncing] = useState(false);
@@ -214,7 +214,6 @@ export function SettingsPage(props: SettingsPageProps) {
         <section id="settings-session" role="tabpanel" aria-labelledby="settings-tab-session" hidden={activeSection !== 'session'} tabIndex={0} className="outline-none">
           <SectionHeading id="settings-session-heading" title={t('حسابك وبياناتك', 'Account & data')} description={t('إدارة الجلسة وإعادة الضبط، بخطوات واضحة.', 'Manage your session and data with clear, deliberate actions.')} />
           <div className={panel}>
-            <div className="flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center sm:p-6"><div><h3 className="text-xs font-medium">{t('جلسة الحساب', 'Account session')}</h3><p className="mt-2 text-[11px] leading-6 text-slate-500 dark:text-zinc-400">{t('سجّل الخروج من حسابك على هذا الجهاز.', 'Sign out of your account on this device.')}</p></div><button type="button" className={`${button} shrink-0`} onClick={onLogout}><LogOut aria-hidden="true" size={14} />{t('تسجيل الخروج', 'Sign out')}</button></div>
             <div className="flex flex-col justify-between gap-4 border-t border-slate-200/80 bg-rose-50/40 p-5 dark:border-white/[.07] dark:bg-rose-500/[.025] sm:flex-row sm:items-center sm:p-6"><div><h3 className="text-xs font-medium text-rose-700 dark:text-rose-300">{t('مسح المهام وإعادة ضبط العادات', 'Reset tasks & habits')}</h3><p className="mt-2 max-w-sm text-[11px] leading-6 text-slate-500 dark:text-zinc-400">{t('يمسح مهام هذا الحساب ويعيد ضبط عاداته. سيُطلب منك التأكيد.', 'Clears this account’s tasks and resets its habits. You will be asked to confirm.')}</p></div><button type="button" disabled={syncing} className={`${button} shrink-0 !border-rose-500/20 !text-rose-600 dark:!text-rose-400`} onClick={() => { if (window.confirm(t('هل تريد مسح مهام هذا الحساب وإعادة ضبط العادات؟', 'Clear this account’s tasks and reset habits?'))) { onResetData(); onBack(); } }}><RotateCcw aria-hidden="true" size={14} />{t('إعادة الضبط', 'Reset data')}</button></div>
           </div>
         </section>

@@ -10,8 +10,8 @@ const user: User = { id: 'test-user', username: 'member', name: 'Test member', u
 const noop = () => {};
 test('the planner header exposes language and theme beside daily actions and sync status', () => {
   for (const lang of ['ar', 'en'] as const) {
-    const html = renderToStaticMarkup(React.createElement(MainHeader, { currentDate: '2026-10-15', currentUser: user, lang, theme: 'dark', onToggleTheme: noop, onToggleLang: noop, onExport: noop, exporting: false, onOpenArchive: noop, onOpenStats: noop, onOpenAddTask: noop, onOpenSettings: noop }));
-    assert.equal((html.match(/<button\b/g) || []).length, 7);
+    const html = renderToStaticMarkup(React.createElement(MainHeader, { currentDate: '2026-10-15', currentUser: user, lang, theme: 'dark', onToggleTheme: noop, onToggleLang: noop, onExport: noop, exporting: false, onLogout: noop, onOpenArchive: noop, onOpenStats: noop, onOpenAddTask: noop, onOpenSettings: noop }));
+    assert.equal((html.match(/<button\b/g) || []).length, 8);
     assert.ok(html.includes(lang === 'ar' ? 'تصدير صورة اليوم' : 'Export today as an image'));
     assert.ok(html.includes(lang === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'));
     assert.ok(html.includes(lang === 'ar' ? 'تفعيل الوضع الفاتح' : 'Switch to light mode'));
@@ -28,8 +28,8 @@ test('settings opens with searchable shortcuts and keeps detailed settings in ac
   const html = settings(user);
   assert.ok(html.startsWith('<main'));
   assert.ok(!html.includes('role="dialog"'));
-  for (const feature of ['Sync now', 'Sign out', 'Reset tasks &amp; habits', user.userCode]) assert.ok(html.includes(feature), feature);
-  for (const removed of ['Weekly statistics', 'Archive &amp; history', 'Appearance', 'Language', 'Export today as an image', '24-hour template', 'settings-preferences']) assert.ok(!html.includes(removed), removed);
+  for (const feature of ['Sync now', 'Reset tasks &amp; habits', user.userCode]) assert.ok(html.includes(feature), feature);
+  for (const removed of ['Sign out', 'Weekly statistics', 'Archive &amp; history', 'Appearance', 'Language', 'Export today as an image', '24-hour template', 'settings-preferences']) assert.ok(!html.includes(removed), removed);
   assert.ok(html.includes('Checking…'), 'Health loading is distinct from an offline failure');
   assert.ok(!html.includes('User management'));
   assert.ok(html.includes('aria-label="Search settings"'));
