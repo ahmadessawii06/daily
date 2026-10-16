@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   Scale, 
   User as UserIcon,
@@ -56,6 +56,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [loadingStage, setLoadingStage] = useState<AuthLoadingStage>('login');
   const submitting = useRef(false);
   const [error, setError] = useState<string | null>(null);
+  const errorDialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (error && !isLoading) errorDialog.current?.showModal();
+  }, [error, isLoading]);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
 
@@ -327,10 +331,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
             {/* Error Message */}
             {error && (
-              <div role="alert" className="mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs font-semibold flex items-start gap-2 animate-in fade-in">
-                <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
-                <span className="leading-relaxed">{error}</span>
-              </div>
+              <dialog ref={errorDialog} onClose={() => setError(null)}
+                aria-labelledby="auth-error-title" aria-describedby="auth-error-message"
+                dir={lang === 'ar' ? 'rtl' : 'ltr'}
+                className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-sm rounded-3xl border border-red-400/40 bg-slate-950 p-7 text-center text-white shadow-[0_24px_100px_rgba(0,0,0,0.7)] backdrop:bg-black/75 backdrop:backdrop-blur-sm">
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/15 ring-1 ring-red-400/40">
+                  <AlertCircle className="h-9 w-9 text-red-400" />
+                </div>
+                <h2 id="auth-error-title" className="text-xl font-bold">{lang === 'ar' ? 'تعذّر إكمال العملية' : 'Unable to continue'}</h2>
+                <p id="auth-error-message" className="mt-3 break-words text-sm leading-7 text-red-200">{error}</p>
+                <button autoFocus type="button" onClick={() => errorDialog.current?.close()}
+                  className="mt-6 min-h-12 w-full rounded-xl bg-red-500 px-5 py-3 font-bold text-white transition-colors hover:bg-red-400 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-red-300">
+                  {lang === 'ar' ? 'حسنًا، فهمت' : 'Got it'}
+                </button>
+              </dialog>
             )}
 
             {/* Success Message */}

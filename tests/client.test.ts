@@ -26,6 +26,22 @@ const user = { id: 'alice', userCode: 'ALICE', username: 'alice' };
 const task: Task = { id: 'one', time: '09:30', title: 'Study', status: 'pending', duration: 75, endTime: '10:45', createdAt: '2026-10-01T09:00:00Z', updatedAt: '2026-10-01T09:00:00Z' };
 const day: DayRecord = { date: '2026-10-01', tasks: [task, { ...task, id: 'two', time: '09:45' }, { ...task, id: 'flexible', time: '' }], updatedAt: task.updatedAt! };
 
+test('login accepts valid credentials even when optional workspace metadata is incompatible', async () => {
+  const originalFetch = globalThis.fetch;
+  const { loginApi } = await import('../src/services/api');
+  try {
+    for (const metadata of [{ view: 'cards', categories: [] }, createWorkspace('cards')]) {
+      globalThis.fetch = async () => new Response(JSON.stringify({ success: true, user, token: 'valid-token', workspace: metadata }), { headers: { 'content-type': 'application/json' } });
+      const result = await loginApi('alice', 'password');
+      assert.equal(result.success, true);
+      assert.equal(result.token, 'valid-token');
+      assert.deepEqual(result.workspace ? JSON.parse(JSON.stringify(result.workspace)) : undefined, 'viewUpdatedAt' in metadata ? metadata : undefined);
+    }
+    globalThis.fetch = async () => new Response(JSON.stringify({ error: 'Invalid credentials' }), { status: 401, headers: { 'content-type': 'application/json' } });
+    assert.equal((await loginApi('alice', 'wrong')).success, false);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test('client storage and sync regression cases', async t => {
   auth.saveStoredAuth(user, 'signed-token');
   await t.test('reading preserves arbitrary minutes, multiple tasks per hour and untimed tasks', () => {

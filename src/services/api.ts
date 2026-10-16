@@ -58,7 +58,12 @@ async function authenticate(path: string, body: unknown): Promise<AuthResponse> 
   try {
     const result = await requestApi(path, body);
     if (!result.user?.id || !result.user?.userCode || !result.token) throw new Error('استجابة تسجيل الدخول غير صالحة');
-    if (result.workspace) result.workspace = parseWorkspace(result.workspace);
+    // Workspace metadata must not invalidate an otherwise authenticated session.
+    // Leave incompatible server data untouched; sync can report it separately.
+    if (result.workspace) {
+      try { result.workspace = parseWorkspace(result.workspace); }
+      catch { delete result.workspace; }
+    }
     return result;
   } catch (err) { return { success: false, error: (err as Error).message }; }
 }
