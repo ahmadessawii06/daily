@@ -555,13 +555,20 @@ export default function App() {
       >
         <div className="space-y-4 sm:space-y-6">
 
-          {/* Two primary actions; account tools live on the settings page. */}
+          {/* Daily actions and quick appearance preferences. */}
           {!support ? <MainHeader
             currentDate={currentDate}
             currentUser={currentUser}
             onOpenAddTask={() => setIsTaskDestinationOpen(true)}
             onOpenSettings={() => navigate('settings')}
             lang={lang}
+            theme={theme}
+            onExport={() => { void handleExportDailyTrackImage(); }}
+            onOpenArchive={() => navigate('archive')}
+            onOpenStats={() => navigate('statistics')}
+            exporting={isExportingImage || exportRequested}
+            onToggleLang={handleToggleLang}
+            onToggleTheme={() => { const next = theme === 'dark' ? 'light' : 'dark'; setStoredTheme(next); setTheme(next); }}
           /> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
 
           {/* Today Progress Section (bar & metrics) */}

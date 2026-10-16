@@ -8,10 +8,13 @@ import type { User } from '../src/types';
 
 const user: User = { id: 'test-user', username: 'member', name: 'Test member', userCode: '1234567890ABCDEF12345678', role: 'user' };
 const noop = () => {};
-test('the planner header has exactly two actions and keeps sync status accessible without a third button', () => {
+test('the planner header exposes language and theme beside daily actions and sync status', () => {
   for (const lang of ['ar', 'en'] as const) {
-    const html = renderToStaticMarkup(React.createElement(MainHeader, { currentDate: '2026-10-15', currentUser: user, lang, onOpenAddTask: noop, onOpenSettings: noop }));
-    assert.equal((html.match(/<button\b/g) || []).length, 2);
+    const html = renderToStaticMarkup(React.createElement(MainHeader, { currentDate: '2026-10-15', currentUser: user, lang, theme: 'dark', onToggleTheme: noop, onToggleLang: noop, onExport: noop, exporting: false, onOpenArchive: noop, onOpenStats: noop, onOpenAddTask: noop, onOpenSettings: noop }));
+    assert.equal((html.match(/<button\b/g) || []).length, 7);
+    assert.ok(html.includes(lang === 'ar' ? 'تصدير صورة اليوم' : 'Export today as an image'));
+    assert.ok(html.includes(lang === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'));
+    assert.ok(html.includes(lang === 'ar' ? 'تفعيل الوضع الفاتح' : 'Switch to light mode'));
     assert.ok(html.includes(`aria-label="${lang === 'ar' ? 'الإعدادات' : 'Settings'}"`));
     assert.ok(html.includes(`aria-label="${lang === 'ar' ? 'إضافة مهمة جديدة' : 'Add new task'}"`));
     assert.ok(html.includes('role="status"'));
@@ -21,18 +24,22 @@ test('the planner header has exactly two actions and keeps sync status accessibl
 
 const settings = (currentUser: User, lang: 'ar' | 'en' = 'en') => renderToStaticMarkup(React.createElement(SettingsPage, { currentUser, lang, theme: 'dark', archiveDaysCount: 3, exporting: false, onBack: noop, onToggleLang: noop, onSetTheme: noop, onResetData: noop, onApply24HourTemplate: noop, onSyncComplete: noop, onOpenStats: noop, onOpenArchive: noop, onOpenAdmin: noop, onExport: noop, onLogout: noop }));
 
-test('settings keeps all tools in accessible tabs with only the account panel initially visible', () => {
+test('settings opens with searchable shortcuts and keeps detailed settings in accessible tabs', () => {
   const html = settings(user);
   assert.ok(html.startsWith('<main'));
   assert.ok(!html.includes('role="dialog"'));
-  for (const feature of ['Appearance', 'Language', 'Sync now', 'Weekly statistics', 'Archive &amp; history', 'Export today as an image', '24-hour template', 'Sign out', 'Reset tasks &amp; habits', user.userCode]) assert.ok(html.includes(feature), feature);
+  for (const feature of ['Sync now', 'Sign out', 'Reset tasks &amp; habits', user.userCode]) assert.ok(html.includes(feature), feature);
+  for (const removed of ['Weekly statistics', 'Archive &amp; history', 'Appearance', 'Language', 'Export today as an image', '24-hour template', 'settings-preferences']) assert.ok(!html.includes(removed), removed);
   assert.ok(html.includes('Checking…'), 'Health loading is distinct from an offline failure');
   assert.ok(!html.includes('User management'));
+  assert.ok(html.includes('aria-label="Search settings"'));
+  assert.ok(html.includes('A shortcut to everything'));
   assert.equal((html.match(/role="tab"/g) || []).length, 5);
   assert.equal((html.match(/role="tabpanel"/g) || []).length, 5);
   assert.equal((html.match(/aria-selected="true"/g) || []).length, 1);
   assert.equal((html.match(/hidden=""/g) || []).length, 4, 'Inactive panels do not lengthen the page or expose hidden controls');
-  assert.ok(html.includes('id="settings-account" role="tabpanel" aria-labelledby="settings-tab-account" tabindex="0"'));
+  assert.ok(html.includes('id="settings-overview" role="tabpanel" aria-labelledby="settings-tab-overview" tabindex="0"'));
+  assert.ok(html.includes('id="settings-account" role="tabpanel" aria-labelledby="settings-tab-account" hidden="" tabindex="0"'));
 });
 
 test('the management tile follows permissions and legacy cached identities remain renderable', () => {
