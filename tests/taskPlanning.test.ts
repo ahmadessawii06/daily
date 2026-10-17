@@ -25,6 +25,45 @@ const task = (id: string, extra: Partial<Task> = {}): Task => ({ id, title: `Tas
 const record = (tasks: Task[], day = date, extra: Partial<DayRecord> = {}): DayRecord => ({ date: day, tasks, dayNote: 'Keep day note', updatedAt: stamp, ...extra });
 const seed = (days: Record<string, DayRecord>) => { auth.saveStoredAuth({ id: 'planning-owner', userCode: 'OWNER' }, 'test-token'); workspace.storeWorkspace(createWorkspace('cards')); storage.saveAllDays(days); queue.saveQueue([]); };
 
+test('day photo saves on its date and deletion survives stale sync and newer task edits', () => {
+  seed({ [date]: record([task('photo-task')], date, { notes: 'My writing' }), [tomorrow]: record([], tomorrow) });
+  const photo = 'data:image/jpeg;base64,/9j/2Q==';
+  assert.equal(storage.saveDayPhoto(date, photo), true);
+  const saved = storage.getDayRecord(date);
+  assert.equal(saved.dayPhoto, photo);
+  assert.equal(saved.notes, 'My writing');
+  assert.equal(storage.getDayRecord(tomorrow).dayPhoto, undefined);
+  assert.equal(queue.getQueue().find(item => item.date === date)?.data.dayPhoto, photo);
+  assert.equal(storage.saveDayPhoto(date, ''), true);
+  const deleted = storage.getDayRecord(date);
+  assert.equal(mergeDay(deleted, saved).dayPhoto, '');
+  assert.equal(mergeDay(deleted, { ...saved, dayPhoto: undefined, dayPhotoUpdatedAt: undefined, updatedAt: '2099-01-01T00:00:00.000Z' }).dayPhoto, '');
+  memory.failQueue = true;
+  try { assert.equal(storage.saveDayPhoto(date, photo), false); assert.equal(storage.getDayRecord(date).dayPhoto, ''); }
+  finally { memory.failQueue = false; }
+});
+
+test('journal saves and clears on its own day while preserving tasks and queueing sync', () => {
+  seed({ [date]: record([task('journal-task')]), [tomorrow]: record([], tomorrow, { notes: 'Tomorrow' }) });
+  assert.equal(storage.saveDayJournal(date, 'أحداث يومي\nوشعوري اليوم'), true);
+  assert.equal(storage.getDayRecord(date).notes, 'أحداث يومي\nوشعوري اليوم');
+  assert.deepEqual(storage.getDayRecord(date).tasks, [task('journal-task')]);
+  assert.equal(storage.getDayRecord(date).dayNote, 'Keep day note');
+  assert.equal(storage.getDayRecord(tomorrow).notes, 'Tomorrow');
+  assert.equal(queue.getQueue().find(item => item.date === date)?.data.notes, 'أحداث يومي\nوشعوري اليوم');
+  assert.equal(storage.saveDayJournal(date, ''), true);
+  assert.equal(storage.getDayRecord(date).notes, '');
+});
+
+test('journal reports a queue failure without committing an unsyncable edit', () => {
+  seed({ [date]: record([], date, { notes: 'Original' }) });
+  memory.failQueue = true;
+  try {
+    assert.equal(storage.saveDayJournal(date, 'New writing'), false);
+    assert.equal(storage.getDayRecord(date).notes, 'Original');
+  } finally { memory.failQueue = false; }
+});
+
 test('undo restores complete tasks to the original day and survives stale synchronization', () => {
   const original = task('undo', { status: 'not-done', isTopFocus: true });
   const before = record([original, task('other')]); seed({ [date]: before });

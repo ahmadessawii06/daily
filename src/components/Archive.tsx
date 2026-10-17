@@ -32,7 +32,7 @@ export const Archive: React.FC<ArchiveProps> = ({
     const matchTask = day.tasks.some(
       (t) => t.title.toLowerCase().includes(q) || t.notes?.toLowerCase().includes(q)
     );
-    return matchDate || matchTask;
+    return matchDate || matchTask || day.notes?.toLowerCase().includes(q);
   });
 
   // Group days by Month Year (e.g., "September 2026")

@@ -225,6 +225,26 @@ function saveTaskChanges(previous: Record<string, DayRecord>, updated: Record<st
   }
 }
 
+export function saveDayJournal(date: string, notes: string): boolean {
+  const record = getDayRecord(date);
+  const previous = loadAllDays();
+  if (record.notes === notes) return true;
+  return saveTaskChanges(previous, {
+    ...previous,
+    [date]: { ...record, notes, updatedAt: nextRecordTimestamp(record) },
+  }, [date]);
+}
+
+export function saveDayPhoto(date: string, dayPhoto: string): boolean {
+  const record = getDayRecord(date);
+  const previous = loadAllDays();
+  const updatedAt = nextRecordTimestamp(record);
+  return saveTaskChanges(previous, {
+    ...previous,
+    [date]: { ...record, dayPhoto, dayPhotoUpdatedAt: updatedAt, updatedAt },
+  }, [date]);
+}
+
 export function getDayRecord(date: string): DayRecord {
   const all = loadAllDays();
   if (all[date] && Array.isArray(all[date].tasks)) return all[date];
@@ -517,6 +537,8 @@ export function resetToDefaults(): void {
     record.deletedTaskIds = { ...record.deletedTaskIds, ...Object.fromEntries(record.tasks.map(t => [t.id, now])) };
     record.tasks = [];
     record.notes = '';
+    record.dayPhoto = '';
+    record.dayPhotoUpdatedAt = now;
     record.dayNote = '';
     record.updatedAt = now;
   }

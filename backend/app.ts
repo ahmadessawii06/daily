@@ -31,11 +31,14 @@ export function validateDay(date: string, data: any): DayRecord {
   const updatedAt = data.updatedAt || data.clientUpdatedAt || new Date().toISOString();
   if (!Number.isFinite(Date.parse(updatedAt))) badRequest('Invalid timestamp');
   const deletedTaskIds: Record<string, string> = {};
+  if (data.dayPhoto !== undefined && (typeof data.dayPhoto !== 'string' || data.dayPhoto.length > 100000 || (data.dayPhoto !== '' && !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(data.dayPhoto)))) badRequest('Invalid day photo');
+  if (data.dayPhotoUpdatedAt !== undefined && (typeof data.dayPhotoUpdatedAt !== 'string' || !Number.isFinite(Date.parse(data.dayPhotoUpdatedAt)))) badRequest('Invalid photo timestamp');
   for (const [id, time] of Object.entries(data.deletedTaskIds || {})) {
     if (typeof time !== 'string' || !Number.isFinite(Date.parse(time))) badRequest('Invalid deletion');
     Object.defineProperty(deletedTaskIds, id, { value: time, enumerable: true, writable: true, configurable: true });
   }
   return { date, tasks: data.tasks, notes: typeof data.notes === 'string' ? data.notes : '',
+    dayPhoto: data.dayPhoto, dayPhotoUpdatedAt: data.dayPhotoUpdatedAt,
     dayNote: typeof data.dayNote === 'string' ? data.dayNote : undefined, updatedAt, deletedTaskIds };
 }
 

@@ -10,7 +10,6 @@ import {
   deleteTaskFromDay,
   restoreTaskToDay,
   moveTasksToNextDay,
-  toggleTaskFocus,
   getAllArchiveDays,
   resetToDefaults,
   getStoredTheme,
@@ -37,12 +36,12 @@ import { partitionPrayerTasks } from './utils/prayerTasks';
 import { calculateDailyProgress } from './utils/dailyProgress';
 import { shouldPlayListCompletionSound } from './utils/listCompletion';
 import { canMoveTask } from './shared/taskPlanning';
-import { TopFocus } from './components/TopFocus';
 import { MainHeader } from './components/MainHeader';
 import { applyColorTheme, readColorTheme } from './utils/colorThemes';
 import { TodayProgress } from './components/TodayProgress';
 import { PrayerCard } from './components/PrayerCard';
 import { DateNavigation } from './components/DateNavigation';
+import { DayMemories } from './components/DayMemories';
 import { TaskList } from './components/TaskList';
 import { WeeklyReview } from './components/WeeklyReview';
 import { Archive } from './components/Archive';
@@ -345,16 +344,6 @@ export default function App() {
     setUndoPaused(false);
   };
 
-  const handleToggleFocus = (taskId: string) => {
-    if (support) return;
-    try {
-      const result = toggleTaskFocus(currentDate, taskId);
-      if (result === 'limit') { showToast(lang === 'ar' ? 'الحد الأقصى 3 مهام. ألغِ تثبيت مهمة أولًا.' : 'Your top 3 is full. Unpin a task first.', false); return; }
-      setTasks(getDayRecord(currentDate).tasks);
-      refreshArchive();
-    } catch { showToast(lang === 'ar' ? 'تعذر حفظ التثبيت على هذا الجهاز.' : 'Unable to save your pinned tasks on this device.', false); }
-  };
-
   const handleMoveTasks = (taskIds: string[]) => {
     if (support) return;
     try {
@@ -572,7 +561,7 @@ export default function App() {
             exporting={isExportingImage || exportRequested}
             onToggleLang={handleToggleLang}
             onToggleTheme={() => { const next = theme === 'dark' ? 'light' : 'dark'; setStoredTheme(next); setTheme(next); }}
-          /> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
+          ><DayMemories key={`${currentUser.id}-${currentDate}`} date={currentDate} lang={lang} onSaved={refreshArchive} /></MainHeader> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
 
           {/* Today Progress Section (bar & metrics) */}
           <TodayProgress
@@ -589,6 +578,8 @@ export default function App() {
             lang={lang}
           />
 
+
+
           <div className="flex flex-wrap items-center justify-between gap-3"><div role="group" aria-label={lang === 'ar' ? 'طريقة عرض المهام' : 'Planning view'} className="inline-flex max-w-full gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
             {(['cards', 'timeline'] as const).map(view => {
               const Icon = view === 'cards' ? LayoutGrid : ListChecks;
@@ -598,12 +589,11 @@ export default function App() {
           </div>{!support && <button type="button" onClick={handleMoveRemaining} disabled={!tasks.some(canMoveTask)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-600 hover:border-emerald-500/40 focus-visible:outline-2 focus-visible:outline-emerald-500 disabled:opacity-40 dark:border-white/10 dark:bg-white/[.02] dark:text-zinc-300"><CalendarArrowUp aria-hidden="true" size={15} />{lang === 'ar' ? 'نقل غير المكتمل لليوم التالي' : 'Move unfinished to next day'}</button>}</div>
 
           <fieldset disabled={!!support} className="min-w-0 border-0 p-0 m-0">
-          <TopFocus key={`${currentUser.id}-${currentDate}`} tasks={tasks} lang={lang} onToggleFocus={handleToggleFocus} onStatusChange={handleStatusChange} readOnly={!!support} />
           {workspace.view === 'cards' ? <CardsDashboard currentDate={currentDate} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
             creationTarget={cardCreationTarget}
             onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
             onAddPrayer={handleCompletePrayer}
-            onStatusChange={handleStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} onMove={id => handleMoveTasks([id])} onToggleFocus={handleToggleFocus} /> : <>
+            onStatusChange={handleStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} onMove={id => handleMoveTasks([id])} /> : <>
             <PrayerCard currentDate={currentDate} slots={partitionPrayerTasks(tasks).slots} lang={lang} onAddPrayer={handleCompletePrayer} onStatusChange={handleStatusChange} />
             <TaskList
               tasks={tasks}
@@ -611,7 +601,6 @@ export default function App() {
               onEdit={(task) => { if (!support) setEditingTask(task); }}
               onDelete={handleDeleteTask}
               onMove={id => handleMoveTasks([id])}
-              onToggleFocus={handleToggleFocus}
               onUpdateTitle={handleUpdateTaskTitle}
               onOpenAddTask={() => setIsAddTaskOpen(true)}
               onApply24HourTemplate={handleApply24HourTemplate}
@@ -621,6 +610,7 @@ export default function App() {
               lang={lang}
             /></>}
           </fieldset>
+
 
         </div>
       </main>
