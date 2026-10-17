@@ -122,7 +122,7 @@ html[data-color-theme]:not([data-color-theme="default"]) .planner-card {
   --mood-card-saturation: var(--mood-saturation);
 }
 html[data-color-theme]:not([data-color-theme="default"]) .planner-card[data-card-complete="true"] {
-  background-image: linear-gradient(135deg, transparent 45%, color-mix(in srgb, var(--mood-accent) 12%, transparent));
+  background-image: none;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mood-accent) 30%, transparent);
 }
 html[data-color-theme]:not([data-color-theme="default"]) [data-prayer-card] {
@@ -190,8 +190,14 @@ html[data-color-theme="paper"] .bg-mesh {
   }
 
   .planner-card[data-card-complete="true"] {
-    background-image: linear-gradient(135deg, transparent 45%, rgb(16 185 129 / 0.08));
-    box-shadow: inset 0 0 0 1px rgb(16 185 129 / 0.25);
+    background-image: none;
+    background-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 90%);
+    border-color: var(--card-accent);
+    box-shadow: none;
+  }
+
+  .dark .planner-card[data-card-complete="true"] {
+    background-color: hsl(var(--mood-card-hue, var(--card-hue)) 35% 18%);
   }
 
   .planner-card-icon {
