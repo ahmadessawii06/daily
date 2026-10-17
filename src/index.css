@@ -327,6 +327,15 @@ html[data-color-theme="paper"] .bg-mesh {
   .task-actions-mobile { display: flex; }
 }
 
+/* Card titles retain their width with one stable menu control. */
+.card-task-row .task-actions-desktop { display: none; }
+.card-task-row [data-task-actions-trigger] {
+  display: flex;
+  width: 2rem;
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* Hide scrollbar utility for smooth horizontal pill scrollers on mobile */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
