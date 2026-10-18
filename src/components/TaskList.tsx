@@ -107,7 +107,7 @@ export const TaskList: React.FC<TaskListProps> = ({
 
       {/* Task Rows List or Empty State */}
       {filteredTasks.length === 0 ? (
-        <div className="py-12 sm:py-14 px-4 text-center border border-dashed border-slate-200 dark:border-white/[0.1] rounded-3xl bg-white/70 dark:bg-gradient-to-b dark:from-white/[0.02] dark:to-transparent relative overflow-hidden shadow-2xs">
+        <div className="py-12 sm:py-14 px-4 text-center border border-dashed border-slate-200 dark:border-white/[0.1] rounded-3xl bg-white/70 dark:bg-[#111416] dark:bg-gradient-to-b dark:from-white/[0.02] dark:to-transparent relative overflow-hidden shadow-2xs">
           {tasks.length === 0 ? (
             <div className="max-w-sm mx-auto space-y-4">
               <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400 shadow-xl shadow-emerald-500/10">
