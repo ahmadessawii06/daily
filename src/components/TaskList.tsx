@@ -63,8 +63,8 @@ export const TaskList: React.FC<TaskListProps> = ({
 
   const orderedTasks = [...filteredTasks.filter(t => t.time), ...filteredTasks.filter(t => !t.time)];
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/70 pb-4 dark:border-white/[.07]">
         <h2 className="text-sm font-semibold">{lang === 'ar' ? 'الجدول' : 'Timeline'}</h2>
         <button type="button" onClick={onApply24HourTemplate} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 px-3 text-xs text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:text-zinc-400 dark:hover:bg-white/5"><LayoutTemplate className="h-4 w-4" />{lang === 'ar' ? 'إضافة خانات ٢٤ ساعة' : 'Add 24-hour slots'}</button>
       </div>
@@ -153,7 +153,7 @@ export const TaskList: React.FC<TaskListProps> = ({
         <div className="space-y-2">
           {orderedTasks.map((task, index) => (
             <React.Fragment key={task.id}>
-              {!task.time && (index === 0 || orderedTasks[index - 1].time) && <h3 className="pb-1 pt-4 text-xs font-semibold text-slate-500 dark:text-zinc-400">{lang === 'ar' ? 'مهام بدون وقت' : 'Unscheduled tasks'}</h3>}
+              {!task.time && (index === 0 || orderedTasks[index - 1].time) && <h3 className={`${index === 0 ? 'pt-1' : 'pt-6'} pb-3 text-xs font-semibold text-slate-500 dark:text-zinc-400`}>{lang === 'ar' ? 'مهام بدون وقت' : 'Unscheduled tasks'}</h3>}
               <TaskRow
                 key={task.id}
                 task={task}

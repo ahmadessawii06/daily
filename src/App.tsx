@@ -42,6 +42,7 @@ import { TodayProgress } from './components/TodayProgress';
 import { PrayerCard } from './components/PrayerCard';
 import { DateNavigation } from './components/DateNavigation';
 import { DayMemories } from './components/DayMemories';
+import { PlannerBackdrop } from './components/PlannerBackdrop';
 import { TaskList } from './components/TaskList';
 import { WeeklyReview } from './components/WeeklyReview';
 import { Archive } from './components/Archive';
@@ -52,7 +53,7 @@ import { EditTaskModal } from './components/EditTaskModal';
 import { ExportScheduleModal } from './components/ExportScheduleModal';
 
 import { playAchievementSound, playFailureSound, playChallengeCompleteSound, preloadChallengeCompleteSound } from './utils/soundEffects';
-import { AlertCircle, CalendarArrowUp, CheckCircle2, LayoutGrid, ListChecks, Undo2, X } from 'lucide-react';
+import { AlertCircle, CalendarArrowUp, CheckCircle2, LayoutGrid, ListChecks, Plus, Undo2, X } from 'lucide-react';
 
 const AdminPanel = React.lazy(() => import('./components/AdminPanel').then(module => ({ default: module.AdminPanel })));
 const SettingsPage = React.lazy(() => import('./components/SettingsPage').then(module => ({ default: module.SettingsPage })));
@@ -536,15 +537,16 @@ export default function App() {
   </>;
 
   return (
-    <div className={`min-h-screen bg-slate-50 dark:bg-[#07080b] bg-mesh text-slate-900 dark:text-zinc-100 flex flex-col font-['Alexandria','Cairo',sans-serif] transition-colors duration-200`}>
+    <div className={`relative isolate min-h-screen bg-slate-50 dark:bg-[#07080b] bg-mesh text-slate-900 dark:text-zinc-100 flex flex-col font-['Alexandria','Cairo',sans-serif] transition-colors duration-200`}>
       {supportBanner}
 
       {/* Main Full-Width Centered Clean Canvas */}
       <main
         id="daily-track-container"
-        className={`flex-1 w-full ${workspace.view === 'cards' ? 'max-w-6xl' : 'max-w-4xl'} mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors`}
+        className="relative z-10 isolate flex-1 w-full max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors"
       >
-        <div className="space-y-4 sm:space-y-6">
+        <PlannerBackdrop />
+        <div className="relative z-10 space-y-4 sm:space-y-6">
 
           {/* Daily actions and quick appearance preferences. */}
           {!support ? <MainHeader
@@ -593,7 +595,11 @@ export default function App() {
             creationTarget={cardCreationTarget}
             onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
             onAddPrayer={handleCompletePrayer}
-            onStatusChange={handleStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} onMove={id => handleMoveTasks([id])} /> : <>
+            onStatusChange={handleStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} onMove={id => handleMoveTasks([id])} /> : <div className="space-y-6 sm:space-y-8">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div><h2 className="text-lg font-bold tracking-tight">{lang === 'ar' ? 'جدولك اليومي' : 'Your daily schedule'}</h2><p className="mt-1 text-xs leading-6 text-slate-500 dark:text-zinc-400">{lang === 'ar' ? 'رتّب مهامك، وخلي لكل خطوة وقتها.' : 'Plan your tasks and make time for each step.'}</p></div>
+              {!support && <button type="button" onClick={() => setIsAddTaskOpen(true)} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold transition-colors hover:border-emerald-400 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-emerald-400/40"><Plus aria-hidden="true" className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />{lang === 'ar' ? 'مهمة جديدة' : 'New task'}</button>}
+            </div>
             <PrayerCard currentDate={currentDate} slots={partitionPrayerTasks(tasks).slots} lang={lang} onAddPrayer={handleCompletePrayer} onStatusChange={handleStatusChange} />
             <TaskList
               tasks={tasks}
@@ -608,7 +614,7 @@ export default function App() {
               currentFilter={currentFilter}
               onFilterChange={setCurrentFilter}
               lang={lang}
-            /></>}
+            /></div>}
           </fieldset>
 
 

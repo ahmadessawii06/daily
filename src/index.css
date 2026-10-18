@@ -352,6 +352,36 @@ html[data-color-theme="paper"] .bg-mesh {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Rain moves behind the planner without intercepting input. */
+.planner-rain {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+  opacity: .65;
+}
+.planner-rain span {
+  position: absolute;
+  top: -130px;
+  width: 1.5px;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, transparent, var(--mood-accent, #10b981));
+  animation: planner-rain-fall 2s linear infinite;
+}
+.dark .planner-rain { opacity: 1; }
+@keyframes planner-rain-fall {
+  from { transform: translate3d(0, -10px, 0) rotate(12deg); }
+  to { transform: translate3d(-22vh, calc(100dvh + 260px), 0) rotate(12deg); }
+}
+@media (max-width: 639px) {
+  .planner-rain span:nth-child(n + 19) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .planner-rain { display: none; }
+}
+
 /* Dark Mode Mesh */
 html.dark body,
 body:not(.light) {
