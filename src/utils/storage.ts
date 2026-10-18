@@ -235,13 +235,13 @@ export function saveDayJournal(date: string, notes: string): boolean {
   }, [date]);
 }
 
-export function saveDayPhoto(date: string, dayPhoto: string): boolean {
+export function saveDayPhotos(date: string, dayPhotos: string[]): boolean {
   const record = getDayRecord(date);
   const previous = loadAllDays();
   const updatedAt = nextRecordTimestamp(record);
   return saveTaskChanges(previous, {
     ...previous,
-    [date]: { ...record, dayPhoto, dayPhotoUpdatedAt: updatedAt, updatedAt },
+    [date]: { ...record, dayPhoto: '', dayPhotos, dayPhotoUpdatedAt: updatedAt, updatedAt },
   }, [date]);
 }
 
@@ -538,6 +538,7 @@ export function resetToDefaults(): void {
     record.tasks = [];
     record.notes = '';
     record.dayPhoto = '';
+    record.dayPhotos = [];
     record.dayPhotoUpdatedAt = now;
     record.dayNote = '';
     record.updatedAt = now;

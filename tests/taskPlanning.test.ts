@@ -28,19 +28,36 @@ const seed = (days: Record<string, DayRecord>) => { auth.saveStoredAuth({ id: 'p
 test('day photo saves on its date and deletion survives stale sync and newer task edits', () => {
   seed({ [date]: record([task('photo-task')], date, { notes: 'My writing' }), [tomorrow]: record([], tomorrow) });
   const photo = 'data:image/jpeg;base64,/9j/2Q==';
-  assert.equal(storage.saveDayPhoto(date, photo), true);
+  assert.equal(storage.saveDayPhotos(date, [photo, photo]), true);
   const saved = storage.getDayRecord(date);
-  assert.equal(saved.dayPhoto, photo);
+  assert.deepEqual(saved.dayPhotos, [photo, photo]);
   assert.equal(saved.notes, 'My writing');
   assert.equal(storage.getDayRecord(tomorrow).dayPhoto, undefined);
-  assert.equal(queue.getQueue().find(item => item.date === date)?.data.dayPhoto, photo);
-  assert.equal(storage.saveDayPhoto(date, ''), true);
+  assert.deepEqual(queue.getQueue().find(item => item.date === date)?.data.dayPhotos, [photo, photo]);
+  assert.equal(storage.saveDayPhotos(date, []), true);
   const deleted = storage.getDayRecord(date);
-  assert.equal(mergeDay(deleted, saved).dayPhoto, '');
-  assert.equal(mergeDay(deleted, { ...saved, dayPhoto: undefined, dayPhotoUpdatedAt: undefined, updatedAt: '2099-01-01T00:00:00.000Z' }).dayPhoto, '');
+  assert.deepEqual(mergeDay(deleted, saved).dayPhotos, []);
+  assert.deepEqual(mergeDay(deleted, { ...saved, dayPhoto: undefined, dayPhotoUpdatedAt: undefined, updatedAt: '2099-01-01T00:00:00.000Z' }).dayPhotos, []);
   memory.failQueue = true;
-  try { assert.equal(storage.saveDayPhoto(date, photo), false); assert.equal(storage.getDayRecord(date).dayPhoto, ''); }
+  try { assert.equal(storage.saveDayPhotos(date, [photo, photo]), false); assert.deepEqual(storage.getDayRecord(date).dayPhotos, []); }
   finally { memory.failQueue = false; }
+});
+
+test('day gallery keeps more than two photos across repeated additions and sync', () => {
+  const photo = 'data:image/jpeg;base64,/9j/2Q==';
+  seed({ [date]: record([], date, { dayPhoto: photo }) });
+  let photos = [storage.getDayRecord(date).dayPhoto!];
+  for (let batch = 0; batch < 4; batch++) {
+    photos = [...photos, photo, photo, photo];
+    assert.equal(storage.saveDayPhotos(date, photos), true);
+    assert.deepEqual(storage.getDayRecord(date).dayPhotos, photos);
+  }
+  const saved = storage.getDayRecord(date);
+  assert.equal(saved.dayPhotos?.length, 13);
+  assert.deepEqual(queue.getQueue().find(item => item.date === date)?.data.dayPhotos, photos);
+  assert.deepEqual(mergeDay(record([]), saved).dayPhotos, photos);
+  assert.equal(storage.saveDayPhotos(date, photos.filter((_, index) => index !== 2)), true);
+  assert.equal(storage.getDayRecord(date).dayPhotos?.length, 12);
 });
 
 test('journal saves and clears on its own day while preserving tasks and queueing sync', () => {

@@ -51,6 +51,7 @@ export interface DayRecord {
   tasks: Task[];
   dayNote?: string;
   dayPhoto?: string;
+  dayPhotos?: string[];
   dayPhotoUpdatedAt?: string;
   notes?: string;
   updatedAt: string;
