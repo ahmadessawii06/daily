@@ -506,7 +506,7 @@ export default function App() {
       <LoginScreen
         onLoginSuccess={(user) => {
           // The initial sync effect dismisses the loader after preparing account data.
-          loginLoadingUntil.current = Date.now() + 3000;
+          loginLoadingUntil.current = Date.now() + 1500;
           setIsPreparingWorkspace(true);
           setCurrentUser(user);
           showToast(lang === 'ar' ? `أهلاً بك، ${user.name || user.username}!` : `Welcome, ${user.name || user.username}!`);
