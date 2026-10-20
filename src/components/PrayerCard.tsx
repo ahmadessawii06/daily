@@ -102,11 +102,11 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
             : status === 'not-done' ? 'border-rose-400/60 bg-rose-50 dark:bg-rose-400/10'
             : 'border-emerald-200/70 bg-white/70 dark:border-white/10 dark:bg-white/[0.03]';
           return <div key={prayer.id} data-prayer-slot={prayer.id} data-prayer-status={status} className={`group min-w-0 rounded-2xl border p-3 ${index === 4 ? 'col-span-2 lg:col-span-1' : ''} ${appearance}`}>
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0"><p className="break-words text-sm font-bold">{name}</p><p className="mt-1 text-[11px] font-semibold tabular-nums text-emerald-800 dark:text-emerald-200">{time ? <time data-prayer-time dateTime={`${currentDate}T${time}`}>{formatTime12h(time, lang).formatted}</time> : <span>{times.loading ? (ar ? 'تحميل الوقت…' : 'Loading…') : (ar ? 'الوقت غير متاح' : 'Time unavailable')}</span>}</p></div>
-              <button type="button" data-task-status={status} aria-label={ar ? `تغيير حالة ${name}: ${labels[status]}` : `Change status of ${name}: ${labels[status]}`} onClick={() => task ? onStatusChange(task.id, nextTaskStatus(status)) : onAddPrayer(`صلاة ${prayer.nameAr}`, time || '')} className="group/status flex h-11 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg focus-visible:outline-2 focus-visible:outline-emerald-400"><TaskStatusIndicator status={status} /></button>
+            <div className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-2">
+              <div className="col-start-2 row-start-1 flex min-w-0 flex-col justify-center gap-1 text-start"><p className="break-words text-sm font-bold">{name}</p><p className="shrink-0 text-[11px] font-semibold tabular-nums text-emerald-800 dark:text-emerald-200">{time ? <time data-prayer-time dateTime={`${currentDate}T${time}`}>{formatTime12h(time, lang).formatted}</time> : <span>{times.loading ? (ar ? 'تحميل الوقت…' : 'Loading…') : (ar ? 'الوقت غير متاح' : 'Time unavailable')}</span>}</p></div>
+              <button type="button" data-task-status={status} aria-label={ar ? `تغيير حالة ${name}: ${labels[status]}` : `Change status of ${name}: ${labels[status]}`} onClick={() => task ? onStatusChange(task.id, nextTaskStatus(status)) : onAddPrayer(`صلاة ${prayer.nameAr}`, time || '')} className="group/status col-start-1 row-start-1 flex h-11 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg focus-visible:outline-2 focus-visible:outline-emerald-400"><TaskStatusIndicator status={status} /></button>
             </div>
-            {status !== 'pending' && <p className={`mt-3 text-[10px] font-semibold ${status === 'done' ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>{labels[status]}</p>}
+            {status !== 'pending' && <p className={`mt-3 text-start text-[10px] font-semibold ${status === 'done' ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>{labels[status]}</p>}
           </div>;
         })}
       </div>
