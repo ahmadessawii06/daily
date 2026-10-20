@@ -31,6 +31,8 @@ export function validateDay(date: string, data: any): DayRecord {
   const updatedAt = data.updatedAt || data.clientUpdatedAt || new Date().toISOString();
   if (!Number.isFinite(Date.parse(updatedAt))) badRequest('Invalid timestamp');
   const deletedTaskIds: Record<string, string> = {};
+  // Older records can contain null for the optional single-photo field.
+  if (data.dayPhoto === null) data = { ...data, dayPhoto: '' };
   if (data.dayPhoto !== undefined && (typeof data.dayPhoto !== 'string' || data.dayPhoto.length > 100000 || (data.dayPhoto !== '' && !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(data.dayPhoto)))) badRequest('Invalid day photo');
   if (data.dayPhotos !== undefined && (!Array.isArray(data.dayPhotos) || data.dayPhotos.some((photo: unknown) => typeof photo !== 'string' || photo.length > 100000 || !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(photo)))) badRequest('Invalid day photos');
   if (data.dayPhotoUpdatedAt !== undefined && (typeof data.dayPhotoUpdatedAt !== 'string' || !Number.isFinite(Date.parse(data.dayPhotoUpdatedAt)))) badRequest('Invalid photo timestamp');

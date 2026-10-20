@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { syncHelp } from '../utils/syncHelp';
 import { CloudCheck, CloudOff, RefreshCw, AlertCircle } from 'lucide-react';
 import { subscribeToSyncStatus, triggerSync, SyncStatusInfo } from '../services/syncEngine';
 import { Language } from '../types';
@@ -11,6 +13,9 @@ interface SyncIndicatorProps {
 }
 
 export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId, interactive = true, compact = false }) => {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => { if (detailsOpen) dialog.current?.showModal(); }, [detailsOpen]);
   const [syncInfo, setSyncInfo] = useState<SyncStatusInfo>({
     status: navigator.onLine ? 'synced' : 'offline',
     pendingCount: 0,
@@ -49,7 +54,7 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId, inte
         };
       case 'error':
         return {
-          text: lang === 'ar' ? 'إعادة المحاولة' : 'Retry Sync',
+          text: lang === 'ar' ? 'تعذرت المزامنة' : 'Sync failed',
           icon: AlertCircle,
           color: 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/25',
           iconClass: 'text-rose-500',
@@ -84,7 +89,16 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId, inte
       )}
     </>;
   const classes = `inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-2.5 text-[11px] font-semibold select-none ${current.color}`;
-  return interactive
-    ? <button type="button" onClick={handleManualSync} title={label} aria-label={label} className={`${classes} cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500`}>{content}</button>
-    : <div role="status" title={label} aria-label={label} className={classes}>{content}</div>;
+  const failed = syncInfo.status === 'error' || syncInfo.status === 'offline';
+  const actionLabel = failed ? (lang === 'ar' ? 'تعذرت المزامنة — عرض السبب والحلول' : 'Sync failed — view cause and solutions') : label;
+  return <>{interactive
+    ? <button type="button" onClick={() => failed ? setDetailsOpen(true) : handleManualSync()} title={actionLabel} aria-label={actionLabel} className={`${classes} cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500`}>{content}</button>
+    : <div role="status" title={label} aria-label={label} className={classes}>{content}</div>
+    }{detailsOpen && createPortal(<dialog ref={dialog} onCancel={() => setDetailsOpen(false)} onClose={() => setDetailsOpen(false)} aria-labelledby="sync-details-title" dir={lang === 'ar' ? 'rtl' : 'ltr'} className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-rose-500/20 bg-white p-6 text-slate-800 shadow-xl backdrop:bg-black/50 dark:bg-zinc-900 dark:text-zinc-100">
+      <h2 id="sync-details-title" className="font-bold">{lang === 'ar' ? 'سبب تعذر المزامنة' : 'Why sync failed'}</h2>
+      <p role="status" className="mt-3 text-sm leading-7">{syncHelp(syncInfo.errorMessage, lang)}</p>
+      {syncInfo.errorMessage && <p className="mt-3 break-words rounded-lg bg-rose-500/10 p-3 text-xs" dir="auto">{syncInfo.errorMessage}</p>}
+      <p className="mt-3 text-xs">{lang === 'ar' ? `تعديلات معلقة: ${syncInfo.pendingCount}` : `Pending changes: ${syncInfo.pendingCount}`}</p>
+      <div className="mt-5 flex gap-3"><button type="button" disabled={syncInfo.status === 'syncing'} onClick={() => { void triggerSync(userId, true).then(ok => { if (ok) setDetailsOpen(false); }); }} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white disabled:opacity-50">{lang === 'ar' ? 'إعادة المحاولة' : 'Retry sync'}</button><button type="button" onClick={() => setDetailsOpen(false)} className="rounded-lg border px-4 py-2 text-sm">{lang === 'ar' ? 'إغلاق' : 'Close'}</button></div>
+    </dialog>, document.body)}</>;
 };

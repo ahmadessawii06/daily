@@ -113,6 +113,8 @@ test('client storage and sync regression cases', async t => {
     let release!: (value: Response) => void;
     globalThis.fetch = async () => new Promise<Response>(resolve => { release = resolve; });
     const pending = engine.triggerSync(user.id, true);
+    // Legacy photo preparation may finish asynchronously before the request starts.
+    await new Promise<void>(resolve => setImmediate(resolve));
     assert.ok(release);
     const edited = { ...day, tasks: [{ ...task, title: 'New edit', updatedAt: '2026-10-02T10:00:00Z' }], updatedAt: '2026-10-02T10:00:00Z' };
     storage.saveAllDays({ [day.date]: edited }); queue.enqueueDay(edited);

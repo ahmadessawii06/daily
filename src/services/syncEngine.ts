@@ -7,6 +7,7 @@ import { requestApi } from './api';
 import { getQueue, saveQueue } from './syncQueue';
 import { mergeWorkspace, parseWorkspace } from '../shared/workspace';
 import { readStoredWorkspace, storeWorkspace } from '../utils/workspace';
+import { prepareDayForSync } from '../utils/dayPhoto';
 export { getQueue, saveQueue } from './syncQueue';
 export type SyncState = 'synced' | 'syncing' | 'saving' | 'offline' | 'error';
 export interface SyncStatusInfo { status: SyncState; pendingCount: number; lastSyncedAt: string | null; errorMessage?: string; }
@@ -36,7 +37,7 @@ async function sync(userId: string, token: string): Promise<boolean> {
   try {
     const body: any = { days: {}, versions: {} };
     for (const item of sent) {
-      if (item.type === 'day') body.days[item.date!] = item.data;
+      if (item.type === 'day') body.days[item.date!] = await prepareDayForSync(item.data);
       else {
         body[item.type] = item.data;
         body.versions[item.type] = item.clientTimestamp;
