@@ -1,4 +1,5 @@
 export const colorThemes = [
+  { id: 'mizan-developed', ar: 'ميزان المطور', en: 'Mizan Developed', descriptionAr: 'ألوان v1 الداكنة بحدود واضحة وتباين قوي', descriptionEn: 'The v1 dark palette with crisp borders and strong contrast', colors: ['#00c98d', '#161f2b', '#070b10'] },
   { id: 'default', ar: 'ميزان الأصلي', en: 'Original Mizan', descriptionAr: 'أخضر منعش ومساحة صافية', descriptionEn: 'Fresh green, a clear space', colors: ['#10e588', '#101219', '#f8fafc'] },
   { id: 'github', ar: 'كود جيتهب', en: 'GitHub Code', descriptionAr: 'فحمي نظيف ولمسات أزرق', descriptionEn: 'Clean charcoal and crisp blue', colors: ['#58a6ff', '#0d1117', '#f6f8fa'] },
   { id: 'hacker', ar: 'ماتريكس', en: 'Matrix', descriptionAr: 'أسود عميق وأخضر طرفية', descriptionEn: 'Deep black and terminal green', colors: ['#4ade80', '#080e0a', '#eefbf1'] },

@@ -1,0 +1,99 @@
+/* Mizan Developed v1 dark palette: color-only overrides, independent of other moods. */
+html:root.dark[data-color-theme="mizan-developed"] {
+  --theme-surface: #161f2b;
+  --theme-section: #111827;
+  --theme-raised: #1c2633;
+  --theme-border: #2f3d4f;
+  --theme-progress-main: #00c98d;
+  --executive-success: #00c98d;
+  --executive-danger: #e84c6a;
+  --executive-warning: #d9a11e;
+  --executive-total: #5b6cff;
+  --executive-progress-fill: 14%;
+  --executive-progress-track: 24%;
+  --executive-progress-bg: #1c2633;
+  --executive-track-base: #1c2633;
+  --color-emerald-300: #00c98d;
+  --color-emerald-400: #00c98d;
+  --color-emerald-500: #00bd85;
+  --color-emerald-600: #009c70;
+  --color-rose-300: #e84c6a;
+  --color-rose-400: #e84c6a;
+  --color-rose-500: #e13f64;
+  --color-amber-300: #d9a11e;
+  --color-amber-400: #d9a11e;
+  --color-amber-500: #d99a22;
+  --color-indigo-300: #5b6cff;
+  --color-indigo-400: #5b6cff;
+  --color-indigo-500: #625fe5;
+  --color-zinc-100: #f8fafc;
+  --color-zinc-200: #e2e9f4;
+  --color-zinc-300: #c8d3e3;
+  --color-zinc-400: #a9b4c2;
+  --color-zinc-500: #93a4bb;
+}
+
+html:root.dark[data-color-theme="mizan-developed"] :is(body, [class~="dark:bg-[#07080b]"], [class~="dark:bg-[#0b0c10]"]) {
+  background-color: #070b10;
+  color: #f8fafc;
+}
+html:root.dark[data-color-theme="mizan-developed"] .bg-mesh {
+  background-image: none;
+}
+html:root.dark[data-color-theme="mizan-developed"] .bg-mesh :is([class*="bg-gradient-"], [class*="bg-linear-"]) {
+  background-image: none;
+  background-color: var(--theme-surface);
+}
+html:root.dark[data-color-theme="mizan-developed"] :is(.planner-card-form, [class~="dark:bg-white/[0.03]"], [class~="dark:bg-white/[0.02]"]) {
+  background-color: var(--theme-raised);
+}
+html:root.dark[data-color-theme="mizan-developed"] :is([class~="dark:bg-[#11131a]"], [class~="dark:bg-[#101219]"], [class~="dark:bg-[#121319]"], [class~="dark:bg-[#0d0f15]"], [data-top-focus]) {
+  background-color: var(--theme-section);
+}
+html:root.dark[data-color-theme="mizan-developed"] :is([class~="dark:bg-[#1c2425]"], [class~="dark:bg-[#1a2527]"]) {
+  background-color: var(--theme-raised);
+}
+html:root.dark[data-color-theme="mizan-developed"] [class~="dark:text-white"] { color: #f8fafc; }
+html:root.dark[data-color-theme="mizan-developed"] [class~="text-[#10e588]"] { color: var(--theme-progress-main); }
+html:root.dark[data-color-theme="mizan-developed"] [class~="bg-[#10e588]"] { background-color: var(--theme-progress-main); }
+html:root.dark[data-color-theme="mizan-developed"] [class~="hover:bg-[#0fd07b]"]:hover { background-color: #00b37d; }
+html:root.dark[data-color-theme="mizan-developed"] [class*="dark:border-white/"] { border-color: var(--theme-border); }
+
+html:root.dark[data-color-theme="mizan-developed"] .planner-card {
+  --card-accent: hsl(var(--card-hue) clamp(68%, var(--card-saturation), 85%) 60%);
+  background-color: var(--theme-surface);
+  border-color: hsl(var(--card-hue) 65% 36%);
+  border-top-color: var(--card-accent);
+}
+html:root.dark[data-color-theme="mizan-developed"] .planner-card[data-card-complete="true"] {
+  background-color: #122b26;
+  border-color: #00865e;
+}
+html:root.dark[data-color-theme="mizan-developed"] .planner-card-icon {
+  background-color: var(--theme-raised);
+  border-color: hsl(var(--card-hue) 65% 36%);
+}
+html:root.dark[data-color-theme="mizan-developed"] [data-prayer-card] {
+  background-image: none;
+  background-color: var(--theme-surface);
+  border-color: #00865e;
+}
+html:root.dark[data-color-theme="mizan-developed"] .task-input {
+  --task-input-bg: #111827;
+  --task-input-text: #f8fafc;
+}
+html:root.dark[data-color-theme="mizan-developed"] .task-input:focus { --task-input-bg: #1c2633; }
+
+html:root.dark[data-color-theme="mizan-developed"] [data-progress-tone="emerald"] { --progress-color: #00c98d; }
+html:root.dark[data-color-theme="mizan-developed"] [data-progress-tone="amber"] { --progress-color: #d9a11e; }
+html:root.dark[data-color-theme="mizan-developed"] [data-progress-tone="rose"] { --progress-color: #e84c6a; }
+html:root.dark[data-color-theme="mizan-developed"] [data-progress-tone="indigo"] { --progress-color: #5b6cff; }
+html:root.dark[data-color-theme="mizan-developed"] [data-progress-tone] .progress-body {
+  background-color: var(--theme-raised);
+  --tw-ring-color: var(--progress-color);
+  --tw-ring-offset-color: var(--theme-surface);
+}
+html:root.dark[data-color-theme="mizan-developed"] [data-progress-tone] .progress-value { color: var(--progress-color); }
+html:root.dark[data-color-theme="mizan-developed"] [data-progress-tone] .progress-track { color: color-mix(in srgb, var(--progress-color) 22%, var(--theme-surface)); }
+html:root.dark[data-color-theme="mizan-developed"] [class~="dark:text-zinc-300/75"]:not(.progress-track) { color: #2f3d4f; }
+

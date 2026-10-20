@@ -3,7 +3,7 @@ import { Check, Github, Terminal, Flame, Waves, Sunset, Leaf, MoonStar, Notebook
 import type { Language } from '../types';
 import { colorThemes, readColorTheme, saveColorTheme } from '../utils/colorThemes';
 
-const themeIcons = { default: Sparkles, olive: Leaf, night: MoonStar, paper: NotebookPen, github: Github, hacker: Terminal, 'red-dark': Flame, ocean: Waves, sunset: Sunset };
+const themeIcons = { 'mizan-developed': Palette, default: Sparkles, olive: Leaf, night: MoonStar, paper: NotebookPen, github: Github, hacker: Terminal, 'red-dark': Flame, ocean: Waves, sunset: Sunset };
 
 export function ColorThemePicker({ lang, className }: { lang: Language; className: string }) {
   const ar = lang === 'ar';

@@ -1,4 +1,4 @@
-html[data-color-theme]:not([data-color-theme="default"]).dark :is(
+html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]).dark :is(
   [class~="dark:bg-[#08090d]"],
   [class~="dark:bg-[#090d12]"],
   [class~="dark:bg-[#0c0d13]"],
@@ -20,43 +20,43 @@ html[data-color-theme]:not([data-color-theme="default"]).dark :is(
 ) { background-color: var(--theme-surface); }
 
 /* Shared surfaces, controls and category cards follow the full palette. */
-html[data-color-theme]:not([data-color-theme="default"]) :is(.planner-card, [data-prayer-slot], [data-top-focus]) {
+html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) :is(.planner-card, [data-prayer-slot], [data-top-focus]) {
   background-color: var(--theme-surface);
   border-color: var(--theme-border);
 }
-html[data-color-theme]:not([data-color-theme="default"]) .planner-card {
+html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) .planner-card {
   --card-accent: var(--color-emerald-700);
   border-top-color: var(--card-accent);
   background-image: linear-gradient(135deg, color-mix(in srgb, var(--mood-accent) 9%, transparent), transparent 65%);
 }
-html[data-color-theme]:not([data-color-theme="default"]).dark .planner-card {
+html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]).dark .planner-card {
   --card-accent: var(--mood-accent);
   background-color: var(--theme-surface);
   border-color: var(--theme-border);
   border-top-color: var(--card-accent);
 }
-html[data-color-theme]:not([data-color-theme="default"]) :is(.planner-card-icon, [class~="bg-slate-100/70"], [class~="bg-slate-100/80"]) {
+html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) :is(.planner-card-icon, [class~="bg-slate-100/70"], [class~="bg-slate-100/80"]) {
   background-color: var(--theme-raised);
   border-color: var(--theme-border);
   color: var(--color-emerald-700);
 }
-html[data-color-theme]:not([data-color-theme="default"]).dark :is(.planner-card-icon, [class~="bg-slate-100/70"], [class~="bg-slate-100/80"]) {
+html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]).dark :is(.planner-card-icon, [class~="bg-slate-100/70"], [class~="bg-slate-100/80"]) {
   background-color: var(--theme-raised);
   color: var(--mood-accent);
 }
-html[data-color-theme]:not([data-color-theme="default"]) .planner-card-add {
+html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) .planner-card-add {
   background-color: var(--color-emerald-700);
   color: white;
 }
-html[data-color-theme]:not([data-color-theme="default"]).dark .planner-card-add {
+html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]).dark .planner-card-add {
   background-color: var(--mood-accent);
   color: #101419;
 }
-html[data-color-theme]:not([data-color-theme="default"]) :is(input:not([type="checkbox"]), textarea, select) {
+html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) :is(input:not([type="checkbox"]), textarea, select) {
   background-color: var(--theme-surface);
   border-color: var(--theme-border);
   accent-color: var(--color-emerald-600);
 }
-html[data-color-theme]:not([data-color-theme="default"]).dark :is(input:not([type="checkbox"]), textarea, select) { color: var(--color-zinc-100); }
-html[data-color-theme]:not([data-color-theme="default"]) [class*="border-white/"] { border-color: var(--theme-border); }
-html[data-color-theme]:not([data-color-theme="default"]) ::selection { background: var(--mood-accent); color: #101419; }
+html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]).dark :is(input:not([type="checkbox"]), textarea, select) { color: var(--color-zinc-100); }
+html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) [class*="border-white/"] { border-color: var(--theme-border); }
+html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) ::selection { background: var(--mood-accent); color: #101419; }

@@ -7,11 +7,11 @@ html:root[data-color-theme="sunset"] { --mood-radius: 24px; --mood-shadow: 0 10p
 html:root[data-color-theme="olive"] { --mood-radius: 18px; --mood-shadow: 4px 5px 0 rgb(135 151 71 / .12); }
 html:root[data-color-theme="night"] { --mood-radius: 24px; --mood-shadow: 0 0 30px rgb(165 148 249 / .1); }
 html:root[data-color-theme="paper"] { --mood-radius: 5px; --mood-shadow: 3px 4px 0 rgb(130 90 50 / .16), 5px 7px 0 rgb(130 90 50 / .06); }
-html:root[data-color-theme]:not([data-color-theme="default"]) :is(.planner-card, [data-prayer-card], [data-top-focus]) {
+html:root[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) :is(.planner-card, [data-prayer-card], [data-top-focus]) {
   border-radius: var(--mood-radius);
   box-shadow: var(--mood-shadow);
 }
-html:root[data-color-theme]:not([data-color-theme="default"]) :is(.planner-card-icon, .planner-card-add, [data-prayer-slot]) { border-radius: clamp(3px, var(--mood-radius), 14px); }
+html:root[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) :is(.planner-card-icon, .planner-card-add, [data-prayer-slot]) { border-radius: clamp(3px, var(--mood-radius), 14px); }
 html:root[data-color-theme="github"] :is(.planner-card, [data-prayer-card]) { border-top-width: 1px; background-image: none; }
 html:root[data-color-theme="github"] .planner-card > div:first-child { background: color-mix(in srgb, var(--mood-accent) 9%, transparent); border-bottom: 1px solid var(--theme-border); }
 html:root[data-color-theme="hacker"] .bg-mesh {

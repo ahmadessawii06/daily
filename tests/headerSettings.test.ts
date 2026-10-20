@@ -5,13 +5,15 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { MainHeader } from '../src/components/MainHeader';
 import { SettingsPage } from '../src/components/SettingsPage';
 import type { User } from '../src/types';
+import { colorThemes } from '../src/utils/colorThemes';
 
 const user: User = { id: 'test-user', username: 'member', name: 'Test member', userCode: '1234567890ABCDEF12345678', role: 'user' };
 const noop = () => {};
 test('the planner header exposes language and theme beside daily actions and sync status', () => {
   for (const lang of ['ar', 'en'] as const) {
     const html = renderToStaticMarkup(React.createElement(MainHeader, { currentDate: '2026-10-15', currentUser: user, lang, theme: 'dark', onToggleTheme: noop, onToggleLang: noop, onExport: noop, exporting: false, onLogout: noop, onOpenArchive: noop, onOpenStats: noop, onOpenAddTask: noop, onOpenSettings: noop }));
-    assert.equal((html.match(/<button\b/g) || []).length, 20, 'Toolbar actions include the clickable sync indicator');
+    assert.equal((html.match(/<button\b/g) || []).length, 11 + colorThemes.length, 'Toolbar actions include the clickable sync indicator and all theme choices');
+    assert.ok(html.includes(lang === 'ar' ? 'ميزان المطور' : 'Mizan Developed'));
     assert.ok(html.includes('popover="manual"'), 'Theme choices stay in a fixed non-blocking side panel');
     assert.ok(!html.includes('Search themes'));
     assert.ok(html.includes(lang === 'ar' ? 'ثيمات الألوان' : 'Color themes'));
