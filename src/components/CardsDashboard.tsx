@@ -16,6 +16,7 @@ import { partitionPrayerTasks } from '../utils/prayerTasks';
 import { PrayerCard } from './PrayerCard';
 
 interface CardsDashboardProps {
+  cardColumns?: 2 | 3 | 4;
   currentDate: string;
   tasks: Task[];
   workspace: PlannerWorkspace;
@@ -48,7 +49,7 @@ export function CardsDashboard(props: CardsDashboardProps) {
         <button type="button" onClick={() => setEditor('new')} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold transition-colors hover:border-emerald-400 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-emerald-400/40"><Plus className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />{ar ? 'بطاقة جديدة' : 'New card'}</button>
       </div>
       {filter !== 'all' && <div className="flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs"><span>{ar ? 'عرض: ' : 'Showing: '}{filterName}</span><button type="button" onClick={() => onFilterChange('all')} className="inline-flex min-h-9 items-center gap-1 font-semibold"><X className="h-3 w-3" />{ar ? 'عرض الكل' : 'Show all'}</button></div>}
-      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className={`grid grid-cols-1 items-start gap-4 md:grid-cols-2 ${props.cardColumns === 2 ? '' : props.cardColumns === 3 ? 'xl:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'}`}>
         <PrayerCard currentDate={props.currentDate} slots={prayerTasks.slots} lang={lang} onAddPrayer={props.onAddPrayer} onStatusChange={props.onStatusChange} />
         {cards.map(category => <CategoryCard key={category.id} {...props} category={category}
           creationRequest={props.creationTarget?.categoryId === category.id ? props.creationTarget.requestId : undefined}

@@ -133,6 +133,17 @@ export default function App() {
 
   // Navigation & view states
   const [lang, setLang] = useState<Language>('ar');
+  const [cardColumns, setCardColumns] = useState<2 | 3 | 4>(() => {
+    try {
+      const stored = localStorage.getItem('mizan_card_columns');
+      return stored === '2' ? 2 : stored === '3' ? 3 : 4;
+    } catch { return 4; }
+  });
+  const toggleCardColumns = () => {
+    const next = cardColumns === 4 ? 2 : cardColumns === 2 ? 3 : 4;
+    setCardColumns(next);
+    try { localStorage.setItem('mizan_card_columns', String(next)); } catch {}
+  };
   const [theme, setTheme] = useState<Theme>(() => getStoredTheme());
   const [currentDate, setCurrentDate] = useState<string>(() => getTodayDateString());
   const [currentFilter, setCurrentFilter] = useState<StatusFilter>('all');
@@ -498,7 +509,7 @@ export default function App() {
     showToast(lang === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Logged out successfully');
   };
 
-  const supportBanner = support && <aside role="alert" dir={lang === 'ar' ? 'rtl' : 'ltr'} className="sticky top-0 z-[80] border-b border-amber-500/30 bg-amber-100 px-4 py-3 text-amber-950 shadow-sm dark:bg-[#292311] dark:text-amber-100"><div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3"><div><p className="text-sm font-semibold">{lang === 'ar' ? 'جلسة دعم — عرض فقط' : 'Support session — read only'} · <bdi>{currentUser?.name || currentUser?.username}</bdi></p><p className="mt-1 text-xs opacity-80">{lang === 'ar' ? 'تنتهي الساعة ' : 'Expires at '}{new Date(support.expiresAt).toLocaleTimeString(lang === 'ar' ? 'ar-PS' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}</p>{supportError && <p className="mt-2 text-xs">{supportError}</p>}</div><div className="flex gap-2"><button disabled={endingSupport} onClick={() => { void endSupport(); }} className="min-h-10 rounded-xl bg-amber-950 px-4 text-xs font-semibold text-amber-50 disabled:opacity-50 dark:bg-amber-100 dark:text-amber-950">{lang === 'ar' ? 'إنهاء والعودة لحسابي' : 'End & return to my account'}</button>{supportError && <button onClick={() => { clearStoredAuth(); location.reload(); }} className="min-h-10 px-3 text-xs underline">{lang === 'ar' ? 'تسجيل الخروج' : 'Sign out'}</button>}</div></div></aside>;
+  const supportBanner = support && <aside role="alert" dir={lang === 'ar' ? 'rtl' : 'ltr'} className="sticky top-0 z-[80] border-b border-amber-500/30 bg-amber-100 px-4 py-3 text-amber-950 shadow-sm dark:bg-[#292311] dark:text-amber-100"><div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3"><div><p className="text-sm font-semibold">{lang === 'ar' ? 'جلسة دعم — عرض فقط' : 'Support session — read only'} · <bdi>{currentUser?.name || currentUser?.username}</bdi></p><p className="mt-1 text-xs opacity-80">{lang === 'ar' ? 'تنتهي الساعة ' : 'Expires at '}{new Date(support.expiresAt).toLocaleTimeString(lang === 'ar' ? 'ar-PS' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}</p>{supportError && <p className="mt-2 text-xs">{supportError}</p>}</div><div className="flex gap-2"><button disabled={endingSupport} onClick={() => { void endSupport(); }} className="min-h-10 rounded-xl bg-amber-950 px-4 text-xs font-semibold text-amber-50 disabled:opacity-50 dark:bg-amber-100 dark:text-amber-950">{lang === 'ar' ? 'إنهاء والعودة لحسابي' : 'End & return to my account'}</button>{supportError && <button onClick={() => { clearStoredAuth(); location.reload(); }} className="min-h-10 px-3 text-xs underline">{lang === 'ar' ? 'تسجيل الخروج' : 'Sign out'}</button>}</div></div></aside>;
   if (resetToken && !support) return <ResetPasswordScreen token={resetToken} lang={lang} onDone={() => { clearStoredAuth(); setCurrentUser(null); setResetToken(null); }} />;
   // If user is not authenticated, show Lock / Login Screen
   if (!currentUser) {
@@ -553,13 +564,14 @@ export default function App() {
       {/* Main Full-Width Centered Clean Canvas */}
       <main
         id="daily-track-container"
-        className="relative z-10 isolate flex-1 w-full max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors"
+        className={`relative z-10 isolate flex-1 w-full ${cardColumns === 4 ? 'max-w-[1600px]' : 'max-w-6xl'} mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors`}
       >
         <PlannerBackdrop />
         <div className="relative z-10 space-y-4 sm:space-y-6">
 
           {/* Daily actions and quick appearance preferences. */}
           {!support ? <MainHeader
+            cardColumns={cardColumns} onToggleCardColumns={toggleCardColumns}
             dateNavigation={<DateNavigation currentDate={currentDate} onDateChange={setCurrentDate} lang={lang} />}
             currentDate={currentDate}
             currentUser={currentUser}
@@ -597,7 +609,7 @@ export default function App() {
           </div>{!support && <button type="button" onClick={handleMoveRemaining} disabled={!tasks.some(canMoveTask)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-600 hover:border-emerald-500/40 focus-visible:outline-2 focus-visible:outline-emerald-500 disabled:opacity-40 dark:border-white/10 dark:bg-white/[.02] dark:text-zinc-300"><CalendarArrowUp aria-hidden="true" size={15} />{lang === 'ar' ? 'نقل غير المكتمل لليوم التالي' : 'Move unfinished to next day'}</button>}</div>
 
           <fieldset disabled={!!support} className="min-w-0 border-0 p-0 m-0">
-          {workspace.view === 'cards' ? <CardsDashboard currentDate={currentDate} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
+          {workspace.view === 'cards' ? <CardsDashboard cardColumns={cardColumns} currentDate={currentDate} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
             creationTarget={cardCreationTarget}
             onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
             onAddPrayer={handleCompletePrayer}

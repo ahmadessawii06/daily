@@ -1,11 +1,13 @@
 import React from 'react';
-import { Archive, BarChart3, Camera, Loader2, Power, Moon, Plus, Settings, Sun } from 'lucide-react';
+import { Archive, BarChart3, Camera, Columns2, Columns3, Columns4, Loader2, Power, Moon, Plus, Settings, Sun } from 'lucide-react';
 import { Language, Theme, User } from '../types';
 import { formatHeaderDate } from '../utils/date';
 import { SyncIndicator } from './SyncIndicator';
 import { ColorThemePicker } from './ColorThemePicker';
 
 interface MainHeaderProps {
+  cardColumns?: 2 | 3 | 4;
+  onToggleCardColumns?: () => void;
   children?: React.ReactNode;
   dateNavigation?: React.ReactNode;
   currentDate: string;
@@ -23,7 +25,7 @@ interface MainHeaderProps {
   onLogout: () => void;
 }
 
-export const MainHeader: React.FC<MainHeaderProps> = ({ children, dateNavigation, currentDate, currentUser, onOpenAddTask, onOpenSettings, lang, theme, onToggleTheme, onToggleLang, onExport, exporting, onOpenArchive, onOpenStats, onLogout }) => {
+export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggleCardColumns, children, dateNavigation, currentDate, currentUser, onOpenAddTask, onOpenSettings, lang, theme, onToggleTheme, onToggleLang, onExport, exporting, onOpenArchive, onOpenStats, onLogout }) => {
   const ar = lang === 'ar';
   const hover = 'transition-[transform,background-color,border-color,color,box-shadow] duration-200 ease-out enabled:hover:border-emerald-400/60 enabled:hover:bg-emerald-50 enabled:hover:text-emerald-700 enabled:hover:shadow-[0_6px_20px_-6px_rgba(16,185,129,0.4)] motion-safe:enabled:hover:-translate-y-0.5 motion-safe:enabled:active:translate-y-0 motion-safe:enabled:active:scale-95 motion-reduce:transition-none dark:enabled:hover:border-emerald-400/40 dark:enabled:hover:bg-emerald-400/10 dark:enabled:hover:text-emerald-300';
   const control = `group flex h-11 min-w-11 cursor-pointer shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-100/70 px-2 text-xs font-semibold text-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 disabled:cursor-wait disabled:opacity-50 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-300 ${hover}`;
@@ -41,6 +43,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ children, dateNavigation
         </div>
         <div role="group" aria-label={ar ? 'أدوات اليوم' : 'Day tools'} className="order-3 col-span-2 flex max-w-full flex-wrap items-center justify-end gap-2 sm:order-none sm:justify-start">
           <ColorThemePicker lang={lang} className={control} />
+          {onToggleCardColumns && <button type="button" onClick={onToggleCardColumns} aria-label={ar ? `${cardColumns} بطاقات بالصف، التبديل إلى ${cardColumns === 4 ? 2 : cardColumns === 2 ? 3 : 4}` : `${cardColumns} cards per row, switch to ${cardColumns === 4 ? 2 : cardColumns === 2 ? 3 : 4}`} title={ar ? `عرض ${cardColumns === 4 ? 2 : cardColumns === 2 ? 3 : 4} بطاقات بالصف` : `Show ${cardColumns === 4 ? 2 : cardColumns === 2 ? 3 : 4} cards per row`} className={control}>{cardColumns === 4 ? <Columns4 aria-hidden="true" size={18} /> : cardColumns === 3 ? <Columns3 aria-hidden="true" size={18} /> : <Columns2 aria-hidden="true" size={18} />}<span className="ms-1 font-numbers">{cardColumns}</span></button>}
           <button type="button" onClick={onOpenArchive} aria-label={ar ? 'الأرشيف وسجل الأيام' : 'Archive & history'} title={ar ? 'الأرشيف وسجل الأيام' : 'Archive & history'} className={control}><Archive aria-hidden="true" size={18} className={`${iconMotion} motion-safe:group-hover:translate-y-0.5 motion-safe:group-focus-visible:translate-y-0.5`} /></button>
           <button type="button" onClick={onOpenStats} aria-label={ar ? 'الإحصائيات والتقرير الأسبوعي' : 'Statistics & weekly report'} title={ar ? 'الإحصائيات والتقرير الأسبوعي' : 'Statistics & weekly report'} className={control}><BarChart3 aria-hidden="true" size={18} className={`${iconMotion} origin-bottom motion-safe:group-hover:scale-y-125 motion-safe:group-focus-visible:scale-y-125`} /></button>
           <button type="button" onClick={onExport} disabled={exporting} aria-busy={exporting} aria-label={ar ? 'تصدير صورة اليوم' : 'Export today as an image'} title={ar ? 'تصدير صورة اليوم' : 'Export today as an image'} className={control}>{exporting ? <Loader2 aria-hidden="true" size={18} className="animate-spin motion-reduce:animate-none" /> : <Camera aria-hidden="true" size={18} className={`${iconMotion} motion-safe:group-hover:scale-125 motion-safe:group-focus-visible:scale-125`} />}</button>
