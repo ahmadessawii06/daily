@@ -13,6 +13,7 @@ export interface Task {
   duration?: number; // duration in minutes (e.g. 60, 120, 240)
   title: string;
   status: TaskStatus;
+  notDoneReason?: string;
   notes?: string;
   category?: TaskCategory;
   categoryId?: string; // Optional dashboard category; legacy category remains intact.

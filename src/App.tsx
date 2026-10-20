@@ -50,6 +50,7 @@ import { AccountPage } from './components/AccountPage';
 import { AddTaskModal } from './components/AddTaskModal';
 import { TaskDestinationDialog } from './components/TaskDestinationDialog';
 import { EditTaskModal } from './components/EditTaskModal';
+import { NotDoneReasonDialog } from './components/NotDoneReasonDialog';
 import { ExportScheduleModal } from './components/ExportScheduleModal';
 
 import { playAchievementSound, playFailureSound, playChallengeCompleteSound, preloadChallengeCompleteSound } from './utils/soundEffects';
@@ -154,6 +155,8 @@ export default function App() {
   const [cardCreationTarget, setCardCreationTarget] = useState<{ categoryId: string; requestId: number } | null>(null);
   const cardCreationRequest = useRef(0);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [reasonTarget, setReasonTarget] = useState<{ id: string; date: string } | null>(null);
+  useEffect(() => { setReasonTarget(null); }, [currentUser?.id, currentDate]);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Toast state
@@ -285,6 +288,7 @@ export default function App() {
     setTasks(rec.tasks);
     refreshArchive();
     playStatusFeedback(before, rec.tasks, taskId, newStatus);
+    if (newStatus === 'not-done' && rec.tasks.some(task => task.id === taskId && task.title.trim())) setReasonTarget({ id: taskId, date: currentDate });
   };
 
   const handleAddTask = (taskInput: { title: string; time: string; status: TaskStatus; notes?: string; categoryId?: string }) => {
@@ -653,6 +657,12 @@ export default function App() {
       />
 
       {/* Edit Task Modal */}
+      {!support && reasonTarget?.date === currentDate && tasks.some(task => task.id === reasonTarget.id && task.status === 'not-done') && <NotDoneReasonDialog
+        key={`${currentUser.id}-${currentDate}-${reasonTarget.id}`}
+        task={tasks.find(task => task.id === reasonTarget.id)!} lang={lang}
+        onClose={() => setReasonTarget(null)}
+        onSave={reason => { handleUpdateTask(reasonTarget.id, { notDoneReason: reason }); setReasonTarget(null); }}
+      />}
       <EditTaskModal
         task={editingTask}
         isOpen={!!editingTask}

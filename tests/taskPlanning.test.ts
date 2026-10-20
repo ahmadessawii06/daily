@@ -23,6 +23,20 @@ const queue = await import('../src/services/syncQueue');
 const date = '2026-12-31', tomorrow = '2027-01-01', stamp = '2027-01-01T12:00:00.000Z';
 const task = (id: string, extra: Partial<Task> = {}): Task => ({ id, title: `Task ${id}`, time: '09:30', endTime: '10:45', duration: 75, status: 'pending', notes: 'Keep these notes', categoryId: 'work', priority: 'high', deadline: '2027-01-03', createdAt: '2026-12-01T12:00:00.000Z', updatedAt: stamp, ...extra });
 const record = (tasks: Task[], day = date, extra: Partial<DayRecord> = {}): DayRecord => ({ date: day, tasks, dayNote: 'Keep day note', updatedAt: stamp, ...extra });
+
+test('not-done reasons persist through edits and sync, and clear when the task is reopened', () => {
+  seed({ [date]: record([task('reason', { status: 'not-done' })]) });
+  storage.updateTaskInDay(date, 'reason', { notDoneReason: 'Waiting for a reply' });
+  const saved = storage.getDayRecord(date);
+  assert.equal(saved.tasks[0].notDoneReason, 'Waiting for a reply');
+  assert.equal(queue.getQueue().find(item => item.date === date)?.data.tasks[0].notDoneReason, 'Waiting for a reply');
+  storage.updateTaskInDay(date, 'reason', { title: 'Updated title' });
+  assert.equal(storage.getDayRecord(date).tasks[0].notDoneReason, 'Waiting for a reply');
+  storage.updateTaskInDay(date, 'reason', { status: 'pending' });
+  const reopened = storage.getDayRecord(date);
+  assert.equal(reopened.tasks[0].notDoneReason, '');
+  assert.equal(mergeDay(reopened, saved).tasks[0].notDoneReason, '');
+});
 const seed = (days: Record<string, DayRecord>) => { auth.saveStoredAuth({ id: 'planning-owner', userCode: 'OWNER' }, 'test-token'); workspace.storeWorkspace(createWorkspace('cards')); storage.saveAllDays(days); queue.saveQueue([]); };
 
 test('day photo saves on its date and deletion survives stale sync and newer task edits', () => {

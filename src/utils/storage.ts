@@ -364,6 +364,7 @@ export function updateTaskInDay(date: string, taskId: string, updates: Partial<T
     ...updates,
     updatedAt: nextRecordTimestamp(record),
   };
+  if (merged.status !== 'not-done') merged.notDoneReason = '';
 
   // Recalculate duration if time or endTime changed
   if (updates.time === '') {
@@ -442,7 +443,7 @@ export function moveTasksToNextDay(date: string, taskIds: string[]): { date: str
   if (target.tasks.length + moving.length > 1000) throw new Error('DAY_TASK_LIMIT');
   const updatedAt = new Date(Math.max(Date.parse(nextRecordTimestamp(source)), Date.parse(nextRecordTimestamp(target)))).toISOString();
   const movingIds = new Set(moving.map(task => task.id));
-  const moved = moving.map(task => ({ ...task, status: 'pending' as const, isTopFocus: false, updatedAt }));
+  const moved = moving.map(task => ({ ...task, status: 'pending' as const, notDoneReason: '', isTopFocus: false, updatedAt }));
   all[date] = { ...source, tasks: source.tasks.filter(task => !movingIds.has(task.id)), updatedAt,
     deletedTaskIds: { ...source.deletedTaskIds, ...Object.fromEntries(moving.map(task => [task.id, updatedAt])) } };
   all[nextDate] = { ...target, tasks: sortTasksByTime([...target.tasks, ...moved]), updatedAt };

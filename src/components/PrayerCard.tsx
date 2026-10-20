@@ -107,6 +107,7 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
               <button type="button" data-task-status={status} aria-label={ar ? `تغيير حالة ${name}: ${labels[status]}` : `Change status of ${name}: ${labels[status]}`} onClick={() => task ? onStatusChange(task.id, nextTaskStatus(status)) : onAddPrayer(`صلاة ${prayer.nameAr}`, time || '')} className="group/status col-start-1 row-start-1 flex h-11 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg focus-visible:outline-2 focus-visible:outline-emerald-400"><TaskStatusIndicator status={status} /></button>
             </div>
             {status !== 'pending' && <p className={`mt-3 text-start text-[10px] font-semibold ${status === 'done' ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>{labels[status]}</p>}
+            {status === 'not-done' && task?.notDoneReason && <button type="button" onClick={() => onStatusChange(task.id, 'not-done')} title={ar ? 'تعديل السبب' : 'Edit reason'} className="mt-1 break-words text-start text-[11px] text-rose-600 dark:text-rose-300">{ar ? 'السبب: ' : 'Reason: '}{task.notDoneReason}</button>}
           </div>;
         })}
       </div>

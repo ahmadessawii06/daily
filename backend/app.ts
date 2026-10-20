@@ -22,6 +22,7 @@ export function validateDay(date: string, data: any): DayRecord {
   if (!validDate(date) || !data || !Array.isArray(data.tasks) || data.tasks.length > 1000) badRequest('Invalid day record');
   const seen = new Set<string>();
   for (const t of data.tasks) {
+    if (t?.notDoneReason !== undefined && (typeof t.notDoneReason !== 'string' || t.notDoneReason.length > 200)) badRequest('Invalid not-done reason');
     if (!t || typeof t.id !== 'string' || !t.id || seen.has(t.id) || typeof t.title !== 'string' || typeof t.time !== 'string' ||
       !['done', 'pending', 'not-done'].includes(t.status) || (t.time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(t.time))) badRequest('Invalid task');
     seen.add(t.id);
