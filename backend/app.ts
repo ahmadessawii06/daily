@@ -8,6 +8,7 @@ import { securityTransaction } from './repository.js';
 import { mergeDay } from '../src/shared/merge.js';
 import { createWorkspace, mergeWorkspace, parseWorkspace } from '../src/shared/workspace.js';
 import type { DayRecord } from '../src/types';
+import { normalizePhotoTimestamp } from '../src/shared/photoTimestamp.js';
 
 function badRequest(message: string): never {
   throw Object.assign(new Error(message), { status: 400 });
@@ -35,13 +36,13 @@ export function validateDay(date: string, data: any): DayRecord {
   if (data.dayPhoto === null) data = { ...data, dayPhoto: '' };
   if (data.dayPhoto !== undefined && (typeof data.dayPhoto !== 'string' || data.dayPhoto.length > 100000 || (data.dayPhoto !== '' && !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(data.dayPhoto)))) badRequest('Invalid day photo');
   if (data.dayPhotos !== undefined && (!Array.isArray(data.dayPhotos) || data.dayPhotos.some((photo: unknown) => typeof photo !== 'string' || photo.length > 100000 || !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(photo)))) badRequest('Invalid day photos');
-  if (data.dayPhotoUpdatedAt !== undefined && (typeof data.dayPhotoUpdatedAt !== 'string' || !Number.isFinite(Date.parse(data.dayPhotoUpdatedAt)))) badRequest('Invalid photo timestamp');
+  const dayPhotoUpdatedAt = normalizePhotoTimestamp(data, updatedAt);
   for (const [id, time] of Object.entries(data.deletedTaskIds || {})) {
     if (typeof time !== 'string' || !Number.isFinite(Date.parse(time))) badRequest('Invalid deletion');
     Object.defineProperty(deletedTaskIds, id, { value: time, enumerable: true, writable: true, configurable: true });
   }
   return { date, tasks: data.tasks, notes: typeof data.notes === 'string' ? data.notes : '',
-    dayPhoto: data.dayPhoto, dayPhotos: data.dayPhotos, dayPhotoUpdatedAt: data.dayPhotoUpdatedAt,
+    dayPhoto: data.dayPhoto, dayPhotos: data.dayPhotos, dayPhotoUpdatedAt,
     dayNote: typeof data.dayNote === 'string' ? data.dayNote : undefined, updatedAt, deletedTaskIds };
 }
 

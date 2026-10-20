@@ -4,6 +4,22 @@ import { validateDay } from '../backend/app';
 import { prepareDayForSync } from '../src/utils/dayPhoto';
 import { syncHelp } from '../src/utils/syncHelp';
 
+test('invalid legacy photo timestamps never block sync or invent newer photo edits', async () => {
+  const base = { date: '2026-10-20', tasks: [], notes: 'My journal', updatedAt: '2026-10-20T12:00:00Z' };
+  for (const value of [null, '', 'invalid', 123, {}]) {
+    const orphan = { ...base, dayPhotoUpdatedAt: value };
+    assert.equal((await prepareDayForSync(orphan as any)).dayPhotoUpdatedAt, undefined);
+    assert.equal(validateDay(base.date, orphan).dayPhotoUpdatedAt, undefined);
+    for (const photos of [{ dayPhoto: '' }, { dayPhotos: [] }, { dayPhoto: 'data:image/jpeg;base64,/9j/2Q==' }]) {
+      const day = { ...orphan, ...photos };
+      const prepared = await prepareDayForSync(day as any);
+      assert.equal(prepared.dayPhotoUpdatedAt, base.updatedAt);
+      assert.equal(validateDay(base.date, day).dayPhotoUpdatedAt, base.updatedAt);
+      assert.equal(prepared.notes, base.notes);
+    }
+  }
+});
+
 test('legacy empty photo values do not block day synchronization', async () => {
   const day = { date: '2026-10-18', tasks: [], updatedAt: '2026-10-18T12:00:00.000Z', dayPhoto: null };
   assert.equal(validateDay(day.date, day).dayPhoto, '');
@@ -56,7 +72,7 @@ test('day validation preserves compact JPEG photos and explicit removals', () =>
   for (const value of ['https://example.com/image.jpg', 'data:image/svg+xml;base64,PHN2Zz4=', 'x'.repeat(100001), 123]) {
     assert.throws(() => validateDay('2026-10-18', { ...day, dayPhoto: value }));
   }
-  assert.throws(() => validateDay('2026-10-18', { ...day, dayPhotoUpdatedAt: 'invalid' }));
+  assert.equal(validateDay('2026-10-18', { ...day, dayPhotoUpdatedAt: 'invalid' }).dayPhotoUpdatedAt, day.updatedAt);
 });
 
 test('day validation preserves multiple photos and explicit gallery removals', () => {

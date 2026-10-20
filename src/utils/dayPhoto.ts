@@ -1,4 +1,5 @@
 import type { DayRecord } from '../types';
+import { normalizePhotoTimestamp } from '../shared/photoTimestamp';
 
 // Upgrade legacy photos without dropping images or changing their edit timestamp.
 export async function prepareDayForSync(day: DayRecord): Promise<DayRecord> {
@@ -20,6 +21,8 @@ export async function prepareDayForSync(day: DayRecord): Promise<DayRecord> {
       result.dayPhotos = [];
       for (const photo of day.dayPhotos) result.dayPhotos.push(await normalize(photo));
     }
+    result.dayPhotoUpdatedAt = normalizePhotoTimestamp(result, day.updatedAt);
+    if (result.dayPhotoUpdatedAt === undefined) delete result.dayPhotoUpdatedAt;
     return result;
   } catch {
     throw new Error(`Invalid day photo (${day.date})`);
