@@ -1,6 +1,7 @@
 ﻿import { CalendarDays, Check, LayoutGrid, Scale, Sparkles, Target } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import type { Language, Theme } from '../types';
+import loginBackground from '../assets/images/login-background.jpg';
 
 export type AuthLoadingStage = 'login' | 'register' | 'preparing';
 interface AuthLoadingScreenProps { stage: AuthLoadingStage; lang: Language; theme: Theme; }
@@ -20,6 +21,8 @@ export function AuthLoadingScreen({ stage, lang, theme }: AuthLoadingScreenProps
   const steps = ar ? ['الدخول إلى حسابك', 'تجهيز مساحتك'] : ['Accessing your account', 'Preparing your workspace'];
   return <main dir={ar ? 'rtl' : 'ltr'} data-auth-loading={stage} data-loading-theme={theme} className="auth-scene relative isolate flex min-h-[100dvh] w-full flex-col overflow-hidden px-5 py-7 font-['Alexandria','Cairo',sans-serif] sm:px-10 sm:py-9">
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+      <img src={loginBackground} alt="" className="absolute inset-0 h-full w-full object-cover opacity-50" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0b111c]/95 via-[#0b111c]/65 to-[#0b111c]/75" />
       <div className="auth-aurora auth-aurora-one" /><div className="auth-aurora auth-aurora-two" />
       <div className="auth-scene-grid absolute inset-0" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_10%,var(--auth-bg)_85%)]" />
