@@ -159,6 +159,9 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [deletedTasks, undoPaused]);
 
+  // Give the animated interlude time to appear after an explicit sign-in.
+  const loginLoadingUntil = useRef(0);
+
   // Tasks for currentDate
   const [tasks, setTasks] = useState<Task[]>([]);
   // Archive days
@@ -181,6 +184,7 @@ export default function App() {
   useEffect(() => {
     if (!currentUser) return;
     let disposed = false;
+    let loadingTimer: ReturnType<typeof setTimeout> | undefined;
     const refresh = () => {
       if (disposed) return;
       setWorkspace(getPlannerWorkspace());
@@ -196,10 +200,15 @@ export default function App() {
     window.addEventListener('focus', syncOnFocus);
     const interval = setInterval(syncOnFocus, 30000);
     void triggerSync(currentUser.id, true).finally(() => {
-      if (!disposed) { refresh(); setIsPreparingWorkspace(false); }
+      if (disposed) return;
+      const finish = () => { if (!disposed) { refresh(); setIsPreparingWorkspace(false); } };
+      const remaining = loginLoadingUntil.current - Date.now();
+      if (remaining > 0) loadingTimer = setTimeout(finish, remaining);
+      else finish();
     });
     return () => {
       disposed = true;
+      clearTimeout(loadingTimer);
       clearInterval(interval);
       window.removeEventListener('focus', syncOnFocus);
       window.removeEventListener('mizan:data-synced', refresh);
@@ -497,6 +506,7 @@ export default function App() {
       <LoginScreen
         onLoginSuccess={(user) => {
           // The initial sync effect dismisses the loader after preparing account data.
+          loginLoadingUntil.current = Date.now() + 3000;
           setIsPreparingWorkspace(true);
           setCurrentUser(user);
           showToast(lang === 'ar' ? `أهلاً بك، ${user.name || user.username}!` : `Welcome, ${user.name || user.username}!`);
