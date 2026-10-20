@@ -13,6 +13,13 @@ test('legacy empty photo values do not block day synchronization', async () => {
   assert.equal(normalized.updatedAt, day.updatedAt);
 });
 
+test('days need no photo, nullable galleries are absent, and galleries supersede legacy photos', async () => {
+  const day = { date: '2026-10-20', tasks: [], notes: 'Journal only', updatedAt: '2026-10-20T12:00:00Z' };
+  assert.equal(validateDay(day.date, await prepareDayForSync(day)).notes, day.notes);
+  assert.equal((await prepareDayForSync({ ...day, dayPhotos: null } as any)).dayPhotos, undefined);
+  assert.deepEqual((await prepareDayForSync({ ...day, dayPhoto: 'obsolete', dayPhotos: [] })).dayPhotos, []);
+});
+
 test('sync keeps valid photos and identifies the date of damaged photos without deleting them', async () => {
   const day = { date: '2026-10-18', tasks: [], updatedAt: '2026-10-18T12:00:00Z', dayPhoto: 'data:image/jpeg;base64,/9j/2Q==' };
   assert.deepEqual(await prepareDayForSync(day), day);
@@ -35,7 +42,7 @@ test('sync converts legacy PNG and oversized JPEG into compact JPEG', async () =
   try {
     const day = { date: '2026-10-18', tasks: [], updatedAt: '2026-10-18T12:00:00Z', dayPhoto: 'data:image/png;base64,AAAA', dayPhotos: ['data:image/jpeg;base64,' + 'A'.repeat(100000)] };
     const result = await prepareDayForSync(day);
-    assert.equal(result.dayPhoto, output);
+    assert.equal(result.dayPhoto, '', 'The gallery supersedes the legacy single-photo field');
     assert.deepEqual(result.dayPhotos, [output]);
     assert.equal(day.dayPhoto, 'data:image/png;base64,AAAA');
     assert.equal(result.updatedAt, day.updatedAt);

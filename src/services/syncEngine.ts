@@ -9,7 +9,7 @@ import { mergeWorkspace, parseWorkspace } from '../shared/workspace';
 import { readStoredWorkspace, storeWorkspace } from '../utils/workspace';
 import { prepareDayForSync } from '../utils/dayPhoto';
 export { getQueue, saveQueue } from './syncQueue';
-export type SyncState = 'synced' | 'syncing' | 'saving' | 'offline' | 'error';
+export type SyncState = 'synced' | 'syncing' | 'saving' | 'offline' | 'error' | 'warning';
 export interface SyncStatusInfo { status: SyncState; pendingCount: number; lastSyncedAt: string | null; errorMessage?: string; }
 
 let status: SyncState = 'saving';
@@ -34,10 +34,21 @@ function active(userId: string, token: string): boolean {
 async function sync(userId: string, token: string): Promise<boolean> {
   status = 'syncing'; errorMessage = undefined; notify();
   const sent = getQueue(userId);
+  const deferredPhotos = new Map<string, DayRecord>();
   try {
     const body: any = { days: {}, versions: {} };
     for (const item of sent) {
-      if (item.type === 'day') body.days[item.date!] = await prepareDayForSync(item.data);
+      if (item.type === 'day') {
+        try { body.days[item.date!] = await prepareDayForSync(item.data); }
+        catch {
+          if (!active(userId, token)) return false;
+          // Keep a durable account-scoped copy before syncing the other fields.
+          userStorage.setItem(`unsynced_day_photos:${item.date}`, JSON.stringify(item.data));
+          deferredPhotos.set(item.date!, item.data);
+          const { dayPhoto, dayPhotos, dayPhotoUpdatedAt, ...rest } = item.data;
+          body.days[item.date!] = rest;
+        }
+      }
       else {
         body[item.type] = item.data;
         body.versions[item.type] = item.clientTimestamp;
@@ -58,7 +69,17 @@ async function sync(userId: string, token: string): Promise<boolean> {
     }
     saveQueue(pending, userId);
     const local = support ? {} : loadAllDays();
-    for (const [date, record] of Object.entries(result.days as Record<string, DayRecord>)) local[date] = mergeDay(local[date], record);
+    for (const item of sent) {
+      if (!support && item.type === 'day' && !deferredPhotos.has(item.date!)) userStorage.removeItem(`unsynced_day_photos:${item.date}`);
+    }
+    for (const [date, record] of Object.entries(result.days as Record<string, DayRecord>)) {
+      const preserved = local[date] ?? deferredPhotos.get(date);
+      if (!support && preserved && userStorage.getItem(`unsynced_day_photos:${date}`)) deferredPhotos.set(date, preserved);
+      local[date] = mergeDay(local[date], record);
+      if (deferredPhotos.has(date) && preserved) {
+        local[date] = { ...local[date], dayPhoto: preserved.dayPhoto, dayPhotos: preserved.dayPhotos, dayPhotoUpdatedAt: preserved.dayPhotoUpdatedAt };
+      }
+    }
     saveAllDays(local);
     userStorage.setItem('sync_versions', JSON.stringify(result.versions || {}));
     const keys = { habits: 'daily_habits_v8_saturday_schedule', recurring: 'daily_life_recurring_items_v2' };
@@ -73,6 +94,10 @@ async function sync(userId: string, token: string): Promise<boolean> {
       if (settings.prayerLocation) userStorage.setItem('daily_prayer_location_config_v3', JSON.stringify(settings.prayerLocation));
     }
     status = pending.length ? 'saving' : 'synced';
+    if (!pending.length && deferredPhotos.size) {
+      status = 'warning';
+      errorMessage = `Photo saved locally only (${[...deferredPhotos.keys()].join(', ')})`;
+    }
     lastSyncedAt = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     window.dispatchEvent(new Event('mizan:data-synced'));
     return true;

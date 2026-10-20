@@ -24,7 +24,8 @@ export function mergeDay(local: DayRecord | undefined, incoming: DayRecord): Day
     if (deleted[id] && timestamp(deleted[id]) >= timestamp(task.updatedAt)) tasks.delete(id);
   }
   const newest = timestamp(incoming.updatedAt) >= timestamp(local.updatedAt) ? incoming : local;
-  const photo = timestamp(incoming.dayPhotoUpdatedAt) >= timestamp(local.dayPhotoUpdatedAt) ? incoming : local;
+  const hasPhotos = (record: DayRecord) => record.dayPhoto !== undefined || record.dayPhotos !== undefined;
+  const photo = !hasPhotos(incoming) ? local : !hasPhotos(local) ? incoming : timestamp(incoming.dayPhotoUpdatedAt) >= timestamp(local.dayPhotoUpdatedAt) ? incoming : local;
   return { ...newest, dayPhoto: photo.dayPhoto, dayPhotos: photo.dayPhotos, dayPhotoUpdatedAt: photo.dayPhotoUpdatedAt, tasks: [...tasks.values()], deletedTaskIds: deleted };
 }
 

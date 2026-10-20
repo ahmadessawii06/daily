@@ -142,6 +142,26 @@ test('client storage and sync regression cases', async t => {
     assert.ok(queue.getQueue()[0].data.categories.some((c: any) => c.id === 'remote-card'));
     auth.clearStoredAuth(); auth.saveStoredAuth(user, 'signed-token');
   });
+  await t.test('damaged optional photos cannot block tasks and journal sync or erase local photos', async () => {
+    const broken = { ...day, notes: 'Keep my journal', dayPhoto: 'legacy-invalid-photo' };
+    storage.saveAllDays({ [day.date]: broken });
+    queue.saveQueue([]); queue.enqueueDay(broken);
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (_url, options) => {
+      const sent = JSON.parse(options!.body as string).days[day.date];
+      assert.equal(sent.notes, broken.notes);
+      assert.equal('dayPhoto' in sent, false);
+      return new Response(JSON.stringify({ success: true, days: { [day.date]: sent }, versions: {} }), { headers: { 'content-type': 'application/json' } });
+    };
+    try {
+      assert.equal(await engine.triggerSync(user.id, true), true);
+      assert.equal(queue.getQueue().length, 0);
+      assert.equal(storage.loadAllDays()[day.date].dayPhoto, broken.dayPhoto);
+      assert.equal(JSON.parse(userStorage.getItem(`unsynced_day_photos:${day.date}`)!).dayPhoto, broken.dayPhoto);
+      assert.match(engine.getSyncError()!, /Photo saved locally only/);
+      assert.equal(mergeDay(broken, { ...day, notes: 'Remote update' }).dayPhoto, broken.dayPhoto);
+    } finally { globalThis.fetch = originalFetch; }
+  });
   await t.test('an older backend cannot silently acknowledge unsupported workspace edits', async () => {
     queue.saveQueue([]); queue.enqueue('workspace', createWorkspace('cards'));
     globalThis.fetch = async () => new Response(JSON.stringify({ success: true, days: {}, versions: {} }), { headers: { 'content-type': 'application/json' } });

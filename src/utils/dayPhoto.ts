@@ -11,9 +11,11 @@ export async function prepareDayForSync(day: DayRecord): Promise<DayRecord> {
   };
   try {
     const result = { ...day };
-    if (day.dayPhoto === null) result.dayPhoto = '';
+    if (Array.isArray(day.dayPhotos)) result.dayPhoto = '';
+    else if (day.dayPhoto === null) result.dayPhoto = '';
     else if (day.dayPhoto !== undefined && day.dayPhoto !== '') result.dayPhoto = await normalize(day.dayPhoto);
-    if (day.dayPhotos !== undefined) {
+    if (day.dayPhotos === null) delete result.dayPhotos;
+    else if (day.dayPhotos !== undefined) {
       if (!Array.isArray(day.dayPhotos)) throw new Error('Invalid day photos');
       result.dayPhotos = [];
       for (const photo of day.dayPhotos) result.dayPhotos.push(await normalize(photo));

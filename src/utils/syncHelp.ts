@@ -2,6 +2,9 @@ import type { Language } from '../types';
 
 export function syncHelp(error: string | undefined, lang: Language): string {
   const ar = lang === 'ar';
+  if (/Photo saved locally only/i.test(error || '')) return ar
+    ? 'الصورة اختيارية. تمت مزامنة المهام واليوميات، لكن تعذر إرسال بيانات صورة قديمة. احتفظنا بها على هذا الجهاز وبنسخة احتياطية محلية. يمكنك فتح اليوم المذكور وحذف الصورة غير المطلوبة أو استبدالها. لا تحتاج لإضافة صورة لإكمال يومك.'
+    : 'Photos are optional. Tasks and journal entries synced, but an old photo could not be uploaded. It remains on this device with a local backup. Open the indicated day to remove or replace it if needed. No photo is required.';
   if (/invalid day photos?|invalid photo timestamp/i.test(error || '')) return ar
     ? 'تعذرت مزامنة صورة اليوم بسبب صيغة أو حجم غير مدعوم، أو بيانات صورة تالفة. افتح اليوم المذكور وأعد إضافة الصورة بصيغة JPG أو PNG أو WebP بحجم أقل من 20 ميغابايت. احتفظ بنسخة من الصورة قبل استبدالها.'
     : 'A day photo has an unsupported format or size, or damaged data. Open the indicated day and add the photo again as JPG, PNG, or WebP under 20 MB. Keep a copy before replacing it.';
