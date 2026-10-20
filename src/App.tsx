@@ -550,6 +550,7 @@ export default function App() {
 
           {/* Daily actions and quick appearance preferences. */}
           {!support ? <MainHeader
+            dateNavigation={<DateNavigation currentDate={currentDate} onDateChange={setCurrentDate} lang={lang} />}
             currentDate={currentDate}
             currentUser={currentUser}
             onOpenAddTask={() => setIsTaskDestinationOpen(true)}
@@ -564,6 +565,7 @@ export default function App() {
             onToggleLang={handleToggleLang}
             onToggleTheme={() => { const next = theme === 'dark' ? 'light' : 'dark'; setStoredTheme(next); setTheme(next); }}
           ><DayMemories key={`${currentUser.id}-${currentDate}`} date={currentDate} lang={lang} onSaved={refreshArchive} /></MainHeader> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
+          {support && <DateNavigation currentDate={currentDate} onDateChange={setCurrentDate} lang={lang} />}
 
           {/* Today Progress Section (bar & metrics) */}
           <TodayProgress
@@ -573,12 +575,6 @@ export default function App() {
             lang={lang}
           />
 
-          {/* Date Navigation (Previous Day, Today, Next Day) */}
-          <DateNavigation
-            currentDate={currentDate}
-            onDateChange={setCurrentDate}
-            lang={lang}
-          />
 
 
 

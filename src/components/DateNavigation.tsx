@@ -37,21 +37,19 @@ export const DateNavigation: React.FC<DateNavigationProps> = ({
   const shortDate = formatShortDate(currentDate, lang);
 
   return (
-    <div className="flex items-center justify-between py-1 px-0.5 text-xs gap-1.5 sm:gap-2 select-none">
+    <nav aria-label={lang === 'ar' ? 'التنقل بين الأيام' : 'Day navigation'} dir={lang === 'ar' ? 'rtl' : 'ltr'} className="inline-flex max-w-full items-center gap-1 rounded-2xl border border-slate-200/80 bg-slate-100/70 p-1 text-xs select-none dark:border-white/[.08] dark:bg-white/[.03]">
       
       {/* Previous Day */}
       <button
         type="button"
-        onClick={handlePrev}
-        className="flex items-center gap-1 sm:gap-1.5 text-slate-700 hover:text-slate-900 dark:text-zinc-300 dark:hover:text-white font-semibold transition-all py-2 px-2 sm:px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs dark:bg-white/[0.03] dark:hover:bg-white/[0.07] dark:border-white/[0.06] cursor-pointer min-h-[40px] active:scale-95 shrink-0"
+        onClick={handlePrev} aria-label={lang === 'ar' ? 'اليوم السابق' : 'Previous day'} title={lang === 'ar' ? 'اليوم السابق' : 'Previous day'}
+        className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-white hover:text-emerald-700 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-emerald-300"
       >
         {lang === 'ar' ? <ChevronRight className="w-4 h-4 stroke-[2.8]" /> : <ChevronLeft className="w-4 h-4 stroke-[2.8]" />}
-        <span className="hidden sm:inline">{lang === 'ar' ? 'اليوم السابق' : 'Previous Day'}</span>
-        <span className="sm:hidden text-[11px]">{lang === 'ar' ? 'السابق' : 'Prev'}</span>
       </button>
 
       {/* Center: Selected date / Today */}
-      <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+      <div className="flex items-center gap-1 min-w-0">
         <button
           type="button"
           onClick={() => datePickerRef.current?.showPicker ? datePickerRef.current.showPicker() : datePickerRef.current?.click()}
@@ -66,7 +64,7 @@ export const DateNavigation: React.FC<DateNavigationProps> = ({
           type="date"
           value={currentDate}
           onChange={(e) => e.target.value && onDateChange(e.target.value)}
-          className="sr-only"
+          aria-label={lang === 'ar' ? 'اختر يومًا' : 'Choose a day'} className="sr-only"
         />
 
         {!isCurrentToday && (
@@ -83,14 +81,12 @@ export const DateNavigation: React.FC<DateNavigationProps> = ({
       {/* Next Day */}
       <button
         type="button"
-        onClick={handleNext}
-        className="flex items-center gap-1 sm:gap-1.5 text-slate-700 hover:text-slate-900 dark:text-zinc-300 dark:hover:text-white font-semibold transition-all py-2 px-2 sm:px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs dark:bg-white/[0.03] dark:hover:bg-white/[0.07] dark:border-white/[0.06] cursor-pointer min-h-[40px] active:scale-95 shrink-0"
+        onClick={handleNext} aria-label={lang === 'ar' ? 'اليوم التالي' : 'Next day'} title={lang === 'ar' ? 'اليوم التالي' : 'Next day'}
+        className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-white hover:text-emerald-700 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-emerald-300"
       >
-        <span className="hidden sm:inline">{lang === 'ar' ? 'اليوم التالي' : 'Next Day'}</span>
-        <span className="sm:hidden text-[11px]">{lang === 'ar' ? 'التالي' : 'Next'}</span>
         {lang === 'ar' ? <ChevronLeft className="w-4 h-4 stroke-[2.8]" /> : <ChevronRight className="w-4 h-4 stroke-[2.8]" />}
       </button>
 
-    </div>
+    </nav>
   );
 };

@@ -7,6 +7,7 @@ import { ColorThemePicker } from './ColorThemePicker';
 
 interface MainHeaderProps {
   children?: React.ReactNode;
+  dateNavigation?: React.ReactNode;
   currentDate: string;
   currentUser?: User | null;
   onOpenAddTask: () => void;
@@ -22,7 +23,7 @@ interface MainHeaderProps {
   onLogout: () => void;
 }
 
-export const MainHeader: React.FC<MainHeaderProps> = ({ children, currentDate, currentUser, onOpenAddTask, onOpenSettings, lang, theme, onToggleTheme, onToggleLang, onExport, exporting, onOpenArchive, onOpenStats, onLogout }) => {
+export const MainHeader: React.FC<MainHeaderProps> = ({ children, dateNavigation, currentDate, currentUser, onOpenAddTask, onOpenSettings, lang, theme, onToggleTheme, onToggleLang, onExport, exporting, onOpenArchive, onOpenStats, onLogout }) => {
   const ar = lang === 'ar';
   const hover = 'transition-[transform,background-color,border-color,color,box-shadow] duration-200 ease-out enabled:hover:border-emerald-400/60 enabled:hover:bg-emerald-50 enabled:hover:text-emerald-700 enabled:hover:shadow-[0_6px_20px_-6px_rgba(16,185,129,0.4)] motion-safe:enabled:hover:-translate-y-0.5 motion-safe:enabled:active:translate-y-0 motion-safe:enabled:active:scale-95 motion-reduce:transition-none dark:enabled:hover:border-emerald-400/40 dark:enabled:hover:bg-emerald-400/10 dark:enabled:hover:text-emerald-300';
   const control = `group flex h-11 min-w-11 cursor-pointer shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-100/70 px-2 text-xs font-semibold text-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 disabled:cursor-wait disabled:opacity-50 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-300 ${hover}`;
@@ -59,9 +60,12 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ children, currentDate, c
           </div>
         </div>
       </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
       <h1 className="text-xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-2xl md:text-3xl">
         <time dateTime={currentDate}>{formatHeaderDate(currentDate, lang)}</time>
       </h1>
+      {dateNavigation}
+      </div>
       {children}
     </header>
   );
