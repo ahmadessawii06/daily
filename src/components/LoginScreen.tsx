@@ -195,7 +195,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             
             {/* Title: ميزان */}
             <div className="pt-2 pb-1 overflow-visible">
-              <h1 className="text-6xl xl:text-7xl 2xl:text-8xl font-black text-[#f0fdf4] tracking-tight leading-[1.3] drop-shadow-[0_6px_24px_rgba(0,0,0,0.85)] filter drop-shadow-[0_2px_12px_rgba(16,229,136,0.35)]">
+              <h1 className="text-6xl xl:text-7xl 2xl:text-8xl font-black text-[#fffcf5] tracking-tight leading-[1.3] drop-shadow-[0_6px_24px_rgba(0,0,0,0.85)] filter drop-shadow-[0_2px_12px_rgba(228,194,125,0.35)]">
                 ميزان
               </h1>
             </div>
@@ -208,7 +208,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             {/* Paragraph description */}
             <p className="text-sm xl:text-base 2xl:text-lg leading-relaxed text-zinc-100 font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] max-w-2xl">
               منصة متكاملة تساعدك على موازنة حياتك بين الدنيا والآخرة،{' '}
-              <span className="text-[#a7f3d0] font-bold underline underline-offset-8 decoration-[#10e588]/80">
+              <span className="text-[#fedf98] font-bold underline underline-offset-8 decoration-[#e4c27d]/80">
                 بتنظيم عباداتك
               </span>{' '}
               وعاداتك ودراستك ومهامك، ومتابعة تطورك اليومي بخطوات بسيطة نحو أفضل نسخة من نفسك.
@@ -218,8 +218,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-3.5 xl:gap-4 pt-6">
               
               {/* 1. العبادات والأذكار */}
-              <div className="flex flex-col items-center text-center p-4 rounded-2xl bg-[#0b1914]/90 backdrop-blur-xl border border-white/20 hover:border-[#10e588] transition-all duration-300 shadow-[0_8px_25px_rgba(0,0,0,0.6)] hover:shadow-[0_12px_30px_rgba(16,229,136,0.25)] hover:-translate-y-1 group cursor-default">
-                <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#173b2c] to-[#0b2118] group-hover:from-[#20523c] group-hover:to-[#103424] border border-[#10e588]/40 group-hover:border-[#10e588] flex items-center justify-center text-[#6ee7b7] mb-3 transition-all shadow-md">
+              <div className="flex flex-col items-center text-center p-4 rounded-2xl bg-[#0c1322]/90 backdrop-blur-xl border border-white/20 hover:border-[#e4c27d] transition-all duration-300 shadow-[0_8px_25px_rgba(0,0,0,0.6)] hover:shadow-[0_12px_30px_rgba(228,194,125,0.25)] hover:-translate-y-1 group cursor-default">
+                <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#1c293e] to-[#0f1726] group-hover:from-[#2a3c5a] group-hover:to-[#172338] border border-[#e4c27d]/40 group-hover:border-[#e4c27d] flex items-center justify-center text-[#fbd88b] mb-3 transition-all shadow-md">
                   <svg className="w-6 h-6 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     <path d="M12 18v3" />
@@ -228,34 +228,34 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   </svg>
                 </div>
                 <span className="text-sm font-bold text-white tracking-wide">العبادات</span>
-                <span className="text-xs font-semibold text-[#6ee7b7] mt-0.5">والأذكار</span>
+                <span className="text-xs font-semibold text-[#fbd88b] mt-0.5">والأذكار</span>
               </div>
 
               {/* 2. تنظيم المهام والدراسة */}
-              <div className="flex flex-col items-center text-center p-4 rounded-2xl bg-[#0b1914]/90 backdrop-blur-xl border border-white/20 hover:border-[#10e588] transition-all duration-300 shadow-[0_8px_25px_rgba(0,0,0,0.6)] hover:shadow-[0_12px_30px_rgba(16,229,136,0.25)] hover:-translate-y-1 group cursor-default">
-                <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#173b2c] to-[#0b2118] group-hover:from-[#20523c] group-hover:to-[#103424] border border-[#10e588]/40 group-hover:border-[#10e588] flex items-center justify-center text-[#6ee7b7] mb-3 transition-all shadow-md">
+              <div className="flex flex-col items-center text-center p-4 rounded-2xl bg-[#0c1322]/90 backdrop-blur-xl border border-white/20 hover:border-[#e4c27d] transition-all duration-300 shadow-[0_8px_25px_rgba(0,0,0,0.6)] hover:shadow-[0_12px_30px_rgba(228,194,125,0.25)] hover:-translate-y-1 group cursor-default">
+                <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#1c293e] to-[#0f1726] group-hover:from-[#2a3c5a] group-hover:to-[#172338] border border-[#e4c27d]/40 group-hover:border-[#e4c27d] flex items-center justify-center text-[#fbd88b] mb-3 transition-all shadow-md">
                   <CheckSquare className="w-6 h-6 stroke-[2.2]" />
                 </div>
                 <span className="text-sm font-bold text-white tracking-wide">تنظيم المهام</span>
-                <span className="text-xs font-semibold text-[#6ee7b7] mt-0.5">والدراسة</span>
+                <span className="text-xs font-semibold text-[#fbd88b] mt-0.5">والدراسة</span>
               </div>
 
               {/* 3. تذكيرات ذكية ومواعيد مهمة */}
-              <div className="flex flex-col items-center text-center p-4 rounded-2xl bg-[#0b1914]/90 backdrop-blur-xl border border-white/20 hover:border-[#10e588] transition-all duration-300 shadow-[0_8px_25px_rgba(0,0,0,0.6)] hover:shadow-[0_12px_30px_rgba(16,229,136,0.25)] hover:-translate-y-1 group cursor-default">
-                <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#173b2c] to-[#0b2118] group-hover:from-[#20523c] group-hover:to-[#103424] border border-[#10e588]/40 group-hover:border-[#10e588] flex items-center justify-center text-[#6ee7b7] mb-3 transition-all shadow-md">
+              <div className="flex flex-col items-center text-center p-4 rounded-2xl bg-[#0c1322]/90 backdrop-blur-xl border border-white/20 hover:border-[#e4c27d] transition-all duration-300 shadow-[0_8px_25px_rgba(0,0,0,0.6)] hover:shadow-[0_12px_30px_rgba(228,194,125,0.25)] hover:-translate-y-1 group cursor-default">
+                <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#1c293e] to-[#0f1726] group-hover:from-[#2a3c5a] group-hover:to-[#172338] border border-[#e4c27d]/40 group-hover:border-[#e4c27d] flex items-center justify-center text-[#fbd88b] mb-3 transition-all shadow-md">
                   <Bell className="w-6 h-6 stroke-[2.2]" />
                 </div>
                 <span className="text-sm font-bold text-white tracking-wide">تذكيرات ذكية</span>
-                <span className="text-xs font-semibold text-[#6ee7b7] mt-0.5">ومواعيد مهمة</span>
+                <span className="text-xs font-semibold text-[#fbd88b] mt-0.5">ومواعيد مهمة</span>
               </div>
 
               {/* 4. متابعة التقدم والإحصائيات */}
-              <div className="flex flex-col items-center text-center p-4 rounded-2xl bg-[#0b1914]/90 backdrop-blur-xl border border-white/20 hover:border-[#10e588] transition-all duration-300 shadow-[0_8px_25px_rgba(0,0,0,0.6)] hover:shadow-[0_12px_30px_rgba(16,229,136,0.25)] hover:-translate-y-1 group cursor-default">
-                <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#173b2c] to-[#0b2118] group-hover:from-[#20523c] group-hover:to-[#103424] border border-[#10e588]/40 group-hover:border-[#10e588] flex items-center justify-center text-[#6ee7b7] mb-3 transition-all shadow-md">
+              <div className="flex flex-col items-center text-center p-4 rounded-2xl bg-[#0c1322]/90 backdrop-blur-xl border border-white/20 hover:border-[#e4c27d] transition-all duration-300 shadow-[0_8px_25px_rgba(0,0,0,0.6)] hover:shadow-[0_12px_30px_rgba(228,194,125,0.25)] hover:-translate-y-1 group cursor-default">
+                <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#1c293e] to-[#0f1726] group-hover:from-[#2a3c5a] group-hover:to-[#172338] border border-[#e4c27d]/40 group-hover:border-[#e4c27d] flex items-center justify-center text-[#fbd88b] mb-3 transition-all shadow-md">
                   <TrendingUp className="w-6 h-6 stroke-[2.2]" />
                 </div>
                 <span className="text-sm font-bold text-white tracking-wide">متابعة التقدم</span>
-                <span className="text-xs font-semibold text-[#6ee7b7] mt-0.5">والإحصائيات</span>
+                <span className="text-xs font-semibold text-[#fbd88b] mt-0.5">والإحصائيات</span>
               </div>
 
             </div>
@@ -267,10 +267,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <p className="text-base sm:text-xl font-extrabold text-white/95 tracking-wide drop-shadow-[0_3px_10px_rgba(0,0,0,0.9)]">
                 خطوة صغيرة كل يوم ..
                 <br />
-                <span className="text-[#6ee7b7]">تصنع فرقاً كبيراً غداً</span>
+                <span className="text-[#fbd88b]">تصنع فرقاً كبيراً غداً</span>
               </p>
               {/* Golden sweep underline decoration */}
-              <div className="w-40 h-1.5 bg-gradient-to-r from-transparent via-[#10e588] to-transparent mx-auto sm:mx-0 mt-2.5 rounded-full shadow-[0_0_12px_#10e588]" />
+              <div className="w-40 h-1.5 bg-gradient-to-r from-transparent via-[#e4c27d] to-transparent mx-auto sm:mx-0 mt-2.5 rounded-full shadow-[0_0_12px_#e4c27d]" />
             </div>
           </div>
 
@@ -278,12 +278,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
         {/* Right Side: Pixel-Perfect Floating Login/Register Glass Card */}
         <div className="w-full max-w-[440px] sm:max-w-md mx-auto lg:col-span-5 flex flex-col justify-center">
-          <div className="relative bg-[#0a1711]/94 sm:bg-[#0a1711]/92 backdrop-blur-2xl border border-white/[0.18] rounded-3xl p-5 sm:p-8 md:p-9 shadow-[0_20px_60px_rgba(0,0,0,0.85)] text-right">
+          <div className="relative bg-[#0b111c]/94 sm:bg-[#0b111c]/92 backdrop-blur-2xl border border-white/[0.18] rounded-3xl p-5 sm:p-8 md:p-9 shadow-[0_20px_60px_rgba(0,0,0,0.85)] text-right">
             
             {/* Golden Scales Badge */}
             <div className="flex flex-col items-center text-center mb-5 sm:mb-6">
-              <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-gradient-to-b from-[#193d2b] to-[#0a1711] border-2 border-[#10e588]/50 flex items-center justify-center shadow-[0_0_25px_rgba(16,229,136,0.25)] mb-2.5 sm:mb-3">
-                <Scale className="w-8 h-8 sm:w-9 sm:h-9 text-[#6ee7b7] stroke-[1.9]" />
+              <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-gradient-to-b from-[#1c283d] to-[#0b111c] border-2 border-[#e4c27d]/50 flex items-center justify-center shadow-[0_0_25px_rgba(228,194,125,0.25)] mb-2.5 sm:mb-3">
+                <Scale className="w-8 h-8 sm:w-9 sm:h-9 text-[#fbd88b] stroke-[1.9]" />
               </div>
 
               <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
@@ -305,7 +305,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 }}
                 className={`flex-1 py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                   mode === 'login'
-                    ? 'bg-gradient-to-r from-[#6ee7b7] via-[#34d399] to-[#10b981] text-slate-950 shadow-md scale-[1.02]'
+                    ? 'bg-gradient-to-r from-[#ebd095] via-[#dfba6f] to-[#caa050] text-slate-950 shadow-md scale-[1.02]'
                     : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                 }`}
               >
@@ -320,7 +320,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 }}
                 className={`flex-1 py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                   mode === 'register'
-                    ? 'bg-gradient-to-r from-[#6ee7b7] via-[#34d399] to-[#10b981] text-slate-950 shadow-md scale-[1.02]'
+                    ? 'bg-gradient-to-r from-[#ebd095] via-[#dfba6f] to-[#caa050] text-slate-950 shadow-md scale-[1.02]'
                     : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                 }`}
               >
@@ -378,7 +378,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       spellCheck={false}
                       onChange={(e) => setLoginUsername(e.target.value)}
                       placeholder="مثال: ahmed أو admin"
-                      className="w-full bg-[#11271c] border border-white/[0.15] focus:border-[#10e588] rounded-2xl ps-10 pe-4 py-3 sm:py-3.5 text-base sm:text-sm text-white placeholder:text-zinc-500 outline-none transition-all touch-manipulation"
+                      className="w-full bg-[#101726] border border-white/[0.15] focus:border-[#e4c27d] rounded-2xl ps-10 pe-4 py-3 sm:py-3.5 text-base sm:text-sm text-white placeholder:text-zinc-500 outline-none transition-all touch-manipulation"
                     />
                   </div>
                 </div>
@@ -392,7 +392,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     <button
                       type="button"
                       onClick={() => setIsForgotModalOpen(true)}
-                      className="text-[11px] text-zinc-400 hover:text-[#10e588] transition-colors cursor-pointer"
+                      className="text-[11px] text-zinc-400 hover:text-[#e4c27d] transition-colors cursor-pointer"
                     >
                       نسيت كلمة المرور؟
                     </button>
@@ -411,7 +411,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       spellCheck={false}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="أدخل كلمة المرور"
-                      className="w-full bg-[#11271c] border border-white/[0.15] focus:border-[#10e588] rounded-2xl ps-10 pe-10 py-3 sm:py-3.5 text-base sm:text-sm text-white placeholder:text-zinc-500 outline-none transition-all font-sans touch-manipulation"
+                      className="w-full bg-[#101726] border border-white/[0.15] focus:border-[#e4c27d] rounded-2xl ps-10 pe-10 py-3 sm:py-3.5 text-base sm:text-sm text-white placeholder:text-zinc-500 outline-none transition-all font-sans touch-manipulation"
                     />
                     <button
                       type="button"
@@ -431,7 +431,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-4 h-4 rounded bg-[#11271c] border-white/20 text-[#10e588] focus:ring-0 focus:ring-offset-0 cursor-pointer accent-[#10e588]"
+                      className="w-4 h-4 rounded bg-[#101726] border-white/20 text-[#e4c27d] focus:ring-0 focus:ring-offset-0 cursor-pointer accent-[#e4c27d]"
                     />
                     <span>تذكرني على هذا الجهاز</span>
                   </label>
@@ -441,7 +441,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full mt-2 py-3.5 sm:py-4 px-6 rounded-2xl font-black text-xs sm:text-sm text-slate-950 bg-gradient-to-r from-[#6ee7b7] via-[#34d399] to-[#10b981] hover:brightness-110 active:scale-[0.98] transition-all duration-150 shadow-[0_4px_25px_rgba(16,229,136,0.35)] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full mt-2 py-3.5 sm:py-4 px-6 rounded-2xl font-black text-xs sm:text-sm text-slate-950 bg-gradient-to-r from-[#ebd095] via-[#dfba6f] to-[#caa050] hover:brightness-110 active:scale-[0.98] transition-all duration-150 shadow-[0_4px_25px_rgba(228,194,125,0.35)] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <span>{isLoading ? 'جارٍ التحقق والدخول...' : 'تسجيل الدخول'}</span>
                   <ArrowLeft className="w-4 h-4 stroke-[2.8]" />
@@ -456,7 +456,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       setMode('register');
                       setError(null);
                     }}
-                    className="text-[#10e588] font-bold hover:underline cursor-pointer"
+                    className="text-[#e4c27d] font-bold hover:underline cursor-pointer"
                   >
                     اضغط هنا لإنشاء حساب جديد
                   </button>
@@ -482,7 +482,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       value={regName}
                       onChange={(e) => setRegName(e.target.value)}
                       placeholder="مثال: أحمد محمد"
-                      className="w-full bg-[#11271c] border border-white/[0.15] focus:border-[#10e588] rounded-2xl ps-10 pe-4 py-2.5 sm:py-3 text-base sm:text-sm text-white placeholder:text-zinc-500 outline-none transition-all touch-manipulation"
+                      className="w-full bg-[#101726] border border-white/[0.15] focus:border-[#e4c27d] rounded-2xl ps-10 pe-4 py-2.5 sm:py-3 text-base sm:text-sm text-white placeholder:text-zinc-500 outline-none transition-all touch-manipulation"
                     />
                   </div>
                 </div>
@@ -506,7 +506,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       spellCheck={false}
                       onChange={(e) => setRegUsername(e.target.value)}
                       placeholder="مثال: ahmed_2026"
-                      className="w-full bg-[#11271c] border border-white/[0.15] focus:border-[#10e588] rounded-2xl ps-10 pe-4 py-2.5 sm:py-3 text-base sm:text-sm text-white placeholder:text-zinc-500 outline-none transition-all font-mono touch-manipulation"
+                      className="w-full bg-[#101726] border border-white/[0.15] focus:border-[#e4c27d] rounded-2xl ps-10 pe-4 py-2.5 sm:py-3 text-base sm:text-sm text-white placeholder:text-zinc-500 outline-none transition-all font-mono touch-manipulation"
                     />
                   </div>
                 </div>
@@ -529,7 +529,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       spellCheck={false}
                       onChange={(e) => setRegEmail(e.target.value)}
                       placeholder="name@example.com"
-                      className="w-full bg-[#11271c] border border-white/[0.15] focus:border-[#10e588] rounded-2xl ps-10 pe-4 py-2.5 sm:py-3 text-base sm:text-sm text-white placeholder:text-zinc-500 outline-none transition-all touch-manipulation"
+                      className="w-full bg-[#101726] border border-white/[0.15] focus:border-[#e4c27d] rounded-2xl ps-10 pe-4 py-2.5 sm:py-3 text-base sm:text-sm text-white placeholder:text-zinc-500 outline-none transition-all touch-manipulation"
                     />
                   </div>
                 </div>
@@ -553,7 +553,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       spellCheck={false}
                       onChange={(e) => setRegPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-[#11271c] border border-white/[0.15] focus:border-[#10e588] rounded-2xl ps-10 pe-10 py-2.5 sm:py-3 text-base sm:text-sm text-white placeholder:text-zinc-500 outline-none transition-all font-sans touch-manipulation"
+                      className="w-full bg-[#101726] border border-white/[0.15] focus:border-[#e4c27d] rounded-2xl ps-10 pe-10 py-2.5 sm:py-3 text-base sm:text-sm text-white placeholder:text-zinc-500 outline-none transition-all font-sans touch-manipulation"
                     />
                     <button
                       type="button"
@@ -585,7 +585,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       spellCheck={false}
                       onChange={(e) => setRegConfirmPassword(e.target.value)}
                       placeholder="أعد إدخال كلمة المرور"
-                      className="w-full bg-[#11271c] border border-white/[0.15] focus:border-[#10e588] rounded-2xl ps-10 pe-10 py-2.5 sm:py-3 text-base sm:text-sm text-white placeholder:text-zinc-500 outline-none transition-all font-sans touch-manipulation"
+                      className="w-full bg-[#101726] border border-white/[0.15] focus:border-[#e4c27d] rounded-2xl ps-10 pe-10 py-2.5 sm:py-3 text-base sm:text-sm text-white placeholder:text-zinc-500 outline-none transition-all font-sans touch-manipulation"
                     />
                     <button
                       type="button"
@@ -602,7 +602,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full mt-2 py-3.5 sm:py-4 px-6 rounded-2xl font-black text-xs sm:text-sm text-slate-950 bg-gradient-to-r from-[#6ee7b7] via-[#34d399] to-[#10b981] hover:brightness-110 active:scale-[0.98] transition-all duration-150 shadow-[0_4px_25px_rgba(16,229,136,0.35)] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full mt-2 py-3.5 sm:py-4 px-6 rounded-2xl font-black text-xs sm:text-sm text-slate-950 bg-gradient-to-r from-[#ebd095] via-[#dfba6f] to-[#caa050] hover:brightness-110 active:scale-[0.98] transition-all duration-150 shadow-[0_4px_25px_rgba(228,194,125,0.35)] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <span>{isLoading ? 'جارٍ إنشاء الحساب...' : 'إنشاء الحساب وبدء الاستخدام'}</span>
                   <ArrowLeft className="w-4 h-4 stroke-[2.8]" />
@@ -617,7 +617,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       setMode('login');
                       setError(null);
                     }}
-                    className="text-[#10e588] font-bold hover:underline cursor-pointer"
+                    className="text-[#e4c27d] font-bold hover:underline cursor-pointer"
                   >
                     اضغط هنا لتسجيل الدخول
                   </button>
@@ -634,9 +634,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       {/* Forgot Password Modal */}
       {isForgotModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in">
-          <div className="relative w-full max-w-sm bg-[#0d2017] border border-white/[0.15] rounded-3xl p-6 shadow-2xl text-right">
+          <div className="relative w-full max-w-sm bg-[#0d131f] border border-white/[0.15] rounded-3xl p-6 shadow-2xl text-right">
             <div className="flex items-center justify-between mb-4 border-b border-white/[0.08] pb-3">
-              <div className="flex items-center gap-2 text-[#10e588]">
+              <div className="flex items-center gap-2 text-[#e4c27d]">
                 <Scale className="w-5 h-5" />
                 <h4 className="font-bold text-sm text-white">استرجاع الحساب</h4>
               </div>
@@ -659,7 +659,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 setIsForgotModalOpen(false);
                 setMode('register');
               }}
-              className="w-full py-2.5 rounded-xl bg-[#10e588] text-slate-950 font-bold text-xs cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-[#e4c27d] text-slate-950 font-bold text-xs cursor-pointer"
             >
               إنشاء حساب جديد
             </button>
