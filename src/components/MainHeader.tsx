@@ -36,7 +36,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ children, currentDate, c
             <span aria-hidden="true" className="h-2 w-2 rounded-full bg-[#10e588]" />
             <span>{ar ? 'ميزان' : 'Mizan'}</span>
           </div>
-          <SyncIndicator lang={lang} userId={currentUser?.id} interactive={false} compact />
+          <SyncIndicator lang={lang} userId={currentUser?.id} compact />
         </div>
         <div role="group" aria-label={ar ? 'أدوات اليوم' : 'Day tools'} className="order-3 col-span-2 flex max-w-full flex-wrap items-center justify-end gap-2 sm:order-none sm:justify-start">
           <ColorThemePicker lang={lang} className={control} />

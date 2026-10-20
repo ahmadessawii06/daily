@@ -11,7 +11,7 @@ const noop = () => {};
 test('the planner header exposes language and theme beside daily actions and sync status', () => {
   for (const lang of ['ar', 'en'] as const) {
     const html = renderToStaticMarkup(React.createElement(MainHeader, { currentDate: '2026-10-15', currentUser: user, lang, theme: 'dark', onToggleTheme: noop, onToggleLang: noop, onExport: noop, exporting: false, onLogout: noop, onOpenArchive: noop, onOpenStats: noop, onOpenAddTask: noop, onOpenSettings: noop }));
-    assert.equal((html.match(/<button\b/g) || []).length, 19, 'Nine toolbar actions, nine themes, and the popover close button');
+    assert.equal((html.match(/<button\b/g) || []).length, 20, 'Toolbar actions include the clickable sync indicator');
     assert.ok(html.includes('popover="manual"'), 'Theme choices stay in a fixed non-blocking side panel');
     assert.ok(!html.includes('Search themes'));
     assert.ok(html.includes(lang === 'ar' ? 'ثيمات الألوان' : 'Color themes'));
@@ -20,7 +20,7 @@ test('the planner header exposes language and theme beside daily actions and syn
     assert.ok(html.includes(lang === 'ar' ? 'تفعيل الوضع الفاتح' : 'Switch to light mode'));
     assert.ok(html.includes(`aria-label="${lang === 'ar' ? 'الإعدادات' : 'Settings'}"`));
     assert.ok(html.includes(`aria-label="${lang === 'ar' ? 'إضافة مهمة جديدة' : 'Add new task'}"`));
-    assert.ok(html.includes('role="status"'));
+    assert.match(html, /<button\b[^>]*aria-label="(?:حالة المزامنة:|تعذرت المزامنة|Sync status:|Sync failed)[^"]*"/, 'Sync status must be a button so failure details can open');
     assert.ok(!html.includes('aria-expanded='), 'No account dropdown remains');
   }
 });
@@ -37,6 +37,7 @@ test('settings opens with searchable shortcuts and keeps detailed settings in ac
   assert.ok(!html.includes('User management'));
   assert.ok(html.includes('aria-label="Search settings"'));
   assert.ok(html.includes('A shortcut to everything'));
+  assert.equal((html.match(/<button\b[^>]*aria-label="Sync (?:status:|failed)[^"]*"/g) || []).length, 2, 'Both sync indicators in settings remain clickable');
   assert.equal((html.match(/role="tab"/g) || []).length, 5);
   assert.equal((html.match(/role="tabpanel"/g) || []).length, 5);
   assert.equal((html.match(/aria-selected="true"/g) || []).length, 1);
