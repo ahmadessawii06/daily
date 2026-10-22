@@ -23,6 +23,7 @@ import loginBackground from '../assets/images/login-background.jpg';
 import { AuthLoadingScreen, type AuthLoadingStage } from './AuthLoadingScreen';
 import { readStoredWorkspace, storeWorkspace } from '../utils/workspace';
 import { mergeWorkspace } from '../shared/workspace';
+import { markPendingNewUserOnboarding } from '../utils/onboardingStorage';
 
 interface LoginScreenProps {
   onLoginSuccess: (user: User, token: string) => void | Promise<void>;
@@ -152,6 +153,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       if (res.success && res.user && res.token) {
         saveStoredAuth(res.user, res.token);
         if (res.workspace) storeWorkspace(mergeWorkspace(readStoredWorkspace(), res.workspace));
+        markPendingNewUserOnboarding();
         setLoadingStage('preparing');
         await onLoginSuccess(res.user, res.token);
       } else {

@@ -31,6 +31,7 @@ interface CardsDashboardProps {
   onMove?: (id: string) => void;
   onToggleFocus?: (id: string) => void;
   creationTarget?: { categoryId: string; requestId: number } | null;
+  onOpenAddTask?: () => void;
 }
 
 export function CardsDashboard(props: CardsDashboardProps) {
@@ -48,6 +49,30 @@ export function CardsDashboard(props: CardsDashboardProps) {
         <div><h2 className="text-lg font-bold tracking-tight">{ar ? 'مساحتك اليومية' : 'Your daily workspace'}</h2><p className="mt-1 text-xs leading-6 text-slate-500 dark:text-zinc-400">{ar ? 'خطوة واحدة في كل مرة. الوقت اختياري.' : 'One step at a time. Scheduling is optional.'}</p></div>
         <button type="button" onClick={() => setEditor('new')} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold transition-colors hover:border-emerald-400 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-emerald-400/40"><Plus className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />{ar ? 'بطاقة جديدة' : 'New card'}</button>
       </div>
+      {tasks.length === 0 && filter === 'all' && (
+        <div className="rounded-2xl border border-emerald-500/20 bg-linear-to-r from-emerald-500/10 via-emerald-500/5 to-transparent p-4 sm:p-5 dark:border-emerald-500/20 dark:from-emerald-950/30">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-1">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>{ar ? 'يوم جديد، بداية جديدة ☀️' : 'New day, new beginning ☀️'}</span>
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400">
+                {ar ? 'ابدأ بإضافة أول مهمة، وخلي ميزان يساعدك ترتّب يومك خطوة بخطوة.' : 'Start by adding your first task, and let Mizan help you organize your day step by step.'}
+              </p>
+            </div>
+            {props.onOpenAddTask && (
+              <button
+                type="button"
+                onClick={props.onOpenAddTask}
+                className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-xs font-bold text-slate-950 transition-all hover:bg-emerald-400 active:scale-95 shadow-md shadow-emerald-500/10 font-['Alexandria'] cursor-pointer"
+              >
+                <Plus className="h-4 w-4 stroke-[2.5]" />
+                <span>{ar ? 'أضف أول مهمة' : 'Add first task'}</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       {filter !== 'all' && <div className="flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs"><span>{ar ? 'عرض: ' : 'Showing: '}{filterName}</span><button type="button" onClick={() => onFilterChange('all')} className="inline-flex min-h-9 items-center gap-1 font-semibold"><X className="h-3 w-3" />{ar ? 'عرض الكل' : 'Show all'}</button></div>}
       <div className={`grid grid-cols-1 items-start gap-4 md:grid-cols-2 ${props.cardColumns === 2 ? '' : props.cardColumns === 3 ? 'xl:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'}`}>
         <PrayerCard currentDate={props.currentDate} slots={prayerTasks.slots} lang={lang} onAddPrayer={props.onAddPrayer} onStatusChange={props.onStatusChange} />

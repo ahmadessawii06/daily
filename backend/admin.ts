@@ -7,7 +7,7 @@ import { hashPassword, signToken, verifyTokenClaims, type TokenClaims } from './
 export function fail(status: number, message: string): never { throw Object.assign(new Error(message), { status, expose: true }); }
 export const usable = (a: Account | null) => !!a && !a.deletedAt && a.status !== 'suspended';
 export function publicUser(a: Account) {
-  return { id: a.id, userCode: a.userCode, username: a.username, name: a.name, email: a.email, createdAt: a.createdAt, lastLoginAt: a.lastLoginAt, role: a.role || 'user', status: a.deletedAt ? 'deleted' : a.status || 'active', deletedAt: a.deletedAt || null };
+  return { id: a.id, userCode: a.userCode, username: a.username, name: a.name, avatarUrl: a.avatarUrl, email: a.email, createdAt: a.createdAt, lastLoginAt: a.lastLoginAt, role: a.role || 'user', status: a.deletedAt ? 'deleted' : a.status || 'active', deletedAt: a.deletedAt || null };
 }
 export function sessionAllowed(a: Account, claims: TokenClaims) {
   return usable(a) && (claims.ver || 0) === (a.authVersion || 0) && (!claims.sid ? !a.authVersion : a.sessions?.some(s => s.id === claims.sid && !s.revokedAt && Date.parse(s.expiresAt) > Date.now()));

@@ -9,14 +9,15 @@ interface AccountPageProps {
   onBack: () => void;
   backLabel?: string;
   compact?: boolean;
+  className?: string;
   children: React.ReactNode;
 }
 
-export function AccountPage({ lang, title, description, onBack, backLabel, compact = false, children }: AccountPageProps) {
+export function AccountPage({ lang, title, description, onBack, backLabel, compact = false, className = '', children }: AccountPageProps) {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { heading.current?.focus({ preventScroll: true }); }, [title]);
   const Back = lang === 'ar' ? ArrowRight : ArrowLeft;
-  return <main dir={lang === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-50 px-3 py-5 text-slate-900 dark:bg-[#07080b] dark:text-zinc-100 sm:px-6 sm:py-8">
+  return <main dir={lang === 'ar' ? 'rtl' : 'ltr'} className={`${className} min-h-screen bg-slate-50 px-3 py-5 text-slate-900 dark:bg-[#07080b] dark:text-zinc-100 sm:px-6 sm:py-8`}>
     <div className={`mx-auto max-w-6xl ${compact ? 'space-y-5' : 'space-y-6 sm:space-y-8'}`}>
       <header className={`${compact ? 'space-y-4 pb-5' : 'space-y-6 pb-6'} border-b border-slate-200/80 dark:border-white/[0.08]`}>
         <div className="flex items-center justify-between gap-3">

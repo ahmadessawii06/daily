@@ -92,6 +92,7 @@ async function sync(userId: string, token: string): Promise<boolean> {
       if (settings.lang) userStorage.setItem('lang', settings.lang);
       if (settings.prayerTimes) userStorage.setItem('daily_fixed_prayer_times_v1', JSON.stringify(settings.prayerTimes));
       if (settings.prayerLocation) userStorage.setItem('daily_prayer_location_config_v3', JSON.stringify(settings.prayerLocation));
+      if (settings.onboarding) userStorage.setItem('mizan_onboarding_status_v1', JSON.stringify(settings.onboarding));
     }
     status = pending.length ? 'saving' : 'synced';
     if (!pending.length && deferredPhotos.size) {

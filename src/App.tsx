@@ -55,6 +55,8 @@ import { ExportScheduleModal } from './components/ExportScheduleModal';
 
 import { playAchievementSound, playFailureSound, playChallengeCompleteSound, preloadChallengeCompleteSound } from './utils/soundEffects';
 import { AlertCircle, CalendarArrowUp, CheckCircle2, LayoutGrid, ListChecks, Plus, Undo2, X } from 'lucide-react';
+import { OnboardingTour } from './components/OnboardingTour';
+import { shouldShowOnboarding, saveOnboardingStatus } from './utils/onboardingStorage';
 
 const AdminPanel = React.lazy(() => import('./components/AdminPanel').then(module => ({ default: module.AdminPanel })));
 const SettingsPage = React.lazy(() => import('./components/SettingsPage').then(module => ({ default: module.SettingsPage })));
@@ -158,6 +160,7 @@ export default function App() {
   const [reasonTarget, setReasonTarget] = useState<{ id: string; date: string } | null>(null);
   useEffect(() => { setReasonTarget(null); }, [currentUser?.id, currentDate]);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   // Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -256,6 +259,13 @@ export default function App() {
     setTheme(getStoredTheme());
     setLang(userStorage.getItem('lang') === 'en' ? 'en' : 'ar');
   }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (!currentUser || isPreparingWorkspace || support || page !== 'planner') return;
+    if (shouldShowOnboarding()) {
+      setIsOnboardingOpen(true);
+    }
+  }, [currentUser?.id, isPreparingWorkspace, support, page]);
 
   const refreshArchive = useCallback(() => {
     setArchiveDays(getAllArchiveDays());
@@ -449,6 +459,7 @@ export default function App() {
     setCardCreationTarget(null);
     setIsExportModalOpen(false);
     setExportRequested(false);
+    setIsOnboardingOpen(false);
   }, [page]);
 
   const handleExportDailyTrackImage = async () => {
@@ -509,6 +520,7 @@ export default function App() {
     setIsExportModalOpen(false);
     setExportRequested(false);
     setIsPreparingWorkspace(false);
+    setIsOnboardingOpen(false);
     setCurrentUser(null);
     showToast(lang === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Logged out successfully');
   };
@@ -549,7 +561,8 @@ export default function App() {
       onResetData={handleResetData} onApply24HourTemplate={handleApply24HourTemplate}
       onSyncComplete={() => { setTasks(getDayRecord(currentDate).tasks); refreshArchive(); }}
       onOpenStats={() => navigate('statistics')} onOpenArchive={() => navigate('archive')} onOpenAdmin={() => navigate('admin')}
-      onExport={() => { setExportRequested(true); navigate('planner'); }} onLogout={handleLogout} />
+      onExport={() => { setExportRequested(true); navigate('planner'); }} onLogout={handleLogout}
+      onReplayTour={() => { navigate('planner'); setIsOnboardingOpen(true); }} />
     {feedback}
   </React.Suspense>;
 
@@ -594,30 +607,31 @@ export default function App() {
           {support && <DateNavigation currentDate={currentDate} onDateChange={setCurrentDate} lang={lang} />}
 
           {/* Today Progress Section (bar & metrics) */}
-          <TodayProgress
-            stats={stats}
-            currentFilter={currentFilter}
-            onFilterChange={setCurrentFilter}
-            lang={lang}
-          />
+          <div id="onboarding-today-progress">
+            <TodayProgress
+              stats={stats}
+              currentFilter={currentFilter}
+              onFilterChange={setCurrentFilter}
+              lang={lang}
+            />
+          </div>
 
+          <div id="onboarding-planner-area" className="space-y-4 sm:space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-3"><div id="onboarding-view-switcher" role="group" aria-label={lang === 'ar' ? 'طريقة عرض المهام' : 'Planning view'} className="inline-flex max-w-full gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
+              {(['cards', 'timeline'] as const).map(view => {
+                const Icon = view === 'cards' ? LayoutGrid : ListChecks;
+                const label = view === 'cards' ? (lang === 'ar' ? 'البطاقات' : 'Cards') : (lang === 'ar' ? 'الجدول' : 'Timeline');
+                return <button key={view} type="button" aria-pressed={workspace.view === view} onClick={() => handleChangeView(view)} className={`inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold transition-colors ${workspace.view === view ? 'bg-white text-emerald-700 shadow-2xs dark:bg-[#1c2425] dark:text-emerald-300' : 'text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-100'}`}><Icon className="h-4 w-4" />{label}</button>;
+              })}
+            </div>{!support && <button type="button" onClick={handleMoveRemaining} disabled={!tasks.some(canMoveTask)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-600 hover:border-emerald-500/40 focus-visible:outline-2 focus-visible:outline-emerald-500 disabled:opacity-40 dark:border-white/10 dark:bg-white/[.02] dark:text-zinc-300"><CalendarArrowUp aria-hidden="true" size={15} />{lang === 'ar' ? 'نقل غير المكتمل لليوم التالي' : 'Move unfinished to next day'}</button>}</div>
 
-
-
-          <div className="flex flex-wrap items-center justify-between gap-3"><div role="group" aria-label={lang === 'ar' ? 'طريقة عرض المهام' : 'Planning view'} className="inline-flex max-w-full gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
-            {(['cards', 'timeline'] as const).map(view => {
-              const Icon = view === 'cards' ? LayoutGrid : ListChecks;
-              const label = view === 'cards' ? (lang === 'ar' ? 'البطاقات' : 'Cards') : (lang === 'ar' ? 'الجدول' : 'Timeline');
-              return <button key={view} type="button" aria-pressed={workspace.view === view} onClick={() => handleChangeView(view)} className={`inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold transition-colors ${workspace.view === view ? 'bg-white text-emerald-700 shadow-2xs dark:bg-[#1c2425] dark:text-emerald-300' : 'text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-100'}`}><Icon className="h-4 w-4" />{label}</button>;
-            })}
-          </div>{!support && <button type="button" onClick={handleMoveRemaining} disabled={!tasks.some(canMoveTask)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-600 hover:border-emerald-500/40 focus-visible:outline-2 focus-visible:outline-emerald-500 disabled:opacity-40 dark:border-white/10 dark:bg-white/[.02] dark:text-zinc-300"><CalendarArrowUp aria-hidden="true" size={15} />{lang === 'ar' ? 'نقل غير المكتمل لليوم التالي' : 'Move unfinished to next day'}</button>}</div>
-
-          <fieldset disabled={!!support} className="min-w-0 border-0 p-0 m-0">
-          {workspace.view === 'cards' ? <CardsDashboard cardColumns={cardColumns} currentDate={currentDate} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
-            creationTarget={cardCreationTarget}
-            onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
-            onAddPrayer={handleCompletePrayer}
-            onStatusChange={handleStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} onMove={id => handleMoveTasks([id])} /> : <div className="space-y-6 sm:space-y-8">
+            <fieldset disabled={!!support} className="min-w-0 border-0 p-0 m-0">
+            {workspace.view === 'cards' ? <CardsDashboard cardColumns={cardColumns} currentDate={currentDate} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
+              creationTarget={cardCreationTarget}
+              onOpenAddTask={() => setIsTaskDestinationOpen(true)}
+              onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
+              onAddPrayer={handleCompletePrayer}
+              onStatusChange={handleStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} onMove={id => handleMoveTasks([id])} /> : <div className="space-y-6 sm:space-y-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div><h2 className="text-lg font-bold tracking-tight">{lang === 'ar' ? 'جدولك اليومي' : 'Your daily schedule'}</h2><p className="mt-1 text-xs leading-6 text-slate-500 dark:text-zinc-400">{lang === 'ar' ? 'رتّب مهامك، وخلي لكل خطوة وقتها.' : 'Plan your tasks and make time for each step.'}</p></div>
               {!support && <button type="button" onClick={() => setIsAddTaskOpen(true)} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold transition-colors hover:border-emerald-400 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-emerald-400/40"><Plus aria-hidden="true" className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />{lang === 'ar' ? 'مهمة جديدة' : 'New task'}</button>}
@@ -638,6 +652,7 @@ export default function App() {
               lang={lang}
             /></div>}
           </fieldset>
+          </div>
 
 
         </div>
@@ -683,6 +698,21 @@ export default function App() {
         dayNote={getDayRecord(currentDate)?.dayNote}
         lang={lang}
       />
+
+      {/* Interactive Onboarding Tour */}
+      {isOnboardingOpen && !support && (
+        <OnboardingTour
+          isOpen={isOnboardingOpen}
+          lang={lang}
+          theme={theme}
+          currentTasksCount={tasks.length}
+          onOpenAddTask={() => setIsTaskDestinationOpen(true)}
+          onClose={(skipped) => {
+            saveOnboardingStatus({ completed: true, skipped });
+            setIsOnboardingOpen(false);
+          }}
+        />
+      )}
 
       {/* Toast Feedback */}
       {feedback}

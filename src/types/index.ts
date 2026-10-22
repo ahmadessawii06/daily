@@ -116,6 +116,13 @@ export type StatusFilter = 'all' | 'scheduled' | 'done' | 'pending' | 'not-done'
 export type Language = 'ar' | 'en';
 export type Theme = 'dark' | 'light';
 
+export interface OnboardingStatus {
+  completed: boolean;
+  skipped?: boolean;
+  completedAt?: string;
+  updatedAt?: string;
+}
+
 export interface PrayerTimeItem {
   id: 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha';
   nameAr: string;
@@ -153,6 +160,7 @@ export interface PrayerTimesDayResponse {
 }
 
 export interface User {
+  avatarUrl?: string;
   id: string;
   userCode: string;
   name?: string;

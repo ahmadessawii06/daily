@@ -32,6 +32,7 @@ const AccountModel = mongoose.models.Account || mongoose.model('Account', new Sc
   userCode: { type: String, required: true, unique: true },
   username: { type: String, required: true, unique: true },
   name: String,
+  avatarUrl: String,
   email: { type: String, sparse: true, unique: true },
   createdAt: String,
   role: { type: String, enum: ROLES, default: 'user' },
@@ -187,6 +188,7 @@ async function initializeSecurity() {
   await securityReady;
 }
 export interface SecurityTransaction {
+  byUsername(username: string): Promise<Account | null>;
   account(id: string): Promise<Account | null>;
   byReset(hash: string): Promise<Account | null>;
   patch(id: string, changes: Partial<Account>): Promise<void>;
@@ -199,6 +201,7 @@ export interface SecurityTransaction {
 // MongoDB transactions also make the mutation and its audit entry atomic.
 export async function securityTransaction<T>(fn: (tx: SecurityTransaction) => Promise<T>): Promise<T> {
   if (!await useMongo()) return localTransaction(async store => fn({
+    byUsername: async username => normalizeAccount(Object.values(store.accounts).find(a => a.username === username) || null),
     account: async id => normalizeAccount(store.accounts[id] || null),
     byReset: async hash => normalizeAccount(Object.values(store.accounts).find(a => a.reset?.hash === hash) || null),
     patch: async (id, changes) => { const a = store.accounts[id]; if (!a) throw new Error('Account not found'); Object.assign(a, changes); a.revision++; },
@@ -212,6 +215,7 @@ export async function securityTransaction<T>(fn: (tx: SecurityTransaction) => Pr
   await mongoose.connection.transaction(async session => {
     await ControlModel.updateOne({ id: 'security' }, { $inc: { epoch: 1 } }, { session });
     result = await fn({
+      byUsername: async username => normalizeAccount(await AccountModel.findOne({ username }).session(session).lean() as unknown as Account | null),
       account: async id => normalizeAccount(await AccountModel.findOne({ id }).session(session).lean() as unknown as Account | null),
       byReset: async hash => normalizeAccount(await AccountModel.findOne({ 'reset.hash': hash }).session(session).lean() as unknown as Account | null),
       patch: async (id, changes) => {

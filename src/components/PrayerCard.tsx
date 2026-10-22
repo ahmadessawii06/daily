@@ -74,7 +74,7 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
   const labels = ar ? { done: 'مكتملة', pending: 'متبقية', 'not-done': 'غير منجزة' }
     : { done: 'Completed', pending: 'Remaining', 'not-done': 'Not done' };
   return (
-    <article data-prayer-card aria-label={ar ? 'الصلوات الخمس' : 'Five daily prayers'} className="col-span-full min-w-0 overflow-hidden rounded-3xl border border-emerald-300/70 bg-linear-to-br from-emerald-50 via-white to-amber-50/60 p-4 shadow-xs dark:border-emerald-400/25 dark:from-[#102521] dark:via-[#111b1c] dark:to-[#202219] sm:p-5">
+    <article id="onboarding-prayer-card" data-prayer-card aria-label={ar ? 'الصلوات الخمس' : 'Five daily prayers'} className="col-span-full min-w-0 overflow-hidden rounded-3xl border border-emerald-300/70 bg-linear-to-br from-emerald-50 via-white to-amber-50/60 p-4 shadow-xs dark:border-emerald-400/25 dark:from-[#102521] dark:via-[#111b1c] dark:to-[#202219] sm:p-5">
       <div className="grid grid-cols-1 items-center gap-x-5 gap-y-3 md:grid-cols-[minmax(0,1fr)_20rem]">
         <div data-prayer-heading className="order-1 flex min-w-0 items-center gap-3">
           <div aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-amber-300/50 bg-amber-100/70 text-amber-700 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-200"><MoonStar className="h-6 w-6" strokeWidth={1.6} /></div>

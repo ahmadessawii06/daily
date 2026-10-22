@@ -18,7 +18,7 @@ export function ColorThemePicker({ lang, className }: { lang: Language; classNam
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, []);
   return <>
-    <button type="button" popoverTarget={id} onClick={() => setSelected(readColorTheme())} aria-label={ar ? 'ثيمات الألوان' : 'Color themes'} title={ar ? 'ثيمات الألوان' : 'Color themes'} aria-haspopup="dialog" className={className}>
+    <button id="header-palette-btn" type="button" popoverTarget={id} onClick={() => setSelected(readColorTheme())} aria-label={ar ? 'ثيمات الألوان' : 'Color themes'} title={ar ? 'ثيمات الألوان' : 'Color themes'} aria-haspopup="dialog" className={className}>
       <Palette aria-hidden="true" size={18} className="motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:-rotate-12" />
     </button>
     <div id={id} ref={panel} popover="manual" role="dialog" aria-labelledby={`${id}-title`} dir={ar ? 'rtl' : 'ltr'} className="theme-dock fixed inset-y-0 left-auto right-0 m-0 h-dvh max-h-dvh w-[min(310px,100%)] overflow-hidden rounded-none rounded-l-2xl border border-slate-200 bg-slate-50 p-2 text-slate-900 shadow-2xl dark:border-white/15 dark:bg-[#101219] dark:text-zinc-100 sm:p-2">

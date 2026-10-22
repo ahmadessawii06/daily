@@ -33,7 +33,7 @@ export function TaskDestinationDialog({ lang, cards, onClose, onTimeline, onCard
   const choiceClass = 'flex min-h-14 w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-start text-sm font-semibold text-slate-900 transition-colors hover:border-emerald-500/50 hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white dark:hover:border-emerald-400/40 dark:hover:bg-emerald-400/10';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm" onPointerDown={event => { if (event.target === event.currentTarget) onClose(); }}>
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm" onPointerDown={event => { if (event.target === event.currentTarget) onClose(); }}>
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={headingId} className="max-h-[calc(100dvh-1.5rem)] w-full max-w-sm overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl dark:border-white/[0.1] dark:bg-[#11131a]" onKeyDown={event => {
         if (event.key === 'Escape') { event.preventDefault(); onClose(); }
         if (event.key !== 'Tab') return;

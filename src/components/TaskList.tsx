@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, LayoutTemplate, Filter, X } from 'lucide-react';
+import { Clock, LayoutTemplate, Filter, X, Plus } from 'lucide-react';
 import { Language, StatusFilter, Task, TaskStatus } from '../types';
 import { TaskRow } from './TaskRow';
 
@@ -27,6 +27,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   onMove,
   onToggleFocus,
   onUpdateTitle,
+  onOpenAddTask,
   onApply24HourTemplate,
   currentFilter,
   onFilterChange,
@@ -115,22 +116,30 @@ export const TaskList: React.FC<TaskListProps> = ({
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Alexandria']">
-                  {lang === 'ar' ? 'قالب اليوم جاهز للتعبئة' : 'Ready for your tasks'}
+                  {lang === 'ar' ? 'يوم جديد، بداية جديدة ☀️' : 'New day, new beginning ☀️'}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1 font-medium leading-relaxed">
                   {lang === 'ar'
-                    ? 'اضغط زر قالب الـ 24 ساعة لإنشاء جدول الساعات بالكامل، وابدأ بتسجيل مهامك فورًا.'
-                    : 'Click 24h Template to generate all hourly slots and start naming your tasks.'}
+                    ? 'ابدأ بإضافة أول مهمة، وخلي ميزان يساعدك ترتّب يومك خطوة بخطوة.'
+                    : 'Start by adding your first task, and let Mizan help you organize your day step by step.'}
                 </p>
               </div>
-              <div className="pt-2 flex items-center justify-center gap-2">
+              <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={onOpenAddTask}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded-xl transition-all shadow-md active:scale-98 cursor-pointer font-['Alexandria']"
+                >
+                  <Plus className="w-4 h-4 stroke-[2.5]" />
+                  <span>{lang === 'ar' ? 'أضف أول مهمة' : 'Add first task'}</span>
+                </button>
                 <button
                   type="button"
                   onClick={onApply24HourTemplate}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded-xl transition-all shadow-md active:scale-98 cursor-pointer font-['Alexandria']"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-slate-600 dark:text-zinc-300 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
                 >
-                  <LayoutTemplate className="w-4 h-4 stroke-[2.5]" />
-                  <span>{lang === 'ar' ? 'توليد قالب 24 ساعة' : 'Generate 24h Template'}</span>
+                  <LayoutTemplate className="w-4 h-4" />
+                  <span>{lang === 'ar' ? 'قالب 24 ساعة' : '24h Template'}</span>
                 </button>
               </div>
             </div>

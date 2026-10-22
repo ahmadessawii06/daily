@@ -3,6 +3,7 @@
 @import "./theme-personalities.css";
 @import "./progress-colors.css";
 @import "./theme-mizan-developed.css";
+@import "./settings.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

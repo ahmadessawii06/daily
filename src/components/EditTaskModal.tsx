@@ -98,7 +98,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
   ] as const;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 backdrop-blur-md sm:p-6">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-3 backdrop-blur-md sm:p-6">
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={`${formId}-heading`} tabIndex={-1}
         className="flex max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-2xl outline-none dark:border-white/10 dark:bg-[#101218] dark:text-zinc-100"
         onKeyDown={event => {

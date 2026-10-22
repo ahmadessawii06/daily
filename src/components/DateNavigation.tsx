@@ -37,7 +37,7 @@ export const DateNavigation: React.FC<DateNavigationProps> = ({
   const shortDate = formatShortDate(currentDate, lang);
 
   return (
-    <nav aria-label={lang === 'ar' ? 'التنقل بين الأيام' : 'Day navigation'} dir={lang === 'ar' ? 'rtl' : 'ltr'} className="inline-flex max-w-full items-center gap-1 rounded-2xl border border-slate-200/80 bg-slate-100/70 p-1 text-xs select-none dark:border-white/[.08] dark:bg-white/[.03]">
+    <nav id="onboarding-date-navigation" aria-label={lang === 'ar' ? 'التنقل بين الأيام' : 'Day navigation'} dir={lang === 'ar' ? 'rtl' : 'ltr'} className="inline-flex max-w-full items-center gap-1 rounded-2xl border border-slate-200/80 bg-slate-100/70 p-1 text-xs select-none dark:border-white/[.08] dark:bg-white/[.03]">
       
       {/* Previous Day */}
       <button

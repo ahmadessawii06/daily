@@ -9,6 +9,7 @@ import { mergeDay } from '../src/shared/merge.js';
 import { createWorkspace, mergeWorkspace, parseWorkspace } from '../src/shared/workspace.js';
 import type { DayRecord } from '../src/types';
 import { normalizePhotoTimestamp } from '../src/shared/photoTimestamp.js';
+import { installProfileRoutes } from './profile.js';
 
 function badRequest(message: string): never {
   throw Object.assign(new Error(message), { status: 400 });
@@ -145,6 +146,11 @@ export function createApiApp(production = false, options: { resetMailer?: ResetM
       if (!body.settings || typeof body.settings !== 'object' || Array.isArray(body.settings)) badRequest('Invalid settings');
       if (body.settings.theme !== undefined && !['dark', 'light'].includes(body.settings.theme)) badRequest('Invalid theme');
       if (body.settings.lang !== undefined && !['ar', 'en'].includes(body.settings.lang)) badRequest('Invalid language');
+      if (body.settings.onboarding !== undefined) {
+        if (!body.settings.onboarding || typeof body.settings.onboarding !== 'object' || Array.isArray(body.settings.onboarding)) badRequest('Invalid onboarding');
+        if (body.settings.onboarding.completed !== undefined && typeof body.settings.onboarding.completed !== 'boolean') badRequest('Invalid onboarding completion');
+        if (body.settings.onboarding.skipped !== undefined && typeof body.settings.onboarding.skipped !== 'boolean') badRequest('Invalid onboarding skipped');
+      }
     }
     const state = await updateState(res.locals.account.id, state => {
       if (workspace) {
@@ -160,7 +166,7 @@ export function createApiApp(production = false, options: { resetMailer?: ResetM
         if (!Number.isFinite(version) || version <= 0) badRequest('Invalid version');
         if (version >= (state.versions[key] || 0)) {
           if (key === 'settings') {
-            const allowed = ['theme', 'lang', 'prayerLocation', 'prayerTimes'];
+            const allowed = ['theme', 'lang', 'prayerLocation', 'prayerTimes', 'onboarding'];
             state.settings = { ...state.settings, ...Object.fromEntries(Object.entries(body.settings).filter(([k]) => allowed.includes(k))) };
           } else state[key] = body[key];
           state.versions[key] = version;
@@ -169,6 +175,7 @@ export function createApiApp(production = false, options: { resetMailer?: ResetM
     });
     res.json({ success: true, ...state });
   }));
+  installProfileRoutes(api);
   for (const key of ['habits', 'recurring', 'settings'] as const) {
     api.get(`/${key}`, (_req, res) => res.json({ [key]: res.locals.account.state[key] }));
   }

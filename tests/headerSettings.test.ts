@@ -39,6 +39,11 @@ test('settings opens with searchable shortcuts and keeps detailed settings in ac
   assert.ok(!html.includes('User management'));
   assert.ok(html.includes('aria-label="Search settings"'));
   assert.ok(html.includes('A shortcut to everything'));
+  assert.ok(!html.includes('gradient'), 'Settings use solid surfaces without decorative gradients');
+  assert.ok(!html.includes('min-h-36'), 'Quick actions are compact rows');
+  assert.equal((html.match(/Test member/g) || []).length, 1, 'Account identity appears once');
+  assert.ok(html.indexOf('aria-label="Search settings"') < html.indexOf('Manage account'), 'Search is independent of the account row');
+  assert.ok(html.includes('Sync &amp; connection'), 'Overview links to sync details instead of duplicating the sync action');
   assert.equal((html.match(/<button\b[^>]*aria-label="Sync (?:status:|failed)[^"]*"/g) || []).length, 2, 'Both sync indicators in settings remain clickable');
   assert.equal((html.match(/role="tab"/g) || []).length, 5);
   assert.equal((html.match(/role="tabpanel"/g) || []).length, 5);
