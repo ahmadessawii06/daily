@@ -14,6 +14,12 @@ test('the planner header exposes language and theme beside daily actions and syn
     const html = renderToStaticMarkup(React.createElement(MainHeader, { currentDate: '2026-10-15', currentUser: user, lang, theme: 'dark', onToggleTheme: noop, onToggleLang: noop, onExport: noop, exporting: false, onLogout: noop, onOpenArchive: noop, onOpenStats: noop, onOpenAddTask: noop, onOpenSettings: noop }));
     assert.equal((html.match(/<button\b/g) || []).length, 11 + colorThemes.length, 'Toolbar actions include the clickable sync indicator and all theme choices');
     assert.ok(html.includes(lang === 'ar' ? 'ميزان المطور' : 'Mizan Developed'));
+    const toolOrder = ['header-columns-btn', 'header-stats-btn', 'header-archive-btn', 'header-export-btn', 'header-palette-btn', 'header-lang-btn', 'header-theme-btn', 'header-settings-btn'];
+    assert.deepEqual(
+      toolOrder.map(id => html.indexOf(`id="${id}"`)),
+      [...toolOrder].map(id => html.indexOf(`id="${id}"`)).sort((a, b) => a - b),
+      'Most-used view and daily tools come first in the RTL toolbar order',
+    );
     assert.ok(html.includes('popover="manual"'), 'Theme choices stay in a fixed non-blocking side panel');
     assert.ok(!html.includes('Search themes'));
     assert.ok(html.includes(lang === 'ar' ? 'ثيمات الألوان' : 'Color themes'));

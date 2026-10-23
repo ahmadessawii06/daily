@@ -603,7 +603,7 @@ export default function App() {
         className={`relative z-10 isolate flex-1 w-full ${cardColumns === 4 ? 'max-w-[1600px]' : 'max-w-6xl'} mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors`}
       >
         <PlannerBackdrop />
-        <div className="relative z-10 space-y-4 sm:space-y-6">
+        <div className="relative z-10 space-y-3 sm:space-y-4">
 
           {/* Daily actions and quick appearance preferences. */}
           {!support ? <MainHeader
