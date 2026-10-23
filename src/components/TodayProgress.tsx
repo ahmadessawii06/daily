@@ -153,13 +153,11 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                 )}
               </div>
 
-              <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5 truncate font-medium">
+              {(stats.total === 0 || isAllComplete) && <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5 truncate font-medium">
                 {stats.total === 0
                   ? (lang === 'ar' ? 'لا توجد مهام مسجلة لهذا اليوم' : 'No tasks scheduled for today')
-                  : isAllComplete
-                  ? (lang === 'ar' ? `اكتملت جميع المهام بنجاح (${stats.done} من ${stats.total})` : `All ${stats.total} tasks completed successfully`)
-                  : (lang === 'ar' ? `تم إنجاز ${stats.done} من أصل ${stats.total} مهام` : `${stats.done} of ${stats.total} tasks completed`)}
-              </p>
+                  : (lang === 'ar' ? `اكتملت جميع المهام بنجاح (${stats.done} من ${stats.total})` : `All ${stats.total} tasks completed successfully`)}
+              </p>}
             </div>
           </div>
 
