@@ -1,22 +1,31 @@
-/* Neutral, compact settings surfaces; account and sync behavior is unchanged. */
+/* SaaS Dashboard Settings Surfaces */
 html:root.dark main.settings-page {
-  background-color: #080b10;
+  background-color: #080D14;
   color: #ffffff;
   --color-zinc-100: #ffffff;
   --color-zinc-300: #c3cedd;
-  --color-zinc-400: #a9b8ca;
-  --color-zinc-500: #91a0b5;
-  --color-emerald-300: #00c98d;
-  --color-emerald-400: #00c98d;
-  --color-emerald-500: #00c98d;
+  --color-zinc-400: #94a3b8;
+  --color-zinc-500: #64748b;
+  --color-emerald-300: #00c896;
+  --color-emerald-400: #00c896;
+  --color-emerald-500: #00c896;
 }
-.settings-page > div { max-width: 64rem; }
-.settings-page > div > header { padding-bottom: 1rem; gap: .75rem; }
-html:root.dark main.settings-page .settings-compact :is([class~="bg-white"], [class~="bg-slate-50/70"], [class~="bg-rose-50/40"]) {
-  background-color: #141b26;
+
+.settings-page > div {
+  max-width: 60rem;
 }
-html:root.dark main.settings-page .settings-compact :is([class*="dark:bg-white/"], [class~="dark:bg-[#0c0f14]"]) {
-  background-color: #202b3a;
+
+.settings-page > div > header {
+  padding-bottom: 1.25rem;
+  gap: 0.75rem;
 }
-html:root.dark main.settings-page .settings-compact [class*="dark:border-white/"] { border-color: #293646; }
-html:root.dark main.settings-page .settings-compact [class*="dark:hover:bg-white/"]:hover { background-color: #202b3a; }
+
+/* Responsive horizontal tabs scroll */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

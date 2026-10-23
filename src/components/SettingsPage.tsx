@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ArrowUpLeft, ArrowUpRight, Check, Cloud, Copy, Download,
   KeyRound, LayoutTemplate, Loader2, RefreshCw, RotateCcw, ShieldCheck, UserRound,
-  Search, Grid2X2, Sparkles, type LucideIcon,
+  Search, Grid2X2, Sparkles, X, Shield, ChevronLeft, ChevronRight, type LucideIcon,
 } from 'lucide-react';
 import type { Language, Theme, User } from '../types';
 import { hasPermission } from '../shared/admin';
@@ -36,8 +36,8 @@ interface SettingsPageProps {
   onReplayTour?: () => void;
 }
 
-const panel = 'overflow-hidden rounded-2xl border border-slate-200/80 bg-white dark:border-[#293646] dark:bg-[#141B26]';
-const button = 'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 disabled:cursor-wait disabled:opacity-50 dark:border-white/10 dark:bg-white/[.03] dark:text-zinc-300 dark:hover:bg-white/[.06]';
+const cardSurface = 'overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-white/[0.08] dark:bg-[#141D29]';
+const btnSecondary = 'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition-all duration-200 hover:border-[#00C896]/50 hover:bg-[#00C896]/10 hover:text-[#00C896] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00C896] disabled:cursor-wait disabled:opacity-50 dark:border-white/[0.08] dark:bg-[#1C2938] dark:text-[#C3CEDD] dark:hover:border-[#00C896]/50 dark:hover:bg-[#00C896]/15 dark:hover:text-white cursor-pointer';
 
 const sections = [
   { id: 'overview', icon: Grid2X2, ar: 'نظرة عامة', en: 'Overview' },
@@ -49,16 +49,65 @@ const sections = [
 type SectionId = typeof sections[number]['id'];
 
 function SectionHeading({ id, title, description }: { id: string; title: string; description: string }) {
-  return <div className="mb-3"><h2 id={id} className="text-sm font-semibold">{title}</h2><p className="mt-1 text-xs leading-5 text-slate-500 dark:text-zinc-400">{description}</p></div>;
+  return (
+    <div className="mb-3.5 space-y-1">
+      <h2 id={id} className="text-sm font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif]">
+        {title}
+      </h2>
+      <p className="text-xs leading-relaxed text-slate-500 dark:text-[#94A3B8]">
+        {description}
+      </p>
+    </div>
+  );
 }
 
-function ActionRow({ icon: Icon, title, description, onClick, ar, disabled = false }: { icon: LucideIcon; title: string; description: string; onClick: () => void; ar: boolean; disabled?: boolean }) {
+function ActionRow({
+  icon: Icon,
+  title,
+  description,
+  onClick,
+  ar,
+  disabled = false,
+  highlight = false,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  onClick: () => void;
+  ar: boolean;
+  disabled?: boolean;
+  highlight?: boolean;
+}) {
   const Arrow = ar ? ArrowUpLeft : ArrowUpRight;
-  return <button type="button" onClick={onClick} disabled={disabled} className="group flex w-full items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-500 disabled:cursor-wait disabled:opacity-50 dark:hover:bg-white/[.025] sm:gap-3 sm:px-4">
-    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50 text-slate-500 transition-colors group-hover:border-emerald-500/20 group-hover:text-emerald-600 dark:border-white/[.06] dark:bg-white/[.025] dark:text-zinc-400 dark:group-hover:text-emerald-300"><Icon aria-hidden="true" size={18} strokeWidth={1.7} /></span>
-    <span className="min-w-0 flex-1"><span className="block text-xs font-medium">{title}</span><span className="mt-0.5 block text-[11px] font-normal leading-5 text-slate-500 dark:text-zinc-400">{description}</span></span>
-    <Arrow aria-hidden="true" size={16} className="shrink-0 text-slate-400 transition-colors group-hover:text-emerald-500 dark:text-zinc-600" />
-  </button>;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="group relative flex w-full items-center gap-3.5 px-4 py-3.5 text-start transition-all duration-200 hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#00C896] disabled:cursor-wait disabled:opacity-50 dark:hover:bg-[#1C2938]/60 sm:gap-4 sm:px-5 sm:py-4 cursor-pointer"
+    >
+      <span
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 ${
+          highlight
+            ? 'border-[#00C896]/30 bg-[#00C896]/10 text-[#00C896] group-hover:scale-105 group-hover:bg-[#00C896]/20'
+            : 'border-slate-200/80 bg-slate-50 text-slate-600 group-hover:border-[#00C896]/30 group-hover:bg-[#00C896]/10 group-hover:text-[#00C896] dark:border-white/[0.06] dark:bg-white/[0.03] dark:text-[#A9B8CA] dark:group-hover:text-[#00C896]'
+        }`}
+      >
+        <Icon aria-hidden="true" size={19} strokeWidth={1.8} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-white group-hover:text-[#00C896] transition-colors duration-200">
+          {title}
+        </span>
+        <span className="mt-0.5 block text-[11px] sm:text-xs font-normal leading-relaxed text-slate-500 dark:text-[#94A3B8]">
+          {description}
+        </span>
+      </span>
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-all duration-200 group-hover:bg-white/[0.04] group-hover:text-[#00C896] group-hover:-translate-x-1 dark:text-slate-500">
+        <Arrow aria-hidden="true" size={16} strokeWidth={2} />
+      </span>
+    </button>
+  );
 }
 
 export function SettingsPage(props: SettingsPageProps) {
@@ -73,6 +122,7 @@ export function SettingsPage(props: SettingsPageProps) {
   const [query, setQuery] = useState('');
   const tabRefs = useRef<Partial<Record<SectionId, HTMLButtonElement | null>>>({});
   const alive = useRef(true), copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     alive.current = true;
     void checkDbHealth().then(data => { if (alive.current) setHealth({ ...data, checking: false }); });
@@ -83,6 +133,7 @@ export function SettingsPage(props: SettingsPageProps) {
     setQuery('');
     setActiveSection(id);
   };
+
   const handleTabKey = (event: React.KeyboardEvent<HTMLButtonElement>, id: SectionId) => {
     const index = sections.findIndex(section => section.id === id);
     const nextKey = ar ? 'ArrowLeft' : 'ArrowRight';
@@ -107,6 +158,7 @@ export function SettingsPage(props: SettingsPageProps) {
       copyTimer.current = setTimeout(() => setCopied(false), 2000);
     } catch { if (alive.current) setCopyError(true); }
   };
+
   const sync = async () => {
     if (syncing) return;
     setSyncing(true); setResult(null);
@@ -114,15 +166,23 @@ export function SettingsPage(props: SettingsPageProps) {
       const success = await triggerSync(currentUser.id, true);
       const response = { success, error: success ? undefined : getSyncError() };
       if (alive.current) {
-        setResult({ source: 'sync', ok: response.success, text: response.success ? t('تمت مزامنة بيانات حسابك بنجاح.', 'Your account is up to date.') : [t('تعذرت المزامنة. بياناتك محفوظة محليًا ويمكنك إعادة المحاولة.', 'Sync failed. Your local changes are saved; you can retry.'), response.error].filter(Boolean).join(' ') });
+        setResult({
+          source: 'sync',
+          ok: response.success,
+          text: response.success
+            ? t('تمت مزامنة بيانات حسابك بنجاح.', 'Your account is up to date.')
+            : [t('تعذرت المزامنة. بياناتك محفوظة محليًا ويمكنك إعادة المحاولة.', 'Sync failed. Your local changes are saved; you can retry.'), response.error].filter(Boolean).join(' '),
+        });
         if (response.success) onSyncComplete();
       }
-    } catch { if (alive.current) setResult({ source: 'sync', ok: false, text: t('تعذر الاتصال بالخادم. أعد المحاولة لاحقًا.', 'Unable to reach the server. Please retry.') }); }
-    finally {
+    } catch {
+      if (alive.current) setResult({ source: 'sync', ok: false, text: t('تعذر الاتصال بالخادم. أعد المحاولة لاحقًا.', 'Unable to reach the server. Please retry.') });
+    } finally {
       if (alive.current) setSyncing(false);
       void checkDbHealth().then(data => { if (alive.current) setHealth({ ...data, checking: false }); });
     }
   };
+
   const importLegacy = () => {
     if (!window.confirm(t('هل البيانات القديمة في هذا المتصفح تخص هذا الحساب؟ سيتم دمجها معه.', 'Do the old browser records belong to this account? They will be merged.'))) return;
     try {
@@ -136,89 +196,519 @@ export function SettingsPage(props: SettingsPageProps) {
       onSyncComplete(); setResult({ source: 'tools', ok: true, text: t('تم الاستيراد. النسخة القديمة بقيت محفوظة.', 'Imported. The old copy is preserved.') });
     } catch (error) { setResult({ source: 'tools', ok: false, text: (error as Error).message }); }
   };
+
   const backupLegacy = () => {
     const url = URL.createObjectURL(new Blob([JSON.stringify(legacy, null, 2)], { type: 'application/json' }));
     const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'mizan-legacy-backup.json'; anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
-  const role = { user: t('حساب شخصي', 'Personal account'), support: t('الدعم', 'Support'), admin: t('أدمن', 'Admin'), super_admin: t('مشرف أعلى', 'Super Admin') }[currentUser.role || 'user'];
+
+  const role = {
+    user: t('حساب شخصي', 'Personal account'),
+    support: t('الدعم', 'Support'),
+    admin: t('أدمن', 'Admin'),
+    super_admin: t('مشرف أعلى', 'Super Admin'),
+  }[currentUser.role || 'user'];
+
   const accountName = currentUser.name || currentUser.username || t('مستخدم ميزان', 'Mizan user');
+
   const shortcuts = [
-    { icon: Cloud, title: t('المزامنة والاتصال', 'Sync & connection'), description: syncing ? t('جارٍ المزامنة…', 'Syncing…') : t('حالة الاتصال ومزامنة آخر التعديلات', 'Connection status and your latest changes'), action: () => goToSection('sync'), disabled: syncing, color: 'text-emerald-500 bg-emerald-500/10', keywords: 'sync cloud مزامنة اتصال' },
-    { icon: UserRound, title: t('حسابي وكود الحساب', 'Account & account code'), description: accountName, action: () => goToSection('account'), color: 'text-blue-500 bg-blue-500/10', keywords: 'account code copy الحساب كود نسخ' },
-    { icon: ShieldCheck, title: t('الجلسة وإعادة الضبط', 'Session & reset'), description: t('إدارة الدخول والبيانات', 'Manage your session and data'), action: () => goToSection('session'), color: 'text-rose-500 bg-rose-500/10', keywords: 'session reset logout الجلسة خروج مسح ضبط' },
-    ...(onReplayTour ? [{ icon: Sparkles, title: t('إعادة الجولة التعريفية', 'Replay onboarding tour'), description: t('استكشف ميزات ميزان من جديد', 'Revisit Mizan features'), action: () => { onBack(); onReplayTour(); }, color: 'text-amber-500 bg-amber-500/10', keywords: 'tour onboarding جولة تعريفية استكشاف تعليمات' }] : []),
-    ...(Object.keys(legacy).length ? [{ icon: Download, title: t('بيانات النسخة القديمة', 'Legacy browser data'), description: t('النسخ الاحتياطي والاستيراد', 'Backup & import'), action: () => goToSection('tools'), color: 'text-teal-500 bg-teal-500/10', keywords: 'legacy backup import بيانات قديمة استيراد نسخة احتياطية' }] : []),
-    ...(hasPermission(currentUser.role, 'users.read') ? [{ icon: ShieldCheck, title: t('إدارة المستخدمين', 'User management'), description: t('الحسابات والصلاحيات', 'Accounts & permissions'), action: () => goToSection('tools'), color: 'text-indigo-500 bg-indigo-500/10', keywords: 'admin users إدارة مستخدمين صلاحيات' }] : []),
+    {
+      icon: Cloud,
+      title: t('المزامنة والاتصال', 'Sync & connection'),
+      description: syncing ? t('جارٍ المزامنة…', 'Syncing…') : t('حالة الاتصال ومزامنة آخر التعديلات', 'Connection status and your latest changes'),
+      action: () => goToSection('sync'),
+      disabled: syncing,
+      keywords: 'sync cloud مزامنة اتصال سيرفر شبكة',
+    },
+    {
+      icon: UserRound,
+      title: t('حسابي وكود الحساب', 'Account & account code'),
+      description: accountName,
+      action: () => goToSection('account'),
+      keywords: 'account code copy الحساب كود نسخ بيانات',
+    },
+    {
+      icon: ShieldCheck,
+      title: t('الجلسة وإعادة الضبط', 'Session & reset'),
+      description: t('إدارة الدخول والبيانات', 'Manage your session and data'),
+      action: () => goToSection('session'),
+      keywords: 'session reset logout الجلسة خروج مسح ضبط حذف',
+    },
+    ...(onReplayTour ? [{
+      icon: Sparkles,
+      title: t('إعادة الجولة التعريفية', 'Replay onboarding tour'),
+      description: t('استكشف ميزات ميزان من جديد', 'Revisit Mizan features'),
+      action: () => { onBack(); onReplayTour(); },
+      keywords: 'tour onboarding جولة تعريفية استكشاف تعليمات بداية',
+    }] : []),
+    ...(Object.keys(legacy).length ? [{
+      icon: Download,
+      title: t('بيانات النسخة القديمة', 'Legacy browser data'),
+      description: t('النسخ الاحتياطي والاستيراد', 'Backup & import'),
+      action: () => goToSection('tools'),
+      keywords: 'legacy backup import بيانات قديمة استيراد نسخة احتياطية',
+    }] : []),
+    ...(hasPermission(currentUser.role, 'users.read') ? [{
+      icon: ShieldCheck,
+      title: t('إدارة المستخدمين', 'User management'),
+      description: t('الحسابات والصلاحيات', 'Accounts & permissions'),
+      action: () => goToSection('tools'),
+      keywords: 'admin users إدارة مستخدمين صلاحيات تدقيق',
+    }] : []),
   ];
-  const normalizeSearch = (value: string) => value.toLocaleLowerCase().normalize('NFKD').replace(/[\u064b-\u065f\u0670]/g, '').replace(/[أإآ]/g, 'ا').trim();
-  const matchingShortcuts = shortcuts.filter(item => (query.trim() || item.icon !== UserRound) && normalizeSearch(`${item.title} ${item.description} ${item.keywords}`).includes(normalizeSearch(query)));
 
-  return <AccountPage className="settings-page" lang={lang} compact title={t('الإعدادات', 'Settings')} description={t('كل شيء تحتاجه، أقرب إليك.', 'Everything you need, within reach.')} onBack={onBack}>
-    <div className="settings-compact space-y-3">
-      <label className="flex max-w-xl items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 focus-within:border-emerald-500 dark:border-[#293646] dark:bg-[#141B26]">
-        <Search aria-hidden="true" size={16} className="shrink-0 text-slate-400" />
-        <input type="search" value={query} onChange={event => { setQuery(event.target.value); setActiveSection('overview'); }} aria-label={t('ابحث في الإعدادات', 'Search settings')} placeholder={t('ابحث عن إعداد أو أداة…', 'Find a setting or tool…')} className="min-h-10 min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-slate-400 dark:placeholder:text-[#A9B8CA]" />
-      </label>
-      <div className={`${panel} flex flex-wrap items-center gap-3 px-4 py-3`}>
-        <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-base font-bold text-white dark:bg-[#00C98D] dark:text-[#080B10]">{accountName.trim().charAt(0).toUpperCase()}</span>
-        <div className="min-w-0 flex-1"><h2 className="break-words text-sm font-semibold"><bdi>{accountName}</bdi></h2><p className="mt-1 text-[11px] text-slate-500 dark:text-zinc-400">{role}</p></div>
-        <SyncIndicator lang={lang} userId={currentUser.id} compact />
-        <button type="button" className={button} onClick={() => goToSection('account')}><UserRound aria-hidden="true" size={15} />{t('إدارة الحساب', 'Manage account')}</button>
-      </div>
-      <div role="tablist" aria-label={t('أقسام الإعدادات', 'Settings sections')} aria-orientation="horizontal" className="flex gap-1 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white p-1.5 dark:border-[#293646] dark:bg-[#141B26]">
-        {sections.map(({ id, icon: Icon, ar: arabic, en }) => <button key={id} ref={element => { tabRefs.current[id] = element; }} id={`settings-tab-${id}`} type="button" role="tab" aria-controls={`settings-${id}`} aria-selected={activeSection === id} tabIndex={activeSection === id ? 0 : -1} onClick={() => { setQuery(''); goToSection(id); }} onKeyDown={event => handleTabKey(event, id)} className={`flex min-h-10 shrink-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-emerald-500 ${activeSection === id ? 'bg-emerald-600 text-white dark:bg-[#00C98D] dark:text-[#080B10]' : 'text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5'}`}><Icon aria-hidden="true" size={16} />{ar ? arabic : en}</button>)}
-      </div>
-      <div className="min-w-0">
-        <section id="settings-overview" role="tabpanel" aria-labelledby="settings-tab-overview" hidden={activeSection !== 'overview'} tabIndex={0} className="space-y-3 outline-none">
-          <div><h2 className="text-lg font-bold">{query ? t('نتائج البحث', 'Search results') : t('اختصاراتك، بدون لف ودوران', 'A shortcut to everything')}</h2><p className="mt-1 text-xs leading-6 text-slate-500 dark:text-zinc-400">{query ? t('اختر النتيجة للوصول مباشرة.', 'Choose a result to jump straight in.') : t('الأشياء اللي بتحتاجها كل يوم، بضغطة واحدة.', 'Your everyday actions, one click away.')}</p></div>
-          <div className={`${panel} divide-y divide-slate-200 dark:divide-[#293646]`}>{matchingShortcuts.map(({ icon, title, description, action, disabled }) => <ActionRow key={title} icon={icon} title={title} description={description} onClick={action} disabled={disabled} ar={ar} />)}</div>
-          {matchingShortcuts.length === 0 && <p role="status" className={`${panel} p-8 text-center text-sm text-slate-500`}>{t('ما لقينا نتيجة. جرّب اسم الأداة أو الإعداد.', 'No results. Try a tool or setting name.')}</p>}
-          {result?.source === 'sync' && <p role={result.ok ? 'status' : 'alert'} className={`rounded-xl border p-4 text-sm leading-7 ${result.ok ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300'}`}>{result.text}</p>}
-        </section>
-        <section id="settings-account" role="tabpanel" aria-labelledby="settings-tab-account" hidden={activeSection !== 'account'} tabIndex={0} className={`${panel} outline-none`}>
-          <div className="px-4 py-3">
-            <h2 id="settings-account-heading" className="text-sm font-semibold">{t('تفاصيل الحساب', 'Account details')}</h2>
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500 dark:text-zinc-400">{currentUser.username && <bdi>@{currentUser.username}</bdi>}{currentUser.email && <bdi className="break-all">{currentUser.email}</bdi>}<span>{role}</span></div>
-          </div>
-          <div className="border-t border-slate-200/70 bg-slate-50/70 px-4 py-3 dark:border-white/[.06] dark:bg-white/[.015] sm:flex sm:items-center sm:justify-between sm:gap-5 sm:px-4">
-            <div className="mb-3 flex items-center gap-2 text-[11px] text-slate-500 dark:text-zinc-400 sm:mb-0"><KeyRound aria-hidden="true" size={14} />{t('كود الحساب', 'Account code')}</div>
-            <div className="min-w-0 sm:w-72"><div className="flex min-w-0 items-center gap-2 rounded-lg border border-slate-200/80 bg-white ps-3 dark:border-white/[.07] dark:bg-[#0c0f14]"><code dir="ltr" className="min-w-0 flex-1 select-all break-all text-[10px] tracking-wide text-slate-600 dark:text-zinc-300 sm:text-[11px]">{currentUser.userCode}</code><button type="button" onClick={() => { void copyCode(); }} aria-label={t('نسخ كود الحساب', 'Copy account code')} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-500/10 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-emerald-300">{copied ? <Check aria-hidden="true" size={15} /> : <Copy aria-hidden="true" size={15} />}</button></div><p aria-live="polite" className="text-[10px] leading-5 text-slate-500 dark:text-zinc-400">{copied ? t('تم نسخ الكود.', 'Code copied.') : copyError ? t('يمكنك تحديد الكود ونسخه يدويًا.', 'You can select and copy the code manually.') : ''}</p></div>
-          </div>
-        </section>
+  const normalizeSearch = (value: string) =>
+    value.toLocaleLowerCase().normalize('NFKD').replace(/[\u064b-\u065f\u0670]/g, '').replace(/[أإآ]/g, 'ا').trim();
 
-        <section id="settings-sync" role="tabpanel" aria-labelledby="settings-tab-sync" hidden={activeSection !== 'sync'} tabIndex={0} className="outline-none">
-          <SectionHeading id="settings-sync-heading" title={t('يومك، على كل أجهزتك', 'One day. Every device.')} description={t('تابع حالة الاتصال، وزامن آخر تعديلات حسابك.', 'Check your connection and sync the latest changes to your account.')} />
-          <div className={`${panel} p-4`}>
-            <div className="grid grid-cols-[48px_minmax(0,1fr)] items-start gap-4 sm:flex">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-emerald-500/15 bg-emerald-500/[.06] text-emerald-600 dark:text-emerald-400"><Cloud aria-hidden="true" size={23} strokeWidth={1.5} /></span>
-              <div className="min-w-0 flex-1"><h3 className="text-xs font-medium">{t('المزامنة', 'Sync')}</h3><p className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-500 dark:text-zinc-400"><span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${health.checking ? 'bg-slate-400' : health.connected ? 'bg-emerald-500' : 'bg-amber-500'}`} />{health.checking ? t('جارٍ التحقق…', 'Checking…') : health.connected ? t('متصل', 'Connected') : t('غير متصل', 'Unavailable')}{health.database && <span className="w-full break-words text-[10px] text-slate-400 dark:text-zinc-500 sm:w-auto">{health.database}</span>}</p></div>
-              <button type="button" onClick={() => { void sync(); }} disabled={syncing} className={`${button} col-span-2 w-full shrink-0 sm:w-auto`}>{syncing ? <Loader2 aria-hidden="true" size={14} className="animate-spin" /> : <RefreshCw aria-hidden="true" size={14} />}{syncing ? t('جارٍ المزامنة…', 'Syncing…') : t('مزامنة الآن', 'Sync now')}</button>
+  const matchingShortcuts = shortcuts.filter(item =>
+    (query.trim() || item.icon !== UserRound) &&
+    normalizeSearch(`${item.title} ${item.description} ${item.keywords}`).includes(normalizeSearch(query))
+  );
+
+  return (
+    <AccountPage
+      className="settings-page"
+      lang={lang}
+      compact
+      title={t('الإعدادات', 'Settings')}
+      description={t('كل شيء تحتاجه، أقرب إليك.', 'Everything you need, within reach.')}
+      onBack={onBack}
+    >
+      <div className="settings-compact space-y-4 sm:space-y-5">
+        {/* Modern Command Search Input */}
+        <div className="relative">
+          <label className="group flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 transition-all duration-200 focus-within:border-[#00C896] focus-within:ring-2 focus-within:ring-[#00C896]/20 dark:border-white/[0.08] dark:bg-[#141D29] dark:hover:border-white/[0.14] dark:focus-within:border-[#00C896] dark:focus-within:bg-[#182332]">
+            <Search aria-hidden="true" size={18} className="shrink-0 text-slate-400 group-focus-within:text-[#00C896] transition-colors duration-200" />
+            <input
+              type="search"
+              value={query}
+              onChange={event => { setQuery(event.target.value); setActiveSection('overview'); }}
+              aria-label={t('ابحث في الإعدادات', 'Search settings')}
+              placeholder={t('ابحث عن إعداد أو أداة…', 'Find a setting or tool…')}
+              className="min-h-10 min-w-0 flex-1 bg-transparent text-xs sm:text-sm outline-none text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-[#94A3B8]"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                aria-label={t('مسح البحث', 'Clear search')}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/[0.06] dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <X size={15} />
+              </button>
+            )}
+          </label>
+        </div>
+
+        {/* Profile SaaS Hero Card */}
+        <div className={`${cardSurface} flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5`}>
+          <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
+            <span
+              aria-hidden="true"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#00C896] text-lg font-black text-[#080D14] shadow-[0_4px_16px_rgba(0,200,150,0.3)] ring-2 ring-[#00C896]/20 font-['Alexandria','Cairo',sans-serif]"
+            >
+              {accountName.trim().charAt(0).toUpperCase()}
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 className="break-words text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                <bdi>{accountName}</bdi>
+              </h2>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#00C896]/30 bg-[#00C896]/10 px-2 py-0.5 text-[11px] font-semibold text-[#00C896]">
+                  <Shield aria-hidden="true" size={11} />
+                  <span>{role}</span>
+                </span>
+                {currentUser.username && (
+                  <span className="text-[11px] text-slate-500 dark:text-[#94A3B8]" dir="ltr">
+                    @{currentUser.username}
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200/80 pt-4 dark:border-white/[.07]"><p className="text-[11px] leading-6 text-slate-500 dark:text-zinc-400">{t('تعديلاتك المحلية تبقى محفوظة عند انقطاع الاتصال.', 'Your local changes stay saved when you are offline.')}</p><SyncIndicator lang={lang} userId={currentUser.id} /></div>
-            {!health.connected && !health.checking && <p className="mt-3 text-[11px] leading-6 text-amber-700 dark:text-amber-300">{t('ستُستأنف المزامنة عند عودة الاتصال.', 'Sync will resume when the connection is restored.')}</p>}
           </div>
-          {result?.source === 'sync' && <p role={result.ok ? 'status' : 'alert'} className={`mt-3 rounded-xl border px-4 py-3 text-xs leading-6 ${result.ok ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300'}`}>{result.text}</p>}
-        </section>
+          <div className="flex flex-wrap items-center gap-2.5 pt-2 sm:pt-0 border-t border-slate-100 dark:border-white/[0.06] sm:border-t-0">
+            <SyncIndicator lang={lang} userId={currentUser.id} compact />
+            <button
+              type="button"
+              className={btnSecondary}
+              onClick={() => goToSection('account')}
+            >
+              <UserRound aria-hidden="true" size={15} />
+              <span>{t('إدارة الحساب', 'Manage account')}</span>
+            </button>
+          </div>
+        </div>
 
-        <section id="settings-tools" role="tabpanel" aria-labelledby="settings-tab-tools" hidden={activeSection !== 'tools'} tabIndex={0} className="outline-none">
-          {!hasPermission(currentUser.role, 'users.read') && Object.keys(legacy).length === 0 && !onReplayTour && <p className={`${panel} mb-3 px-4 py-3 text-xs leading-6 text-slate-500 dark:text-zinc-400`}>{t('لا توجد بيانات قديمة للاستيراد في هذا المتصفح. أدوات يومك متاحة من الصفحة الرئيسية.', 'There is no legacy data to import in this browser. Your daily tools are available from the planner.')}</p>}
-          <SectionHeading id="settings-tools-heading" title={t('مساحة أكبر ليومك', 'Get more from your day')} description={t('كل أدواتك، بدون ما تزدحم لوحة يومك.', 'Your everyday tools, with room to focus in your planner.')} />
-          <div className={`${panel} grid divide-y divide-slate-200/80 dark:divide-white/[.07] md:grid-cols-2 md:divide-y-0 md:[&>button]:border-b md:[&>button]:border-slate-200/80 md:dark:[&>button]:border-white/[.07] md:[&>button:nth-child(odd)]:border-e`}>
-            {onReplayTour && <ActionRow icon={Sparkles} title={t('إعادة الجولة التعريفية', 'Replay onboarding tour')} description={t('استكشف ميزات ميزان وتعرّف على أساسيات تنظيم يومك.', 'Revisit Mizan features and learn how to plan your day.')} onClick={() => { onBack(); onReplayTour(); }} ar={ar} />}
-            {hasPermission(currentUser.role, 'users.read') && <ActionRow icon={ShieldCheck} title={t('إدارة المستخدمين', 'User management')} description={t('الحسابات والصلاحيات وسجل التدقيق.', 'Accounts, permissions and audit log.')} onClick={onOpenAdmin} ar={ar} />}
-          </div>
-          {Object.keys(legacy).length > 0 && <div className={`${panel} mt-4 p-4`}><h3 className="text-xs font-medium">{t('بيانات النسخة القديمة', 'Legacy browser data')}</h3><p className="mt-2 text-[11px] leading-6 text-slate-500 dark:text-zinc-400">{t('نزّل نسخة احتياطية أو ادمجها مع هذا الحساب.', 'Download a backup or merge it into this account.')}</p><div className="mt-4 flex flex-wrap gap-2"><button type="button" className={button} onClick={backupLegacy}><Download aria-hidden="true" size={14} />{t('تنزيل نسخة', 'Download backup')}</button><button type="button" className={button} onClick={importLegacy}>{t('استيراد لهذا الحساب', 'Import into this account')}</button></div></div>}
-          {result?.source === 'tools' && <p role={result.ok ? 'status' : 'alert'} className={`mt-3 rounded-xl border px-4 py-3 text-xs leading-6 ${result.ok ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300'}`}>{result.text}</p>}
-        </section>
+        {/* Segmented Navigation Tab Bar */}
+        <div
+          role="tablist"
+          aria-label={t('أقسام الإعدادات', 'Settings sections')}
+          aria-orientation="horizontal"
+          className="flex gap-1.5 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white p-1.5 scrollbar-none dark:border-white/[0.08] dark:bg-[#141D29]"
+        >
+          {sections.map(({ id, icon: Icon, ar: arabic, en }) => {
+            const isActive = activeSection === id;
+            return (
+              <button
+                key={id}
+                ref={element => { tabRefs.current[id] = element; }}
+                id={`settings-tab-${id}`}
+                type="button"
+                role="tab"
+                aria-controls={`settings-${id}`}
+                aria-selected={isActive}
+                tabIndex={isActive ? 0 : -1}
+                onClick={() => { setQuery(''); goToSection(id); }}
+                onKeyDown={event => handleTabKey(event, id)}
+                className={`flex min-h-10 shrink-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-xs font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#00C896] cursor-pointer ${
+                  isActive
+                    ? 'bg-[#00C896] text-[#080D14] shadow-[0_2px_12px_rgba(0,200,150,0.25)] font-bold'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-[#94A3B8] dark:hover:bg-white/[0.04] dark:hover:text-white'
+                }`}
+              >
+                <Icon aria-hidden="true" size={16} className={isActive ? 'stroke-[2.2]' : 'stroke-[1.8]'} />
+                <span>{ar ? arabic : en}</span>
+              </button>
+            );
+          })}
+        </div>
 
-        <section id="settings-session" role="tabpanel" aria-labelledby="settings-tab-session" hidden={activeSection !== 'session'} tabIndex={0} className="outline-none">
-          <SectionHeading id="settings-session-heading" title={t('حسابك وبياناتك', 'Account & data')} description={t('إدارة الجلسة وإعادة الضبط، بخطوات واضحة.', 'Manage your session and data with clear, deliberate actions.')} />
-          <div className={panel}>
-            <div className="flex flex-col justify-between gap-4 border-t border-slate-200/80 bg-rose-50/40 p-4 dark:border-white/[.07] dark:bg-rose-500/[.025] sm:flex-row sm:items-center sm:p-4"><div><h3 className="text-xs font-medium text-rose-700 dark:text-rose-300">{t('مسح المهام وإعادة ضبط العادات', 'Reset tasks & habits')}</h3><p className="mt-2 max-w-sm text-[11px] leading-6 text-slate-500 dark:text-zinc-400">{t('يمسح مهام هذا الحساب ويعيد ضبط عاداته. سيُطلب منك التأكيد.', 'Clears this account’s tasks and resets its habits. You will be asked to confirm.')}</p></div><button type="button" disabled={syncing} className={`${button} shrink-0 !border-rose-500/20 !text-rose-600 dark:!text-rose-400`} onClick={() => { if (window.confirm(t('هل تريد مسح مهام هذا الحساب وإعادة ضبط العادات؟', 'Clear this account’s tasks and reset habits?'))) { onResetData(); onBack(); } }}><RotateCcw aria-hidden="true" size={14} />{t('إعادة الضبط', 'Reset data')}</button></div>
-          </div>
-        </section>
+        {/* Tab Panels */}
+        <div className="min-w-0">
+          {/* TAB 1: OVERVIEW */}
+          <section
+            id="settings-overview"
+            role="tabpanel"
+            aria-labelledby="settings-tab-overview"
+            hidden={activeSection !== 'overview'}
+            tabIndex={0}
+            className="space-y-3.5 outline-none"
+          >
+            <div className="space-y-1">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif]">
+                {query ? t('نتائج البحث', 'Search results') : t('اختصاراتك، بدون لف ودوران', 'A shortcut to everything')}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-[#94A3B8]">
+                {query ? t('اختر النتيجة للوصول مباشرة.', 'Choose a result to jump straight in.') : t('الأشياء اللي بتحتاجها كل يوم، بضغطة واحدة.', 'Your everyday actions, one click away.')}
+              </p>
+            </div>
+
+            <div className={`${cardSurface} divide-y divide-slate-100 dark:divide-white/[0.05]`}>
+              {matchingShortcuts.map(({ icon, title, description, action, disabled }) => (
+                <ActionRow
+                  key={title}
+                  icon={icon}
+                  title={title}
+                  description={description}
+                  onClick={action}
+                  disabled={disabled}
+                  ar={ar}
+                />
+              ))}
+            </div>
+
+            {matchingShortcuts.length === 0 && (
+              <div role="status" className={`${cardSurface} flex flex-col items-center justify-center p-8 text-center sm:p-12`}>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-100 text-slate-400 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-[#94A3B8] mb-3">
+                  <Search size={22} strokeWidth={1.7} />
+                </div>
+                <p className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-white">
+                  {t('ما لقينا نتيجة. جرّب اسم الأداة أو الإعداد.', 'No results. Try a tool or setting name.')}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setQuery('')}
+                  className="mt-3 text-xs font-semibold text-[#00C896] hover:underline cursor-pointer"
+                >
+                  {t('مسح البحث وعرض كل الإعدادات', 'Clear search and show all settings')}
+                </button>
+              </div>
+            )}
+
+            {result?.source === 'sync' && (
+              <div
+                role={result.ok ? 'status' : 'alert'}
+                className={`rounded-2xl border p-4 text-xs sm:text-sm leading-relaxed ${
+                  result.ok
+                    ? 'border-[#00C896]/30 bg-[#00C896]/10 text-emerald-800 dark:text-[#00C896]'
+                    : 'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300'
+                }`}
+              >
+                {result.text}
+              </div>
+            )}
+          </section>
+
+          {/* TAB 2: ACCOUNT */}
+          <section
+            id="settings-account"
+            role="tabpanel"
+            aria-labelledby="settings-tab-account"
+            hidden={activeSection !== 'account'}
+            tabIndex={0}
+            className={`${cardSurface} outline-none divide-y divide-slate-100 dark:divide-white/[0.05]`}
+          >
+            <div className="p-4 sm:p-6 space-y-3">
+              <h2 id="settings-account-heading" className="text-sm sm:text-base font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif]">
+                {t('تفاصيل الحساب', 'Account details')}
+              </h2>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-slate-600 dark:text-[#C3CEDD]">
+                {currentUser.username && (
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-slate-400">@</span>
+                    <bdi>{currentUser.username}</bdi>
+                  </span>
+                )}
+                {currentUser.email && (
+                  <span className="break-all font-mono text-xs">
+                    <bdi>{currentUser.email}</bdi>
+                  </span>
+                )}
+                <span className="inline-flex items-center rounded-md bg-white/[0.05] px-2 py-0.5 text-xs text-[#00C896] font-semibold">
+                  {role}
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-slate-50/70 p-4 dark:bg-[#101721] sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+              <div className="mb-3 space-y-1 sm:mb-0">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-white">
+                  <KeyRound aria-hidden="true" size={15} className="text-[#00C896]" />
+                  <span>{t('كود الحساب', 'Account code')}</span>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-[#94A3B8]">
+                  {t('استخدم كود حسابك الفريد لتسجيل الدخول بأمان.', 'Use your unique code to sign in securely.')}
+                </p>
+              </div>
+
+              <div className="min-w-0 sm:w-80 space-y-1.5">
+                <div className="flex min-w-0 items-center gap-2 rounded-xl border border-slate-200/80 bg-white ps-3.5 pe-1.5 py-1 dark:border-white/[0.08] dark:bg-[#080D14]">
+                  <code dir="ltr" className="min-w-0 flex-1 select-all break-all font-mono text-xs font-semibold tracking-wider text-slate-800 dark:text-[#C3CEDD]">
+                    {currentUser.userCode}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => { void copyCode(); }}
+                    aria-label={t('نسخ كود الحساب', 'Copy account code')}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#00C896] hover:bg-[#00C896]/15 focus-visible:outline-2 focus-visible:outline-[#00C896] transition-colors cursor-pointer"
+                  >
+                    {copied ? <Check aria-hidden="true" size={16} strokeWidth={2.5} /> : <Copy aria-hidden="true" size={16} />}
+                  </button>
+                </div>
+                <p aria-live="polite" className="text-[11px] leading-5 text-slate-500 dark:text-[#94A3B8]">
+                  {copied ? t('تم نسخ الكود.', 'Code copied.') : copyError ? t('يمكنك تحديد الكود ونسخه يدويًا.', 'You can select and copy the code manually.') : ''}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* TAB 3: SYNC */}
+          <section
+            id="settings-sync"
+            role="tabpanel"
+            aria-labelledby="settings-tab-sync"
+            hidden={activeSection !== 'sync'}
+            tabIndex={0}
+            className="outline-none space-y-3.5"
+          >
+            <SectionHeading
+              id="settings-sync-heading"
+              title={t('يومك، على كل أجهزتك', 'One day. Every device.')}
+              description={t('تابع حالة الاتصال، وزامن آخر تعديلات حسابك.', 'Check your connection and sync the latest changes to your account.')}
+            />
+
+            <div className={`${cardSurface} p-4 sm:p-6 space-y-5`}>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#00C896]/30 bg-[#00C896]/10 text-[#00C896]">
+                    <Cloud aria-hidden="true" size={24} strokeWidth={1.7} />
+                  </span>
+                  <div className="space-y-1.5">
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                      {t('المزامنة', 'Sync')}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-[#94A3B8]">
+                      <span
+                        aria-hidden="true"
+                        className={`h-2 w-2 shrink-0 rounded-full ${
+                          health.checking ? 'bg-slate-400' : health.connected ? 'bg-[#00C896] shadow-[0_0_8px_rgba(0,200,150,0.6)]' : 'bg-amber-500'
+                        }`}
+                      />
+                      <span className="font-medium text-slate-800 dark:text-white">
+                        {health.checking ? t('جارٍ التحقق…', 'Checking…') : health.connected ? t('متصل', 'Connected') : t('غير متصل', 'Unavailable')}
+                      </span>
+                      {health.database && (
+                        <span className="break-words font-mono text-[11px] text-slate-400 dark:text-[#64748B]">
+                          ({health.database})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => { void sync(); }}
+                  disabled={syncing}
+                  className={`${btnSecondary} sm:w-auto w-full`}
+                >
+                  {syncing ? <Loader2 aria-hidden="true" size={15} className="animate-spin text-[#00C896]" /> : <RefreshCw aria-hidden="true" size={15} />}
+                  <span>{syncing ? t('جارٍ المزامنة…', 'Syncing…') : t('مزامنة الآن', 'Sync now')}</span>
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/[0.06]">
+                <p className="text-xs leading-relaxed text-slate-500 dark:text-[#94A3B8]">
+                  {t('تعديلاتك المحلية تبقى محفوظة عند انقطاع الاتصال.', 'Your local changes stay saved when you are offline.')}
+                </p>
+                <SyncIndicator lang={lang} userId={currentUser.id} />
+              </div>
+
+              {!health.connected && !health.checking && (
+                <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-800 dark:text-amber-300">
+                  {t('ستُستأنف المزامنة عند عودة الاتصال.', 'Sync will resume when the connection is restored.')}
+                </div>
+              )}
+            </div>
+
+            {result?.source === 'sync' && (
+              <div
+                role={result.ok ? 'status' : 'alert'}
+                className={`rounded-2xl border p-4 text-xs sm:text-sm leading-relaxed ${
+                  result.ok
+                    ? 'border-[#00C896]/30 bg-[#00C896]/10 text-emerald-800 dark:text-[#00C896]'
+                    : 'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300'
+                }`}
+              >
+                {result.text}
+              </div>
+            )}
+          </section>
+
+          {/* TAB 4: TOOLS */}
+          <section
+            id="settings-tools"
+            role="tabpanel"
+            aria-labelledby="settings-tab-tools"
+            hidden={activeSection !== 'tools'}
+            tabIndex={0}
+            className="outline-none space-y-3.5"
+          >
+            {!hasPermission(currentUser.role, 'users.read') && Object.keys(legacy).length === 0 && !onReplayTour && (
+              <div className={`${cardSurface} p-4 text-xs leading-relaxed text-slate-500 dark:text-[#94A3B8]`}>
+                {t('لا توجد بيانات قديمة للاستيراد في هذا المتصفح. أدوات يومك متاحة من الصفحة الرئيسية.', 'There is no legacy data to import in this browser. Your daily tools are available from the planner.')}
+              </div>
+            )}
+
+            <SectionHeading
+              id="settings-tools-heading"
+              title={t('مساحة أكبر ليومك', 'Get more from your day')}
+              description={t('كل أدواتك، بدون ما تزدحم لوحة يومك.', 'Your everyday tools, with room to focus in your planner.')}
+            />
+
+            <div className={`${cardSurface} divide-y divide-slate-100 dark:divide-white/[0.05]`}>
+              {onReplayTour && (
+                <ActionRow
+                  icon={Sparkles}
+                  title={t('إعادة الجولة التعريفية', 'Replay onboarding tour')}
+                  description={t('استكشف ميزات ميزان وتعرّف على أساسيات تنظيم يومك.', 'Revisit Mizan features and learn how to plan your day.')}
+                  onClick={() => { onBack(); onReplayTour(); }}
+                  ar={ar}
+                  highlight
+                />
+              )}
+              {hasPermission(currentUser.role, 'users.read') && (
+                <ActionRow
+                  icon={ShieldCheck}
+                  title={t('إدارة المستخدمين', 'User management')}
+                  description={t('الحسابات والصلاحيات وسجل التدقيق.', 'Accounts, permissions and audit log.')}
+                  onClick={onOpenAdmin}
+                  ar={ar}
+                />
+              )}
+            </div>
+
+            {Object.keys(legacy).length > 0 && (
+              <div className={`${cardSurface} p-4 sm:p-6 space-y-3`}>
+                <div className="space-y-1">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif]">
+                    {t('بيانات النسخة القديمة', 'Legacy browser data')}
+                  </h3>
+                  <p className="text-xs leading-relaxed text-slate-500 dark:text-[#94A3B8]">
+                    {t('نزّل نسخة احتياطية أو ادمجها مع هذا الحساب.', 'Download a backup or merge it into this account.')}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2.5 pt-1">
+                  <button type="button" className={btnSecondary} onClick={backupLegacy}>
+                    <Download aria-hidden="true" size={15} />
+                    <span>{t('تنزيل نسخة', 'Download backup')}</span>
+                  </button>
+                  <button type="button" className={btnSecondary} onClick={importLegacy}>
+                    <span>{t('استيراد لهذا الحساب', 'Import into this account')}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {result?.source === 'tools' && (
+              <div
+                role={result.ok ? 'status' : 'alert'}
+                className={`rounded-2xl border p-4 text-xs sm:text-sm leading-relaxed ${
+                  result.ok
+                    ? 'border-[#00C896]/30 bg-[#00C896]/10 text-emerald-800 dark:text-[#00C896]'
+                    : 'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300'
+                }`}
+              >
+                {result.text}
+              </div>
+            )}
+          </section>
+
+          {/* TAB 5: SESSION */}
+          <section
+            id="settings-session"
+            role="tabpanel"
+            aria-labelledby="settings-tab-session"
+            hidden={activeSection !== 'session'}
+            tabIndex={0}
+            className="outline-none space-y-3.5"
+          >
+            <SectionHeading
+              id="settings-session-heading"
+              title={t('حسابك وبياناتك', 'Account & data')}
+              description={t('إدارة الجلسة وإعادة الضبط، بخطوات واضحة.', 'Manage your session and data with clear, deliberate actions.')}
+            />
+
+            <div className="overflow-hidden rounded-2xl border border-rose-500/20 bg-white dark:border-rose-500/25 dark:bg-[#141D29]">
+              <div className="flex flex-col justify-between gap-4 bg-rose-50/40 p-4 dark:bg-rose-500/[0.03] sm:flex-row sm:items-center sm:p-6">
+                <div className="space-y-1">
+                  <h3 className="text-xs sm:text-sm font-bold text-rose-700 dark:text-rose-300 font-['Alexandria','Cairo',sans-serif]">
+                    {t('مسح المهام وإعادة ضبط العادات', 'Reset tasks & habits')}
+                  </h3>
+                  <p className="max-w-md text-xs leading-relaxed text-slate-500 dark:text-[#94A3B8]">
+                    {t('يمسح مهام هذا الحساب ويعيد ضبط عاداته. سيُطلب منك التأكيد.', 'Clears this account’s tasks and resets its habits. You will be asked to confirm.')}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={syncing}
+                  className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-xs font-semibold text-rose-600 transition-all duration-200 hover:border-rose-500/50 hover:bg-rose-500/20 hover:text-rose-700 focus-visible:outline-2 focus-visible:outline-rose-500 dark:text-rose-400 dark:hover:text-rose-200 cursor-pointer"
+                  onClick={() => {
+                    if (window.confirm(t('هل تريد مسح مهام هذا الحساب وإعادة ضبط العادات؟', 'Clear this account’s tasks and reset habits?'))) {
+                      onResetData();
+                      onBack();
+                    }
+                  }}
+                >
+                  <RotateCcw aria-hidden="true" size={15} />
+                  <span>{t('إعادة الضبط', 'Reset data')}</span>
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
-    </div>
-  </AccountPage>;
+    </AccountPage>
+  );
 }
