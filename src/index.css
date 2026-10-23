@@ -183,6 +183,13 @@ html[data-color-theme="paper"] .bg-mesh {
     background-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 97%);
     border-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 85%);
     border-top-color: var(--card-accent);
+    box-shadow: 0 2px 8px -6px rgb(15 23 42 / 22%);
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  }
+
+  .planner-card > div:first-child {
+    background-color: color-mix(in srgb, var(--card-accent) 5%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--card-accent) 12%, transparent);
   }
 
   .dark .planner-card {
@@ -190,6 +197,18 @@ html[data-color-theme="paper"] .bg-mesh {
     background-color: hsl(var(--mood-card-hue, var(--card-hue)) 22% 10%);
     border-color: hsl(var(--mood-card-hue, var(--card-hue)) 30% 24%);
     border-top-color: var(--card-accent);
+    box-shadow: 0 8px 24px -18px rgb(0 0 0 / 75%);
+  }
+
+  .dark .planner-card > div:first-child {
+    background-color: color-mix(in srgb, var(--card-accent) 7%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--card-accent) 14%, transparent);
+  }
+
+  .planner-card:hover,
+  .planner-card:focus-within {
+    border-color: color-mix(in srgb, var(--card-accent) 55%, transparent);
+    box-shadow: 0 12px 28px -20px color-mix(in srgb, var(--card-accent) 75%, transparent);
   }
 
   .planner-card[data-card-complete="true"] {
@@ -229,6 +248,10 @@ html[data-color-theme="paper"] .bg-mesh {
     outline: 2px solid var(--card-accent);
     outline-offset: 2px;
   }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .planner-card:hover { transform: translateY(-2px); }
 }
 
 /* Indeterminate progress follows the request; no artificial percentage or delay. */
@@ -355,34 +378,48 @@ html[data-color-theme="paper"] .bg-mesh {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Rain moves behind the planner without intercepting input. */
-.planner-rain {
+/* A quiet landscape image sits behind the planner without intercepting input. */
+.planner-backdrop {
   position: fixed;
   inset: 0;
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  contain: strict;
-  opacity: .65;
 }
-.planner-rain span {
+
+.planner-backdrop-image {
   position: absolute;
-  top: -130px;
-  width: 1.5px;
-  border-radius: 999px;
-  background: linear-gradient(to bottom, transparent, var(--mood-accent, #10b981));
-  animation: planner-rain-fall 2s linear infinite;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 58%;
+  opacity: .25;
+  filter: blur(2px) saturate(.62);
+  transform: scale(1.03);
 }
-.dark .planner-rain { opacity: 1; }
-@keyframes planner-rain-fall {
-  from { transform: translate3d(0, -10px, 0) rotate(12deg); }
-  to { transform: translate3d(-22vh, calc(100dvh + 260px), 0) rotate(12deg); }
+
+.planner-backdrop-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--mood-bg, #f8fafc) 76%, transparent),
+    color-mix(in srgb, var(--mood-bg, #f8fafc) 86%, transparent)
+  );
 }
-@media (max-width: 639px) {
-  .planner-rain span:nth-child(n + 19) { display: none; }
+
+.dark .planner-backdrop-image {
+  opacity: .3;
+  filter: blur(2px) saturate(.58) brightness(.72);
 }
-@media (prefers-reduced-motion: reduce) {
-  .planner-rain { display: none; }
+
+.dark .planner-backdrop-overlay {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--mood-night, #07080b) 72%, transparent),
+    color-mix(in srgb, var(--mood-night, #07080b) 84%, transparent)
+  );
 }
 
 /* Dark Mode Mesh */

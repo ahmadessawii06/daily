@@ -174,17 +174,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   return (
     <div className="relative min-h-screen min-h-[100dvh] w-full flex items-center justify-center p-4 sm:p-6 lg:p-10 overflow-x-hidden font-['Alexandria','Cairo',sans-serif] bg-slate-950 text-white select-none">
       
-      {/* 1. Cinematic Background with Quran, Flask, Sunrise Mountains Landscape */}
+      {/* Keep the landscape as a quiet texture behind the login content. */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <img
           src={loginBackground}
           alt="ميزان - شروق الشمس والقرآن"
-          className="w-full h-full object-cover object-center scale-105 filter brightness-[0.92] contrast-[1.05]"
+          className="h-full w-full scale-110 object-cover object-center opacity-35 blur-[2px] saturate-50 brightness-75"
           referrerPolicy="no-referrer"
         />
-        {/* Soft atmospheric vignettes and overlays for maximum contrast */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/50 to-black/60 pointer-events-none" />
-        <div className="absolute inset-0 bg-radial from-transparent via-black/25 to-black/85 pointer-events-none" />
+        <div className="pointer-events-none absolute inset-0 bg-[#080b11]/55" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#080b11]/75 via-[#111827]/50 to-[#080b11]/80" />
       </div>
 
       {/* 2. Main Content Grid */}
