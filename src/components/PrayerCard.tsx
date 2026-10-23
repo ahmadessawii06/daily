@@ -6,12 +6,12 @@ import { nextTaskStatus } from '../utils/taskStatus';
 import { addDays, formatHeaderDate, formatTime12h } from '../utils/date';
 import { useNablusPrayerTimes } from '../hooks/useNablusPrayerTimes';
 import { getDateTimeInPrayerTimeZone, getNextPrayerSchedule, getPrayerIntervalProgress, getPrayerTimeZoneDate, isPrayerUpcomingOnDate } from '../utils/prayerSchedule';
-import fajrImage from '../assets/images/prayers/fajr.png';
-import dhuhrImage from '../assets/images/prayers/dhuhr.png';
-import asrImage from '../assets/images/prayers/asr.png';
-import maghribImage from '../assets/images/prayers/maghrib.png';
-import ishaImage from '../assets/images/prayers/isha.png';
-import mosqueImage from '../assets/images/prayers/mosque.png';
+const fajrImage = new URL('../assets/images/prayers/fajr.png', import.meta.url).href;
+const dhuhrImage = new URL('../assets/images/prayers/dhuhr.png', import.meta.url).href;
+const asrImage = new URL('../assets/images/prayers/asr.png', import.meta.url).href;
+const maghribImage = new URL('../assets/images/prayers/maghrib.png', import.meta.url).href;
+const ishaImage = new URL('../assets/images/prayers/isha.png', import.meta.url).href;
+const mosqueImage = new URL('../assets/images/prayers/mosque.png', import.meta.url).href;
 
 const prayerVerses = [
   { text: '﴿حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَىٰ وَقُومُوا لِلَّهِ قَانِتِينَ﴾', source: 'سورة البقرة • الآية ٢٣٨' },
