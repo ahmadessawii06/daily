@@ -27,12 +27,17 @@ import {
   Table2,
   X
 } from 'lucide-react';
-import { Language, Task } from '../types';
+import { Language, PlannerCategory, PlannerWorkspace, Task } from '../types';
 import { analyzeWeek, WeeklyAnalysisResult, CategoryStat } from '../utils/weeklyAnalytics';
-import { addDays, getTodayDateString, formatHeaderDate } from '../utils/date';
+import { addDays, getTodayDateString, formatHeaderDate, formatTime12h } from '../utils/date';
 import { activeCategories, groupTasksByCategory, UNASSIGNED_CATEGORY } from '../shared/workspace';
 import { getPlannerWorkspace } from '../utils/workspace';
 import { partitionPrayerTasks } from '../utils/prayerTasks';
+import { CARD_ICONS } from './CategoryEditor';
+import { StatCircle } from './StatCircle';
+import { TaskStatusIndicator } from './TaskStatusIndicator';
+import { calculateStats } from '../utils/storage';
+import type { CSSProperties } from 'react';
 
 
 interface WeeklyReviewProps {
@@ -44,7 +49,8 @@ interface SelectedReviewCell {
   date: string;
   dayName: string;
   label: string;
-  tasks: Pick<Task, 'title' | 'status'>[];
+  categoryId?: string;
+  tasks: Task[];
 }
 
 export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
@@ -603,7 +609,7 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
                           return (
                             <button key={column.id} type="button"
                               aria-pressed={isSelected}
-                              onClick={() => setSelectedCell({ date: day.date, dayName: day.dayName, label: column.label, tasks })}
+                              onClick={() => setSelectedCell({ date: day.date, dayName: day.dayName, label: column.label, categoryId: column.id, tasks })}
                               onMouseEnter={() => setHoveredCell({ dayName: day.dayName, label: column.label, title, status: `${doneCount}/${tasks.length} ${lang === 'ar' ? 'مكتملة' : 'done'}` })}
                               onMouseLeave={() => setHoveredCell(null)}
                               title={`${day.dayName} · ${column.label}: ${title || (lang === 'ar' ? 'لا توجد مهام' : 'No tasks')}`}
@@ -663,23 +669,10 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
                 </div>
               </div>
 
-              {selectedCell.tasks.length > 0 ? (
-                <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {selectedCell.tasks.map((task, index) => (
-                    <li key={`${task.title}-${index}`} className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white/80 px-3 py-2 dark:border-white/[0.06] dark:bg-white/[0.03]">
-                      <span className="min-w-0 break-words text-xs font-medium text-slate-800 dark:text-zinc-200">{task.title}</span>
-                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                        task.status === 'done'
-                          ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                          : task.status === 'not-done'
-                            ? 'bg-rose-500/10 text-rose-700 dark:text-rose-300'
-                            : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
-                      }`}>
-                        {getTaskStatusLabel(task.status)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+              {selectedCell.tasks.length > 0 ? heatmapMode === 'cards' ? (
+                <SelectedCardPreview selectedCell={selectedCell} workspace={workspace} lang={lang} />
+              ) : (
+                <SelectedSchedulePreview selectedCell={selectedCell} lang={lang} />
               ) : (
                 <p className="mt-3 text-xs text-slate-500 dark:text-zinc-400">
                   {lang === 'ar' ? 'ما في مهام مسجلة في هذا التحديد.' : 'No tasks recorded for this selection.'}
@@ -852,3 +845,119 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
     </div>
   );
 };
+
+function SelectedCardPreview({ selectedCell, workspace, lang }: {
+  selectedCell: SelectedReviewCell;
+  workspace: PlannerWorkspace;
+  lang: Language;
+}) {
+  const ar = lang === 'ar';
+  const stats = calculateStats(selectedCell.tasks);
+  const isPrayerCard = selectedCell.categoryId === 'daily-prayers';
+  const category: PlannerCategory | undefined = activeCategories(workspace).find(item => item.id === selectedCell.categoryId);
+  const Icon = isPrayerCard ? MoonStar : CARD_ICONS[category?.icon || 'layers'];
+  const name = isPrayerCard
+    ? (ar ? 'الصلوات الخمس' : 'Five daily prayers')
+    : category
+      ? (ar ? category.name : category.nameEn || category.name)
+      : (ar ? 'غير مصنّف' : 'Unassigned');
+  const hues = [215, 35, 270, 345, 155, 190];
+  const hue = category ? hues[category.order] ?? (215 + category.order * 137.508) % 360 : 0;
+  const colorStyle = {
+    '--card-hue': hue,
+    '--card-saturation': category?.id === UNASSIGNED_CATEGORY ? '0%' : '65%',
+  } as CSSProperties;
+  const labels = ar
+    ? { done: 'مكتملة', pending: 'متبقية', notDone: 'غير منجزة' }
+    : { done: 'Completed', pending: 'Remaining', notDone: 'Not done' };
+
+  return (
+    <article
+      aria-label={name}
+      data-card-complete={stats.total > 0 && stats.done === stats.total}
+      style={colorStyle}
+      className={`mt-4 min-w-0 rounded-2xl border border-t-[3px] shadow-2xs ${isPrayerCard ? 'border-emerald-300/70 bg-linear-to-br from-emerald-50 via-white to-amber-50/60 dark:border-emerald-400/25 dark:from-[#102521] dark:via-[#111b1c] dark:to-[#202219]' : 'planner-card'}`}
+    >
+      <div className="flex items-center gap-3 p-4">
+        <div aria-hidden="true" className={`planner-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${isPrayerCard ? 'border-amber-300/50 bg-amber-100/70 text-amber-700 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-200' : ''}`}>
+          <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h5 className="break-words text-sm font-bold leading-6">{name}</h5>
+          <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+            {ar ? `${stats.done} من ${stats.total} مكتملة` : `${stats.done} of ${stats.total} complete`}
+          </p>
+        </div>
+      </div>
+      <div data-card-stats role="group" aria-label={ar ? `إحصائيات ${name}` : `${name} statistics`} className="mx-4 grid grid-cols-4 items-start gap-1 border-t border-slate-200/60 py-3 dark:border-white/[0.06]">
+        <StatCircle compact label={labels.done} value={stats.done} percentage={stats.total ? stats.done / stats.total * 100 : 0} color="emerald" isActive={false} subLabel={`${stats.total ? Math.round(stats.done / stats.total * 100) : 0}%`} />
+        <StatCircle compact label={labels.pending} value={stats.pending} percentage={stats.total ? stats.pending / stats.total * 100 : 0} color="amber" isActive={false} subLabel={`${stats.total ? Math.round(stats.pending / stats.total * 100) : 0}%`} />
+        <StatCircle compact label={labels.notDone} value={stats.notDone} percentage={stats.total ? stats.notDone / stats.total * 100 : 0} color="rose" isActive={false} subLabel={`${stats.total ? Math.round(stats.notDone / stats.total * 100) : 0}%`} />
+        <StatCircle compact label={ar ? 'الإجمالي' : 'Total'} value={stats.total} percentage={stats.total ? 100 : 0} color="indigo" isActive={true} subLabel={ar ? 'مهمة' : 'tasks'} />
+      </div>
+      <div className="p-3 pt-2">
+        <div className="space-y-1">
+          {selectedCell.tasks.map(task => (
+            <div key={task.id} data-card-task-status={task.status} className="task-row card-task-row group grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-1 rounded-xl px-1 py-1.5">
+              <span className="flex h-9 w-7 shrink-0 items-center justify-center">
+                <TaskStatusIndicator status={task.status} />
+              </span>
+              <div className="flex min-h-9 min-w-0 flex-col justify-center py-1">
+                <span data-card-task-title dir="auto" className={`line-clamp-2 w-full min-w-0 text-[13px] font-medium leading-6 [overflow-wrap:anywhere] ${task.status === 'done' ? 'text-slate-500 dark:text-zinc-400' : 'text-slate-800 dark:text-zinc-200'}`}>
+                  {task.title}
+                </span>
+                {task.status === 'not-done' && task.notDoneReason && <span className="mt-1 break-words text-[11px] text-rose-600 dark:text-rose-300">{ar ? 'السبب: ' : 'Reason: '}{task.notDoneReason}</span>}
+                {(task.time || task.notes) && <span className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-400">{task.time && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime12h(task.time, lang).formatted}</span>}{task.notes && <span title={task.notes} className="max-w-full truncate">{task.notes}</span>}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function SelectedSchedulePreview({ selectedCell, lang }: {
+  selectedCell: SelectedReviewCell;
+  lang: Language;
+}) {
+  const stats = calculateStats(selectedCell.tasks);
+  const ar = lang === 'ar';
+  const timeClasses = {
+    done: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50/60 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20',
+    pending: 'text-slate-600 dark:text-zinc-400 bg-slate-100/70 dark:bg-white/[0.03] border-slate-200/70 dark:border-white/[0.06]',
+    'not-done': 'text-rose-700 dark:text-rose-300 bg-rose-50/60 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20',
+  };
+  const titleClasses = {
+    done: 'text-slate-500 dark:text-zinc-400 font-medium',
+    pending: 'text-slate-900 dark:text-zinc-100 font-bold',
+    'not-done': 'text-slate-900 dark:text-zinc-100 font-bold',
+  };
+
+  return (
+    <div className="mt-4 space-y-2">
+      <div className="mb-3 grid grid-cols-4 items-start gap-1 border-b border-slate-200/60 pb-3 dark:border-white/[0.06]">
+        <StatCircle compact label={ar ? 'مكتملة' : 'Completed'} value={stats.done} percentage={stats.total ? stats.done / stats.total * 100 : 0} color="emerald" isActive={false} />
+        <StatCircle compact label={ar ? 'متبقية' : 'Remaining'} value={stats.pending} percentage={stats.total ? stats.pending / stats.total * 100 : 0} color="amber" isActive={false} />
+        <StatCircle compact label={ar ? 'غير منجزة' : 'Not done'} value={stats.notDone} percentage={stats.total ? stats.notDone / stats.total * 100 : 0} color="rose" isActive={false} />
+        <StatCircle compact label={ar ? 'الإجمالي' : 'Total'} value={stats.total} percentage={stats.total ? 100 : 0} color="indigo" isActive={true} subLabel={ar ? 'مهمة' : 'tasks'} />
+      </div>
+      {selectedCell.tasks.map(task => (
+        <article key={task.id} data-task-status={task.status} className={`task-row relative flex min-w-0 items-center gap-3 overflow-hidden rounded-2xl border px-3 py-2.5 sm:px-4 ${task.status === 'done' || task.status === 'pending' || task.status === 'not-done' ? 'bg-white dark:bg-[#11131a] border-slate-200/70 dark:border-white/[0.06]' : ''}`}>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center">
+            <TaskStatusIndicator status={task.status} />
+          </span>
+          <span className={`font-numbers inline-flex shrink-0 items-center gap-1.5 rounded-xl border px-2.5 py-1 text-xs font-black tabular-nums ${timeClasses[task.status]}`}>
+            <Clock aria-hidden="true" className="h-3.5 w-3.5 opacity-75" />
+            {task.time ? formatTime12h(task.time, lang).formatted : (ar ? 'بدون وقت' : 'Unscheduled')}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className={`break-words text-sm leading-relaxed ${titleClasses[task.status]}`}>{task.title}</p>
+            {task.status === 'not-done' && task.notDoneReason && <p className="mt-1 break-words text-xs text-rose-600 dark:text-rose-300">{ar ? 'السبب: ' : 'Reason: '}{task.notDoneReason}</p>}
+            {task.notes && <p className="mt-1 break-words text-xs font-semibold text-amber-900 dark:text-amber-300">{task.notes}</p>}
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
