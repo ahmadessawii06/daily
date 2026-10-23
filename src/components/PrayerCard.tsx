@@ -139,7 +139,7 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
     : nextPrayer ? getPrayerName(nextPrayer.prayer) : '';
   const NextPrayerIcon = nextPrayer ? prayerIcons[nextPrayer.prayer.id] : Sunrise;
   return (
-    <article id="onboarding-prayer-card" data-prayer-card data-prayer-showcase aria-label={ar ? 'الصلوات الخمس' : 'Five daily prayers'} className="col-span-full min-w-0 overflow-hidden rounded-3xl border border-emerald-400/25 bg-[#071714] text-white shadow-2xl shadow-emerald-950/10">
+    <article id="onboarding-prayer-card" data-prayer-card data-prayer-showcase aria-label={ar ? 'الصلوات الخمس' : 'Five daily prayers'} className="prayer-card-shell col-span-full min-w-0 overflow-hidden rounded-3xl border border-emerald-400/25 bg-[#071714] text-white shadow-2xl shadow-emerald-950/10">
       <header className="relative isolate flex min-h-20 items-center justify-between gap-3 overflow-hidden border-b border-emerald-300/10 px-4 py-3 sm:px-6">
         <img src={mosqueImage} alt="" aria-hidden="true" className="absolute inset-0 -z-20 h-full w-full object-cover object-[center_42%] opacity-40" />
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-l from-[#041c18]/85 via-[#06221d]/55 to-[#06110f]/20" />
@@ -163,8 +163,8 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
         </div>
       </header>
 
-      <div className="space-y-3 p-3 sm:space-y-4 sm:p-4">
-        <section data-prayer-next dir={ar ? 'rtl' : 'ltr'} className="relative isolate grid min-w-0 grid-cols-1 items-center gap-4 overflow-hidden rounded-2xl border border-teal-400/40 bg-[#06221d] px-4 py-4 shadow-[0_0_40px_-24px_rgba(16,229,200,0.45)] sm:gap-5 sm:px-5 sm:py-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-5 lg:px-8 lg:py-5">
+      <div className="prayer-card-content space-y-3 p-3 sm:space-y-4 sm:p-4">
+        <section data-prayer-next dir={ar ? 'rtl' : 'ltr'} className="prayer-next-layout relative isolate min-w-0 items-center overflow-hidden rounded-2xl border border-teal-400/40 bg-[#06221d] px-4 py-4 shadow-[0_0_40px_-24px_rgba(16,229,200,0.45)] sm:px-5 sm:py-4 lg:px-8 lg:py-5">
           <img src={mosqueImage} alt="" aria-hidden="true" className="absolute inset-0 -z-20 h-full w-full object-cover object-[center_52%] opacity-90" />
           <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(270deg,rgba(1,18,18,.94)_0%,rgba(2,26,25,.78)_38%,rgba(3,26,25,.16)_100%),linear-gradient(0deg,rgba(2,14,14,.45),transparent_70%)]" />
           {nextPrayer ? <>
@@ -210,7 +210,7 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
 
         {times.error && <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-300/40 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-300/5 dark:text-amber-200"><span>{ar ? 'تعذر تحميل مواقيت الصلاة. تحقق من الاتصال وأعد المحاولة.' : 'Could not load prayer times. Check your connection and retry.'}</span><button type="button" onClick={times.refresh} className="inline-flex min-h-9 items-center gap-1 font-semibold"><RefreshCw aria-hidden="true" className="h-3 w-3" />{ar ? 'إعادة المحاولة' : 'Retry'}</button></div>}
 
-        <div data-prayer-gallery className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">
+        <div data-prayer-gallery className="prayer-gallery">
         {slots.map(({ prayer, task }) => {
           const status = task?.status || 'pending';
           const time = times.data?.prayers.find(item => item.id === prayer.id)?.time;
@@ -225,13 +225,13 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
               ? 'border-rose-200/30 bg-slate-950/30 text-rose-200'
               : 'border-white/20 bg-slate-950/25 text-white/75';
           return <article key={prayer.id} data-prayer-slot={prayer.id} data-prayer-status={status} data-prayer-accent={accent} data-prayer-upcoming={isUpcomingPrayer || undefined}
-            className={`group relative isolate min-h-[400px] min-w-0 overflow-hidden rounded-2xl border shadow-md shadow-black/15 transition-[border-color,box-shadow,transform] duration-300 ease-out hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-teal-300/60 motion-reduce:transition-none ${
+            className={`prayer-slot-card group relative isolate min-w-0 overflow-hidden rounded-2xl border shadow-md shadow-black/15 transition-[border-color,box-shadow,transform] duration-300 ease-out hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-teal-300/60 motion-reduce:transition-none ${
               status === 'done' ? 'border-[#18BFA5]/65 hover:shadow-[0_0_18px_rgba(24,191,165,0.22)]' : status === 'not-done' ? 'border-[#C65B76]/65 hover:shadow-[0_0_18px_rgba(198,91,118,0.22)]' : 'border-white/20 hover:shadow-[0_0_18px_rgba(255,255,255,0.12)]'
             }`}>
             <img src={prayerImages[prayer.id]} alt="" aria-hidden="true" className="absolute inset-0 z-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 motion-reduce:transition-none" />
             <div aria-hidden="true" className="absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(2,8,24,.12)_0%,rgba(2,8,24,.08)_36%,rgba(1,12,16,.78)_73%,rgba(1,12,16,.97)_100%)]" />
             {isUpcomingPrayer && <div data-prayer-upcoming-outline aria-hidden="true" className="pointer-events-none absolute inset-[2px] z-20 rounded-2xl border-2 border-[#2DD4BF] shadow-[inset_0_0_0_1px_rgba(45,212,191,0.28),0_0_8px_rgba(45,212,191,0.18)]" />}
-            <div className="relative z-10 flex min-h-[400px] flex-col items-center px-3 py-3.5 text-center sm:px-4 sm:py-4">
+            <div className="prayer-slot-content relative z-10 flex flex-col items-center px-3 py-3.5 text-center sm:px-4 sm:py-4">
               <button type="button" data-task-status={status}
                 aria-label={ar ? `${getPrayerName(prayer)}: ${statusLabels[status]}. تغيير الحالة` : `${getPrayerName(prayer)}: ${statusLabels[status]}. Change status`}
                 title={ar ? 'اضغط لتغيير حالة الصلاة' : 'Click to change prayer status'}

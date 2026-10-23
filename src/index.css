@@ -24,6 +24,101 @@
   text-align: center;
 }
 
+.prayer-card-shell {
+  container: prayer-card / inline-size;
+}
+
+.prayer-card-content {
+  container: prayer-content / inline-size;
+}
+
+.prayer-next-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "info"
+    "verse"
+    "countdown";
+  gap: 1rem;
+}
+
+[data-prayer-next-info] { grid-area: info; }
+[data-prayer-verse-center] { grid-area: verse; }
+[data-prayer-countdown] { grid-area: countdown; }
+
+.prayer-gallery {
+  --prayer-card-gap: 0.625rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--prayer-card-gap);
+}
+
+.prayer-slot-card,
+.prayer-slot-content {
+  min-height: 340px;
+}
+
+@container prayer-content (min-width: 350px) {
+  .prayer-gallery {
+    --prayer-card-gap: 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .prayer-slot-card,
+  .prayer-slot-content {
+    min-height: 310px;
+  }
+
+  .prayer-slot-card:nth-child(5):last-child {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc((100% - var(--prayer-card-gap)) / 2);
+  }
+}
+
+@container prayer-content (min-width: 800px) {
+  .prayer-gallery {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .prayer-slot-card:nth-child(5):last-child {
+    grid-column: auto;
+    justify-self: stretch;
+    width: auto;
+  }
+
+  .prayer-slot-card,
+  .prayer-slot-content {
+    min-height: 300px;
+  }
+}
+
+@container prayer-content (min-width: 1100px) {
+  .prayer-slot-card,
+  .prayer-slot-content {
+    min-height: 340px;
+  }
+}
+
+@container prayer-card (min-width: 520px) {
+  .prayer-next-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "info countdown"
+      "verse verse";
+    column-gap: 1.25rem;
+    row-gap: 1rem;
+  }
+}
+
+@container prayer-card (min-width: 900px) {
+  .prayer-next-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr);
+    grid-template-areas: "info verse countdown";
+    gap: 1.25rem;
+  }
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) {
