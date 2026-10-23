@@ -24,7 +24,8 @@ import {
   Zap,
   Info,
   LayoutGrid,
-  Table2
+  Table2,
+  X
 } from 'lucide-react';
 import { Language, Task } from '../types';
 import { analyzeWeek, WeeklyAnalysisResult, CategoryStat } from '../utils/weeklyAnalytics';
@@ -39,6 +40,13 @@ interface WeeklyReviewProps {
   onNavigateToDay: (dateStr: string) => void;
 }
 
+interface SelectedReviewCell {
+  date: string;
+  dayName: string;
+  label: string;
+  tasks: Pick<Task, 'title' | 'status'>[];
+}
+
 export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
   lang,
   onNavigateToDay,
@@ -48,6 +56,7 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   const [heatmapMode, setHeatmapMode] = useState<'schedule' | 'cards'>('schedule');
   const [hoveredCell, setHoveredCell] = useState<{ dayName: string; label: string; title: string; status: string } | null>(null);
+  const [selectedCell, setSelectedCell] = useState<SelectedReviewCell | null>(null);
 
   const reportRef = useRef<HTMLDivElement>(null);
   const workspace = useMemo(() => getPlannerWorkspace(), []);
@@ -456,12 +465,12 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
             </div>
 
             <div role="group" aria-label={lang === 'ar' ? 'طريقة عرض التقدم' : 'Progress view'} className="inline-flex self-start rounded-xl border border-slate-200/80 bg-slate-100 p-1 dark:border-white/[0.08] dark:bg-white/[0.06]">
-              <button type="button" aria-pressed={heatmapMode === 'schedule'} onClick={() => { setHeatmapMode('schedule'); setHoveredCell(null); }}
+              <button type="button" aria-pressed={heatmapMode === 'schedule'} onClick={() => { setHeatmapMode('schedule'); setHoveredCell(null); setSelectedCell(null); }}
                 className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition-colors ${heatmapMode === 'schedule' ? 'bg-white text-emerald-700 shadow-sm dark:bg-white/[0.12] dark:text-emerald-300' : 'text-slate-600 dark:text-zinc-400'}`}>
                 <Table2 aria-hidden="true" className="h-3.5 w-3.5" />
                 {lang === 'ar' ? 'حسب الجدول' : 'Schedule'}
               </button>
-              <button type="button" aria-pressed={heatmapMode === 'cards'} onClick={() => { setHeatmapMode('cards'); setHoveredCell(null); }}
+              <button type="button" aria-pressed={heatmapMode === 'cards'} onClick={() => { setHeatmapMode('cards'); setHoveredCell(null); setSelectedCell(null); }}
                 className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition-colors ${heatmapMode === 'cards' ? 'bg-white text-emerald-700 shadow-sm dark:bg-white/[0.12] dark:text-emerald-300' : 'text-slate-600 dark:text-zinc-400'}`}>
                 <LayoutGrid aria-hidden="true" className="h-3.5 w-3.5" />
                 {lang === 'ar' ? 'حسب البطاقات' : 'Cards'}
@@ -536,10 +545,15 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
                           }
                         }
                         const taskTitles = foundTasks.map(task => `${task.title} (${getTaskStatusLabel(task.status)})`).join('، ');
+                        const isSelected = selectedCell?.date === day.date && selectedCell.label === timeStr;
 
                         return (
-                          <div
+                          <button
                             key={h}
+                            type="button"
+                            aria-pressed={isSelected}
+                            aria-label={`${day.dayName} ${timeStr}: ${taskTitles || (lang === 'ar' ? 'لا توجد مهمة' : 'No task')}`}
+                            onClick={() => setSelectedCell({ date: day.date, dayName: day.dayName, label: timeStr, tasks: foundTasks })}
                             onMouseEnter={() => {
                               setHoveredCell({
                                 dayName: day.dayName,
@@ -550,7 +564,7 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
                             }}
                             onMouseLeave={() => setHoveredCell(null)}
                             title={`${day.dayName} ${timeStr}: ${taskTitles || (lang === 'ar' ? 'لا توجد مهمة' : 'No task')}`}
-                            className={`flex-1 h-5 sm:h-6 rounded-xs transition-colors cursor-pointer border ${cellClass}`}
+                            className={`flex-1 h-5 sm:h-6 rounded-xs transition-colors cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${cellClass} ${isSelected ? 'ring-2 ring-offset-1 ring-emerald-600 dark:ring-emerald-400 ring-offset-white dark:ring-offset-[#11131a]' : ''}`}
                           />
                         );
                       })}
@@ -585,13 +599,16 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
                                 : notDoneCount > 0 ? 'bg-rose-500 border-rose-500 text-white'
                                   : 'bg-amber-500 border-amber-500 text-white';
                           const title = tasks.map(task => `${task.title} (${getTaskStatusLabel(task.status)})`).join('، ');
+                          const isSelected = selectedCell?.date === day.date && selectedCell.label === column.label;
                           return (
-                            <button key={column.id} type="button" onClick={() => onNavigateToDay(day.date)}
+                            <button key={column.id} type="button"
+                              aria-pressed={isSelected}
+                              onClick={() => setSelectedCell({ date: day.date, dayName: day.dayName, label: column.label, tasks })}
                               onMouseEnter={() => setHoveredCell({ dayName: day.dayName, label: column.label, title, status: `${doneCount}/${tasks.length} ${lang === 'ar' ? 'مكتملة' : 'done'}` })}
                               onMouseLeave={() => setHoveredCell(null)}
                               title={`${day.dayName} · ${column.label}: ${title || (lang === 'ar' ? 'لا توجد مهام' : 'No tasks')}`}
                               aria-label={`${day.dayName}, ${column.label}: ${doneCount}/${tasks.length} ${lang === 'ar' ? 'مكتملة' : 'completed'}`}
-                              className={`flex h-8 min-w-0 items-center justify-center rounded-sm border text-[9px] font-bold transition-colors ${cellClass}`}>
+                              className={`flex h-8 min-w-0 items-center justify-center rounded-sm border text-[9px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${cellClass} ${isSelected ? 'ring-2 ring-offset-1 ring-emerald-600 dark:ring-emerald-400 ring-offset-white dark:ring-offset-[#11131a]' : ''}`}>
                               {tasks.length > 0 ? `${doneCount}/${tasks.length}` : ''}
                             </button>
                           );
@@ -616,13 +633,66 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
                   </div>
                 ) : (
                   <span className="text-slate-400 dark:text-zinc-500 text-[11px]">
-                    {lang === 'ar' ? 'مرّر المؤشر فوق المربعات لرؤية المهام وعدد ما أنجزته' : 'Hover over a square to see tasks and completion counts'}
+                    {lang === 'ar' ? 'اضغط على أي مربع لعرض التفاصيل، ثم افتح اليوم في الصفحة الرئيسية' : 'Click a square to view its details, then open the day on the home page'}
                   </span>
                 )}
               </div>
 
             </div>
           </div>
+          {selectedCell && (
+            <section aria-live="polite" className="mt-4 rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.04] p-4 sm:p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                    {lang === 'ar' ? 'تفاصيل التحديد' : 'Selection details'}
+                  </p>
+                  <h4 className="mt-1 text-sm font-bold text-slate-900 dark:text-white">
+                    {selectedCell.dayName} · {selectedCell.label}
+                  </h4>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700 dark:bg-white/[0.08] dark:text-zinc-200">
+                    {selectedCell.tasks.filter(task => task.status === 'done').length}/{selectedCell.tasks.length} {lang === 'ar' ? 'مكتملة' : 'completed'}
+                  </span>
+                  <button type="button" onClick={() => setSelectedCell(null)}
+                    aria-label={lang === 'ar' ? 'إغلاق التفاصيل' : 'Close details'}
+                    className="flex size-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-200 dark:text-zinc-400 dark:hover:bg-white/[0.1]">
+                    <X aria-hidden="true" className="size-4" />
+                  </button>
+                </div>
+              </div>
+
+              {selectedCell.tasks.length > 0 ? (
+                <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {selectedCell.tasks.map((task, index) => (
+                    <li key={`${task.title}-${index}`} className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white/80 px-3 py-2 dark:border-white/[0.06] dark:bg-white/[0.03]">
+                      <span className="min-w-0 break-words text-xs font-medium text-slate-800 dark:text-zinc-200">{task.title}</span>
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        task.status === 'done'
+                          ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                          : task.status === 'not-done'
+                            ? 'bg-rose-500/10 text-rose-700 dark:text-rose-300'
+                            : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                      }`}>
+                        {getTaskStatusLabel(task.status)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-xs text-slate-500 dark:text-zinc-400">
+                  {lang === 'ar' ? 'ما في مهام مسجلة في هذا التحديد.' : 'No tasks recorded for this selection.'}
+                </p>
+              )}
+
+              <button type="button" onClick={() => onNavigateToDay(selectedCell.date)}
+                className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:bg-emerald-500 dark:hover:bg-emerald-400">
+                {lang === 'ar' ? 'عرض اليوم في الصفحة الرئيسية' : 'Open day on the home page'}
+                <ArrowUpRight aria-hidden="true" className="size-4 rtl:rotate-[-90deg] ltr:rotate-0" />
+              </button>
+            </section>
+          )}
         </div>
 
         {/* 5. بطاقات التحليل الذكي الثلاث: الأقوى، الأضعف، وتحتاج تطوير */}
