@@ -22,11 +22,16 @@ import {
   Layers,
   Calendar,
   Zap,
-  Info
+  Info,
+  LayoutGrid,
+  Table2
 } from 'lucide-react';
 import { Language, Task } from '../types';
 import { analyzeWeek, WeeklyAnalysisResult, CategoryStat } from '../utils/weeklyAnalytics';
 import { addDays, getTodayDateString, formatHeaderDate } from '../utils/date';
+import { activeCategories, groupTasksByCategory, UNASSIGNED_CATEGORY } from '../shared/workspace';
+import { getPlannerWorkspace } from '../utils/workspace';
+import { partitionPrayerTasks } from '../utils/prayerTasks';
 
 
 interface WeeklyReviewProps {
@@ -41,14 +46,43 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
   // Reference date for the week (defaults to today)
   const [weekEndDate, setWeekEndDate] = useState<string>(() => getTodayDateString());
   const [isExporting, setIsExporting] = useState(false);
-  const [hoveredCell, setHoveredCell] = useState<{ dayName: string; time: string; title?: string; status?: string } | null>(null);
+  const [heatmapMode, setHeatmapMode] = useState<'schedule' | 'cards'>('schedule');
+  const [hoveredCell, setHoveredCell] = useState<{ dayName: string; label: string; title: string; status: string } | null>(null);
 
   const reportRef = useRef<HTMLDivElement>(null);
+  const workspace = useMemo(() => getPlannerWorkspace(), []);
 
   // Compute analytics memoized
   const data: WeeklyAnalysisResult = useMemo(() => {
     return analyzeWeek(weekEndDate, lang);
   }, [weekEndDate, lang]);
+
+  const cardRows = useMemo(() => {
+    const active = activeCategories(workspace);
+    const groupedByDay = data.days.map(day => {
+      const prayers = partitionPrayerTasks(day.tasks);
+      return { day, prayerTasks: prayers.slots.flatMap(slot => slot.task ? [slot.task] : []), groupedTasks: groupTasksByCategory(prayers.otherTasks, workspace) };
+    });
+    const usedCategoryIds = new Set(groupedByDay.flatMap(row => [...row.groupedTasks.keys()]));
+    const categories = active.filter(category => usedCategoryIds.has(category.id)).map(category => ({
+      id: category.id,
+      label: lang === 'ar' ? category.name : category.nameEn || category.name,
+    }));
+    if (usedCategoryIds.has(UNASSIGNED_CATEGORY)) {
+      categories.push({ id: UNASSIGNED_CATEGORY, label: lang === 'ar' ? 'غير مصنّف' : 'Unassigned' });
+    }
+    const hasPrayerTasks = groupedByDay.some(row => row.prayerTasks.length > 0);
+    return {
+      columns: [...(hasPrayerTasks ? [{ id: 'daily-prayers', label: lang === 'ar' ? 'الصلوات' : 'Prayers' }] : []), ...categories],
+      rows: groupedByDay.map(({ day, prayerTasks, groupedTasks }) => ({
+        day,
+        tasksByCard: new Map([
+          ['daily-prayers', prayerTasks],
+          ...[...groupedTasks.entries()],
+        ]),
+      })),
+    };
+  }, [data.days, lang, workspace]);
 
   const handlePrevWeek = () => {
     setWeekEndDate((prev) => addDays(prev, -7));
@@ -101,6 +135,13 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
       default:
         return Sparkles;
     }
+  };
+
+  const getTaskStatusLabel = (status: Task['status']) => {
+    if (lang === 'ar') {
+      return status === 'done' ? 'مكتملة' : status === 'not-done' ? 'غير منجزة' : 'متبقية';
+    }
+    return status === 'done' ? 'Completed' : status === 'not-done' ? 'Not done' : 'Pending';
   };
 
   return (
@@ -403,24 +444,40 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white font-['Alexandria'] flex items-center gap-2">
                 <Clock className="w-4 h-4 text-emerald-500 stroke-[2.5]" />
-                <span>{lang === 'ar' ? 'الخريطة الحرارية لساعات اليوم (Heatmap 7x24)' : 'Weekly 24h Heatmap'}</span>
+                <span>{heatmapMode === 'schedule'
+                  ? (lang === 'ar' ? 'الخريطة الحرارية لساعات اليوم (7 × 24)' : 'Weekly 24h Heatmap')
+                  : (lang === 'ar' ? 'إنجاز المهام حسب البطاقات' : 'Progress by cards')}</span>
               </h3>
               <p className="text-xs text-slate-500 dark:text-zinc-400 font-['Alexandria'] mt-0.5">
                 {lang === 'ar' 
-                  ? 'اكتشف بصرياً أي فترات اليوم تكون فيها أكثر إنتاجية وتفويتاً للمهام'
-                  : 'Visually detect peak productivity hours and drop-off periods'}
+                  ? 'تابع إنجاز مهامك حسب أوقات الجدول أو بطاقات يومك'
+                  : 'Track your completed tasks by schedule time or daily cards'}
               </p>
             </div>
 
-            {/* Heatmap Legend */}
-            <div className="flex items-center gap-3 text-[11px] font-medium text-slate-500 dark:text-zinc-400 font-['Alexandria']">
+            <div role="group" aria-label={lang === 'ar' ? 'طريقة عرض التقدم' : 'Progress view'} className="inline-flex self-start rounded-xl border border-slate-200/80 bg-slate-100 p-1 dark:border-white/[0.08] dark:bg-white/[0.06]">
+              <button type="button" aria-pressed={heatmapMode === 'schedule'} onClick={() => { setHeatmapMode('schedule'); setHoveredCell(null); }}
+                className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition-colors ${heatmapMode === 'schedule' ? 'bg-white text-emerald-700 shadow-sm dark:bg-white/[0.12] dark:text-emerald-300' : 'text-slate-600 dark:text-zinc-400'}`}>
+                <Table2 aria-hidden="true" className="h-3.5 w-3.5" />
+                {lang === 'ar' ? 'حسب الجدول' : 'Schedule'}
+              </button>
+              <button type="button" aria-pressed={heatmapMode === 'cards'} onClick={() => { setHeatmapMode('cards'); setHoveredCell(null); }}
+                className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition-colors ${heatmapMode === 'cards' ? 'bg-white text-emerald-700 shadow-sm dark:bg-white/[0.12] dark:text-emerald-300' : 'text-slate-600 dark:text-zinc-400'}`}>
+                <LayoutGrid aria-hidden="true" className="h-3.5 w-3.5" />
+                {lang === 'ar' ? 'حسب البطاقات' : 'Cards'}
+              </button>
+            </div>
+          </div>
+
+          {/* Heatmap Legend */}
+          <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-slate-500 dark:text-zinc-400 font-['Alexandria']">
               <span className="flex items-center gap-1">
                 <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />
-                {lang === 'ar' ? 'منجزة' : 'Done'}
+                {lang === 'ar' ? 'مكتملة' : 'Completed'}
               </span>
               <span className="flex items-center gap-1">
                 <span className="w-2.5 h-2.5 rounded-sm bg-amber-500" />
-                {lang === 'ar' ? 'انتظار' : 'Pending'}
+                {lang === 'ar' ? 'متبقية / إنجاز جزئي' : 'Pending / Partial'}
               </span>
               <span className="flex items-center gap-1">
                 <span className="w-2.5 h-2.5 rounded-sm bg-rose-500" />
@@ -430,13 +487,12 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
                 <span className="w-2.5 h-2.5 rounded-sm bg-slate-200 dark:bg-white/[0.08]" />
                 {lang === 'ar' ? 'فارغ' : 'Empty'}
               </span>
-            </div>
           </div>
 
           {/* Grid Container */}
           <div className="overflow-x-auto pb-2">
             <div className="min-w-[680px]">
-              
+              {heatmapMode === 'schedule' ? <>
               {/* Hour Labels Header (00 to 23) */}
               <div className="flex items-center ms-20 sm:ms-24 mb-1">
                 {Array.from({ length: 24 }).map((_, h) => (
@@ -463,18 +519,23 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
                     <div className="flex-1 flex items-center gap-1">
                       {Array.from({ length: 24 }).map((_, h) => {
                         const timeStr = `${String(h).padStart(2, '0')}:00`;
-                        const foundTask = day.tasks.find((t) => t.time && t.time.startsWith(String(h).padStart(2, '0')));
+                        const foundTasks = day.tasks.filter((task) => task.title.trim() && task.time && task.time.startsWith(String(h).padStart(2, '0')));
+                        const doneCount = foundTasks.filter(task => task.status === 'done').length;
+                        const notDoneCount = foundTasks.filter(task => task.status === 'not-done').length;
 
                         let cellClass = 'bg-slate-100 dark:bg-white/[0.04] border-transparent';
-                        if (foundTask && foundTask.title && foundTask.title.trim()) {
-                          if (foundTask.status === 'done') {
+                        if (foundTasks.length > 0) {
+                          if (doneCount === foundTasks.length) {
                             cellClass = 'bg-emerald-500 hover:brightness-110';
-                          } else if (foundTask.status === 'pending') {
+                          } else if (doneCount > 0) {
                             cellClass = 'bg-amber-500 hover:brightness-110';
-                          } else if (foundTask.status === 'not-done') {
+                          } else if (notDoneCount > 0) {
                             cellClass = 'bg-rose-500 hover:brightness-110';
+                          } else {
+                            cellClass = 'bg-amber-500 hover:brightness-110';
                           }
                         }
+                        const taskTitles = foundTasks.map(task => `${task.title} (${getTaskStatusLabel(task.status)})`).join('، ');
 
                         return (
                           <div
@@ -482,13 +543,13 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
                             onMouseEnter={() => {
                               setHoveredCell({
                                 dayName: day.dayName,
-                                time: timeStr,
-                                title: foundTask?.title,
-                                status: foundTask?.status,
+                                label: timeStr,
+                                title: taskTitles,
+                                status: foundTasks.length ? `${doneCount}/${foundTasks.length} ${lang === 'ar' ? 'مكتملة' : 'done'}` : '',
                               });
                             }}
                             onMouseLeave={() => setHoveredCell(null)}
-                            title={`${day.dayName} ${timeStr}: ${foundTask?.title || (lang === 'ar' ? 'لا توجد مهمة' : 'No task')}`}
+                            title={`${day.dayName} ${timeStr}: ${taskTitles || (lang === 'ar' ? 'لا توجد مهمة' : 'No task')}`}
                             className={`flex-1 h-5 sm:h-6 rounded-xs transition-colors cursor-pointer border ${cellClass}`}
                           />
                         );
@@ -498,13 +559,55 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
                   </div>
                 ))}
               </div>
+              </> : <>
+                <div className="grid items-center gap-1.5" style={{ gridTemplateColumns: `5rem repeat(${cardRows.columns.length}, minmax(3rem, 1fr))` }}>
+                  <span />
+                  {cardRows.columns.map(column => (
+                    <span key={column.id} className="truncate text-center text-[10px] font-bold text-slate-500 dark:text-zinc-400" title={column.label}>{column.label}</span>
+                  ))}
+                </div>
+                {cardRows.columns.length === 0 ? (
+                  <p className="py-8 text-center text-xs text-slate-500 dark:text-zinc-400">{lang === 'ar' ? 'ما في مهام مسجلة لهذا الأسبوع.' : 'No tasks recorded for this week.'}</p>
+                ) : (
+                  <div className="mt-1.5 space-y-1.5">
+                    {cardRows.rows.map(({ day, tasksByCard }) => (
+                      <div key={day.date} className="grid items-center gap-1.5" style={{ gridTemplateColumns: `5rem repeat(${cardRows.columns.length}, minmax(3rem, 1fr))` }}>
+                        <button type="button" onClick={() => onNavigateToDay(day.date)} className="truncate text-start text-xs font-bold text-slate-700 hover:text-emerald-500 dark:text-zinc-300">
+                          {day.dayName} <span className="text-[10px] font-mono font-normal text-slate-400">{day.date.slice(8)}</span>
+                        </button>
+                        {cardRows.columns.map(column => {
+                          const tasks = tasksByCard.get(column.id) || [];
+                          const doneCount = tasks.filter(task => task.status === 'done').length;
+                          const notDoneCount = tasks.filter(task => task.status === 'not-done').length;
+                          const cellClass = tasks.length === 0 ? 'bg-slate-100 dark:bg-white/[0.04] border-transparent text-transparent'
+                            : doneCount === tasks.length ? 'bg-emerald-500 border-emerald-500 text-white'
+                              : doneCount > 0 ? 'bg-amber-500 border-amber-500 text-white'
+                                : notDoneCount > 0 ? 'bg-rose-500 border-rose-500 text-white'
+                                  : 'bg-amber-500 border-amber-500 text-white';
+                          const title = tasks.map(task => `${task.title} (${getTaskStatusLabel(task.status)})`).join('، ');
+                          return (
+                            <button key={column.id} type="button" onClick={() => onNavigateToDay(day.date)}
+                              onMouseEnter={() => setHoveredCell({ dayName: day.dayName, label: column.label, title, status: `${doneCount}/${tasks.length} ${lang === 'ar' ? 'مكتملة' : 'done'}` })}
+                              onMouseLeave={() => setHoveredCell(null)}
+                              title={`${day.dayName} · ${column.label}: ${title || (lang === 'ar' ? 'لا توجد مهام' : 'No tasks')}`}
+                              aria-label={`${day.dayName}, ${column.label}: ${doneCount}/${tasks.length} ${lang === 'ar' ? 'مكتملة' : 'completed'}`}
+                              className={`flex h-8 min-w-0 items-center justify-center rounded-sm border text-[9px] font-bold transition-colors ${cellClass}`}>
+                              {tasks.length > 0 ? `${doneCount}/${tasks.length}` : ''}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>}
 
               {/* Hover Preview Bar */}
               <div className="min-h-[24px] mt-2 text-xs font-medium text-slate-600 dark:text-zinc-400 font-['Alexandria'] flex items-center gap-2">
                 {hoveredCell ? (
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900 dark:text-white">{hoveredCell.dayName} ({hoveredCell.time}):</span>
-                    <span>{hoveredCell.title || (lang === 'ar' ? 'فترة فراغ / غير مسجلة' : 'Free slot')}</span>
+                    <span className="shrink-0 font-bold text-slate-900 dark:text-white">{hoveredCell.dayName} ({hoveredCell.label}):</span>
+                    <span className="truncate">{hoveredCell.title || (lang === 'ar' ? 'لا توجد مهام' : 'No tasks')}</span>
                     {hoveredCell.status && (
                       <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-200 dark:bg-white/[0.1]">
                         {hoveredCell.status}
@@ -513,7 +616,7 @@ export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
                   </div>
                 ) : (
                   <span className="text-slate-400 dark:text-zinc-500 text-[11px]">
-                    {lang === 'ar' ? 'مرّر مؤشر الفأرة فوق أي مربع لرؤية تفاصيل المهمة وتوقيتها' : 'Hover over any cell to see task details'}
+                    {lang === 'ar' ? 'مرّر المؤشر فوق المربعات لرؤية المهام وعدد ما أنجزته' : 'Hover over a square to see tasks and completion counts'}
                   </span>
                 )}
               </div>
