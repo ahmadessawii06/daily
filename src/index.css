@@ -5,6 +5,25 @@
 @import "./theme-mizan-developed.css";
 @import "./settings.css";
 
+@font-face {
+  font-family: 'Amiri Quran';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/AmiriQuran-Regular.ttf") format("truetype");
+}
+
+.quran-verse-text {
+  color: #F5E9CD;
+  direction: rtl;
+  font-family: 'Amiri Quran', serif;
+  font-size: clamp(20px, 1.8vw, 26px);
+  font-weight: normal;
+  letter-spacing: normal;
+  line-height: 2;
+  text-align: center;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) {
@@ -157,6 +176,17 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
 }
 html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]).dark [data-prayer-status="not-done"] {
   background-color: color-mix(in srgb, #f43f5e 14%, var(--mood-night-surface));
+}
+.prayer-status-check {
+  animation: prayer-status-check 260ms ease-out both;
+}
+@keyframes prayer-status-check {
+  0% { opacity: 0; transform: scale(.55); }
+  65% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prayer-status-check { animation: none; }
 }
 html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]).dark :is([data-top-focus], [class~="dark:bg-[#11131a]"], [class~="dark:bg-[#121319]"], [class~="dark:bg-[#1c2425]"], [class~="dark:bg-[#171b23]"], [class~="dark:bg-[#0c0f14]"], [class~="dark:bg-[#1c2028]"]) { background-color: var(--mood-night-surface); }
 html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) .task-input {

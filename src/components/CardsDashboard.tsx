@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { CheckCheck, ChevronDown, Clock, MoreHorizontal, Plus, StickyNote, X } from 'lucide-react';
-import type { Language, PlannerCategory, PlannerWorkspace, StatusFilter, Task, TaskStatus } from '../types';
+import type { DayRecord, Language, PlannerCategory, PlannerWorkspace, StatusFilter, Task, TaskStatus } from '../types';
 import { groupTasksByCategory, UNASSIGNED_CATEGORY } from '../shared/workspace';
 import { getTaskCardCategories } from '../utils/cardCategories';
 import { createPlannerCategory, deletePlannerCategory, updatePlannerCategory } from '../utils/workspace';
@@ -18,6 +18,7 @@ import { PrayerCard } from './PrayerCard';
 interface CardsDashboardProps {
   cardColumns?: 2 | 3 | 4;
   currentDate: string;
+  archiveDays: DayRecord[];
   tasks: Task[];
   workspace: PlannerWorkspace;
   filter: StatusFilter;

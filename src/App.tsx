@@ -21,7 +21,7 @@ import {
 import { triggerSync } from './services/syncEngine';
 import { enqueue } from './services/syncQueue';
 import { userStorage } from './utils/scopedStorage';
-import { Language, PlannerView, StatusFilter, Task, TaskStatus, Theme, User } from './types';
+import { DayRecord, Language, PlannerView, StatusFilter, Task, TaskStatus, Theme, User } from './types';
 import { getStoredAuth, clearStoredAuth, saveStoredAuth, beginSupportSession, originalAdminSession, clearSupportSession } from './utils/auth';
 import { requestApi } from './services/api';
 import { hasPermission } from './shared/admin';
@@ -645,7 +645,7 @@ export default function App() {
             </div>{!support && <button type="button" onClick={handleMoveRemaining} disabled={!tasks.some(canMoveTask)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-600 hover:border-emerald-500/40 focus-visible:outline-2 focus-visible:outline-emerald-500 disabled:opacity-40 dark:border-white/10 dark:bg-white/[.02] dark:text-zinc-300"><CalendarArrowUp aria-hidden="true" size={15} />{lang === 'ar' ? 'نقل غير المكتمل لليوم التالي' : 'Move unfinished to next day'}</button>}</div>
 
             <fieldset disabled={!!support} className="min-w-0 border-0 p-0 m-0">
-            {workspace.view === 'cards' ? <CardsDashboard cardColumns={cardColumns} currentDate={currentDate} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
+            {workspace.view === 'cards' ? <CardsDashboard cardColumns={cardColumns} currentDate={currentDate} archiveDays={archiveDays} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
               creationTarget={cardCreationTarget}
               onOpenAddTask={() => setIsTaskDestinationOpen(true)}
               onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}

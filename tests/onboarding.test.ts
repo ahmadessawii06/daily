@@ -170,6 +170,7 @@ test('First-time user clarity: CardsDashboard displays empty state call to actio
   const html = renderToStaticMarkup(
     React.createElement(CardsDashboard, {
       currentDate: '2026-10-23',
+      archiveDays: [],
       tasks: [],
       workspace: emptyWorkspace,
       filter: 'all',
