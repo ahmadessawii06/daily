@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
-  getTodayDateString, formatShortDate
+  formatShortDate
 } from './utils/date';
+import { getPrayerTimeZoneDate } from './utils/prayerSchedule';
 import {
   getDayRecord,
   loadAllDays,
@@ -148,8 +149,26 @@ export default function App() {
     try { localStorage.setItem('mizan_card_columns', String(next)); } catch {}
   };
   const [theme, setTheme] = useState<Theme>(() => getStoredTheme());
-  const [currentDate, setCurrentDate] = useState<string>(() => getTodayDateString());
+  const [currentDate, setCurrentDateState] = useState<string>(() => getPrayerTimeZoneDate(new Date()));
+  const followsTodayDate = useRef(true);
+  const setCurrentDate = useCallback((date: string) => {
+    followsTodayDate.current = date === getPrayerTimeZoneDate(new Date());
+    setCurrentDateState(date);
+  }, []);
   const [currentFilter, setCurrentFilter] = useState<StatusFilter>('all');
+  useEffect(() => {
+    const updateTodayDate = () => {
+      if (!followsTodayDate.current) return;
+      const today = getPrayerTimeZoneDate(new Date());
+      setCurrentDateState(current => current === today ? current : today);
+    };
+    const interval = window.setInterval(updateTodayDate, 30000);
+    window.addEventListener('focus', updateTodayDate);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', updateTodayDate);
+    };
+  }, []);
 
   // Modals state
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
