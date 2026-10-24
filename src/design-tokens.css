@@ -1,0 +1,53 @@
+@theme inline {
+  --spacing: 0.25rem;
+  --spacing-control: 2.75rem;
+  --spacing-control-compact: 2.25rem;
+  --radius-card: 1rem;
+  --radius-control: 0.75rem;
+  --radius-inner: 0.5rem;
+  --color-brand-50: var(--color-emerald-50);
+  --color-brand-100: var(--color-emerald-100);
+  --color-brand-300: var(--color-emerald-300);
+  --color-brand-400: var(--color-emerald-400);
+  --color-brand-500: var(--color-emerald-500);
+  --color-brand-600: var(--color-emerald-600);
+  --color-brand-700: var(--color-emerald-700);
+  --color-brand-800: var(--color-emerald-800);
+  --color-text-secondary: #475569;
+  --color-text-secondary-dark: #cbd5e1;
+}
+
+:root {
+  --space-1: calc(var(--spacing) * 1);
+  --space-2: calc(var(--spacing) * 2);
+  --space-3: calc(var(--spacing) * 3);
+  --space-4: calc(var(--spacing) * 4);
+  --space-6: calc(var(--spacing) * 6);
+  --space-8: calc(var(--spacing) * 8);
+  --text-secondary: var(--color-text-secondary);
+}
+
+.dark {
+  --text-secondary: var(--color-text-secondary-dark);
+}
+
+.text-slate-500,
+.text-zinc-400 {
+  color: var(--text-secondary);
+}
+
+.planner-card,
+[data-prayer-card],
+[data-top-focus] {
+  border-radius: var(--radius-card);
+}
+
+.planner-card button,
+[data-prayer-card] button,
+[data-top-focus] button {
+  border-radius: var(--radius-control);
+}
+
+html:root.dark[data-color-theme="mizan-developed"] :is(.planner-card, [data-prayer-card], [data-top-focus]) {
+  border-radius: var(--radius-card);
+}

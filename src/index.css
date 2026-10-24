@@ -4,6 +4,41 @@
 @import "./progress-colors.css";
 @import "./theme-mizan-developed.css";
 @import "./settings.css";
+@import "./design-tokens.css";
+
+@layer base {
+  button:not(:disabled) {
+    touch-action: manipulation;
+  }
+
+  button:focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled):active {
+    transform: scale(0.98);
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    button:not(:disabled):active {
+      transform: none;
+    }
+  }
+}
+
+.task-modal button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.task-modal button:not(:disabled) {
+  touch-action: manipulation;
+}
 
 @font-face {
   font-family: 'Amiri Quran';
@@ -377,6 +412,38 @@ html[data-color-theme="paper"] .bg-mesh {
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .planner-card:hover { transform: translateY(-2px); }
+}
+
+.category-card-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 48rem) {
+  .category-card-grid {
+    grid-template-columns: repeat(var(--category-columns-md), minmax(0, 1fr));
+  }
+  .dashboard-category-card {
+    grid-column: span var(--category-span-md);
+  }
+}
+
+@media (min-width: 64rem) {
+  .category-card-grid-four {
+    grid-template-columns: repeat(var(--category-columns-lg), minmax(0, 1fr));
+  }
+  .dashboard-category-card {
+    grid-column: span var(--category-span-lg);
+  }
+}
+
+@media (min-width: 80rem) {
+  .category-card-grid-three,
+  .category-card-grid-four {
+    grid-template-columns: repeat(var(--category-columns-xl), minmax(0, 1fr));
+  }
+  .dashboard-category-card {
+    grid-column: span var(--category-span-xl);
+  }
 }
 
 /* Indeterminate progress follows the request; no artificial percentage or delay. */
