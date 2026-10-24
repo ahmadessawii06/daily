@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { X, Clock, AlertCircle, Sparkles, BookOpen, Flame, Briefcase } from 'lucide-react';
 import { Language, PlannerCategory, TaskStatus } from '../types';
 import { formatTime12h } from '../utils/date';
@@ -27,9 +27,24 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
   const [status, setStatus] = useState<TaskStatus>('pending');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const dialogId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   // Adapt an empty form to its view without resetting a draft during remote sync.
   useEffect(() => { if (!isOpen && !title.trim() && !notes.trim()) setTime(defaultTime); }, [isOpen, defaultTime, title, notes]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    titleInputRef.current?.focus({ preventScroll: true });
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -79,18 +94,30 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-150">
-      <div 
-        className="w-full max-w-md bg-white dark:bg-gradient-to-b dark:from-[#13151f] dark:to-[#0d0e14] border border-slate-200 dark:border-white/[0.12] rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-2xl relative overflow-hidden max-h-[88dvh] overflow-y-auto transition-colors"
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-150" onPointerDown={event => { if (event.target === event.currentTarget) onClose(); }}>
+      <div
+        dir={lang === 'ar' ? 'rtl' : 'ltr'}
+        ref={dialogRef}
+        className="task-modal w-full max-w-md bg-white dark:bg-gradient-to-b dark:from-[#13151f] dark:to-[#0d0e14] border border-slate-200 dark:border-white/[0.12] rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-2xl relative overflow-hidden max-h-[88dvh] overflow-y-auto transition-colors"
         role="dialog"
         aria-modal="true"
+        aria-labelledby={`${dialogId}-heading`}
+        onKeyDown={event => {
+          if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); onClose(); }
+          if (event.key !== 'Tab') return;
+          const controls = [...(dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)') || [])];
+          const first = controls[0], last = controls[controls.length - 1];
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+        }}
       >
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400" />
 
         <button
           onClick={onClose}
           type="button"
-          className="absolute top-4 end-4 sm:top-5 sm:end-5 p-2 text-slate-400 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center active:scale-95"
+          aria-label={lang === 'ar' ? 'إغلاق إضافة المهمة' : 'Close add task'}
+          className="absolute top-4 end-4 flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 p-2 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 active:scale-[.98] dark:bg-white/[0.04] dark:text-zinc-400 dark:hover:bg-white/[0.08] dark:hover:text-white sm:top-5 sm:end-5"
         >
           <X className="w-4 h-4 stroke-[2.5]" />
         </button>
@@ -101,13 +128,13 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
               {lang === 'ar' ? 'مهمة جديدة' : 'New Task'}
             </span>
           </div>
-          <h2 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight font-['Alexandria','Cairo']">
+          <h2 id={`${dialogId}-heading`} className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight font-['Alexandria','Cairo']">
             {lang === 'ar' ? 'إضافة مهمة لجدول اليوم' : 'Add daily task'}
           </h2>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 dark:bg-rose-500/15 dark:border-rose-500/30 flex items-center gap-2 text-rose-800 dark:text-rose-300 text-xs font-semibold">
+          <div id={`${dialogId}-error`} role="alert" className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 dark:bg-rose-500/15 dark:border-rose-500/30 flex items-center gap-2 text-rose-800 dark:text-rose-300 text-xs font-semibold">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400 stroke-[2.5]" />
             <span>{error}</span>
           </div>
@@ -127,7 +154,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
                   key={idx}
                   type="button"
                   onClick={() => applyPreset(p)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] dark:text-zinc-300 dark:hover:text-white dark:border-white/[0.06] transition-all cursor-pointer"
+                  className="flex min-h-11 items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] dark:text-zinc-300 dark:hover:text-white dark:border-white/[0.06] transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 active:scale-[.98]"
                 >
                   <Icon className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                   <span>{p.title}</span>
@@ -153,7 +180,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
               </div>
               <input
                 type="text"
-                autoFocus
+                ref={titleInputRef}
                 value={title}
                 aria-label={lang === 'ar' ? 'اسم المهمة' : 'Task name'}
                 onChange={(e) => {
@@ -161,14 +188,16 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
                   if (error) setError(null);
                 }}
                 placeholder={lang === 'ar' ? 'مثال: صلاة الفجر، تمرين رياضي، عمل...' : 'e.g. Study, Gym, Meeting...'}
-                className="task-input w-full border border-slate-300 dark:border-white/[0.1] rounded-xl ps-12 pe-4 py-2.5 text-sm font-medium placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80 transition-colors"
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? `${dialogId}-error` : undefined}
+                className="task-input min-h-11 w-full border border-slate-300 dark:border-white/[0.1] rounded-xl ps-12 pe-4 py-2.5 text-sm font-medium placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:focus:border-emerald-400/80 transition-colors"
               />
             </div>
           </div>
 
           <label className="block space-y-2 text-xs font-semibold">
             <span>{lang === 'ar' ? 'البطاقة (اختياري)' : 'Card (optional)'}</span>
-            <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-3 text-sm dark:border-white/10 dark:bg-[#08090d]">
+            <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="min-h-11 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-white/10 dark:bg-[#08090d]">
               <option value="">{lang === 'ar' ? 'تصنيف تلقائي' : 'Automatic category'}</option>
               {categories.map(c => <option key={c.id} value={c.id}>{lang === 'ar' ? c.name : c.nameEn || c.name}</option>)}
             </select>
@@ -195,7 +224,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
                     setTime(e.target.value);
                     if (error) setError(null);
                   }}
-                  className="task-input w-full border border-slate-300 dark:border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80 transition-colors"
+                  className="task-input min-h-11 w-full border border-slate-300 dark:border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:focus:border-emerald-400/80 transition-colors"
                 />
               </div>
             </div>
@@ -207,7 +236,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                className="w-full bg-slate-50 dark:bg-[#08090d] border border-slate-300 dark:border-white/[0.1] rounded-xl px-3 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80"
+                className="min-h-11 w-full bg-slate-50 dark:bg-[#08090d] border border-slate-300 dark:border-white/[0.1] rounded-xl px-3 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:focus:border-emerald-400/80"
               >
                 <option value="pending">{lang === 'ar' ? 'عادية (بدون حالة)' : 'Normal (No status)'}</option>
                 <option value="done">{lang === 'ar' ? '✓ مكتملة' : 'Done'}</option>
@@ -226,7 +255,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder={lang === 'ar' ? 'مثال: مراجعة الشابتر الأول...' : 'Any details...'}
-              className="task-input w-full border border-slate-300 dark:border-white/[0.1] rounded-xl px-4 py-2.5 text-xs font-medium placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400/80 transition-colors"
+              className="task-input min-h-11 w-full border border-slate-300 dark:border-white/[0.1] rounded-xl px-4 py-2.5 text-xs font-medium placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:focus:border-emerald-400/80 transition-colors"
             />
           </div>
 
@@ -235,13 +264,13 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors cursor-pointer"
+              className="min-h-11 px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 active:scale-[.98]"
             >
               {lang === 'ar' ? 'إلغاء' : 'Cancel'}
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 text-xs font-black text-slate-950 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 hover:opacity-95 rounded-xl transition-all shadow-md active:scale-98 cursor-pointer font-['Alexandria']"
+              className="min-h-11 px-6 py-2.5 text-xs font-black text-slate-950 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 hover:opacity-95 rounded-xl transition-all shadow-md active:scale-[.98] cursor-pointer font-['Alexandria'] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
             >
               {lang === 'ar' ? 'إضافة المهمة' : 'Add Task'}
             </button>

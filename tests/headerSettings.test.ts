@@ -27,7 +27,7 @@ test('the planner header exposes language and theme beside daily actions and syn
     assert.ok(html.includes(lang === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'));
     assert.ok(html.includes(lang === 'ar' ? 'تفعيل الوضع الفاتح' : 'Switch to light mode'));
     assert.ok(html.includes(`aria-label="${lang === 'ar' ? 'الإعدادات' : 'Settings'}"`));
-    assert.ok(html.includes(`aria-label="${lang === 'ar' ? 'إضافة مهمة جديدة' : 'Add new task'}"`));
+    assert.ok(html.includes(`aria-label="${lang === 'ar' ? 'إضافة مهمة جديدة واختيار مكانها' : 'Add a task and choose where it goes'}"`));
     assert.match(html, /<button\b[^>]*aria-label="(?:حالة المزامنة:|تعذرت المزامنة|Sync status:|Sync failed)[^"]*"/, 'Sync status must be a button so failure details can open');
     assert.ok(!html.includes('aria-expanded='), 'No account dropdown remains');
   }

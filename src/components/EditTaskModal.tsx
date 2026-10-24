@@ -94,9 +94,9 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
   ] as const;
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-3 backdrop-blur-md sm:p-6">
-      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={`${formId}-heading`} tabIndex={-1}
-        className="flex max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-2xl outline-none dark:border-white/10 dark:bg-[#101218] dark:text-zinc-100"
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-3 backdrop-blur-md sm:p-6" onPointerDown={event => { if (event.target === event.currentTarget) onClose(); }}>
+      <div dir={ar ? 'rtl' : 'ltr'} ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={`${formId}-heading`} tabIndex={-1}
+        className="task-modal flex max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-2xl outline-none dark:border-white/10 dark:bg-[#101218] dark:text-zinc-100"
         onKeyDown={event => {
           if (event.key === 'Escape' && !event.defaultPrevented) { event.preventDefault(); event.stopPropagation(); onClose(); }
           if (event.key !== 'Tab') return;
@@ -110,7 +110,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
             <div aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-emerald-200/70 bg-emerald-50 text-emerald-600 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300"><ContextIcon className="h-[18px] w-[18px]" strokeWidth={1.7} /></div>
             <h2 id={`${formId}-heading`} className="text-lg font-semibold tracking-tight">{ar ? 'تعديل المهمة' : 'Edit task'}</h2>
           </div>
-          <button type="button" onClick={onClose} aria-label={ar ? 'إغلاق تعديل المهمة' : 'Close task editor'} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-emerald-400 dark:text-zinc-500 dark:hover:bg-white/5 dark:hover:text-zinc-200"><X aria-hidden="true" className="h-[18px] w-[18px]" strokeWidth={1.8} /></button>
+          <button type="button" onClick={onClose} aria-label={ar ? 'إغلاق تعديل المهمة' : 'Close task editor'} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-emerald-400 dark:text-zinc-500 dark:hover:bg-white/5 dark:hover:text-zinc-200"><X aria-hidden="true" className="h-[18px] w-[18px]" strokeWidth={1.8} /></button>
         </header>
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
@@ -155,7 +155,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
             </div>
           </div>
 
-          <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-slate-200/80 bg-white px-4 py-4 dark:border-white/[0.07] dark:bg-[#11131a] sm:px-6">
+          <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-slate-200/80 bg-white px-4 py-3 dark:border-white/[0.07] dark:bg-[#11131a] sm:px-6">
             <button type="button" onClick={handleDelete} aria-label={ar ? 'حذف المهمة' : 'Delete task'} title={ar ? 'حذف المهمة' : 'Delete task'} className="flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl px-3 text-xs font-normal text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-rose-400 dark:text-zinc-500 dark:hover:bg-rose-400/10 dark:hover:text-rose-300"><Trash2 aria-hidden="true" className="h-4 w-4" strokeWidth={1.8} /><span className="hidden sm:inline">{ar ? 'حذف' : 'Delete'}</span></button>
             <div className="flex items-center gap-2 border-s border-slate-200/70 ps-3 dark:border-white/[0.08] sm:gap-3 sm:ps-5">
               <button type="button" onClick={onClose} className="min-h-11 rounded-xl border border-slate-200 px-3 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-emerald-400 dark:border-white/10 dark:text-zinc-300 dark:hover:bg-white/5 sm:px-4">{ar ? 'إلغاء' : 'Cancel'}</button>
