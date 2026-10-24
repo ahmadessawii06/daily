@@ -1,7 +1,7 @@
 ﻿import { CalendarDays, Check, LayoutGrid, Scale, Sparkles, Target } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import type { Language, Theme } from '../types';
-import loginBackground from '../assets/images/login-background.jpg';
+import loginBackground from '../assets/images/login/login-background.jpg';
 
 export type AuthLoadingStage = 'login' | 'register' | 'preparing';
 interface AuthLoadingScreenProps { stage: AuthLoadingStage; lang: Language; theme: Theme; }

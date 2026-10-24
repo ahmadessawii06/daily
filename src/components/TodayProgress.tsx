@@ -3,6 +3,8 @@ import { Target, Trophy, Sparkles, CheckCircle2, Clock, XCircle, ListTodo } from
 import { DayStats, Language, StatusFilter } from '../types';
 import { StatCircle } from './StatCircle';
 
+const progressBackground = new URL('../assets/images/home/daily-progress-abstract.png', import.meta.url).href;
+
 interface TodayProgressProps {
   stats: DayStats;
   currentFilter?: StatusFilter;
@@ -111,16 +113,20 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
 
   return (
     <div
-      className={`relative overflow-hidden bg-white dark:bg-[#11131a] border rounded-2xl p-4 sm:p-5 shadow-xs transition-all duration-300 ${
+      className={`relative overflow-hidden bg-white dark:bg-[#11131a] border rounded-2xl p-3 sm:p-4 shadow-xs transition-all duration-300 ${
         isAllComplete
           ? 'border-emerald-500/40 shadow-[0_0_24px_rgba(16,185,129,0.12)] dark:border-emerald-500/30'
           : 'border-slate-200/90 dark:border-white/[0.08]'
       }`}
     >
-      <div className="flex flex-col gap-4">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <img src={progressBackground} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-20 dark:opacity-30" />
+        <div className="absolute inset-0 bg-white/85 dark:bg-[#07120f]/75" />
+      </div>
+      <div className="relative z-10 flex flex-col gap-3">
         
         {/* Top Row: Title, Subtitle, and Motivational Hint Badge */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-100 dark:border-white/[0.05]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-white/[0.05]">
           
           {/* Icon + Title + Task Summary */}
           <div className="flex items-center gap-3 min-w-0">
@@ -172,10 +178,10 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
         </div>
 
         {/* Main Section: Circular Progress Gauge + 4 Circular Metric Gauges (دوائر تفاعلية بدلاً من البطاقات) */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-5 pt-0.5">
+        <div className="flex flex-col items-center gap-3 pt-0 md:flex-row md:items-center md:justify-between md:gap-4 lg:gap-6">
           
           {/* Main Circular Progress Gauge */}
-          <div className="flex items-center gap-4 sm:gap-5 w-full md:w-auto justify-center md:justify-start shrink-0">
+          <div className="flex w-full min-w-0 shrink-0 items-center justify-center gap-3 sm:gap-4 md:w-auto md:flex-1 md:justify-start">
             <div className="relative shrink-0 flex items-center justify-center">
               <svg
                 viewBox="0 0 100 100"
@@ -240,7 +246,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
             </div>
 
             {/* Motivational Title & Subtitle beside main circle */}
-            <div className="flex flex-col justify-center min-w-0 max-w-[260px] sm:max-w-[300px]">
+            <div className="flex flex-col justify-center min-w-0 max-w-[240px] sm:max-w-[280px]">
               <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white font-['Alexandria'] leading-relaxed tracking-tight">
                 {getMotivationalTitle()}
               </span>
@@ -251,7 +257,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
           </div>
 
           {/* 4 Circular Metric Gauges (دوائر الإحصائيات الأربعة) - بدون بطاقات */}
-          <div className="grid grid-cols-4 gap-2 sm:gap-4 w-full md:w-auto justify-items-center pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-white/[0.05]">
+          <div className="grid w-full grid-cols-4 justify-items-center gap-1 border-t border-slate-100 pt-2 sm:gap-3 md:w-auto md:flex-1 md:border-s-0 md:border-t-0 md:ps-4 md:pt-0 lg:ps-6 dark:border-white/[0.05]">
             
             {/* 1. Completed (دائرة مكتملة) */}
             <StatCircle

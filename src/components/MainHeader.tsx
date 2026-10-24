@@ -5,6 +5,8 @@ import { formatHeaderDate } from '../utils/date';
 import { SyncIndicator } from './SyncIndicator';
 import { ColorThemePicker } from './ColorThemePicker';
 
+const headerBackground = new URL('../assets/images/home/night-header.png', import.meta.url).href;
+
 interface MainHeaderProps {
   cardColumns?: 2 | 3 | 4;
   onToggleCardColumns?: () => void;
@@ -28,14 +30,20 @@ interface MainHeaderProps {
 export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggleCardColumns, children, dateNavigation, currentDate, currentUser, onOpenAddTask, onOpenSettings, lang, theme, onToggleTheme, onToggleLang, onExport, exporting, onOpenArchive, onOpenStats, onLogout }) => {
   const ar = lang === 'ar';
   const hover = 'transition-[transform,background-color,border-color,color,box-shadow] duration-200 ease-out enabled:hover:border-emerald-400/60 enabled:hover:bg-emerald-50 enabled:hover:text-emerald-700 enabled:hover:shadow-[0_6px_20px_-6px_rgba(16,185,129,0.4)] motion-safe:enabled:hover:-translate-y-0.5 motion-safe:enabled:active:translate-y-0 motion-safe:enabled:active:scale-95 motion-reduce:transition-none dark:enabled:hover:border-emerald-400/40 dark:enabled:hover:bg-emerald-400/10 dark:enabled:hover:text-emerald-300';
-  const control = `group flex h-11 min-w-11 cursor-pointer shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-100/70 px-2 text-xs font-semibold text-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 disabled:cursor-wait disabled:opacity-50 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-300 ${hover}`;
+  const control = `group flex h-control min-w-control cursor-pointer shrink-0 items-center justify-center rounded-control border border-slate-200/80 bg-slate-100/70 px-2 text-xs font-semibold text-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 disabled:cursor-wait disabled:opacity-50 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-300 ${hover}`;
   const iconMotion = 'motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out';
   const themeLabel = theme === 'dark' ? (ar ? 'تفعيل الوضع الفاتح' : 'Switch to light mode') : (ar ? 'تفعيل الوضع الداكن' : 'Switch to dark mode');
   return (
-    <header className="flex flex-col gap-3 border-b border-slate-200/80 pb-3 dark:border-white/[0.08]">
+    <header className="relative isolate flex flex-col gap-1.5 overflow-hidden rounded-2xl border border-white/10 bg-[#03110f] px-3 py-2 shadow-lg shadow-black/10 sm:px-5 sm:py-2.5">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0">
+        <img src={headerBackground} alt="" className="absolute inset-0 h-full w-full object-cover object-center" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#020908]/90 via-[#03120f]/75 to-[#020908]/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#020908]/30 via-[#020908]/25 to-[#020908]/80" />
+      </div>
+      <div className="relative z-10 flex flex-col gap-1.5">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
         <div className="flex min-w-0 items-center gap-2">
-          <div className="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-3 text-xs font-bold text-slate-900 dark:border-emerald-400/20 dark:bg-emerald-400/[0.06] dark:text-white">
+          <div className="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-white/15 bg-black/30 px-3 text-xs font-bold text-white backdrop-blur-sm">
             <span aria-hidden="true" className="h-2 w-2 rounded-full bg-[#10e588] shadow-[0_0_10px_rgba(16,229,136,0.55)]" />
             <span>{ar ? 'ميزان' : 'Mizan'}</span>
           </div>
@@ -59,19 +67,20 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
         <div className="order-2 flex shrink-0 items-center gap-2 sm:order-none">
           <button id="header-logout-btn" type="button" onClick={onLogout} aria-label={ar ? 'تسجيل الخروج' : 'Sign out'} title={ar ? 'تسجيل الخروج' : 'Sign out'} className={`${ar ? 'order-last' : 'order-first'} group flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-rose-500/25 bg-rose-500/[0.08] text-rose-700 transition-[transform,background-color,border-color,color,box-shadow] duration-200 hover:border-rose-500 hover:bg-rose-600 hover:text-white hover:shadow-[0_6px_20px_-6px_rgba(225,29,72,0.28)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500 dark:border-rose-400/20 dark:bg-rose-400/[0.08] dark:text-rose-300 dark:hover:border-rose-400 dark:hover:bg-rose-500 dark:hover:text-white motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-95 motion-reduce:transition-none`}><Power aria-hidden="true" size={19} strokeWidth={2} className={`${iconMotion} motion-safe:group-hover:scale-110 motion-safe:group-hover:-rotate-12 motion-safe:group-focus-visible:scale-110`} /></button>
           <div className="flex shrink-0 items-center gap-2">
-          <button id="header-add-task-btn" type="button" onClick={onOpenAddTask} aria-label={ar ? 'إضافة مهمة جديدة' : 'Add new task'} title={ar ? 'إضافة مهمة جديدة' : 'Add new task'} className="group flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-[#10e588] text-emerald-950 transition-colors hover:bg-[#0fd07b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500">
+          <button id="header-add-task-btn" type="button" onClick={onOpenAddTask} aria-label={ar ? 'إضافة مهمة جديدة واختيار مكانها' : 'Add a task and choose where it goes'} title={ar ? 'إضافة مهمة جديدة واختيار مكانها' : 'Add a task and choose where it goes'} className="group flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-[#10e588] text-emerald-950 transition-colors hover:bg-[#0fd07b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500">
             <Plus aria-hidden="true" className={`${iconMotion} h-5 w-5 motion-safe:group-hover:rotate-90 motion-safe:group-focus-visible:rotate-90`} strokeWidth={2.3} />
           </button>
           </div>
         </div>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-      <h1 className="text-xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-2xl md:text-3xl">
+      <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+      <h1 className="text-xl font-extrabold leading-tight tracking-tight text-white sm:text-2xl md:text-3xl">
         <time dateTime={currentDate}>{formatHeaderDate(currentDate, lang)}</time>
       </h1>
       {dateNavigation}
       </div>
       {children}
+      </div>
     </header>
   );
 };

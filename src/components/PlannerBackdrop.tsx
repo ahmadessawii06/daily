@@ -1,4 +1,4 @@
-import plannerBackground from '../assets/images/login-background.jpg';
+import plannerBackground from '../assets/images/login/login-background.jpg';
 
 export function PlannerBackdrop() {
   return <div className="planner-backdrop" aria-hidden="true">

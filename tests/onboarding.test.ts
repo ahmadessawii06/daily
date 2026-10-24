@@ -17,7 +17,7 @@ import {
 } from '../src/utils/onboardingStorage';
 import { saveStoredAuth, clearStoredAuth, beginSupportSession } from '../src/utils/auth';
 import { userStorage } from '../src/utils/scopedStorage';
-import type { User, PlannerWorkspace } from '../src/types';
+import type { User, PlannerWorkspace, Task } from '../src/types';
 
 // Mock localStorage for Node test runner
 const memoryStore = new Map<string, string>();
@@ -185,9 +185,40 @@ test('First-time user clarity: CardsDashboard displays empty state call to actio
     })
   );
 
-  assert.ok(html.includes('يوم جديد، بداية جديدة ☀️'), 'Friendly empty state title appears in CardsDashboard');
-  assert.ok(html.includes('ابدأ بإضافة أول مهمة'), 'Friendly empty state description appears');
-  assert.ok(html.includes('أضف أول مهمة'), 'Add first task button is present');
+  assert.ok(!html.includes('يوم جديد، بداية جديدة ☀️'), 'The first-day welcome banner is not shown in CardsDashboard');
+  assert.ok(!html.includes('ابدأ بإضافة أول مهمة'), 'The first-day welcome description is not shown in CardsDashboard');
+  assert.ok(html.includes('إنشاء مساحة جديدة'), 'The separate space creation action is clearly labeled');
+  assert.ok(!html.includes('بطاقة جديدة'), 'The ambiguous new card label is not shown');
+});
+
+test('CardsDashboard hides the first-day banner after a task exists', () => {
+  const task: Task = {
+    id: 'existing-task',
+    time: '',
+    title: 'مهمة موجودة',
+    status: 'pending',
+    createdAt: '2026-10-23T00:00:00Z',
+  };
+  const html = renderToStaticMarkup(
+    React.createElement(CardsDashboard, {
+      currentDate: '2026-10-23',
+      archiveDays: [],
+      tasks: [task],
+      workspace: emptyWorkspace,
+      filter: 'all',
+      onFilterChange: () => {},
+      lang: 'ar',
+      onAdd: () => {},
+      onAddPrayer: () => {},
+      onStatusChange: () => {},
+      onEdit: () => {},
+      onDelete: () => {},
+      onOpenAddTask: () => {},
+    })
+  );
+
+  assert.ok(!html.includes('يوم جديد، بداية جديدة ☀️'), 'The first-day banner is not shown when tasks exist');
+  assert.ok(html.includes('إنشاء مساحة جديدة'), 'Space creation remains distinct from task creation');
 });
 
 test('First-time user clarity: TaskList displays empty state with Add First Task button and template option', () => {

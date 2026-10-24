@@ -15,6 +15,34 @@ import { calculateStats } from '../utils/storage';
 import { partitionPrayerTasks } from '../utils/prayerTasks';
 import { PrayerCard } from './PrayerCard';
 
+const emptySpaceTexture = new URL('../assets/images/home/dashboard-negative-space.png', import.meta.url).href;
+const categoryBanners: Record<string, Record<Language, string>> = {
+  study: {
+    ar: new URL('../assets/images/cards/study-ar.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/study-en.png', import.meta.url).href,
+  },
+  work: {
+    ar: new URL('../assets/images/cards/work-ar.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/work-eng.png', import.meta.url).href,
+  },
+  health: {
+    ar: new URL('../assets/images/cards/health-ar.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/health-eng.png', import.meta.url).href,
+  },
+  rest: {
+    ar: new URL('../assets/images/cards/pereonal-ar.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/peresonal-eng.png', import.meta.url).href,
+  },
+};
+
+function balancedGrid(count: number, columns: number) {
+  const remainder = count % columns;
+  if (!remainder) return { units: columns, itemSpan: 1, tailSpan: 1, tailStart: count };
+  const divisor = (left: number, right: number): number => right ? divisor(right, left % right) : left;
+  const units = columns * remainder / divisor(columns, remainder);
+  return { units, itemSpan: units / columns, tailSpan: units / remainder, tailStart: count - remainder };
+}
+
 interface CardsDashboardProps {
   cardColumns?: 2 | 3 | 4;
   currentDate: string;
@@ -42,45 +70,43 @@ export function CardsDashboard(props: CardsDashboardProps) {
   const prayerTasks = partitionPrayerTasks(tasks);
   const grouped = groupTasksByCategory(prayerTasks.otherTasks, workspace);
   const cards = getTaskCardCategories(tasks, workspace, props.creationTarget?.categoryId === UNASSIGNED_CATEGORY);
+  const cardColumns = props.cardColumns ?? 4;
+  const mediumGrid = balancedGrid(cards.length, 2);
+  const largeGrid = balancedGrid(cards.length, cardColumns === 4 ? 4 : 2);
+  const wideGrid = balancedGrid(cards.length, cardColumns);
   const filterName = { all: '', scheduled: ar ? 'المهام المحددة' : 'Named tasks', pending: ar ? 'المتبقية' : 'Remaining', done: ar ? 'المكتملة' : 'Completed', 'not-done': ar ? 'غير المنجزة' : 'Not done' }[filter];
 
   return (
     <section aria-label={ar ? 'لوحة بطاقات اليوم' : 'Daily cards dashboard'} className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div><h2 className="text-lg font-bold tracking-tight">{ar ? 'مساحتك اليومية' : 'Your daily workspace'}</h2></div>
-        <button type="button" onClick={() => setEditor('new')} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold transition-colors hover:border-emerald-400 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-emerald-400/40"><Plus className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />{ar ? 'بطاقة جديدة' : 'New card'}</button>
+        <button type="button" aria-label={ar ? 'إنشاء مساحة جديدة' : 'Create a new space'} title={ar ? 'إنشاء مساحة لتنظيم مهامك' : 'Create a space to organize your tasks'} onClick={() => setEditor('new')} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold transition-colors hover:border-emerald-400 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-emerald-400/40"><Plus className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />{ar ? 'مساحة جديدة' : 'New space'}</button>
       </div>
-      {tasks.length === 0 && filter === 'all' && (
-        <div className="rounded-2xl border border-emerald-500/20 bg-linear-to-r from-emerald-500/10 via-emerald-500/5 to-transparent p-4 sm:p-5 dark:border-emerald-500/20 dark:from-emerald-950/30">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="space-y-1">
-              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>{ar ? 'يوم جديد، بداية جديدة ☀️' : 'New day, new beginning ☀️'}</span>
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400">
-                {ar ? 'ابدأ بإضافة أول مهمة، وخلي ميزان يساعدك ترتّب يومك خطوة بخطوة.' : 'Start by adding your first task, and let Mizan help you organize your day step by step.'}
-              </p>
-            </div>
-            {props.onOpenAddTask && (
-              <button
-                type="button"
-                onClick={props.onOpenAddTask}
-                className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 text-xs font-bold text-slate-950 transition-all hover:bg-emerald-400 active:scale-95 shadow-md shadow-emerald-500/10 font-['Alexandria'] cursor-pointer"
-              >
-                <Plus className="h-4 w-4 stroke-[2.5]" />
-                <span>{ar ? 'أضف أول مهمة' : 'Add first task'}</span>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
       {filter !== 'all' && <div className="flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs"><span>{ar ? 'عرض: ' : 'Showing: '}{filterName}</span><button type="button" onClick={() => onFilterChange('all')} className="inline-flex min-h-9 items-center gap-1 font-semibold"><X className="h-3 w-3" />{ar ? 'عرض الكل' : 'Show all'}</button></div>}
-      <div className={`grid grid-cols-1 items-start gap-4 md:grid-cols-2 ${props.cardColumns === 2 ? '' : props.cardColumns === 3 ? 'xl:grid-cols-3' : 'lg:grid-cols-4'}`}>
-        <PrayerCard currentDate={props.currentDate} slots={prayerTasks.slots} lang={lang} onAddPrayer={props.onAddPrayer} onStatusChange={props.onStatusChange} />
-        {cards.map(category => <CategoryCard key={category.id} {...props} category={category}
-          creationRequest={props.creationTarget?.categoryId === category.id ? props.creationTarget.requestId : undefined}
-          tasks={grouped.get(category.id) || []}
-          onCustomize={category.id === UNASSIGNED_CATEGORY ? undefined : () => setEditor(category)} />)}
+      <PrayerCard currentDate={props.currentDate} slots={prayerTasks.slots} lang={lang} onAddPrayer={props.onAddPrayer} onStatusChange={props.onStatusChange} />
+      <div
+        className={`category-card-grid relative isolate grid items-start gap-4 ${cardColumns === 3 ? 'category-card-grid-three' : cardColumns === 4 ? 'category-card-grid-four' : 'category-card-grid-two'}`}
+        style={{
+          '--category-columns-md': mediumGrid.units,
+          '--category-columns-lg': largeGrid.units,
+          '--category-columns-xl': wideGrid.units,
+        } as CSSProperties}
+      >
+        <img src={emptySpaceTexture} alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.12] dark:opacity-[0.2]" />
+        {cards.map((category, index) => {
+          const mediumTail = index >= mediumGrid.tailStart;
+          const largeTail = index >= largeGrid.tailStart;
+          const wideTail = index >= wideGrid.tailStart;
+          return <CategoryCard key={category.id} {...props} category={category}
+            creationRequest={props.creationTarget?.categoryId === category.id ? props.creationTarget.requestId : undefined}
+            gridSpans={{
+              md: mediumTail ? mediumGrid.tailSpan : mediumGrid.itemSpan,
+              lg: largeTail ? largeGrid.tailSpan : largeGrid.itemSpan,
+              xl: wideTail ? wideGrid.tailSpan : wideGrid.itemSpan,
+            }}
+            tasks={grouped.get(category.id) || []}
+            onCustomize={category.id === UNASSIGNED_CATEGORY ? undefined : () => setEditor(category)} />;
+        })}
       </div>
       {editor && <CategoryEditor key={editor === 'new' ? 'new' : editor.id} category={editor === 'new' ? null : editor} lang={lang}
         onClose={() => setEditor(null)} onSave={(name, icon) => { if (editor === 'new') createPlannerCategory(name, icon); else updatePlannerCategory(editor.id, { name, icon }); setEditor(null); }}
@@ -89,13 +115,14 @@ export function CardsDashboard(props: CardsDashboardProps) {
   );
 }
 
-function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, onMove, onToggleFocus, onStatusChange, onCustomize, creationRequest }: CardsDashboardProps & { category: PlannerCategory; onCustomize?: () => void; creationRequest?: number }) {
+function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, onMove, onToggleFocus, onStatusChange, onCustomize, creationRequest, gridSpans }: CardsDashboardProps & { category: PlannerCategory; onCustomize?: () => void; creationRequest?: number; gridSpans: { md: number; lg: number; xl: number } }) {
   const ar = lang === 'ar';
   const name = ar ? category.name : category.nameEn || category.name;
   const Icon = CARD_ICONS[category.icon];
   const regionId = useId();
   const [title, setTitle] = useState('');
   const [notice, setNotice] = useState('');
+  const [emptyComposerOpen, setEmptyComposerOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const handledCreationRef = useRef<number | undefined>(undefined);
   const stats = calculateStats(tasks);
@@ -103,6 +130,7 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   const isComplete = tasks.length > 0 && completed === tasks.length;
   const visible = tasks.filter(task => filter === 'all' || filter === 'scheduled' || task.status === filter);
   const collapsed = Boolean(category.collapsed);
+  const banner = categoryBanners[category.id]?.[lang];
   useEffect(() => {
     if (!creationRequest || collapsed || handledCreationRef.current === creationRequest) return;
     const input = inputRef.current;
@@ -111,6 +139,10 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
     input.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
     input.focus({ preventScroll: true });
   }, [creationRequest, collapsed]);
+  useEffect(() => {
+    if (!emptyComposerOpen || collapsed || tasks.length > 0) return;
+    inputRef.current?.focus({ preventScroll: true });
+  }, [emptyComposerOpen, collapsed, tasks.length]);
   const statusLabels = ar
     ? { pending: 'متبقية', done: 'مكتملة', 'not-done': 'غير منجزة' }
     : { pending: 'Remaining', done: 'Completed', 'not-done': 'Not done' };
@@ -119,29 +151,41 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   const hue = hues[category.order] ?? (215 + category.order * 137.508) % 360;
   const colorStyle = { '--card-hue': hue, '--card-saturation': category.id === UNASSIGNED_CATEGORY ? '0%' : '65%' } as CSSProperties;
   return (
-    <article aria-label={name} data-card-complete={isComplete} style={colorStyle} className="planner-card min-w-0 rounded-2xl border border-t-[3px] shadow-2xs">
-      <div className="flex items-center gap-3 p-4">
-        <div aria-hidden="true" className="planner-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"><Icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></div>
-        <div className="min-w-0 flex-1"><h3 className="break-words text-sm font-bold leading-6">{name}</h3>{tasks.length > 0 && <p className="text-[11px] text-slate-500 dark:text-zinc-400">{ar ? `${completed} من ${tasks.length} مكتملة` : `${completed} of ${tasks.length} complete`}</p>}</div>
-        {onCustomize && <><button type="button" aria-label={ar ? `تخصيص ${name}` : `Customize ${name}`} onClick={onCustomize} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5"><MoreHorizontal className="h-4 w-4" /></button><button type="button" aria-label={ar ? (collapsed ? `توسيع ${name}` : `طي ${name}`) : (collapsed ? `Expand ${name}` : `Collapse ${name}`)} aria-expanded={!collapsed} aria-controls={regionId} onClick={() => updatePlannerCategory(category.id, { collapsed: !collapsed })} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5"><ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${collapsed ? '-rotate-90 rtl:rotate-90' : ''}`} /></button></>}
+    <article aria-label={name} data-card-complete={isComplete} style={{ ...colorStyle, '--category-span-md': gridSpans.md, '--category-span-lg': gridSpans.lg, '--category-span-xl': gridSpans.xl } as CSSProperties} className="dashboard-category-card planner-card relative z-10 min-w-0 rounded-card border border-t-[3px] shadow-2xs">
+      <div className={`relative isolate flex items-center gap-3 overflow-hidden p-4 ${banner ? 'min-h-24 text-white' : ''}`}>
+        {banner && <>
+          <img src={banner} alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover object-center" />
+          <span aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-black/10" />
+        </>}
+        <div className={`relative z-10 flex min-w-0 flex-1 items-center gap-3 ${banner ? 'rounded-xl bg-black/25 px-2 py-1 backdrop-blur-[2px]' : ''}`}>
+          <div aria-hidden="true" className={`planner-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${banner ? 'border-white/20 bg-black/25 text-white backdrop-blur-sm' : ''}`}><Icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></div>
+          <div className="min-w-0 flex-1"><h3 className={`break-words text-sm font-bold leading-6 ${banner ? 'text-white' : ''}`}>{name}</h3>{tasks.length > 0 && <p className={`text-[11px] ${banner ? 'text-white/75' : 'text-slate-500 dark:text-zinc-400'}`}>{ar ? `${completed} من ${tasks.length} مكتملة` : `${completed} of ${tasks.length} complete`}</p>}</div>
+        </div>
+        {onCustomize && <div className={`relative z-10 flex shrink-0 items-center gap-0.5 ${banner ? 'rounded-xl bg-black/35 p-0.5 backdrop-blur-[2px]' : ''}`}><button type="button" aria-label={ar ? `تخصيص ${name}` : `Customize ${name}`} onClick={onCustomize} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${banner ? 'text-white/90 hover:bg-white/15 hover:text-white' : 'text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5'}`}><MoreHorizontal className="h-4 w-4" /></button><button type="button" aria-label={ar ? (collapsed ? `توسيع ${name}` : `طي ${name}`) : (collapsed ? `Expand ${name}` : `Collapse ${name}`)} aria-expanded={!collapsed} aria-controls={regionId} onClick={() => updatePlannerCategory(category.id, { collapsed: !collapsed })} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${banner ? 'text-white/90 hover:bg-white/15 hover:text-white' : 'text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5'}`}><ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${collapsed ? '-rotate-90 rtl:rotate-90' : ''}`} /></button></div>}
       </div>
       {isComplete && <div data-card-completion-banner role="status" className="mx-4 mb-3 flex items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300"><span className="inline-flex items-center gap-2"><CheckCheck aria-hidden="true" className="h-4 w-4 shrink-0" />{ar ? 'اكتملت كل المهام' : 'All tasks complete'}</span><span dir="ltr" className="tabular-nums">100%</span></div>}
-      <div data-card-stats role="group" aria-label={ar ? `إحصائيات ${name}` : `${name} statistics`} className="mx-4 grid grid-cols-4 items-start gap-1 border-t border-slate-200/60 py-3 dark:border-white/[0.06]">
+      {tasks.length > 0 && <div data-card-stats role="group" aria-label={ar ? `إحصائيات ${name}` : `${name} statistics`} className="mx-4 grid grid-cols-4 items-start gap-1 border-t border-slate-200/60 py-3 dark:border-white/[0.06]">
         <StatCircle compact label={statusLabels.done} value={stats.done} percentage={stats.total ? stats.done / stats.total * 100 : 0} color="emerald" isActive={false} subLabel={`${stats.total ? Math.round(stats.done / stats.total * 100) : 0}%`} />
         <StatCircle compact label={statusLabels.pending} value={stats.pending} percentage={stats.total ? stats.pending / stats.total * 100 : 0} color="amber" isActive={false} subLabel={`${stats.total ? Math.round(stats.pending / stats.total * 100) : 0}%`} />
         <StatCircle compact label={statusLabels['not-done']} value={stats.notDone} percentage={stats.total ? stats.notDone / stats.total * 100 : 0} color="rose" isActive={false} subLabel={`${stats.total ? Math.round(stats.notDone / stats.total * 100) : 0}%`} />
         <StatCircle compact label={ar ? 'الإجمالي' : 'Total'} value={stats.total} percentage={stats.total ? 100 : 0} color="indigo" isActive={true} subLabel={ar ? 'مهمة' : 'tasks'} />
-      </div>
+      </div>}
       <div id={regionId} data-planner-card-content hidden={collapsed} className="p-3 pt-2">
         <div className="space-y-1">
-          {visible.length === 0 && <p className="px-2 py-5 text-xs leading-6 text-slate-500 dark:text-zinc-400">{tasks.length ? (ar ? 'لا توجد مهام تطابق هذا الفلتر.' : 'No tasks match this filter.') : (ar ? 'ابدأ بمهمة صغيرة، وأكملها على إيقاعك.' : 'Start with something small. Make it your own.')}</p>}
+          {tasks.length === 0 && <div className="flex flex-col gap-2 rounded-xl border border-dashed border-slate-200/80 bg-slate-50/60 px-3 py-4 text-center dark:border-white/[0.08] dark:bg-white/[0.02]">
+            {!emptyComposerOpen && <button type="button" onClick={() => setEmptyComposerOpen(true)} className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:bg-emerald-500 dark:text-emerald-950 dark:hover:bg-emerald-400">
+              <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+              {ar ? 'أضف أول مهمة' : 'Add first task'}
+            </button>}
+          </div>}
+          {tasks.length > 0 && visible.length === 0 && <p className="px-2 py-5 text-xs leading-6 text-slate-500 dark:text-zinc-400">{ar ? 'لا توجد مهام تطابق هذا الفلتر.' : 'No tasks match this filter.'}</p>}
           {visible.map(task => {
-            return <div key={task.id} data-card-task-status={task.status} className="task-row card-task-row group grid grid-cols-[1.75rem_minmax(0,1fr)_2rem] items-start gap-x-1 rounded-xl px-1 py-1.5 transition-colors hover:bg-slate-100/70 focus-within:bg-slate-100/70 motion-reduce:transition-none dark:hover:bg-white/[0.04] dark:focus-within:bg-white/[0.04]">
+            return <div key={task.id} data-card-task-status={task.status} className="task-row card-task-row group grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-start gap-x-1 rounded-xl px-1 py-1.5 transition-colors hover:bg-slate-100/70 focus-within:bg-slate-100/70 motion-reduce:transition-none dark:hover:bg-white/[0.04] dark:focus-within:bg-white/[0.04]">
             <button type="button" data-task-status={task.status}
               aria-label={ar ? `تغيير حالة ${task.title}: ${statusLabels[task.status]}. التالي: ${statusLabels[nextTaskStatus(task.status)]}` : `Change status of ${task.title}: ${statusLabels[task.status]}. Next: ${statusLabels[nextTaskStatus(task.status)]}`}
               title={ar ? 'انقر للتبديل: متبقية ← مكتملة ← غير منجزة ← متبقية' : 'Click to cycle: Remaining → Completed → Not done → Remaining'}
               onClick={() => onStatusChange(task.id, nextTaskStatus(task.status))}
-              className="group/status flex h-9 w-7 shrink-0 items-center justify-center rounded-lg cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-400"><TaskStatusIndicator status={task.status} /></button>
+              className="group/status flex h-11 w-11 shrink-0 items-center justify-center rounded-lg cursor-pointer transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400 active:scale-[.98] dark:hover:bg-white/[0.05]"><TaskStatusIndicator status={task.status} /></button>
             <button type="button" onClick={() => onEdit(task)} aria-label={ar ? `تعديل ${task.title}` : `Edit ${task.title}`} title={task.title} className="flex min-h-9 min-w-0 flex-col justify-center rounded-lg py-1 text-start focus-visible:outline-2 focus-visible:outline-emerald-400">
               <span data-card-task-title dir="auto" className={`line-clamp-2 w-full min-w-0 text-[13px] font-medium leading-6 [overflow-wrap:anywhere] ${task.status === 'done' ? 'text-slate-500 dark:text-zinc-400' : 'text-slate-800 dark:text-zinc-200'}`}>{task.title}</span>
               {(task.time || task.notes) && <span className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-400">{task.time && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime12h(task.time, lang).formatted}</span>}{task.notes && <StickyNote className="h-3 w-3" aria-label={ar ? 'توجد ملاحظة' : 'Has notes'} />}</span>}
@@ -150,10 +194,10 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
           </div>;
           })}
         </div>
-        <form className="planner-card-form mt-2 flex items-center gap-1 rounded-xl border border-slate-200/80 bg-white/60 dark:border-white/[0.07] dark:bg-white/[0.02]" onSubmit={e => { e.preventDefault(); if (!title.trim()) return; onAdd(title.trim(), category.id); setTitle(''); setNotice(ar ? 'تمت إضافة المهمة' : 'Task added'); }}>
+        {(tasks.length > 0 || emptyComposerOpen) && <form className="planner-card-form mt-2 flex items-center gap-1 rounded-xl border border-slate-200/80 bg-white/60 dark:border-white/[0.07] dark:bg-white/[0.02]" onSubmit={e => { e.preventDefault(); if (!title.trim()) return; onAdd(title.trim(), category.id); setTitle(''); setNotice(ar ? 'تمت إضافة المهمة' : 'Task added'); }}>
           <input ref={inputRef} aria-label={ar ? `مهمة جديدة في ${name}` : `New task in ${name}`} maxLength={300} value={title} onChange={e => { setTitle(e.target.value); setNotice(''); }} onKeyDown={e => { if (e.nativeEvent.isComposing && e.key === 'Enter') e.preventDefault(); }} placeholder={ar ? 'أضف مهمة…' : 'Add a task…'} className="min-h-11 min-w-0 flex-1 rounded-xl bg-transparent px-3 text-xs outline-none placeholder:text-slate-500 dark:placeholder:text-zinc-400" />
-          <button type="submit" disabled={!title.trim()} aria-label={ar ? `إضافة مهمة إلى ${name}` : `Add task to ${name}`} className="planner-card-add m-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg disabled:bg-transparent disabled:text-slate-400 dark:disabled:text-zinc-600"><Plus className="h-4 w-4" /></button>
-        </form>
+          <button type="submit" disabled={!title.trim()} aria-label={ar ? `إضافة مهمة إلى ${name}` : `Add task to ${name}`} className="planner-card-add m-1 flex h-control-compact w-control-compact shrink-0 items-center justify-center rounded-control disabled:bg-transparent disabled:text-slate-400 dark:disabled:text-zinc-600"><Plus className="h-4 w-4" /></button>
+        </form>}
         <p role="status" aria-live="polite" className="sr-only">{notice}</p>
       </div>
     </article>
