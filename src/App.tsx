@@ -684,7 +684,7 @@ export default function App() {
               onAddPrayer={handleCompletePrayer}
               onStatusChange={handlePrayerStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} onMove={id => handleMoveTasks([id])} /> : <div className="space-y-6 sm:space-y-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div><h2 className="text-lg font-bold tracking-tight">{lang === 'ar' ? 'جدولك اليومي' : 'Your daily schedule'}</h2><p className="mt-1 text-xs leading-6 text-slate-500 dark:text-zinc-400">{lang === 'ar' ? 'رتّب مهامك، وخلي لكل خطوة وقتها.' : 'Plan your tasks and make time for each step.'}</p></div>
+              <div><h2 className="text-lg font-bold tracking-tight">{lang === 'ar' ? 'جدولك اليومي' : 'Your daily schedule'}</h2></div>
               {!support && <button type="button" onClick={() => setIsAddTaskOpen(true)} title={lang === 'ar' ? 'إضافة مهمة بوقت محدد إلى الجدول' : 'Add a scheduled task to the timeline'} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold transition-colors hover:border-emerald-400 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-emerald-400/40"><Plus aria-hidden="true" className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />{lang === 'ar' ? 'مهمة بوقت محدد' : 'Scheduled task'}</button>}
             </div>
             <PrayerCard currentDate={currentDate} slots={partitionPrayerTasks(tasks).slots} lang={lang} onAddPrayer={handleCompletePrayer} onStatusChange={handlePrayerStatusChange} />
