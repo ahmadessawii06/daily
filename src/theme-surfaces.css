@@ -26,14 +26,14 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
 }
 html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) .planner-card {
   --card-accent: var(--color-emerald-700);
-  border-top-color: var(--card-accent);
+  border-top-color: var(--card-top-accent-color, var(--card-accent));
   background-image: linear-gradient(135deg, color-mix(in srgb, var(--mood-accent) 9%, transparent), transparent 65%);
 }
 html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]).dark .planner-card {
   --card-accent: var(--mood-accent);
   background-color: var(--theme-surface);
   border-color: var(--theme-border);
-  border-top-color: var(--card-accent);
+  border-top-color: var(--card-top-accent-color, var(--card-accent));
 }
 html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) :is(.planner-card-icon, [class~="bg-slate-100/70"], [class~="bg-slate-100/80"]) {
   background-color: var(--theme-raised);

@@ -151,7 +151,7 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   const hue = hues[category.order] ?? (215 + category.order * 137.508) % 360;
   const colorStyle = { '--card-hue': hue, '--card-saturation': category.id === UNASSIGNED_CATEGORY ? '0%' : '65%' } as CSSProperties;
   return (
-    <article aria-label={name} data-card-complete={isComplete} style={{ ...colorStyle, '--category-span-md': gridSpans.md, '--category-span-lg': gridSpans.lg, '--category-span-xl': gridSpans.xl } as CSSProperties} className="dashboard-category-card planner-card relative z-10 min-w-0 overflow-hidden rounded-card border border-t-[3px] shadow-2xs">
+    <article aria-label={name} data-category-id={category.id} data-card-complete={isComplete} style={{ ...colorStyle, '--category-span-md': gridSpans.md, '--category-span-lg': gridSpans.lg, '--category-span-xl': gridSpans.xl } as CSSProperties} className="dashboard-category-card planner-card relative z-10 min-w-0 overflow-hidden rounded-card border border-t-[3px] shadow-2xs">
       <div data-category-banner={banner ? category.id : undefined} className={`relative isolate flex items-center gap-3 overflow-hidden p-4 ${banner ? 'planner-card-banner text-white' : ''}`}>
         {banner && <>
           <img src={banner} alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center" />

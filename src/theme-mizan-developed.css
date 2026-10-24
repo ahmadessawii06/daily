@@ -63,7 +63,7 @@ html:root.dark[data-color-theme="mizan-developed"] .planner-card {
   --card-accent: hsl(var(--card-hue) clamp(68%, var(--card-saturation), 85%) 60%);
   background-color: var(--theme-surface);
   border-color: hsl(var(--card-hue) 65% 36%);
-  border-top-color: var(--card-accent);
+  border-top-color: var(--card-top-accent-color, var(--card-accent));
 }
 html:root.dark[data-color-theme="mizan-developed"] .planner-card[data-card-complete="true"] {
   background-color: #122b26;
@@ -96,4 +96,3 @@ html:root.dark[data-color-theme="mizan-developed"] [data-progress-tone] .progres
 html:root.dark[data-color-theme="mizan-developed"] [data-progress-tone] .progress-value { color: var(--progress-color); }
 html:root.dark[data-color-theme="mizan-developed"] [data-progress-tone] .progress-track { color: color-mix(in srgb, var(--progress-color) 22%, var(--theme-surface)); }
 html:root.dark[data-color-theme="mizan-developed"] [class~="dark:text-zinc-300/75"]:not(.progress-track) { color: #2f3d4f; }
-

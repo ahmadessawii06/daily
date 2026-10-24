@@ -257,6 +257,7 @@ test('category banners use responsive image headers with readable layered contro
     const headerStart = html.indexOf(`data-category-banner="${category}"`);
     const headerEnd = html.indexOf('data-planner-card-content', headerStart);
     assert.ok(!html.slice(headerStart, headerEnd).includes('backdrop-blur'), `${category} image header remains crisp`);
+    assert.match(html, new RegExp(`data-category-id="${category}"`), `${category} card exposes a stable identity for its border color`);
   }
   assert.ok(html.includes('z-20 flex min-w-0 flex-1'), 'Header text stays above the image overlay');
   assert.ok(html.includes('z-20 flex shrink-0 items-center'), 'Header controls stay clickable above the image overlay');

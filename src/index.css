@@ -344,7 +344,7 @@ html[data-color-theme="paper"] .bg-mesh {
     --card-accent: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 38%);
     background-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 97%);
     border-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 85%);
-    border-top-color: var(--card-accent);
+    border-top-color: var(--card-top-accent-color, var(--card-accent));
     box-shadow: 0 2px 8px -6px rgb(15 23 42 / 22%);
     transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
   }
@@ -374,7 +374,7 @@ html[data-color-theme="paper"] .bg-mesh {
     --card-accent: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 72%);
     background-color: hsl(var(--mood-card-hue, var(--card-hue)) 22% 10%);
     border-color: hsl(var(--mood-card-hue, var(--card-hue)) 30% 24%);
-    border-top-color: var(--card-accent);
+    border-top-color: var(--card-top-accent-color, var(--card-accent));
     box-shadow: 0 8px 24px -18px rgb(0 0 0 / 75%);
   }
 
@@ -386,15 +386,24 @@ html[data-color-theme="paper"] .bg-mesh {
   .planner-card:hover,
   .planner-card:focus-within {
     border-color: color-mix(in srgb, var(--card-accent) 55%, transparent);
+    border-top-color: var(--card-top-accent-color, color-mix(in srgb, var(--card-accent) 55%, transparent));
     box-shadow: 0 12px 28px -20px color-mix(in srgb, var(--card-accent) 75%, transparent);
   }
 
   .planner-card[data-card-complete="true"] {
     background-image: none;
     background-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 90%);
-    border-color: var(--card-accent);
+    border-color: var(--card-border-color, var(--card-accent));
     box-shadow: none;
   }
+
+  .planner-card[data-category-id="work"] { --card-top-accent-color: #8b5cf6; }
+  .planner-card[data-category-id="health"] { --card-top-accent-color: #22c55e; }
+  .planner-card[data-category-id="rest"] { --card-top-accent-color: #a16207; }
+
+  .dark .planner-card[data-category-id="work"] { --card-top-accent-color: #a78bfa; }
+  .dark .planner-card[data-category-id="health"] { --card-top-accent-color: #4ade80; }
+  .dark .planner-card[data-category-id="rest"] { --card-top-accent-color: #c08457; }
 
   .dark .planner-card[data-card-complete="true"] {
     background-color: hsl(var(--mood-card-hue, var(--card-hue)) 35% 18%);
