@@ -189,6 +189,7 @@ test('First-time user clarity: CardsDashboard displays empty state call to actio
   assert.ok(!html.includes('ابدأ بإضافة أول مهمة'), 'The first-day welcome description is not shown in CardsDashboard');
   assert.ok(html.includes('إنشاء مساحة جديدة'), 'The separate space creation action is clearly labeled');
   assert.ok(!html.includes('بطاقة جديدة'), 'The ambiguous new card label is not shown');
+  assert.match(html, /<article[^>]*class="[^"]*planner-card[^"]*overflow-hidden[^"]*rounded-card/, 'Category banner images are clipped to the rounded card frame');
 });
 
 test('CardsDashboard hides the first-day banner after a task exists', () => {
