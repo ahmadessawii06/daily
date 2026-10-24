@@ -51,7 +51,6 @@ import { AccountPage } from './components/AccountPage';
 import { AddTaskModal } from './components/AddTaskModal';
 import { TaskDestinationDialog } from './components/TaskDestinationDialog';
 import { EditTaskModal } from './components/EditTaskModal';
-import { NotDoneReasonDialog } from './components/NotDoneReasonDialog';
 import { ExportScheduleModal } from './components/ExportScheduleModal';
 
 import { playAchievementSound, playFailureSound, playChallengeCompleteSound, preloadChallengeCompleteSound } from './utils/soundEffects';
@@ -176,14 +175,13 @@ export default function App() {
   const [cardCreationTarget, setCardCreationTarget] = useState<{ categoryId: string; requestId: number } | null>(null);
   const cardCreationRequest = useRef(0);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [reasonTarget, setReasonTarget] = useState<{ id: string; date: string } | null>(null);
-  useEffect(() => { setReasonTarget(null); }, [currentUser?.id, currentDate]);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   // Toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastSuccess, setToastSuccess] = useState(true);
+  const [toastAction, setToastAction] = useState<{ label: string; onClick: () => void } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current); }, []);
   const [deletedTasks, setDeletedTasks] = useState<{ ownerId: string; date: string; task: Task; deletedAt: string; expiresAt: number }[]>([]);
@@ -290,12 +288,14 @@ export default function App() {
     setArchiveDays(getAllArchiveDays());
   }, []);
 
-  const showToast = (msg: string, success = true) => {
+  const showToast = (msg: string, success = true, action?: { label: string; onClick: () => void }) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     setToastSuccess(success);
     setToastMessage(msg);
+    setToastAction(action || null);
     toastTimer.current = setTimeout(() => {
-      setToastMessage((prev) => (prev === msg ? null : prev));
+      setToastMessage(null);
+      setToastAction(null);
     }, 2200);
   };
 
@@ -317,7 +317,39 @@ export default function App() {
     setTasks(rec.tasks);
     refreshArchive();
     playStatusFeedback(before, rec.tasks, taskId, newStatus);
-    if (newStatus === 'not-done' && rec.tasks.some(task => task.id === taskId && task.title.trim())) setReasonTarget({ id: taskId, date: currentDate });
+  };
+
+  const handlePrayerStatusChange = (taskId: string, newStatus: TaskStatus) => {
+    if (support || newStatus !== 'not-done') {
+      handleStatusChange(taskId, newStatus);
+      return;
+    }
+    if (!currentUser) return;
+    const date = currentDate;
+    const userId = currentUser.id;
+    const previousTask = getDayRecord(date).tasks.find(task => task.id === taskId);
+    handleStatusChange(taskId, newStatus);
+    const updatedTask = getDayRecord(date).tasks.find(task => task.id === taskId);
+    if (!previousTask || previousTask.status === newStatus || updatedTask?.status !== newStatus || !updatedTask.updatedAt) return;
+    showToast(
+      lang === 'ar' ? 'تم تسجيل الصلاة كفائتة' : 'Prayer marked as missed',
+      true,
+      {
+        label: lang === 'ar' ? 'تراجع' : 'Undo',
+        onClick: () => {
+          const currentTask = getDayRecord(date).tasks.find(task => task.id === taskId);
+          if (currentUser.id !== userId || currentTask?.status !== newStatus || currentTask.updatedAt !== updatedTask.updatedAt) {
+            showToast(lang === 'ar' ? 'تعذر التراجع؛ تغيّرت حالة الصلاة.' : 'Cannot undo; the prayer has changed.', false);
+            return;
+          }
+          updateTaskInDay(date, taskId, { status: previousTask.status, notDoneReason: previousTask.notDoneReason || '' });
+          const record = getDayRecord(date);
+          if (currentDate === date && currentUser.id === userId) setTasks(record.tasks);
+          refreshArchive();
+          showToast(lang === 'ar' ? 'تم التراجع عن تسجيل الصلاة' : 'Prayer status change undone');
+        },
+      },
+    );
   };
 
   const handleAddTask = (taskInput: { title: string; time: string; status: TaskStatus; notes?: string; categoryId?: string }) => {
@@ -569,7 +601,7 @@ export default function App() {
 
   const feedback = (toastMessage || deletedTasks.length > 0) && <div dir={lang === 'ar' ? 'rtl' : 'ltr'} className="fixed bottom-6 left-1/2 z-[110] flex w-max max-w-[calc(100%-2rem)] -translate-x-1/2 flex-col items-center gap-2">
     {deletedTasks.length > 0 && <div data-delete-undo onMouseEnter={() => setUndoPaused(true)} onMouseLeave={resumeUndoTimer} onFocus={() => setUndoPaused(true)} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) resumeUndoTimer(); }} className="flex max-w-full flex-wrap items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-2 text-xs text-slate-900 shadow-xl dark:border-white/15 dark:bg-[#171b23] dark:text-zinc-100"><span role="status">{lang === 'ar' ? (deletedTasks.length === 1 ? 'تم حذف المهمة' : `تم حذف ${deletedTasks.length} من المهام`) : (deletedTasks.length === 1 ? 'Task deleted' : `${deletedTasks.length} tasks deleted`)}</span><button type="button" onClick={handleUndoDeletion} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 font-semibold text-emerald-700 hover:bg-emerald-500/10 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-emerald-300"><Undo2 aria-hidden="true" size={14} />{lang === 'ar' ? 'تراجع' : 'Undo'}</button><button type="button" aria-label={lang === 'ar' ? 'إغلاق رسالة التراجع' : 'Dismiss undo'} onClick={() => { setDeletedTasks([]); setUndoPaused(false); }} className="flex h-9 w-7 items-center justify-center rounded-lg text-slate-400 focus-visible:outline-2 focus-visible:outline-emerald-500"><X aria-hidden="true" size={14} /></button></div>}
-    {toastMessage && <div role="status" className="flex max-w-full items-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-900 shadow-xl dark:border-white/15 dark:bg-[#121319] dark:text-zinc-100">{toastSuccess ? <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-500" /> : <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-500" />}<span>{toastMessage}</span></div>}
+    {toastMessage && <div role="status" className="flex max-w-full items-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-900 shadow-xl dark:border-white/15 dark:bg-[#121319] dark:text-zinc-100">{toastSuccess ? <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-500" /> : <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-500" />}<span>{toastMessage}</span>{toastAction && <button type="button" onClick={toastAction.onClick} className="min-h-9 rounded-lg px-2 font-bold text-emerald-700 hover:bg-emerald-500/10 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-emerald-300">{toastAction.label}</button>}</div>}
   </div>;
 
   if (page === 'admin' && !support && hasPermission(currentUser.role, 'users.read')) return <React.Suspense fallback={<AuthLoadingScreen stage="preparing" lang={lang} theme={theme} />}><AdminPanel currentUser={currentUser} lang={lang} onClose={() => navigate('settings')} onImpersonate={(user, token) => { beginSupportSession(user, token); location.hash = ''; location.reload(); }} /></React.Suspense>;
@@ -650,12 +682,12 @@ export default function App() {
               onOpenAddTask={() => setIsTaskDestinationOpen(true)}
               onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
               onAddPrayer={handleCompletePrayer}
-              onStatusChange={handleStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} onMove={id => handleMoveTasks([id])} /> : <div className="space-y-6 sm:space-y-8">
+              onStatusChange={handlePrayerStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} onMove={id => handleMoveTasks([id])} /> : <div className="space-y-6 sm:space-y-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div><h2 className="text-lg font-bold tracking-tight">{lang === 'ar' ? 'جدولك اليومي' : 'Your daily schedule'}</h2><p className="mt-1 text-xs leading-6 text-slate-500 dark:text-zinc-400">{lang === 'ar' ? 'رتّب مهامك، وخلي لكل خطوة وقتها.' : 'Plan your tasks and make time for each step.'}</p></div>
               {!support && <button type="button" onClick={() => setIsAddTaskOpen(true)} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold transition-colors hover:border-emerald-400 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-emerald-400/40"><Plus aria-hidden="true" className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />{lang === 'ar' ? 'مهمة جديدة' : 'New task'}</button>}
             </div>
-            <PrayerCard currentDate={currentDate} slots={partitionPrayerTasks(tasks).slots} lang={lang} onAddPrayer={handleCompletePrayer} onStatusChange={handleStatusChange} />
+            <PrayerCard currentDate={currentDate} slots={partitionPrayerTasks(tasks).slots} lang={lang} onAddPrayer={handleCompletePrayer} onStatusChange={handlePrayerStatusChange} />
             <TaskList
               tasks={tasks}
               onStatusChange={handleStatusChange}
@@ -691,12 +723,6 @@ export default function App() {
       />
 
       {/* Edit Task Modal */}
-      {!support && reasonTarget?.date === currentDate && tasks.some(task => task.id === reasonTarget.id && task.status === 'not-done') && <NotDoneReasonDialog
-        key={`${currentUser.id}-${currentDate}-${reasonTarget.id}`}
-        task={tasks.find(task => task.id === reasonTarget.id)!} lang={lang}
-        onClose={() => setReasonTarget(null)}
-        onSave={reason => { handleUpdateTask(reasonTarget.id, { notDoneReason: reason }); setReasonTarget(null); }}
-      />}
       <EditTaskModal
         task={editingTask}
         isOpen={!!editingTask}

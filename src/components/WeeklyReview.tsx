@@ -906,7 +906,6 @@ function SelectedCardPreview({ selectedCell, workspace, lang }: {
                 <span data-card-task-title dir="auto" className={`line-clamp-2 w-full min-w-0 text-[13px] font-medium leading-6 [overflow-wrap:anywhere] ${task.status === 'done' ? 'text-slate-500 dark:text-zinc-400' : 'text-slate-800 dark:text-zinc-200'}`}>
                   {task.title}
                 </span>
-                {task.status === 'not-done' && task.notDoneReason && <span className="mt-1 break-words text-[11px] text-rose-600 dark:text-rose-300">{ar ? 'السبب: ' : 'Reason: '}{task.notDoneReason}</span>}
                 {(task.time || task.notes) && <span className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-400">{task.time && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime12h(task.time, lang).formatted}</span>}{task.notes && <span title={task.notes} className="max-w-full truncate">{task.notes}</span>}</span>}
               </div>
             </div>
@@ -953,7 +952,6 @@ function SelectedSchedulePreview({ selectedCell, lang }: {
           </span>
           <div className="min-w-0 flex-1">
             <p className={`break-words text-sm leading-relaxed ${titleClasses[task.status]}`}>{task.title}</p>
-            {task.status === 'not-done' && task.notDoneReason && <p className="mt-1 break-words text-xs text-rose-600 dark:text-rose-300">{ar ? 'السبب: ' : 'Reason: '}{task.notDoneReason}</p>}
             {task.notes && <p className="mt-1 break-words text-xs font-semibold text-amber-900 dark:text-amber-300">{task.notes}</p>}
           </div>
         </article>

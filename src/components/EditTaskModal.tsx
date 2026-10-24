@@ -4,7 +4,6 @@ import { Language, PlannerCategory, Task, TaskStatus } from '../types';
 import { UNASSIGNED_CATEGORY } from '../shared/workspace';
 import { formatTime12h } from '../utils/date';
 import { getTaskContextIcon } from '../utils/taskIconHelper';
-import { NotDoneReasonField } from './NotDoneReasonField';
 
 interface EditTaskModalProps {
   task: Task | null;
@@ -28,7 +27,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
   const [title, setTitle] = useState('');
   const [time, setTime] = useState('');
   const [status, setStatus] = useState<TaskStatus>('pending');
-  const [notDoneReason, setNotDoneReason] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [error, setError] = useState<string | null>(null);
   const formId = useId();
@@ -42,7 +40,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
       setTitle(task.title);
       setTime(task.time);
       setStatus(task.status);
-      setNotDoneReason(task.notDoneReason || '');
       setCategoryId(task.categoryId || task.category || UNASSIGNED_CATEGORY);
       setError(null);
     }
@@ -77,7 +74,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
       title: trimmedTitle,
       time: trimmedTime,
       status,
-      notDoneReason: status === 'not-done' ? notDoneReason.trim() : '',
       categoryId,
     });
 
@@ -137,8 +133,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
                   </label>)}
                 </div>
               </fieldset>
-              {status === 'not-done' && <NotDoneReasonField value={notDoneReason} onChange={setNotDoneReason} lang={lang} />}
-
               <div data-editor-details className="grid grid-cols-1 gap-4 rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-white/[0.07] dark:bg-white/[0.02] min-[520px]:grid-cols-2">
                 <div className="min-w-0">
                   <label htmlFor={`${formId}-category`} className={`${labelClass} flex items-center gap-2`}><Layers3 aria-hidden="true" className="h-3.5 w-3.5" />{ar ? 'البطاقة' : 'Card'}</label>

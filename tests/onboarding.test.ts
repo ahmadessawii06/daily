@@ -241,4 +241,3 @@ test('Header toolbar tools are included in onboarding tour with non-interactive 
   const createTaskStep = STEPS.find(s => s.id === 'create-task');
   assert.equal(createTaskStep?.interactive, true, 'create-task step remains interactive');
 });
-

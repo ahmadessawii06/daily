@@ -278,7 +278,6 @@ export const TaskRow: React.FC<TaskRowProps> = ({
                   {task.title}
                 </p>
 
-                {task.status === 'not-done' && task.notDoneReason && <p className="mt-1 break-words text-xs text-rose-600 dark:text-rose-300">{lang === 'ar' ? 'السبب: ' : 'Reason: '}{task.notDoneReason}</p>}
                 {task.notes && (
                   <div className="mt-1">
                     <span 
@@ -393,7 +392,6 @@ export const TaskRow: React.FC<TaskRowProps> = ({
             </div>
           )}
 
-          {task.status === 'not-done' && task.notDoneReason && <span className="block break-words text-xs text-rose-600 dark:text-rose-300">{lang === 'ar' ? 'السبب: ' : 'Reason: '}{task.notDoneReason}</span>}
           {task.notes && (
             <span 
               onClick={() => onEdit(task)}

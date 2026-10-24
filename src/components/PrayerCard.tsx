@@ -259,7 +259,6 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
                       </time>
                     : <span className="text-xs font-semibold">{getPrayerTime()}</span>}
                 </p>
-                {status === 'not-done' && task?.notDoneReason && <p className="mt-1 line-clamp-1 text-[10px] font-semibold text-rose-100 drop-shadow">{ar ? 'السبب: ' : 'Reason: '}{task.notDoneReason}</p>}
                 <span data-task-status={status} aria-label={ar ? `${getPrayerName(prayer)}: ${statusLabels[status]}` : `${getPrayerName(prayer)}: ${statusLabels[status]}`}
                   className={`mt-2 inline-flex min-h-9 min-w-28 items-center justify-center rounded-full border px-3 text-[10px] font-bold shadow-sm backdrop-blur-md ${statusButtonClass}`}>
                   {status === 'pending' ? (ar ? 'لم يحن وقتها' : 'Upcoming') : statusLabels[status]}
