@@ -339,12 +339,30 @@ html[data-color-theme="paper"] .bg-mesh {
 /* Stable category hues, with theme-specific contrast and softly tinted surfaces. */
 @layer components {
   .planner-card {
+    container-name: planner-card;
+    container-type: inline-size;
     --card-accent: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 38%);
     background-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 97%);
     border-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 85%);
     border-top-color: var(--card-accent);
     box-shadow: 0 2px 8px -6px rgb(15 23 42 / 22%);
     transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  }
+
+  .planner-card-banner {
+    min-height: clamp(6rem, 33cqw, 7rem);
+  }
+
+  @media (min-width: 40rem) and (max-width: 63.999rem) {
+    .planner-card-banner {
+      min-height: clamp(6rem, 30cqw, 6.875rem);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .planner-card-banner {
+      min-height: clamp(6.875rem, 33cqw, 7.5rem);
+    }
   }
 
   .planner-card > div:first-child {

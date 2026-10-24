@@ -222,6 +222,46 @@ test('CardsDashboard hides the first-day banner after a task exists', () => {
   assert.ok(html.includes('إنشاء مساحة جديدة'), 'Space creation remains distinct from task creation');
 });
 
+test('category banners use responsive image headers with readable layered controls', () => {
+  const workspace: PlannerWorkspace = {
+    ...emptyWorkspace,
+    categories: [
+      { id: 'study', name: 'الدراسة', icon: 'book', order: 0, updatedAt: '2026-10-23T00:00:00Z' },
+      { id: 'work', name: 'العمل والمشاريع', icon: 'briefcase', order: 1, updatedAt: '2026-10-23T00:00:00Z' },
+      { id: 'health', name: 'الصحة والنشاط', icon: 'heart', order: 2, updatedAt: '2026-10-23T00:00:00Z' },
+      { id: 'rest', name: 'الحياة الشخصية', icon: 'leaf', order: 3, updatedAt: '2026-10-23T00:00:00Z' },
+    ],
+  };
+  const html = renderToStaticMarkup(
+    React.createElement(CardsDashboard, {
+      currentDate: '2026-10-23',
+      archiveDays: [],
+      tasks: [],
+      workspace,
+      filter: 'all',
+      onFilterChange: () => {},
+      lang: 'ar',
+      onAdd: () => {},
+      onAddPrayer: () => {},
+      onStatusChange: () => {},
+      onEdit: () => {},
+      onDelete: () => {},
+    })
+  );
+
+  for (const category of ['study', 'work', 'health', 'rest']) {
+    assert.match(html, new RegExp(`data-category-banner="${category}"`), `${category} has a banner`);
+  }
+  for (const category of ['study', 'work', 'health', 'rest']) {
+    assert.match(html, new RegExp(`data-category-banner="${category}" class="[^"]*planner-card-banner[^"]*"><img src="[^"]+" alt="" aria-hidden="true" loading="lazy" decoding="async" class="[^"]*object-cover object-center`), `${category} image fills its responsive header without distortion`);
+    const headerStart = html.indexOf(`data-category-banner="${category}"`);
+    const headerEnd = html.indexOf('data-planner-card-content', headerStart);
+    assert.ok(!html.slice(headerStart, headerEnd).includes('backdrop-blur'), `${category} image header remains crisp`);
+  }
+  assert.ok(html.includes('z-20 flex min-w-0 flex-1'), 'Header text stays above the image overlay');
+  assert.ok(html.includes('z-20 flex shrink-0 items-center'), 'Header controls stay clickable above the image overlay');
+});
+
 test('First-time user clarity: TaskList displays empty state with Add First Task button and template option', () => {
   const html = renderToStaticMarkup(
     React.createElement(TaskList, {
