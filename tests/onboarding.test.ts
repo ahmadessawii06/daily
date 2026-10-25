@@ -253,7 +253,7 @@ test('category banners use responsive image headers with readable layered contro
     assert.match(html, new RegExp(`data-category-banner="${category}"`), `${category} has a banner`);
   }
   for (const category of ['study', 'work', 'health', 'rest']) {
-    assert.match(html, new RegExp(`data-category-banner="${category}" class="[^"]*planner-card-banner[^"]*"><img src="[^"]+" alt="" aria-hidden="true" loading="lazy" decoding="async" class="[^"]*object-cover object-center`), `${category} image fills its responsive header without distortion`);
+    assert.match(html, new RegExp(`data-category-banner="${category}" class="[^"]*planner-card-banner[^"]*"><img src="[^"]+" alt="" aria-hidden="true" loading="eager" decoding="async" class="[^"]*object-cover object-center`), `${category} image fills its responsive header without distortion`);
     const headerStart = html.indexOf(`data-category-banner="${category}"`);
     const headerEnd = html.indexOf('data-planner-card-content', headerStart);
     assert.ok(!html.slice(headerStart, headerEnd).includes('backdrop-blur'), `${category} image header remains crisp`);

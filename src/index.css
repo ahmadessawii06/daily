@@ -350,18 +350,18 @@ html[data-color-theme="paper"] .bg-mesh {
   }
 
   .planner-card-banner {
-    min-height: clamp(6rem, 33cqw, 7rem);
+    height: clamp(6rem, 33cqw, 7rem);
   }
 
   @media (min-width: 40rem) and (max-width: 63.999rem) {
     .planner-card-banner {
-      min-height: clamp(6rem, 30cqw, 6.875rem);
+      height: clamp(6rem, 30cqw, 6.875rem);
     }
   }
 
   @media (min-width: 64rem) {
     .planner-card-banner {
-      min-height: clamp(6.875rem, 33cqw, 7.5rem);
+      height: clamp(6.875rem, 33cqw, 7.5rem);
     }
   }
 
