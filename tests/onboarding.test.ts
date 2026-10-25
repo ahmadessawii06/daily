@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { OnboardingTour, STEPS } from '../src/components/OnboardingTour';
@@ -261,6 +262,29 @@ test('category banners use responsive image headers with readable layered contro
   }
   assert.ok(html.includes('z-20 flex min-w-0 flex-1'), 'Header text stays above the image overlay');
   assert.ok(html.includes('z-20 flex shrink-0 items-center'), 'Header controls stay clickable above the image overlay');
+});
+
+test('custom category IDs resolve existing banner files by icon in both languages', () => {
+  const icons = ['book', 'briefcase', 'heart', 'leaf'] as const;
+  const workspace: PlannerWorkspace = {
+    ...emptyWorkspace,
+    categories: icons.map((icon, order) => ({
+      id: `category_custom_${order}`, name: `Custom ${order}`, icon, order,
+      updatedAt: '2026-10-25T00:00:00Z',
+    })),
+  };
+  for (const lang of ['ar', 'en'] as const) {
+    const html = renderToStaticMarkup(React.createElement(CardsDashboard, {
+      currentDate: '2026-10-25', archiveDays: [], tasks: [], workspace,
+      filter: 'all', lang, onFilterChange() {}, onAdd() {}, onAddPrayer() {},
+      onStatusChange() {}, onEdit() {}, onDelete() {},
+    }));
+    for (const category of workspace.categories) {
+      const image = new RegExp(`data-category-banner="${category.id}"[^>]*><img src="([^"]+)"`).exec(html);
+      assert.ok(image, `${category.icon} custom card renders a banner in ${lang}`);
+      assert.ok(existsSync(new URL(image[1])), `${category.icon} banner points to an existing image in ${lang}`);
+    }
+  }
 });
 
 test('First-time user clarity: TaskList displays empty state with Add First Task button and template option', () => {

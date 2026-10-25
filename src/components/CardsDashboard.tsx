@@ -130,7 +130,11 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   const isComplete = tasks.length > 0 && completed === tasks.length;
   const visible = tasks.filter(task => filter === 'all' || filter === 'scheduled' || task.status === filter);
   const collapsed = Boolean(category.collapsed);
-  const banner = categoryBanners[category.id]?.[lang];
+  // User-created cards have UUID-based IDs; select their artwork by icon.
+  const bannerCategory = { book: 'study', briefcase: 'work', heart: 'health', leaf: 'rest', moon: '', layers: '' }[category.icon];
+  const banner = (Object.hasOwn(categoryBanners, category.id)
+    ? categoryBanners[category.id]
+    : categoryBanners[bannerCategory])?.[lang];
   useEffect(() => {
     if (!creationRequest || collapsed || handledCreationRef.current === creationRequest) return;
     const input = inputRef.current;
