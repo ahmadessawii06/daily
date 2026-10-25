@@ -460,6 +460,7 @@ html[data-color-theme="paper"] .bg-mesh {
 }
 
 @media (min-width: 64rem) {
+  .category-card-grid-three,
   .category-card-grid-four {
     grid-template-columns: repeat(var(--category-columns-lg), minmax(0, 1fr));
   }
@@ -468,7 +469,7 @@ html[data-color-theme="paper"] .bg-mesh {
   }
 }
 
-@media (min-width: 80rem) {
+@media (min-width: 96rem) {
   .category-card-grid-three,
   .category-card-grid-four {
     grid-template-columns: repeat(var(--category-columns-xl), minmax(0, 1fr));

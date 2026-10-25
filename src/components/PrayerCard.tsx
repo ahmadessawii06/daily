@@ -152,11 +152,11 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <p className="hidden items-center gap-1.5 rounded-full border border-emerald-300/20 bg-black/20 px-3 py-2 text-[10px] font-semibold text-emerald-50/80 backdrop-blur-sm sm:inline-flex">
+          <p className="hidden items-center gap-1.5 rounded-full border border-emerald-300/20 bg-black/20 px-3 py-2 text-[11px] font-semibold text-emerald-50 backdrop-blur-sm sm:inline-flex">
             <MapPin aria-hidden="true" className="h-3.5 w-3.5 text-teal-300" />
             {ar ? 'نابلس، فلسطين' : 'Nablus, Palestine'}
           </p>
-          <p className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-medium text-white/75 backdrop-blur-sm sm:text-xs">
+          <p className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/20 px-3 py-2 text-[11px] font-medium text-slate-100 backdrop-blur-sm sm:text-xs">
             <CalendarDays aria-hidden="true" className="h-3.5 w-3.5 text-emerald-300" />
             {formatHeaderDate(currentDate, lang)}
           </p>
@@ -223,7 +223,7 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
             ? 'border-teal-200/25 bg-slate-950/30 text-teal-100/90'
             : status === 'not-done'
               ? 'border-rose-200/30 bg-slate-950/30 text-rose-200'
-              : 'border-white/20 bg-slate-950/25 text-white/75';
+              : 'border-white/35 bg-[#07121f]/90 text-slate-100';
           return <article key={prayer.id} data-prayer-slot={prayer.id} data-prayer-status={status} data-prayer-accent={accent} data-prayer-upcoming={isUpcomingPrayer || undefined}
             className={`prayer-slot-card group relative isolate min-w-0 overflow-hidden rounded-2xl border shadow-md shadow-black/15 transition-[border-color,box-shadow,transform] duration-300 ease-out hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-teal-300/60 motion-reduce:transition-none ${
               status === 'done' ? 'border-[#18BFA5]/65 hover:shadow-[0_0_18px_rgba(24,191,165,0.22)]' : status === 'not-done' ? 'border-[#C65B76]/65 hover:shadow-[0_0_18px_rgba(198,91,118,0.22)]' : 'border-white/20 hover:shadow-[0_0_18px_rgba(255,255,255,0.12)]'
@@ -255,12 +255,12 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
                   {time && formattedPrayerTime
                     ? <time data-prayer-time dateTime={`${currentDate}T${time}`} dir={ar ? 'rtl' : 'ltr'} className="inline-flex items-baseline gap-1.5">
                         <span dir="ltr" style={{ unicodeBidi: 'isolate' }} className="text-[15px] font-bold tabular-nums text-[#5EEAD4]">{formattedPrayerTime.time12}</span>
-                        <span dir={ar ? 'rtl' : 'ltr'} className="text-[10px] font-semibold text-teal-100/70">{formattedPrayerTime.period}</span>
+                        <span dir={ar ? 'rtl' : 'ltr'} className="text-[11px] font-semibold text-teal-100">{formattedPrayerTime.period}</span>
                       </time>
                     : <span className="text-xs font-semibold">{getPrayerTime()}</span>}
                 </p>
                 <span data-task-status={status} aria-label={ar ? `${getPrayerName(prayer)}: ${statusLabels[status]}` : `${getPrayerName(prayer)}: ${statusLabels[status]}`}
-                  className={`mt-2 inline-flex min-h-9 min-w-28 items-center justify-center rounded-full border px-3 text-[10px] font-bold shadow-sm backdrop-blur-md ${statusButtonClass}`}>
+                  className={`mt-2 inline-flex min-h-9 min-w-28 items-center justify-center rounded-full border px-3 text-xs font-semibold shadow-sm backdrop-blur-md ${statusButtonClass}`}>
                   {status === 'pending' ? (ar ? 'لم يحن وقتها' : 'Upcoming') : statusLabels[status]}
                 </span>
               </div>

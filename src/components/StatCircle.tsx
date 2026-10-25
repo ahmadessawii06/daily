@@ -106,14 +106,14 @@ export const StatCircle: React.FC<StatCircleProps> = ({
       {/* Label & Details underneath Circle */}
       <div className="flex max-w-full flex-col items-center mt-1.5 leading-tight text-center">
         <span
-          className={`${compact ? 'text-[10px]' : 'text-[11px] sm:text-xs'} font-bold font-['Alexandria'] ${
+          className={`${compact ? 'text-[11px]' : 'text-xs'} font-bold font-['Alexandria'] ${
             isActive ? colorConfig.text : 'text-slate-700 dark:text-zinc-300'
           }`}
         >
           {label}
         </span>
         {subLabel && (
-          <span className="text-[10px] font-numbers font-medium text-slate-400 dark:text-zinc-500 mt-0.5">
+          <span className="text-[11px] font-numbers font-semibold text-slate-600 dark:text-zinc-300 mt-1">
             {subLabel}
           </span>
         )}
@@ -121,7 +121,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
     </>
   );
   const classes = `group flex min-w-0 flex-col items-center select-none transition-all duration-200 motion-reduce:transition-none ${
-    isActive ? 'scale-105' : 'opacity-90'
+    isActive ? 'scale-105' : ''
   }`;
   return onClick ? (
     <button data-progress-tone={color} data-progress-active={isActive} type="button" onClick={onClick} aria-label={`${label}: ${value}`} aria-pressed={isActive}

@@ -159,7 +159,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                 )}
               </div>
 
-              {(stats.total === 0 || isAllComplete) && <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5 truncate font-medium">
+              {(stats.total === 0 || isAllComplete) && <p className="text-xs text-slate-600 dark:text-zinc-300 mt-0.5 truncate font-medium">
                 {stats.total === 0
                   ? (lang === 'ar' ? 'لا توجد مهام مسجلة لهذا اليوم' : 'No tasks scheduled for today')
                   : (lang === 'ar' ? `اكتملت جميع المهام بنجاح (${stats.done} من ${stats.total})` : `All ${stats.total} tasks completed successfully`)}
@@ -250,7 +250,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white font-['Alexandria'] leading-relaxed tracking-tight">
                 {getMotivationalTitle()}
               </span>
-              <span className="text-[11px] sm:text-xs text-slate-500 dark:text-zinc-400 mt-1 font-medium leading-relaxed font-['Alexandria']">
+              <span className="text-xs text-slate-600 dark:text-zinc-300 mt-1 font-medium leading-relaxed font-['Alexandria']">
                 {getMotivationalSubtitle()}
               </span>
             </div>

@@ -36,11 +36,16 @@ const categoryBanners: Record<string, Record<Language, string>> = {
 };
 
 function balancedGrid(count: number, columns: number) {
-  const remainder = count % columns;
-  if (!remainder) return { units: columns, itemSpan: 1, tailSpan: 1, tailStart: count };
+  if (!count) return { units: 1, itemSpan: 1, tailSpan: 1, tailStart: 0 };
+  // Balance every row: seven cards at three columns become 3 / 2 / 2.
+  const rows = Math.ceil(count / columns);
+  const smallerRow = Math.floor(count / rows);
+  const largerRows = count % rows;
+  if (!largerRows) return { units: smallerRow, itemSpan: 1, tailSpan: 1, tailStart: count };
+  const largerRow = smallerRow + 1;
   const divisor = (left: number, right: number): number => right ? divisor(right, left % right) : left;
-  const units = columns * remainder / divisor(columns, remainder);
-  return { units, itemSpan: units / columns, tailSpan: units / remainder, tailStart: count - remainder };
+  const units = largerRow * smallerRow / divisor(largerRow, smallerRow);
+  return { units, itemSpan: units / largerRow, tailSpan: units / smallerRow, tailStart: largerRows * largerRow };
 }
 
 interface CardsDashboardProps {
@@ -72,7 +77,7 @@ export function CardsDashboard(props: CardsDashboardProps) {
   const cards = getTaskCardCategories(tasks, workspace, props.creationTarget?.categoryId === UNASSIGNED_CATEGORY);
   const cardColumns = props.cardColumns ?? 4;
   const mediumGrid = balancedGrid(cards.length, 2);
-  const largeGrid = balancedGrid(cards.length, cardColumns === 4 ? 4 : 2);
+  const largeGrid = balancedGrid(cards.length, cardColumns === 2 ? 2 : 3);
   const wideGrid = balancedGrid(cards.length, cardColumns);
   const filterName = { all: '', scheduled: ar ? 'المهام المحددة' : 'Named tasks', pending: ar ? 'المتبقية' : 'Remaining', done: ar ? 'المكتملة' : 'Completed', 'not-done': ar ? 'غير المنجزة' : 'Not done' }[filter];
 
@@ -177,7 +182,7 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
       <div id={regionId} data-planner-card-content hidden={collapsed} className="p-3 pt-2">
         <div className="space-y-1">
           {tasks.length === 0 && <div className="flex flex-col gap-2 rounded-xl border border-dashed border-slate-200/80 bg-slate-50/60 px-3 py-4 text-center dark:border-white/[0.08] dark:bg-white/[0.02]">
-            {!emptyComposerOpen && <button type="button" onClick={() => setEmptyComposerOpen(true)} className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:bg-emerald-500 dark:text-emerald-950 dark:hover:bg-emerald-400">
+            {!emptyComposerOpen && <button type="button" onClick={() => setEmptyComposerOpen(true)} className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-transparent px-3 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:text-zinc-300 dark:hover:bg-white/[0.05] dark:hover:text-zinc-100">
               <Plus aria-hidden="true" className="h-3.5 w-3.5" />
               {ar ? 'أضف أول مهمة' : 'Add first task'}
             </button>}
@@ -192,7 +197,7 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
               className="group/status flex h-11 w-11 shrink-0 items-center justify-center rounded-lg cursor-pointer transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400 active:scale-[.98] dark:hover:bg-white/[0.05]"><TaskStatusIndicator status={task.status} /></button>
             <button type="button" onClick={() => onEdit(task)} aria-label={ar ? `تعديل ${task.title}` : `Edit ${task.title}`} title={task.title} className="flex min-h-9 min-w-0 flex-col justify-center rounded-lg py-1 text-start focus-visible:outline-2 focus-visible:outline-emerald-400">
               <span data-card-task-title dir="auto" className={`line-clamp-2 w-full min-w-0 text-[13px] font-medium leading-6 [overflow-wrap:anywhere] ${task.status === 'done' ? 'text-slate-500 dark:text-zinc-400' : 'text-slate-800 dark:text-zinc-200'}`}>{task.title}</span>
-              {(task.time || task.notes) && <span className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-400">{task.time && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime12h(task.time, lang).formatted}</span>}{task.notes && <StickyNote className="h-3 w-3" aria-label={ar ? 'توجد ملاحظة' : 'Has notes'} />}</span>}
+              {(task.time || task.notes) && <span className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-slate-600 dark:text-zinc-300">{task.time && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime12h(task.time, lang).formatted}</span>}{task.notes && <StickyNote className="h-3 w-3" aria-label={ar ? 'توجد ملاحظة' : 'Has notes'} />}</span>}
             </button>
             <TaskActions task={task} lang={lang} onEdit={onEdit} onDelete={onDelete} onMove={onMove} onToggleFocus={onToggleFocus} />
           </div>;
