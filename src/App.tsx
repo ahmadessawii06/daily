@@ -29,6 +29,7 @@ import { pageFromHash, pageHash, type AppPage } from './utils/navigation';
 import { ResetPasswordScreen } from './components/ResetPasswordScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { AuthLoadingScreen } from './components/AuthLoadingScreen';
+import { ScreenshotLoadingScreen } from './components/ScreenshotLoadingScreen';
 import { CardsDashboard } from './components/CardsDashboard';
 import { getPlannerWorkspace, readStoredWorkspace, setPlannerView, updatePlannerCategory } from './utils/workspace';
 import { activeCategories, UNASSIGNED_CATEGORY } from './shared/workspace';
@@ -628,6 +629,7 @@ export default function App() {
   return (
     <div className={`relative isolate min-h-screen bg-slate-50 dark:bg-[#07080b] bg-mesh text-slate-900 dark:text-zinc-100 flex flex-col font-['Alexandria','Cairo',sans-serif] transition-colors duration-200`}>
       {supportBanner}
+      {(isExportingImage || exportRequested) && <ScreenshotLoadingScreen lang={lang} theme={theme} />}
 
       {/* Main Full-Width Centered Clean Canvas */}
       <main

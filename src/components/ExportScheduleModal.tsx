@@ -21,6 +21,7 @@ import {
 
 import { DayStats, Language, Task } from '../types';
 import { formatHeaderDate, formatTime12h } from '../utils/date';
+import { ScreenshotLoadingScreen } from './ScreenshotLoadingScreen';
 
 interface ExportScheduleModalProps {
   isOpen: boolean;
@@ -252,6 +253,7 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200 font-['Alexandria','Cairo',sans-serif]">
+      {isExporting && <ScreenshotLoadingScreen lang={lang} theme={exportTheme === 'light' ? 'light' : 'dark'} />}
       
       {/* Main Modal Dialog */}
       <div className="relative w-full max-w-4xl bg-white dark:bg-[#0e1017] border border-slate-200 dark:border-white/[0.1] rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[92dvh]">
