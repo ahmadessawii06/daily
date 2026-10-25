@@ -159,7 +159,7 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
       <div data-category-banner={banner ? category.id : undefined} className={`relative isolate flex items-center gap-3 overflow-hidden p-4 ${banner ? 'planner-card-banner text-white' : ''}`}>
         {banner && <>
           <img src={banner} alt="" aria-hidden="true" loading="eager" decoding="async" className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center" />
-          <span aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-black/25 via-black/10 to-black/25" />
+          <span aria-hidden="true" className="planner-card-image-shade pointer-events-none absolute inset-0 z-10" />
         </>}
         <div className={`relative z-20 flex min-w-0 flex-1 items-center gap-3 ${banner ? 'rounded-xl bg-gradient-to-r from-black/65 via-black/55 to-black/65 px-2 py-1' : ''}`}>
           <div aria-hidden="true" className={`planner-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${banner ? 'border-white/20 bg-black/45 text-white' : ''}`}><Icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></div>
