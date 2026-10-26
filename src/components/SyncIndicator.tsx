@@ -40,26 +40,32 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId, inte
         return {
           text: lang === 'ar' ? 'جارٍ المزامنة...' : 'Syncing...',
           icon: RefreshCw,
-          color: 'text-amber-700 dark:text-amber-400 bg-amber-500/10 border-amber-500/25',
-          iconClass: 'animate-spin text-amber-500',
-          dot: 'bg-amber-400',
+          color: 'text-amber-800 dark:text-amber-400 bg-white/85 dark:bg-amber-500/10 border-amber-500/30 dark:border-amber-500/25 shadow-xs backdrop-blur-md',
+          iconClass: 'animate-spin text-amber-600 dark:text-amber-500',
+          dot: 'bg-amber-500',
         };
       case 'offline':
         return {
           text: lang === 'ar' ? 'وضع عدم الاتصال' : 'Offline Mode',
           icon: CloudOff,
-          color: 'text-zinc-600 dark:text-zinc-400 bg-zinc-500/10 border-zinc-500/20',
-          iconClass: 'text-zinc-400',
+          color: 'text-zinc-800 dark:text-zinc-400 bg-white/85 dark:bg-zinc-500/10 border-zinc-300 dark:border-zinc-500/20 shadow-xs backdrop-blur-md',
+          iconClass: 'text-zinc-600 dark:text-zinc-400',
           dot: 'bg-zinc-400',
         };
       case 'warning':
-        return { text: lang === 'ar' ? 'تمت المزامنة، راجع الصور' : 'Synced — check photos', icon: AlertCircle, color: 'text-amber-700 dark:text-amber-400 bg-amber-500/10 border-amber-500/25', iconClass: 'text-amber-500', dot: 'bg-amber-500' };
+        return {
+          text: lang === 'ar' ? 'تمت المزامنة، راجع الصور' : 'Synced — check photos',
+          icon: AlertCircle,
+          color: 'text-amber-800 dark:text-amber-400 bg-white/85 dark:bg-amber-500/10 border-amber-500/30 dark:border-amber-500/25 shadow-xs backdrop-blur-md',
+          iconClass: 'text-amber-600 dark:text-amber-500',
+          dot: 'bg-amber-500',
+        };
       case 'error':
         return {
           text: lang === 'ar' ? 'تعذرت المزامنة' : 'Sync failed',
           icon: AlertCircle,
-          color: 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/25',
-          iconClass: 'text-rose-500',
+          color: 'text-rose-800 dark:text-rose-400 bg-white/85 dark:bg-rose-500/10 border-rose-500/30 dark:border-rose-500/25 shadow-xs backdrop-blur-md',
+          iconClass: 'text-rose-600 dark:text-rose-500',
           dot: 'bg-rose-500',
         };
       case 'synced':
@@ -67,9 +73,9 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId, inte
         return {
           text: lang === 'ar' ? 'تمت المزامنة' : 'Synced',
           icon: CloudCheck,
-          color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-          iconClass: 'text-emerald-500',
-          dot: 'bg-emerald-500',
+          color: 'text-emerald-800 dark:text-emerald-400 bg-white/85 dark:bg-emerald-500/10 border-emerald-500/30 dark:border-emerald-500/20 shadow-xs backdrop-blur-md',
+          iconClass: 'text-emerald-600 dark:text-emerald-500',
+          dot: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]',
         };
     }
   };
