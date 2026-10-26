@@ -17,7 +17,7 @@ export function createWorkspace(view: PlannerView = 'timeline', updatedAt = WORK
   return { view, viewUpdatedAt: updatedAt, categories: seeds.map(([id, name, nameEn, icon], order) => ({ id, name, nameEn, icon, order, updatedAt })) };
 }
 
-// Only metadata is merged here. Category deletion never deletes daily tasks.
+// Workspace merging only handles category metadata; composite deletion removes tasks separately.
 export function mergeWorkspace(local: PlannerWorkspace | undefined, incoming: PlannerWorkspace): PlannerWorkspace {
   if (!local) return structuredClone(incoming);
   const categories = new Map(local.categories.map(category => [category.id, category]));

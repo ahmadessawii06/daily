@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { activeCategories, createWorkspace, groupTasksByCategory, mergeWorkspace, parseWorkspace, taskCategoryId, UNASSIGNED_CATEGORY } from '../src/shared/workspace';
 import type { Task } from '../src/types';
+import { deletePlannerCategoryAndTasks } from '../src/utils/categoryDeletion';
 
 class MemoryStorage {
   values = new Map<string, string>();
@@ -87,6 +88,32 @@ test('workspace merge retains independent edits and category deletion despite st
   stale.categories[0].updatedAt = '2026-01-06T00:00:00Z';
   assert.ok(!activeCategories(mergeWorkspace(deleted, stale)).some(c => c.id === deleted.categories[0].id));
   assert.equal(mergeWorkspace(merged, base).view, 'timeline');
+});
+
+test('deleting a card permanently removes only its associated tasks across days', () => {
+  auth.saveStoredAuth({ id: 'category-delete', userCode: 'DELETE' }, 'test-token');
+  const current = createWorkspace('cards');
+  current.categories.push({ id: 'custom', name: 'Custom card', icon: 'leaf', order: 7, updatedAt: current.viewUpdatedAt });
+  workspace.storeWorkspace(current);
+  const removed = { id: 'removed', title: 'Remove me', time: '', status: 'pending' as const, categoryId: 'custom', createdAt: '2026-01-01T00:00:00Z' };
+  const kept = { id: 'kept', title: 'Keep me', time: '', status: 'pending' as const, categoryId: 'study', createdAt: '2026-01-01T00:00:00Z' };
+  storage.saveAllDays({
+    '2026-01-04': { date: '2026-01-04', tasks: [removed, kept], updatedAt: '2026-01-01T00:00:00Z' },
+    '2026-01-05': { date: '2026-01-05', tasks: [{ ...removed, id: 'removed-2' }], updatedAt: '2026-01-01T00:00:00Z' },
+  });
+  queue.saveQueue([]);
+
+  deletePlannerCategoryAndTasks('custom');
+
+  const after = storage.loadAllDays();
+  assert.deepEqual(after['2026-01-04'].tasks.map(task => task.id), ['kept']);
+  assert.deepEqual(after['2026-01-05'].tasks, []);
+  assert.ok(after['2026-01-04'].deletedTaskIds?.removed);
+  assert.ok(after['2026-01-05'].deletedTaskIds?.['removed-2']);
+  assert.ok(!activeCategories(workspace.getPlannerWorkspace()).some(category => category.id === 'custom'));
+  assert.ok(queue.getQueue().some(item => item.type === 'workspace'));
+  assert.equal(queue.getQueue().filter(item => item.type === 'day').length, 2);
+  auth.clearStoredAuth();
 });
 
 test('legacy metadata upgrades without losing categories or deletion markers', () => {

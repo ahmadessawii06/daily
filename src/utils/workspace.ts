@@ -30,8 +30,13 @@ function saveWorkspace(workspace: PlannerWorkspace): PlannerWorkspace {
   return valid;
 }
 
-function nextWorkspaceTimestamp(workspace: PlannerWorkspace): string {
+export function nextWorkspaceTimestamp(workspace: PlannerWorkspace): string {
   return new Date(Math.max(Date.now(), timestamp(workspace.viewUpdatedAt) + 1, ...workspace.categories.map(c => timestamp(c.updatedAt) + 1))).toISOString();
+}
+
+export function markPlannerCategoryDeleted(workspace: PlannerWorkspace, id: string, changedAt = nextWorkspaceTimestamp(workspace)): PlannerWorkspace {
+  return { ...workspace, categories: workspace.categories.map(c => c.id === id && !c.deletedAt
+    ? { ...c, deletedAt: changedAt, updatedAt: changedAt } : c) };
 }
 
 export function setPlannerView(view: PlannerView): PlannerWorkspace {
@@ -56,7 +61,5 @@ export function updatePlannerCategory(id: string, updates: { name?: string; icon
 
 export function deletePlannerCategory(id: string): PlannerWorkspace {
   const workspace = getPlannerWorkspace();
-  const changedAt = nextWorkspaceTimestamp(workspace);
-  return saveWorkspace({ ...workspace, categories: workspace.categories.map(c => c.id === id && !c.deletedAt
-    ? { ...c, deletedAt: changedAt, updatedAt: changedAt } : c) });
+  return saveWorkspace(markPlannerCategoryDeleted(workspace, id));
 }
