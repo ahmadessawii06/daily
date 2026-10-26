@@ -1,10 +1,10 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { BookOpen, Briefcase, Heart, Leaf, Lightbulb, DollarSign, X, Trash2 } from 'lucide-react';
+import { BookOpen, Briefcase, Heart, Leaf, Sparkles, DollarSign, X, Trash2 } from 'lucide-react';
 import type { CategoryIcon, Language, PlannerCategory } from '../types';
 import { CATEGORY_ICONS } from '../shared/workspace';
 
-export const CARD_ICONS = { book: BookOpen, briefcase: Briefcase, heart: Heart, leaf: Leaf, moon: Lightbulb, layers: DollarSign };
+export const CARD_ICONS = { book: BookOpen, briefcase: Briefcase, heart: Heart, leaf: Leaf, moon: Sparkles, layers: DollarSign };
 const previewBanners: Partial<Record<CategoryIcon, Record<Language, string>>> = {
   book: {
     ar: new URL('../assets/images/cards/study-rtl.png', import.meta.url).href,
