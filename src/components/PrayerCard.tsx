@@ -1,17 +1,31 @@
 import { useLayoutEffect, useState } from 'react';
 import { CalendarDays, Check, MapPin, Moon, MoonStar, RefreshCw, Sun, Sunrise, Sunset, X } from 'lucide-react';
-import type { Language, Task, TaskStatus } from '../types';
+import type { Language, Task, TaskStatus, Theme } from '../types';
 import type { DailyPrayer } from '../utils/prayerTasks';
 import { nextTaskStatus } from '../utils/taskStatus';
 import { addDays, formatHeaderDate, formatTime12h } from '../utils/date';
 import { useNablusPrayerTimes } from '../hooks/useNablusPrayerTimes';
 import { getDateTimeInPrayerTimeZone, getNextPrayerSchedule, getPrayerIntervalProgress, getPrayerTimeZoneDate, isPrayerUpcomingOnDate } from '../utils/prayerSchedule';
-const fajrImage = new URL('../assets/images/prayers/fajr.png', import.meta.url).href;
-const dhuhrImage = new URL('../assets/images/prayers/dhuhr.png', import.meta.url).href;
-const asrImage = new URL('../assets/images/prayers/asr.png', import.meta.url).href;
-const maghribImage = new URL('../assets/images/prayers/maghrib.png', import.meta.url).href;
-const ishaImage = new URL('../assets/images/prayers/isha.png', import.meta.url).href;
-const mosqueImage = new URL('../assets/images/prayers/mosque.png', import.meta.url).href;
+const prayerImagesByTheme: Record<Theme, Record<DailyPrayer['id'], string>> = {
+  dark: {
+    fajr: new URL('../assets/images/prayers/fajr-dark.png', import.meta.url).href,
+    dhuhr: new URL('../assets/images/prayers/dhuhr-dark.png', import.meta.url).href,
+    asr: new URL('../assets/images/prayers/asr-dark.png', import.meta.url).href,
+    maghrib: new URL('../assets/images/prayers/maghrib-dark.png', import.meta.url).href,
+    isha: new URL('../assets/images/prayers/isha-dark.png', import.meta.url).href,
+  },
+  light: {
+    fajr: new URL('../assets/images/prayers/fajr-light.png', import.meta.url).href,
+    dhuhr: new URL('../assets/images/prayers/dhuhr-light.png', import.meta.url).href,
+    asr: new URL('../assets/images/prayers/asr-light.png', import.meta.url).href,
+    maghrib: new URL('../assets/images/prayers/maghrib-light.png', import.meta.url).href,
+    isha: new URL('../assets/images/prayers/isha-light.png', import.meta.url).href,
+  },
+};
+const mosqueImages: Record<Theme, string> = {
+  dark: new URL('../assets/images/prayers/mosque-dark.png', import.meta.url).href,
+  light: new URL('../assets/images/prayers/mosque-light.png', import.meta.url).href,
+};
 
 const prayerVerses = [
   { text: '﴿حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَىٰ وَقُومُوا لِلَّهِ قَانِتِينَ﴾', source: 'سورة البقرة • الآية ٢٣٨' },
@@ -37,12 +51,14 @@ interface PrayerCardProps {
   currentDate: string;
   slots: { prayer: DailyPrayer; task?: Task }[];
   lang: Language;
+  theme?: Theme;
   onAddPrayer: (title: string, time: string) => void;
   onStatusChange: (id: string, status: TaskStatus) => void;
 }
 
-export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChange }: PrayerCardProps) {
+export function PrayerCard({ currentDate, slots, lang, theme = 'dark', onAddPrayer, onStatusChange }: PrayerCardProps) {
   const ar = lang === 'ar';
+  const mosqueImage = mosqueImages[theme];
   const times = useNablusPrayerTimes(currentDate);
   const [now, setNow] = useState(() => new Date());
   const yesterdayDate = addDays(currentDate, -1);
@@ -114,13 +130,7 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
     maghrib: Sunset,
     isha: Moon,
   };
-  const prayerImages = {
-    fajr: fajrImage,
-    dhuhr: dhuhrImage,
-    asr: asrImage,
-    maghrib: maghribImage,
-    isha: ishaImage,
-  };
+  const prayerImages = prayerImagesByTheme[theme];
   const prayerAccents = {
     fajr: 'border-teal-300/40 bg-teal-400/15 text-teal-200 shadow-teal-950/30',
     dhuhr: 'border-amber-300/40 bg-amber-400/15 text-amber-200 shadow-amber-950/30',
@@ -169,27 +179,27 @@ export function PrayerCard({ currentDate, slots, lang, onAddPrayer, onStatusChan
           <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(270deg,rgba(1,18,18,.94)_0%,rgba(2,26,25,.78)_38%,rgba(3,26,25,.16)_100%),linear-gradient(0deg,rgba(2,14,14,.45),transparent_70%)]" />
           {nextPrayer ? <>
             <div data-prayer-next-info className="flex min-w-0 items-center justify-start gap-4 text-start">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-teal-300/20 bg-teal-400/10 text-teal-300 sm:h-16 sm:w-16">
+              <span data-prayer-next-icon className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-teal-300/20 bg-teal-400/10 text-teal-300 sm:h-16 sm:w-16">
                 <NextPrayerIcon aria-hidden="true" className="h-8 w-8" />
               </span>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-teal-100/75">{ar ? 'الصلاة القادمة' : 'Next prayer'}</p>
-                <h4 className="mt-1 truncate text-3xl font-black tracking-tight sm:text-4xl">{getNextPrayerName()}</h4>
-                <p className="mt-1 text-lg font-extrabold text-teal-300 sm:text-xl">{getPrayerTime(nextPrayer.time, nextPrayerIsTomorrow ? tomorrowTimes.loading : times.loading)}</p>
+                <p data-prayer-next-label className="text-xs font-semibold text-teal-100/75">{ar ? 'الصلاة القادمة' : 'Next prayer'}</p>
+                <h4 data-prayer-next-name className="mt-1 truncate text-3xl font-black tracking-tight sm:text-4xl">{getNextPrayerName()}</h4>
+                <p data-prayer-next-time className="mt-1 text-lg font-extrabold text-teal-300 sm:text-xl">{getPrayerTime(nextPrayer.time, nextPrayerIsTomorrow ? tomorrowTimes.loading : times.loading)}</p>
               </div>
             </div>
             <div data-prayer-verse-center className="flex min-w-0 items-center justify-center">
               <PrayerVerseBadge />
             </div>
             <div data-prayer-countdown className="flex min-w-0 flex-col items-center justify-center text-center">
-              <p className="inline-flex max-w-full items-center justify-center text-xs font-semibold leading-5 text-teal-50/85">
+              <p data-prayer-next-countdown-label className="inline-flex max-w-full items-center justify-center text-xs font-semibold leading-5 text-teal-50/85">
                 {ar
                   ? countdown ? `حتى أذان ${getNextPrayerName()}` : `موعد أذان ${getNextPrayerName()}`
                   : countdown ? `Time until ${getNextPrayerName()} prayer` : `${getNextPrayerName()} prayer time`}
               </p>
               {countdown
-                ? <p dir="ltr" style={{ fontVariantNumeric: 'tabular-nums' }} className="mt-[5px] w-[9ch] shrink-0 text-center font-mono text-[39px] font-bold leading-none tabular-nums tracking-wide text-[#5EEAD4]">{countdown}</p>
-                : <p className="mt-1 text-xl font-black tabular-nums text-teal-300">{getPrayerTime(nextPrayer.time)}</p>}
+                ? <p data-prayer-next-countdown dir="ltr" style={{ fontVariantNumeric: 'tabular-nums' }} className="mt-[5px] w-[9ch] shrink-0 text-center font-mono text-[39px] font-bold leading-none tabular-nums tracking-wide text-[#5EEAD4]">{countdown}</p>
+                : <p data-prayer-next-countdown className="mt-1 text-xl font-black tabular-nums text-teal-300">{getPrayerTime(nextPrayer.time)}</p>}
               {countdown && countdownProgress !== null && <div
                 role="progressbar"
                 aria-label={ar ? `التقدم من الأذان السابق إلى ${getNextPrayerName()}` : `Progress from previous adhan to ${getNextPrayerName()}`}

@@ -1,10 +1,10 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { CheckCheck, ChevronDown, Clock, MoreHorizontal, Plus, StickyNote, X } from 'lucide-react';
-import type { DayRecord, Language, PlannerCategory, PlannerWorkspace, StatusFilter, Task, TaskStatus } from '../types';
+import type { DayRecord, Language, PlannerCategory, PlannerWorkspace, StatusFilter, Task, TaskStatus, Theme } from '../types';
 import { groupTasksByCategory, UNASSIGNED_CATEGORY } from '../shared/workspace';
 import { getTaskCardCategories } from '../utils/cardCategories';
-import { createPlannerCategory, deletePlannerCategory, updatePlannerCategory } from '../utils/workspace';
+import { createPlannerCategory, updatePlannerCategory } from '../utils/workspace';
 import { formatTime12h } from '../utils/date';
 import { nextTaskStatus } from '../utils/taskStatus';
 import { CARD_ICONS, CategoryEditor } from './CategoryEditor';
@@ -15,7 +15,10 @@ import { calculateStats } from '../utils/storage';
 import { partitionPrayerTasks } from '../utils/prayerTasks';
 import { PrayerCard } from './PrayerCard';
 
-const emptySpaceTexture = new URL('../assets/images/home/dashboard-negative-space.png', import.meta.url).href;
+const emptySpaceTextures: Record<Theme, string> = {
+  dark: new URL('../assets/images/home/dashboard-negative-space-dark.png', import.meta.url).href,
+  light: new URL('../assets/images/home/dashboard-negative-space-light.png', import.meta.url).href,
+};
 const categoryBanners: Record<string, Record<Language, string>> = {
   study: {
     ar: new URL('../assets/images/cards/study-rtl.png', import.meta.url).href,
@@ -65,11 +68,13 @@ interface CardsDashboardProps {
   filter: StatusFilter;
   onFilterChange: (filter: StatusFilter) => void;
   lang: Language;
+  theme?: Theme;
   onAdd: (title: string, categoryId: string) => void;
   onAddPrayer: (title: string, time: string) => void;
   onStatusChange: (id: string, status: TaskStatus) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
+  onDeleteCategory?: (id: string) => void | Promise<void>;
   onMove?: (id: string) => void;
   onToggleFocus?: (id: string) => void;
   creationTarget?: { categoryId: string; requestId: number } | null;
@@ -77,7 +82,7 @@ interface CardsDashboardProps {
 }
 
 export function CardsDashboard(props: CardsDashboardProps) {
-  const { tasks, workspace, filter, lang, onFilterChange } = props;
+  const { tasks, workspace, filter, lang, theme = 'dark', onFilterChange } = props;
   const ar = lang === 'ar';
   const [editor, setEditor] = useState<PlannerCategory | 'new' | null>(null);
   const prayerTasks = partitionPrayerTasks(tasks);
@@ -90,13 +95,13 @@ export function CardsDashboard(props: CardsDashboardProps) {
   const filterName = { all: '', scheduled: ar ? 'المهام المحددة' : 'Named tasks', pending: ar ? 'المتبقية' : 'Remaining', done: ar ? 'المكتملة' : 'Completed', 'not-done': ar ? 'غير المنجزة' : 'Not done' }[filter];
 
   return (
-    <section aria-label={ar ? 'لوحة بطاقات اليوم' : 'Daily cards dashboard'} className="space-y-4">
+    <section data-cards-dashboard aria-label={ar ? 'لوحة بطاقات اليوم' : 'Daily cards dashboard'} className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div><h2 className="text-lg font-bold tracking-tight">{ar ? 'مساحتك اليومية' : 'Your daily workspace'}</h2></div>
         <button type="button" aria-label={ar ? 'إنشاء مساحة جديدة' : 'Create a new space'} title={ar ? 'إنشاء مساحة لتنظيم مهامك' : 'Create a space to organize your tasks'} onClick={() => setEditor('new')} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold transition-colors hover:border-emerald-400 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-emerald-400/40"><Plus className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />{ar ? 'مساحة جديدة' : 'New space'}</button>
       </div>
       {filter !== 'all' && <div className="flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs"><span>{ar ? 'عرض: ' : 'Showing: '}{filterName}</span><button type="button" onClick={() => onFilterChange('all')} className="inline-flex min-h-9 items-center gap-1 font-semibold"><X className="h-3 w-3" />{ar ? 'عرض الكل' : 'Show all'}</button></div>}
-      <PrayerCard currentDate={props.currentDate} slots={prayerTasks.slots} lang={lang} onAddPrayer={props.onAddPrayer} onStatusChange={props.onStatusChange} />
+      <PrayerCard currentDate={props.currentDate} slots={prayerTasks.slots} lang={lang} theme={theme} onAddPrayer={props.onAddPrayer} onStatusChange={props.onStatusChange} />
       <div
         className={`category-card-grid relative isolate grid items-start gap-4 ${cardColumns === 3 ? 'category-card-grid-three' : cardColumns === 4 ? 'category-card-grid-four' : 'category-card-grid-two'}`}
         style={{
@@ -105,7 +110,7 @@ export function CardsDashboard(props: CardsDashboardProps) {
           '--category-columns-xl': wideGrid.units,
         } as CSSProperties}
       >
-        <img src={emptySpaceTexture} alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.12] dark:opacity-[0.2]" />
+        <img src={emptySpaceTextures[theme]} alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.18] dark:opacity-[0.2]" />
         {cards.map((category, index) => {
           const mediumTail = index >= mediumGrid.tailStart;
           const largeTail = index >= largeGrid.tailStart;
@@ -121,9 +126,9 @@ export function CardsDashboard(props: CardsDashboardProps) {
             onCustomize={category.id === UNASSIGNED_CATEGORY ? undefined : () => setEditor(category)} />;
         })}
       </div>
-      {editor && <CategoryEditor key={editor === 'new' ? 'new' : editor.id} category={editor === 'new' ? null : editor} lang={lang}
+      {editor && <CategoryEditor key={editor === 'new' ? 'new' : editor.id} category={editor === 'new' ? null : editor} lang={lang} theme={theme}
         onClose={() => setEditor(null)} onSave={(name, icon) => { if (editor === 'new') createPlannerCategory(name, icon); else updatePlannerCategory(editor.id, { name, icon }); setEditor(null); }}
-        onDelete={() => { if (editor !== 'new') deletePlannerCategory(editor.id); setEditor(null); }} />}
+        onDelete={async () => { if (editor !== 'new') { await props.onDeleteCategory?.(editor.id); setEditor(null); } }} />}
     </section>
   );
 }
