@@ -18,20 +18,28 @@ import { PrayerCard } from './PrayerCard';
 const emptySpaceTexture = new URL('../assets/images/home/dashboard-negative-space.png', import.meta.url).href;
 const categoryBanners: Record<string, Record<Language, string>> = {
   study: {
-    ar: new URL('../assets/images/cards/study-ar.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/study-en.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/study-rtl.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/study-ltr.png', import.meta.url).href,
   },
   work: {
-    ar: new URL('../assets/images/cards/work-ar.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/work-eng.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/work-rtl.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/work-ltr.png', import.meta.url).href,
+  },
+  ideas: {
+    ar: new URL('../assets/images/cards/ideas-rtl.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/ideas-ltr.png', import.meta.url).href,
+  },
+  money: {
+    ar: new URL('../assets/images/cards/money-rtl.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/money-ltr.png', import.meta.url).href,
   },
   health: {
-    ar: new URL('../assets/images/cards/health-ar.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/health-eng.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/health-rtl.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/health-ltr.png', import.meta.url).href,
   },
   rest: {
-    ar: new URL('../assets/images/cards/pereonal-ar.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/peresonal-eng.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/personal-rtl.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/personal-ltr.png', import.meta.url).href,
   },
 };
 
@@ -136,7 +144,7 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   const visible = tasks.filter(task => filter === 'all' || filter === 'scheduled' || task.status === filter);
   const collapsed = Boolean(category.collapsed);
   // User-created cards have UUID-based IDs; select their artwork by icon.
-  const bannerCategory = { book: 'study', briefcase: 'work', heart: 'health', leaf: 'rest', moon: '', layers: '' }[category.icon];
+  const bannerCategory = { book: 'study', briefcase: 'work', heart: 'health', leaf: 'rest', moon: 'ideas', layers: 'money' }[category.icon];
   const banner = (Object.hasOwn(categoryBanners, category.id)
     ? categoryBanners[category.id]
     : categoryBanners[bannerCategory])?.[lang];

@@ -1,18 +1,38 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { BookOpen, Briefcase, Heart, Leaf, MoonStar, Layers3, X, Trash2 } from 'lucide-react';
+import { BookOpen, Briefcase, Heart, Leaf, Lightbulb, DollarSign, X, Trash2 } from 'lucide-react';
 import type { CategoryIcon, Language, PlannerCategory } from '../types';
 import { CATEGORY_ICONS } from '../shared/workspace';
 
-export const CARD_ICONS = { book: BookOpen, briefcase: Briefcase, heart: Heart, leaf: Leaf, moon: MoonStar, layers: Layers3 };
-const previewBanners: Partial<Record<CategoryIcon, string>> = {
-  book: new URL('../assets/images/cards/study-ar.png', import.meta.url).href,
-  briefcase: new URL('../assets/images/cards/work-ar.png', import.meta.url).href,
-  heart: new URL('../assets/images/cards/health-ar.png', import.meta.url).href,
-  leaf: new URL('../assets/images/cards/pereonal-ar.png', import.meta.url).href,
+export const CARD_ICONS = { book: BookOpen, briefcase: Briefcase, heart: Heart, leaf: Leaf, moon: Lightbulb, layers: DollarSign };
+const previewBanners: Partial<Record<CategoryIcon, Record<Language, string>>> = {
+  book: {
+    ar: new URL('../assets/images/cards/study-rtl.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/study-ltr.png', import.meta.url).href,
+  },
+  briefcase: {
+    ar: new URL('../assets/images/cards/work-rtl.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/work-ltr.png', import.meta.url).href,
+  },
+  heart: {
+    ar: new URL('../assets/images/cards/health-rtl.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/health-ltr.png', import.meta.url).href,
+  },
+  leaf: {
+    ar: new URL('../assets/images/cards/personal-rtl.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/personal-ltr.png', import.meta.url).href,
+  },
+  moon: {
+    ar: new URL('../assets/images/cards/ideas-rtl.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/ideas-ltr.png', import.meta.url).href,
+  },
+  layers: {
+    ar: new URL('../assets/images/cards/money-rtl.png', import.meta.url).href,
+    en: new URL('../assets/images/cards/money-ltr.png', import.meta.url).href,
+  },
 };
 const defaultPreviewBanner = new URL('../assets/images/home/daily-progress-abstract.png', import.meta.url).href;
-const iconNames = { book: ['كتاب', 'Book'], briefcase: ['عمل', 'Work'], heart: ['صحة', 'Health'], leaf: ['حياة', 'Life'], moon: ['عبادة', 'Worship'], layers: ['مساحة', 'Space'] };
+const iconNames = { book: ['كتاب', 'Book'], briefcase: ['شنطة', 'Work bag'], heart: ['صحة', 'Health'], leaf: ['حياة', 'Life'], moon: ['أفكار', 'Ideas'], layers: ['مال', 'Money'] };
 
 interface CategoryEditorProps {
   category: PlannerCategory | null;
@@ -86,8 +106,8 @@ export function CategoryEditor({ category, lang, onSave, onDelete, onClose }: Ca
             <p className="text-xs font-semibold text-slate-700 dark:text-zinc-200">{ar ? 'معاينة المساحة' : 'Space preview'}</p>
             <div dir={ar ? 'rtl' : 'ltr'} className="overflow-hidden rounded-2xl border border-white/10 bg-[#1d2b3e] text-slate-100 shadow-inner" aria-label={ar ? 'معاينة شكل المساحة' : 'Space appearance preview'}>
             <div className="relative h-24 overflow-hidden">
-              <img src={previewBanners[icon] || defaultPreviewBanner} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-[#1d2b3e]/95" />
+              <img src={previewBanners[icon]?.[lang] || defaultPreviewBanner} alt="" aria-hidden="true" loading="eager" decoding="async" className="absolute inset-0 h-full w-full object-cover object-center" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-[#1d2b3e]/82" />
               <div className="relative flex h-full items-center justify-start gap-3 p-3">
                 <div className="flex min-w-0 flex-1 items-center gap-2.5"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-black/35"><Icon className="h-4 w-4" /></span><p className="min-w-0 flex-1 truncate text-[15px] font-bold leading-6 text-white" title={trimmedName || undefined}>{trimmedName || (ar ? 'اسم المساحة' : 'Space name')}</p></div>
               </div>
