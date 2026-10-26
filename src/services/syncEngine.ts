@@ -86,7 +86,10 @@ async function sync(userId: string, token: string): Promise<boolean> {
     for (const key of ['habits', 'recurring'] as const) {
       if (!pending.some(item => item.type === key) && result.versions?.[key]) userStorage.setItem(keys[key], JSON.stringify(result[key]));
     }
-    if (!pending.some(item => item.type === 'settings')) {
+    // Keep locally-selected settings when this sync request included a newer
+    // local settings update. A stale server response must not roll the UI back
+    // to the previous theme immediately after the user toggles it.
+    if (!sent.some(item => item.type === 'settings') && !pending.some(item => item.type === 'settings')) {
       const settings = result.settings || {};
       if (settings.theme) userStorage.setItem('daily_theme_v1', settings.theme);
       if (settings.lang) userStorage.setItem('lang', settings.lang);
