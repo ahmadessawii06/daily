@@ -7,7 +7,42 @@
 @import "./design-tokens.css";
 
 @layer base {
-  button:not(:disabled) {
+  /* Keep interaction cues consistent without making decorative icons clickable. */
+  button:not(:disabled):not([aria-disabled="true"]),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  summary,
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  label[for] {
+    cursor: pointer;
+  }
+
+  input[type="text"]:not(:disabled),
+  input[type="email"]:not(:disabled),
+  input[type="password"]:not(:disabled),
+  input[type="search"]:not(:disabled),
+  input[type="url"]:not(:disabled),
+  input[type="number"]:not(:disabled),
+  textarea:not(:disabled),
+  [contenteditable="true"] {
+    cursor: text;
+  }
+
+  [draggable="true"] {
+    cursor: grab;
+  }
+
+  [draggable="true"]:active {
+    cursor: grabbing;
+  }
+
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  button:not(:disabled):not([aria-disabled="true"]) {
     touch-action: manipulation;
   }
 
@@ -181,6 +216,54 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
 }
 html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) [data-progress-tone] .progress-value { color: var(--progress-color); }
 html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) [data-progress-tone] .progress-track { color: color-mix(in srgb, var(--progress-color) 25%, transparent); }
+
+/* Precision spacing is shared so dark mode matches light mode in sizes and layout. */
+[data-progress-layout="compact"] {
+  padding-block: 10px;
+}
+[data-progress-layout="compact"] [data-progress-main] .font-numbers {
+  display: inline-flex;
+  direction: ltr;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1px;
+  line-height: 1;
+}
+[data-progress-layout="compact"] [data-progress-main] .font-numbers > span {
+  line-height: 1;
+}
+[data-progress-layout="compact"] [data-progress-main] .font-numbers > span:last-child {
+  margin-inline: 0;
+  font-size: 0.875rem;
+}
+[data-progress-layout="compact"] [data-progress-tone] > div:last-child {
+  margin-top: 8px;
+}
+[data-progress-layout="compact"] [data-progress-tone] > div:last-child > span {
+  line-height: 1.4;
+}
+[data-progress-verse] {
+  margin-bottom: 12px;
+}
+
+
+/* Compact header progress: keep the hero ring premium in both themes. */
+html:not(.dark) [data-progress-layout="compact"] [data-progress-main] > div {
+  background: radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.24) 52%, rgba(16, 185, 129, 0.06));
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8), inset 0 -2px 5px rgba(15, 23, 42, 0.06), 0 8px 20px rgba(16, 185, 129, 0.14);
+}
+html.dark [data-progress-layout="compact"] [data-progress-main] > div {
+  background: radial-gradient(circle at 35% 28%, rgba(6, 34, 29, 0.85), rgba(4, 23, 20, 0.65) 60%, rgba(16, 229, 136, 0.08));
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.12), inset 0 -2px 5px rgba(0, 0, 0, 0.35), 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+html:not(.dark) [data-progress-layout="compact"] [data-progress-main] svg circle:first-child {
+  color: #047857;
+  opacity: 0.34;
+}
+html.dark [data-progress-layout="compact"] [data-progress-main] svg circle:first-child {
+  color: #0f3d35;
+  opacity: 0.6;
+}
 
 /* Reserve real layout space for the theme dock instead of covering the planner. */
 html:has(.theme-dock:popover-open) #root {
@@ -677,6 +760,149 @@ html.light .bg-mesh {
     radial-gradient(at 50% 90%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
 }
 
+/* Light-mode surfaces keep the existing artwork while removing night-only chrome. */
+html.light [data-main-header] {
+  border-color: rgb(203 213 225 / 0.75);
+  background-color: rgb(255 255 255 / 0.78);
+  color: #0f172a;
+  box-shadow: 0 10px 24px -18px rgb(15 23 42 / 0.35);
+}
+
+html.light [data-main-header] .text-white {
+  color: #0f172a;
+}
+
+html.light [data-today-progress] {
+  border-color: rgb(203 213 225 / 0.8);
+  background-color: rgb(255 255 255 / 0.88);
+  box-shadow: 0 8px 22px -20px rgb(15 23 42 / 0.4);
+}
+
+html.dark [data-today-progress] > div:first-child > img {
+  opacity: 0.3;
+}
+
+html.light [data-cards-dashboard] .category-card-grid {
+  border-radius: 1.5rem;
+  background-color: rgb(255 255 255 / 0.24);
+}
+
+html.dark [data-cards-dashboard] .category-card-grid {
+  border-radius: 1.5rem;
+  background-color: rgba(6, 34, 29, 0.28);
+}
+
+html.dark [data-cards-dashboard] .category-card-grid > img {
+  opacity: 0.2;
+}
+
+html.light [data-prayer-card] {
+  border-color: rgb(16 185 129 / 0.28);
+  background-color: #f1f8f6;
+  color: #123c37;
+  box-shadow: 0 18px 36px -28px rgb(15 118 110 / 0.45);
+}
+
+html.light [data-prayer-card] > header {
+  border-color: rgb(16 185 129 / 0.2);
+}
+
+html.light [data-prayer-card] > header > div[aria-hidden="true"] {
+  background-image: linear-gradient(to left, rgb(235 248 244 / 0.88), rgb(232 247 242 / 0.55), rgb(255 255 255 / 0.08));
+}
+
+html.light [data-prayer-card] > header p {
+  border-color: rgb(15 118 110 / 0.18);
+  background-color: rgb(255 255 255 / 0.68);
+  color: #1f4d47;
+}
+
+html.light [data-prayer-next] {
+  border-color: rgb(13 148 136 / 0.42);
+  background-color: #e7f3ef;
+  color: #123c37;
+  box-shadow: 0 12px 28px -24px rgb(13 148 136 / 0.65);
+}
+
+html.light [data-prayer-next] > div[aria-hidden="true"] {
+  background-image: linear-gradient(270deg, rgb(231 243 239 / 0.9) 0%, rgb(231 243 239 / 0.68) 38%, rgb(231 243 239 / 0.18) 100%), linear-gradient(0deg, rgb(220 239 233 / 0.25), transparent 70%);
+}
+
+html.light [data-prayer-next] [class~="text-teal-100/75"] {
+  color: rgb(20 83 77 / 0.78);
+}
+
+html.light [data-prayer-next] [class~="text-teal-50/85"],
+html.light [data-prayer-next] [class~="text-teal-50/70"] {
+  color: rgb(22 78 72 / 0.82);
+}
+
+html.light [data-prayer-next-name] {
+  color: #065f46;
+}
+
+html.light [data-prayer-next-time],
+html.light [data-prayer-next-countdown] {
+  color: #047857;
+}
+
+html.light [data-prayer-next-label],
+html.light [data-prayer-next-countdown-label] {
+  color: rgb(6 95 70 / 0.78);
+}
+
+html.light [data-prayer-next-icon] {
+  border-color: rgb(4 120 87 / 0.28);
+  background-color: rgb(16 185 129 / 0.12);
+  color: #047857;
+}
+
+html.light [data-prayer-slot] > div[aria-hidden="true"] {
+  background-image: linear-gradient(180deg, rgba(2, 8, 24, 0.08) 0%, rgba(2, 8, 24, 0.06) 36%, rgba(1, 12, 16, 0.62) 73%, rgba(1, 12, 16, 0.88) 100%);
+}
+
+html.light [data-prayer-slot] {
+  border-color: rgb(15 118 110 / 0.28);
+}
+
+html.light [data-prayer-slot][data-prayer-status="done"] {
+  border-color: rgb(16 185 129 / 0.52);
+}
+
+html.light [data-prayer-slot][data-prayer-status="not-done"] {
+  border-color: rgb(225 29 72 / 0.42);
+}
+
+html.light [data-prayer-slot] [data-task-status] {
+  box-shadow: 0 8px 18px -12px rgb(15 23 42 / 0.5);
+}
+
+html.light [data-prayer-verse],
+html.light [data-progress-verse] {
+  border-color: rgb(190 155 85 / 0.3);
+  background-color: rgb(255 255 255 / 0.62);
+  color: #23544e;
+}
+
+html.light [data-prayer-verse] .quran-verse-text,
+html.light [data-progress-verse] .quran-verse-text {
+  color: #23544e;
+}
+
+html.dark [data-prayer-verse],
+html.dark [data-progress-verse] {
+  border-color: rgba(190, 155, 85, 0.28);
+  background-color: rgba(5, 20, 18, 0.75);
+  color: #F8EBCD;
+  box-shadow: 0 4px 20px -8px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+}
+
+html.dark [data-prayer-verse] .quran-verse-text,
+html.dark [data-progress-verse] .quran-verse-text {
+  color: #F8EBCD;
+}
+
 /* Custom subtle scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
@@ -750,3 +976,9 @@ html.light ::-webkit-scrollbar-thumb {
 @keyframes auth-dot { 50% { opacity: .25; transform: translateY(-2px); } }
 @media (max-width: 420px) { .auth-orbit-outer { width: 280px; height: 280px; } .auth-float-start { top: -10px; } .auth-float-end { bottom: -10px; } }
 @media (prefers-reduced-motion: reduce) { .auth-scene *, .auth-scene *::after { animation: none !important; } .auth-core-scan { display: none; } }
+html.light [data-main-header] button:hover:not(:disabled),
+html.light [data-main-header] button:focus-visible {
+  border-color: rgb(16 185 129 / 0.55);
+  background-color: rgb(236 253 245 / 0.88);
+  color: #047857;
+}

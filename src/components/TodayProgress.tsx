@@ -1,15 +1,20 @@
 import React from 'react';
 import { Target, Trophy, Sparkles, CheckCircle2, Clock, XCircle, ListTodo } from 'lucide-react';
-import { DayStats, Language, StatusFilter } from '../types';
+import { DayStats, Language, StatusFilter, Theme } from '../types';
 import { StatCircle } from './StatCircle';
 
-const progressBackground = new URL('../assets/images/home/daily-progress-abstract.png', import.meta.url).href;
+const progressBackgrounds: Record<Theme, string> = {
+  dark: new URL('../assets/images/home/daily-progress-abstract-dark.png', import.meta.url).href,
+  light: new URL('../assets/images/home/daily-progress-abstract-light.png', import.meta.url).href,
+};
 
 interface TodayProgressProps {
   stats: DayStats;
   currentFilter?: StatusFilter;
   onFilterChange?: (filter: StatusFilter) => void;
   lang: Language;
+  theme: Theme;
+  compact?: boolean;
 }
 
 export const TodayProgress: React.FC<TodayProgressProps> = ({
@@ -17,6 +22,8 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
   currentFilter,
   onFilterChange,
   lang,
+  theme,
+  compact = false,
 }) => {
   const percentage = Math.min(100, Math.max(0, stats.completionPercentage || 0));
   const isAllComplete = stats.total > 0 && stats.done === stats.total;
@@ -111,22 +118,50 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
       : '“And my success is not but through Allah; upon Him I have relied.”';
   };
 
+  // Match the existing verse branches, including excerpts and multi-verse passages.
+  const verseSources = stats.total === 0
+    ? [['الإسراء', 'Al-Isra', '٨٠', '80'], ['آل عمران', 'Ali Imran', '١٥٩', '159']]
+    : isAllComplete
+      ? [['الكهف', 'Al-Kahf', '٣٠', '30'], ['يونس', 'Yunus', '١٠', '10']]
+      : percentage >= 75
+        ? [['النجم', 'An-Najm', '٣٩', '39'], ['النجم', 'An-Najm', '٤٠–٤١', '40–41']]
+        : percentage >= 50
+          ? [['البقرة', 'Al-Baqarah', '١٤٨', '148'], ['المطففين', 'Al-Mutaffifin', '٢٦', '26']]
+          : percentage > 0
+            ? [['التوبة', 'At-Tawbah', '١٠٥', '105'], ['الشرح', 'Ash-Sharh', '٦–٧', '6–7']]
+            : [['آل عمران', 'Ali Imran', '١٥٩', '159'], ['هود', 'Hud', '٨٨', '88']];
+  const renderVerseSource = (index: number) => {
+    const [arName, enName, arNumber, enNumber] = verseSources[index];
+    const sourceText = lang === 'ar'
+      ? `سورة ${arName} • ${arNumber.includes('–') ? 'الآيات' : 'الآية'} ${arNumber}`
+      : `Surah ${enName} • ${enNumber.includes('–') ? 'Verses' : 'Verse'} ${enNumber}`;
+    return (
+      <p className="mt-2 flex items-center justify-center gap-2 text-[15px] font-medium leading-5 text-[#8b6d2a] dark:text-[#D5B779]">
+        <span aria-hidden="true" className="h-px w-5 bg-[#8b6d2a]/35 dark:bg-[#D5B779]/35" />
+        <span>{sourceText}</span>
+        <span aria-hidden="true" className="h-px w-5 bg-[#8b6d2a]/35 dark:bg-[#D5B779]/35" />
+      </p>
+    );
+  };
+
   return (
     <div
-      className={`relative overflow-hidden bg-white dark:bg-[#11131a] border rounded-2xl p-3 sm:p-4 shadow-xs transition-all duration-300 ${
+      data-today-progress
+      style={{ backgroundColor: compact ? 'transparent' : theme === 'dark' ? '#071714' : 'rgba(255, 255, 255, 0.88)' }}
+      className={`${compact ? 'relative w-full p-0' : 'relative overflow-hidden rounded-2xl border p-3 shadow-xs sm:p-4'} transition-all duration-300 ${
         isAllComplete
-          ? 'border-emerald-500/40 shadow-[0_0_24px_rgba(16,185,129,0.12)] dark:border-emerald-500/30'
-          : 'border-slate-200/90 dark:border-white/[0.08]'
+          ? compact ? '' : 'border-emerald-500/40 shadow-[0_0_24px_rgba(16,185,129,0.12)] dark:border-emerald-500/30'
+          : compact ? '' : 'border-slate-200/90 dark:border-white/[0.08]'
       }`}
     >
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <img src={progressBackground} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-20 dark:opacity-30" />
-        <div className="absolute inset-0 bg-white/85 dark:bg-[#07120f]/75" />
+      <div aria-hidden="true" className={`${compact ? 'hidden' : 'pointer-events-none absolute inset-0'}`}>
+        <img src={progressBackgrounds[theme]} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-35 dark:opacity-30" />
+        <div className="absolute inset-0 bg-white/65 dark:bg-[#07120f]/75" />
       </div>
-      <div className="relative z-10 flex flex-col gap-3">
+      <div className={`relative z-10 flex flex-col ${compact ? 'gap-2' : 'gap-3'}`}>
         
         {/* Top Row: Title, Subtitle, and Motivational Hint Badge */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-white/[0.05]">
+        <div className={`${compact ? 'hidden' : 'flex flex-col sm:flex-row sm:items-center'} justify-between gap-2 ${compact ? '' : 'border-b border-slate-100 pb-2 dark:border-white/[0.05]'}`}>
           
           {/* Icon + Title + Task Summary */}
           <div className="flex items-center gap-3 min-w-0">
@@ -177,15 +212,28 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
 
         </div>
 
+        {/* Motivational Quran Verse (placed at top: nothing rises above the Quran) */}
+        {compact && (
+          <div
+            data-progress-verse
+            lang={lang}
+            dir={lang === 'ar' ? 'rtl' : 'ltr'}
+            className="mx-auto w-full min-w-0 max-w-3xl rounded-[14px] border border-[rgba(190,155,85,0.24)] bg-[rgba(5,20,18,0.72)] px-3 py-2 text-center text-[#F8EBCD] sm:px-4"
+          >
+            <p className={lang === 'ar' ? 'quran-verse-text' : 'text-lg leading-relaxed'}>{getMotivationalTitle()}</p>
+            {renderVerseSource(0)}
+          </div>
+        )}
+
         {/* Main Section: Circular Progress Gauge + 4 Circular Metric Gauges (دوائر تفاعلية بدلاً من البطاقات) */}
-        <div className="flex flex-col items-center gap-3 pt-0 md:flex-row md:items-center md:justify-between md:gap-4 lg:gap-6">
+        <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-3xl grid-cols-5 items-center gap-1 rounded-2xl border border-slate-200/60 bg-white/10 px-1 py-1 shadow-[0_10px_28px_rgba(15,23,42,0.04)] backdrop-blur-[2px] dark:border-teal-400/25 dark:bg-[#06221d]/70 dark:shadow-[0_10px_32px_rgba(0,0,0,0.35)] dark:backdrop-blur-md' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
           
           {/* Main Circular Progress Gauge */}
-          <div className="flex w-full min-w-0 shrink-0 items-center justify-center gap-3 sm:gap-4 md:w-auto md:flex-1 md:justify-start">
-            <div className="relative shrink-0 flex items-center justify-center">
+          <div data-progress-main className={`${compact ? 'col-start-3 row-start-1 w-auto justify-self-center' : 'w-full justify-center gap-3 sm:gap-4 md:w-auto md:flex-1 md:justify-start'} flex min-w-0 shrink-0 items-center`}>
+            <div className={`${compact ? 'rounded-full bg-white/25 p-1 shadow-[0_8px_20px_rgba(16,185,129,0.14)] ring-1 ring-emerald-400/20 dark:bg-white/[0.03] dark:shadow-[0_8px_20px_rgba(0,0,0,0.28)] dark:ring-emerald-300/15' : ''} relative flex shrink-0 items-center justify-center`}>
               <svg
                 viewBox="0 0 100 100"
-                className="w-24 h-24 sm:w-28 sm:h-28 -rotate-90 shrink-0 transform-gpu"
+                className={`${compact ? 'h-16 w-16 sm:h-20 sm:w-20' : 'h-24 w-24 sm:h-28 sm:w-28'} -rotate-90 shrink-0 transform-gpu`}
                 aria-label={`Progress: ${percentage}%`}
               >
                 {/* Background track (neutral dark/light) */}
@@ -195,8 +243,8 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                   r={radius}
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="7"
-                  className="text-slate-100 dark:text-zinc-300/75"
+                  strokeWidth={compact ? '8' : '7'}
+                  className="text-slate-200 dark:text-zinc-300/75"
                 />
 
                 {/* Active progress arc (pure green) */}
@@ -207,7 +255,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                     r={radius}
                     fill="none"
                     stroke="var(--theme-progress-main, #10e588)"
-                    strokeWidth="7"
+                    strokeWidth={compact ? '8' : '7'}
                     strokeDasharray={circumference}
                     strokeDashoffset={strokeDashoffset}
                     strokeLinecap="round"
@@ -222,7 +270,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                   <div className="flex flex-col items-center justify-center leading-none">
                     <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#10e588] mb-1 animate-pulse" />
                     <div className="flex items-baseline justify-center font-numbers">
-                      <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                      <span className={`${compact ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'} font-black tracking-tight text-slate-900 dark:text-white`}>
                         100
                       </span>
                       <span className="text-[11px] sm:text-xs font-bold text-[#10e588] ms-0.5">
@@ -233,10 +281,10 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                 ) : (
                   <div className="flex flex-col items-center justify-center leading-none">
                     <div className="flex items-baseline justify-center font-numbers">
-                      <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                      <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
                         {percentage}
                       </span>
-                      <span className="text-xs sm:text-sm font-bold text-[#10e588] ms-0.5">
+                      <span className={`${compact ? 'text-[10px]' : 'text-xs sm:text-sm'} font-bold text-[#10e588] ms-0.5`}>
                         %
                       </span>
                     </div>
@@ -246,18 +294,24 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
             </div>
 
             {/* Motivational Title & Subtitle beside main circle */}
-            <div className="flex flex-col justify-center min-w-0 max-w-[240px] sm:max-w-[280px]">
-              <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white font-['Alexandria'] leading-relaxed tracking-tight">
+            <div className={`${compact ? 'hidden' : 'flex'} min-w-0 max-w-[240px] flex-col justify-center sm:max-w-[280px]`}>
+              <span className={`${compact ? 'text-[11px]' : 'text-xs sm:text-sm'} font-bold leading-relaxed tracking-tight text-slate-900 dark:text-white font-['Alexandria']`}>
                 {getMotivationalTitle()}
               </span>
-              <span className="text-xs text-slate-600 dark:text-zinc-300 mt-1 font-medium leading-relaxed font-['Alexandria']">
+              <span className="mt-1 text-xs font-medium leading-relaxed text-slate-600 dark:text-zinc-300 font-['Alexandria']">
                 {getMotivationalSubtitle()}
               </span>
             </div>
           </div>
 
           {/* 4 Circular Metric Gauges (دوائر الإحصائيات الأربعة) - بدون بطاقات */}
-          <div className="grid w-full grid-cols-4 justify-items-center gap-1 border-t border-slate-100 pt-2 sm:gap-3 md:w-auto md:flex-1 md:border-s-0 md:border-t-0 md:ps-4 md:pt-0 lg:ps-6 dark:border-white/[0.05]">
+          <div
+            data-progress-stats
+            className={`grid grid-cols-4 justify-items-center ${compact
+              ? 'contents'
+              : 'w-full gap-1 border-t border-slate-100 pt-2 sm:gap-3 md:w-auto md:flex-1 md:border-s-0 md:border-t-0 md:ps-4 md:pt-0 lg:ps-6 dark:border-white/[0.05]'}`}
+            style={compact ? { display: 'contents' } : undefined}
+          >
             
             {/* 1. Completed (دائرة مكتملة) */}
             <StatCircle
@@ -267,7 +321,8 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               color="emerald"
               isActive={currentFilter === 'done'}
               onClick={() => onFilterChange?.(currentFilter === 'done' ? 'all' : 'done')}
-              subLabel={stats.total > 0 ? `${Math.round((stats.done / stats.total) * 100)}%` : undefined}
+              compact={compact}
+              subLabel={stats.total > 0 ? `${Math.round((stats.done / stats.total) * 100)}%` : '0%'}
             />
 
             {/* 2. Remaining (دائرة متبقية) */}
@@ -278,7 +333,8 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               color="amber"
               isActive={currentFilter === 'pending'}
               onClick={() => onFilterChange?.(currentFilter === 'pending' ? 'all' : 'pending')}
-              subLabel={stats.total > 0 ? `${Math.round((remaining / stats.total) * 100)}%` : undefined}
+              compact={compact}
+              subLabel={stats.total > 0 ? `${Math.round((remaining / stats.total) * 100)}%` : '0%'}
             />
 
             {/* 3. Not Done (دائرة غير منجزة) */}
@@ -289,7 +345,8 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               color="rose"
               isActive={currentFilter === 'not-done'}
               onClick={() => onFilterChange?.(currentFilter === 'not-done' ? 'all' : 'not-done')}
-              subLabel={stats.total > 0 && stats.notDone > 0 ? `${Math.round((stats.notDone / stats.total) * 100)}%` : undefined}
+              compact={compact}
+              subLabel={stats.total > 0 ? `${Math.round((stats.notDone / stats.total) * 100)}%` : '0%'}
             />
 
             {/* 4. Total (دائرة الإجمالي) */}
@@ -300,6 +357,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               color="indigo"
               isActive={currentFilter === 'all'}
               onClick={() => onFilterChange?.('all')}
+              compact={compact}
               subLabel={lang === 'ar' ? 'مهمة' : 'tasks'}
             />
 

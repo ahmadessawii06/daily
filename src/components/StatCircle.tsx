@@ -106,14 +106,14 @@ export const StatCircle: React.FC<StatCircleProps> = ({
       {/* Label & Details underneath Circle */}
       <div className="flex max-w-full flex-col items-center mt-1.5 leading-tight text-center">
         <span
-          className={`${compact ? 'text-[11px]' : 'text-xs'} font-bold font-['Alexandria'] ${
-            isActive ? colorConfig.text : 'text-slate-700 dark:text-zinc-300'
+            className={`${compact ? 'text-[11px] leading-snug' : 'text-xs'} font-bold font-['Alexandria'] ${
+            isActive ? colorConfig.text : compact ? 'text-slate-900 dark:text-zinc-200' : 'text-slate-700 dark:text-zinc-300'
           }`}
         >
           {label}
         </span>
         {subLabel && (
-          <span className="text-[11px] font-numbers font-semibold text-slate-600 dark:text-zinc-300 mt-1">
+          <span className="mt-1 text-[11px] font-numbers font-semibold leading-none text-slate-600 dark:text-zinc-300">
             {subLabel}
           </span>
         )}

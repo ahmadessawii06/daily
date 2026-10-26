@@ -32,6 +32,7 @@ import { AuthLoadingScreen } from './components/AuthLoadingScreen';
 import { ScreenshotLoadingScreen } from './components/ScreenshotLoadingScreen';
 import { CardsDashboard } from './components/CardsDashboard';
 import { getPlannerWorkspace, readStoredWorkspace, setPlannerView, updatePlannerCategory } from './utils/workspace';
+import { deletePlannerCategoryAndTasks, restorePlannerCategoryAndTasks, type CategoryDeletionSnapshot } from './utils/categoryDeletion';
 import { activeCategories, UNASSIGNED_CATEGORY } from './shared/workspace';
 import { getTaskCardCategories } from './utils/cardCategories';
 import { partitionPrayerTasks } from './utils/prayerTasks';
@@ -186,13 +187,19 @@ export default function App() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current); }, []);
   const [deletedTasks, setDeletedTasks] = useState<{ ownerId: string; date: string; task: Task; deletedAt: string; expiresAt: number }[]>([]);
+  const [deletedCategories, setDeletedCategories] = useState<{ ownerId: string; snapshot: CategoryDeletionSnapshot; expiresAt: number }[]>([]);
   const [undoPaused, setUndoPaused] = useState(false);
-  useEffect(() => { setDeletedTasks([]); setUndoPaused(false); }, [currentUser?.id, support?.id]);
+  useEffect(() => { setDeletedTasks([]); setDeletedCategories([]); setUndoPaused(false); }, [currentUser?.id, support?.id]);
   useEffect(() => {
     if (!deletedTasks.length || undoPaused) return;
     const timer = setTimeout(() => setDeletedTasks(entries => entries.filter(entry => entry.expiresAt > Date.now())), Math.max(0, Math.min(...deletedTasks.map(entry => entry.expiresAt)) - Date.now()));
     return () => clearTimeout(timer);
   }, [deletedTasks, undoPaused]);
+  useEffect(() => {
+    if (!deletedCategories.length || undoPaused) return;
+    const timer = setTimeout(() => setDeletedCategories(entries => entries.filter(entry => entry.expiresAt > Date.now())), Math.max(0, Math.min(...deletedCategories.map(entry => entry.expiresAt)) - Date.now()));
+    return () => clearTimeout(timer);
+  }, [deletedCategories, undoPaused]);
 
   // Give the animated interlude time to appear after an explicit sign-in.
   const loginLoadingUntil = useRef(0);
@@ -408,6 +415,37 @@ export default function App() {
     refreshArchive();
   };
 
+  const handleDeleteCategory = (categoryId: string) => {
+    if (support) return;
+    const snapshot = deletePlannerCategoryAndTasks(categoryId);
+    setDeletedCategories(entries => [...entries, { ownerId: currentUser!.id, snapshot, expiresAt: Date.now() + 10000 }]);
+    setWorkspace(getPlannerWorkspace());
+    setTasks(getDayRecord(currentDate).tasks);
+    refreshArchive();
+  };
+
+  const handleUndoCategoryDeletion = () => {
+    if (support || getStoredAuth().user?.id !== currentUser?.id) return;
+    let restored = 0;
+    const remaining: typeof deletedCategories = [];
+    for (const entry of deletedCategories) {
+      if (entry.ownerId !== currentUser?.id || (!undoPaused && entry.expiresAt <= Date.now())) continue;
+      if (restorePlannerCategoryAndTasks(entry.snapshot)) restored++;
+      else remaining.push(entry);
+    }
+    setDeletedCategories(remaining);
+    setUndoPaused(false);
+    setWorkspace(getPlannerWorkspace());
+    setTasks(getDayRecord(currentDate).tasks);
+    refreshArchive();
+    showToast(
+      restored
+        ? (lang === 'ar' ? 'تمت استعادة المساحة ومهامها' : 'Space and its tasks restored')
+        : (lang === 'ar' ? 'تعذر التراجع؛ ربما تغيّرت المساحة أو مهامها.' : 'Cannot undo; the space or its tasks have changed.'),
+      restored > 0,
+    );
+  };
+
   const handleUndoDeletion = () => {
     if (support || getStoredAuth().user?.id !== currentUser?.id) return;
     let restored = 0;
@@ -600,7 +638,8 @@ export default function App() {
     return <>{supportBanner}<AuthLoadingScreen stage="preparing" lang={lang} theme={theme} /></>;
   }
 
-  const feedback = (toastMessage || deletedTasks.length > 0) && <div dir={lang === 'ar' ? 'rtl' : 'ltr'} className="fixed bottom-6 left-1/2 z-[110] flex w-max max-w-[calc(100%-2rem)] -translate-x-1/2 flex-col items-center gap-2">
+  const feedback = (toastMessage || deletedTasks.length > 0 || deletedCategories.length > 0) && <div dir={lang === 'ar' ? 'rtl' : 'ltr'} className="fixed bottom-6 left-1/2 z-[110] flex w-max max-w-[calc(100%-2rem)] -translate-x-1/2 flex-col items-center gap-2">
+    {deletedCategories.length > 0 && <div data-category-delete-undo onMouseEnter={() => setUndoPaused(true)} onMouseLeave={resumeUndoTimer} onFocus={() => setUndoPaused(true)} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) resumeUndoTimer(); }} className="flex max-w-full flex-wrap items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-2 text-xs text-slate-900 shadow-xl dark:border-white/15 dark:bg-[#171b23] dark:text-zinc-100"><span role="status">{lang === 'ar' ? `تم حذف المساحة «${deletedCategories[deletedCategories.length - 1].snapshot.categoryName}»` : `Space “${deletedCategories[deletedCategories.length - 1].snapshot.categoryName}” deleted`}</span><button type="button" onClick={handleUndoCategoryDeletion} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 font-semibold text-emerald-700 hover:bg-emerald-500/10 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-emerald-300"><Undo2 aria-hidden="true" size={14} />{lang === 'ar' ? 'تراجع' : 'Undo'}</button><button type="button" aria-label={lang === 'ar' ? 'إغلاق رسالة التراجع' : 'Dismiss undo'} onClick={() => { setDeletedCategories([]); setUndoPaused(false); }} className="flex h-9 w-7 items-center justify-center rounded-lg text-slate-400 focus-visible:outline-2 focus-visible:outline-emerald-500"><X aria-hidden="true" size={14} /></button></div>}
     {deletedTasks.length > 0 && <div data-delete-undo onMouseEnter={() => setUndoPaused(true)} onMouseLeave={resumeUndoTimer} onFocus={() => setUndoPaused(true)} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) resumeUndoTimer(); }} className="flex max-w-full flex-wrap items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-2 text-xs text-slate-900 shadow-xl dark:border-white/15 dark:bg-[#171b23] dark:text-zinc-100"><span role="status">{lang === 'ar' ? (deletedTasks.length === 1 ? 'تم حذف المهمة' : `تم حذف ${deletedTasks.length} من المهام`) : (deletedTasks.length === 1 ? 'Task deleted' : `${deletedTasks.length} tasks deleted`)}</span><button type="button" onClick={handleUndoDeletion} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 font-semibold text-emerald-700 hover:bg-emerald-500/10 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-emerald-300"><Undo2 aria-hidden="true" size={14} />{lang === 'ar' ? 'تراجع' : 'Undo'}</button><button type="button" aria-label={lang === 'ar' ? 'إغلاق رسالة التراجع' : 'Dismiss undo'} onClick={() => { setDeletedTasks([]); setUndoPaused(false); }} className="flex h-9 w-7 items-center justify-center rounded-lg text-slate-400 focus-visible:outline-2 focus-visible:outline-emerald-500"><X aria-hidden="true" size={14} /></button></div>}
     {toastMessage && <div role="status" className="flex max-w-full items-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-900 shadow-xl dark:border-white/15 dark:bg-[#121319] dark:text-zinc-100">{toastSuccess ? <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-500" /> : <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-500" />}<span>{toastMessage}</span>{toastAction && <button type="button" onClick={toastAction.onClick} className="min-h-9 rounded-lg px-2 font-bold text-emerald-700 hover:bg-emerald-500/10 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-emerald-300">{toastAction.label}</button>}</div>}
   </div>;
@@ -656,18 +695,22 @@ export default function App() {
             exporting={isExportingImage || exportRequested}
             onToggleLang={handleToggleLang}
             onToggleTheme={() => { const next = theme === 'dark' ? 'light' : 'dark'; setStoredTheme(next); setTheme(next); }}
-          ><DayMemories key={`${currentUser.id}-${currentDate}`} date={currentDate} lang={lang} onSaved={refreshArchive} /></MainHeader> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
+          ><>
+            <TodayProgress stats={stats} currentFilter={currentFilter} onFilterChange={setCurrentFilter} lang={lang} theme={theme} compact />
+            <DayMemories key={`${currentUser.id}-${currentDate}`} date={currentDate} lang={lang} onSaved={refreshArchive} />
+          </></MainHeader> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
           {support && <DateNavigation currentDate={currentDate} onDateChange={setCurrentDate} lang={lang} />}
 
           {/* Today Progress Section (bar & metrics) */}
-          <div id="onboarding-today-progress">
+          {support && <div id="onboarding-today-progress">
             <TodayProgress
               stats={stats}
               currentFilter={currentFilter}
               onFilterChange={setCurrentFilter}
               lang={lang}
+               theme={theme}
             />
-          </div>
+          </div>}
 
           <div id="onboarding-planner-area" className="space-y-4 sm:space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3"><div id="onboarding-view-switcher" role="group" aria-label={lang === 'ar' ? 'طريقة عرض المهام' : 'Planning view'} className="inline-flex max-w-full gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
@@ -679,12 +722,12 @@ export default function App() {
             </div>{!support && <button type="button" onClick={handleMoveRemaining} disabled={!tasks.some(canMoveTask)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-600 hover:border-emerald-500/40 focus-visible:outline-2 focus-visible:outline-emerald-500 disabled:opacity-40 dark:border-white/10 dark:bg-white/[.02] dark:text-zinc-300"><CalendarArrowUp aria-hidden="true" size={15} />{lang === 'ar' ? 'نقل غير المكتمل لليوم التالي' : 'Move unfinished to next day'}</button>}</div>
 
             <fieldset disabled={!!support} className="min-w-0 border-0 p-0 m-0">
-            {workspace.view === 'cards' ? <CardsDashboard cardColumns={cardColumns} currentDate={currentDate} archiveDays={archiveDays} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} filter={currentFilter} onFilterChange={setCurrentFilter}
+            {workspace.view === 'cards' ? <CardsDashboard cardColumns={cardColumns} currentDate={currentDate} archiveDays={archiveDays} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} theme={theme} filter={currentFilter} onFilterChange={setCurrentFilter}
               creationTarget={cardCreationTarget}
               onOpenAddTask={() => setIsTaskDestinationOpen(true)}
               onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
               onAddPrayer={handleCompletePrayer}
-              onStatusChange={handlePrayerStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} onMove={id => handleMoveTasks([id])} /> : <div className="space-y-6 sm:space-y-8">
+              onStatusChange={handlePrayerStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} onDeleteCategory={handleDeleteCategory} onMove={id => handleMoveTasks([id])} /> : <div className="space-y-6 sm:space-y-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div><h2 className="text-lg font-bold tracking-tight">{lang === 'ar' ? 'جدولك اليومي' : 'Your daily schedule'}</h2></div>
               {!support && <button type="button" onClick={() => setIsAddTaskOpen(true)} title={lang === 'ar' ? 'إضافة مهمة بوقت محدد إلى الجدول' : 'Add a scheduled task to the timeline'} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold transition-colors hover:border-emerald-400 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-emerald-400/40"><Plus aria-hidden="true" className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />{lang === 'ar' ? 'مهمة بوقت محدد' : 'Scheduled task'}</button>}
