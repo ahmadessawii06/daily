@@ -73,10 +73,27 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
   return (
     <header data-main-header className="relative isolate flex flex-col gap-1.5 overflow-visible rounded-2xl border border-slate-200/80 bg-white/80 px-3 py-2 shadow-lg shadow-slate-900/10 backdrop-blur-md sm:px-5 sm:py-2.5 dark:border-emerald-400/20 dark:bg-[#071714] dark:shadow-emerald-950/20">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-2xl">
-        <img src={headerBackgrounds[theme]} alt="" fetchPriority="high" decoding="async" className="absolute inset-0 h-full w-full object-cover object-center" />
-        <div className={`absolute inset-0 ${headerOverlay}`} />
-        <div className={`absolute inset-0 ${headerVerticalOverlay}`} />
-        <div className={`absolute inset-0 ${headerContrastOverlay}`} />
+        <img
+          src={headerBackgrounds.light}
+          alt=""
+          fetchPriority="high"
+          decoding="async"
+          className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-500 ease-in-out ${
+            theme === 'light' ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+        <img
+          src={headerBackgrounds.dark}
+          alt=""
+          fetchPriority="high"
+          decoding="async"
+          className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-500 ease-in-out ${
+            theme === 'dark' ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+        <div className={`absolute inset-0 ${headerOverlay} transition-colors duration-500`} />
+        <div className={`absolute inset-0 ${headerVerticalOverlay} transition-colors duration-500`} />
+        <div className={`absolute inset-0 ${headerContrastOverlay} transition-colors duration-500`} />
       </div>
       <div className="relative z-10 flex flex-col gap-1.5">
       <div className="main-header-top-bar">

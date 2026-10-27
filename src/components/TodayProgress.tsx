@@ -157,8 +157,23 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
       }`}
     >
       <div aria-hidden="true" className={`${compact ? 'hidden' : 'pointer-events-none absolute inset-0'}`}>
-        <img src={progressBackgrounds[theme]} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-35 dark:opacity-30" />
-        <div className="absolute inset-0 bg-white/65 dark:bg-[#07120f]/75" />
+        <img
+          src={progressBackgrounds.light}
+          alt=""
+          decoding="async"
+          className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-500 ease-in-out ${
+            theme === 'light' ? 'opacity-35' : 'opacity-0'
+          }`}
+        />
+        <img
+          src={progressBackgrounds.dark}
+          alt=""
+          decoding="async"
+          className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-500 ease-in-out ${
+            theme === 'dark' ? 'opacity-30' : 'opacity-0'
+          }`}
+        />
+        <div className="absolute inset-0 bg-white/65 dark:bg-[#07120f]/75 transition-colors duration-500" />
       </div>
       <div className={`relative z-10 flex flex-col ${compact ? 'gap-2' : 'gap-3'}`}>
         

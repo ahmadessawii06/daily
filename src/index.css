@@ -1086,3 +1086,144 @@ html.light [data-main-header] button:focus-visible {
   background-color: rgb(236 253 245 / 0.88);
   color: #047857;
 }
+
+/* ==========================================================================
+   Smooth Scrolling Experience
+   ========================================================================== */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+body,
+#root,
+main,
+dialog,
+[data-scrollable],
+.overflow-y-auto,
+.overflow-x-auto,
+.overflow-auto {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Elegant scrollbar aesthetics with smooth transitions */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 300ms ease;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(16, 185, 129, 0.55);
+}
+
+/* ==========================================================================
+   Smooth Theme Transitions
+   ========================================================================== */
+/* Active theme transition state: smoothly interpolates colors, borders, and shadows */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: background-color 380ms cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 380ms cubic-bezier(0.4, 0, 0.2, 1),
+              color 380ms cubic-bezier(0.4, 0, 0.2, 1),
+              fill 380ms cubic-bezier(0.4, 0, 0.2, 1),
+              stroke 380ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 380ms cubic-bezier(0.4, 0, 0.2, 1),
+              text-decoration-color 380ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Persistent smooth transitions for primary surfaces */
+body,
+#root,
+main,
+header,
+nav,
+section,
+dialog,
+.planner-card,
+.prayer-slot-card,
+.main-header-tools,
+[data-main-header],
+[data-prayer-card],
+[data-prayer-next],
+[data-top-focus],
+[data-today-progress] {
+  transition: background-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   Smooth Language Switching Experience
+   ========================================================================== */
+@keyframes mizan-lang-crossfade {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.997);
+    filter: blur(1px);
+  }
+  50% {
+    opacity: 0.88;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+}
+
+html.lang-transitioning #daily-track-container,
+html.lang-transitioning .account-page,
+html.lang-transitioning [data-screenshot-loading],
+html.lang-transitioning main {
+  animation: mizan-lang-crossfade 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform, filter;
+}
+
+/* Accessibility: respect user preferences for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body,
+  #root,
+  main,
+  dialog,
+  [data-scrollable],
+  .overflow-y-auto,
+  .overflow-x-auto,
+  .overflow-auto {
+    scroll-behavior: auto !important;
+  }
+
+  html.theme-transitioning,
+  html.theme-transitioning *,
+  html.theme-transitioning *::before,
+  html.theme-transitioning *::after {
+    transition: none !important;
+  }
+
+  html.lang-transitioning #daily-track-container,
+  html.lang-transitioning .account-page,
+  html.lang-transitioning main {
+    animation: none !important;
+  }
+}
+

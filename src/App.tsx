@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   formatShortDate,
   toLatinDigits,
@@ -212,9 +212,24 @@ export default function App() {
 
   useEffect(() => { if (currentUser) preloadChallengeCompleteSound(); }, [currentUser?.id]);
 
-  // Apply the active account?s theme to the document.
+  const isFirstThemeRender = useRef(true);
+  // Apply the active account's theme to the document with smooth transitions.
   useEffect(() => {
     const root = document.documentElement;
+    if (isFirstThemeRender.current) {
+      isFirstThemeRender.current = false;
+      if (theme === 'dark') {
+        root.classList.add('dark');
+        root.classList.remove('light');
+      } else {
+        root.classList.add('light');
+        root.classList.remove('dark');
+      }
+      return;
+    }
+    root.classList.remove('theme-transitioning');
+    void root.offsetWidth;
+    root.classList.add('theme-transitioning');
     if (theme === 'dark') {
       root.classList.add('dark');
       root.classList.remove('light');
@@ -222,6 +237,10 @@ export default function App() {
       root.classList.add('light');
       root.classList.remove('dark');
     }
+    const timer = setTimeout(() => {
+      root.classList.remove('theme-transitioning');
+    }, 450);
+    return () => clearTimeout(timer);
   }, [theme]);
 
   useEffect(() => {
@@ -259,9 +278,22 @@ export default function App() {
     };
   }, [currentDate, currentUser?.id]);
 
+  const isFirstLangRender = useRef(true);
   useEffect(() => {
-    document.documentElement.setAttribute('lang', lang);
-    document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    const root = document.documentElement;
+    root.setAttribute('lang', lang);
+    root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    if (isFirstLangRender.current) {
+      isFirstLangRender.current = false;
+      return;
+    }
+    root.classList.remove('lang-transitioning');
+    void root.offsetWidth;
+    root.classList.add('lang-transitioning');
+    const timer = setTimeout(() => {
+      root.classList.remove('lang-transitioning');
+    }, 380);
+    return () => clearTimeout(timer);
   }, [lang]);
 
   useEffect(() => {
