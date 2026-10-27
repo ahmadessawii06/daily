@@ -8,23 +8,23 @@ import { useNablusPrayerTimes } from '../hooks/useNablusPrayerTimes';
 import { getDateTimeInPrayerTimeZone, getNextPrayerSchedule, getPrayerIntervalProgress, getPrayerTimeZoneDate, isPrayerUpcomingOnDate } from '../utils/prayerSchedule';
 const prayerImagesByTheme: Record<Theme, Record<DailyPrayer['id'], string>> = {
   dark: {
-    fajr: new URL('../assets/images/prayers/fajr-dark.png', import.meta.url).href,
-    dhuhr: new URL('../assets/images/prayers/dhuhr-dark.png', import.meta.url).href,
-    asr: new URL('../assets/images/prayers/asr-dark.png', import.meta.url).href,
-    maghrib: new URL('../assets/images/prayers/maghrib-dark.png', import.meta.url).href,
-    isha: new URL('../assets/images/prayers/isha-dark.png', import.meta.url).href,
+    fajr: new URL('../assets/images/prayers/fajr-dark.webp', import.meta.url).href,
+    dhuhr: new URL('../assets/images/prayers/dhuhr-dark.webp', import.meta.url).href,
+    asr: new URL('../assets/images/prayers/asr-dark.webp', import.meta.url).href,
+    maghrib: new URL('../assets/images/prayers/maghrib-dark.webp', import.meta.url).href,
+    isha: new URL('../assets/images/prayers/isha-dark.webp', import.meta.url).href,
   },
   light: {
-    fajr: new URL('../assets/images/prayers/fajr-light.png', import.meta.url).href,
-    dhuhr: new URL('../assets/images/prayers/dhuhr-light.png', import.meta.url).href,
-    asr: new URL('../assets/images/prayers/asr-light.png', import.meta.url).href,
-    maghrib: new URL('../assets/images/prayers/maghrib-light.png', import.meta.url).href,
-    isha: new URL('../assets/images/prayers/isha-light.png', import.meta.url).href,
+    fajr: new URL('../assets/images/prayers/fajr-light.webp', import.meta.url).href,
+    dhuhr: new URL('../assets/images/prayers/dhuhr-light.webp', import.meta.url).href,
+    asr: new URL('../assets/images/prayers/asr-light.webp', import.meta.url).href,
+    maghrib: new URL('../assets/images/prayers/maghrib-light.webp', import.meta.url).href,
+    isha: new URL('../assets/images/prayers/isha-light.webp', import.meta.url).href,
   },
 };
 const mosqueImages: Record<Theme, string> = {
-  dark: new URL('../assets/images/prayers/mosque-dark.png', import.meta.url).href,
-  light: new URL('../assets/images/prayers/mosque-light.png', import.meta.url).href,
+  dark: new URL('../assets/images/prayers/mosque-dark.webp', import.meta.url).href,
+  light: new URL('../assets/images/prayers/mosque-light.webp', import.meta.url).href,
 };
 
 const prayerVerses = [
@@ -151,7 +151,7 @@ export function PrayerCard({ currentDate, slots, lang, theme = 'dark', onAddPray
   return (
     <article id="onboarding-prayer-card" data-prayer-card data-prayer-showcase aria-label={ar ? 'الصلوات الخمس' : 'Five daily prayers'} className="prayer-card-shell col-span-full min-w-0 overflow-hidden rounded-3xl border border-emerald-400/25 bg-[#071714] text-white shadow-2xl shadow-emerald-950/10">
       <header className="relative isolate flex min-h-20 items-center justify-between gap-3 overflow-hidden border-b border-emerald-300/10 px-4 py-3 sm:px-6">
-        <img src={mosqueImage} alt="" aria-hidden="true" className="absolute inset-0 -z-20 h-full w-full object-cover object-[center_42%] opacity-40" />
+        <img src={mosqueImage} alt="" aria-hidden="true" loading="lazy" decoding="async" className="absolute inset-0 -z-20 h-full w-full object-cover object-[center_42%] opacity-40" />
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-l from-[#041c18]/85 via-[#06221d]/55 to-[#06110f]/20" />
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-300/25 bg-emerald-400/10 text-amber-300">
@@ -175,7 +175,7 @@ export function PrayerCard({ currentDate, slots, lang, theme = 'dark', onAddPray
 
       <div className="prayer-card-content space-y-3 p-3 sm:space-y-4 sm:p-4">
         <section data-prayer-next dir={ar ? 'rtl' : 'ltr'} className="prayer-next-layout relative isolate min-w-0 items-center overflow-hidden rounded-2xl border border-teal-400/40 bg-[#06221d] px-4 py-4 shadow-[0_0_40px_-24px_rgba(16,229,200,0.45)] sm:px-5 sm:py-4 lg:px-8 lg:py-5">
-          <img src={mosqueImage} alt="" aria-hidden="true" className="absolute inset-0 -z-20 h-full w-full object-cover object-[center_52%] opacity-90" />
+          <img src={mosqueImage} alt="" aria-hidden="true" loading="lazy" decoding="async" className="absolute inset-0 -z-20 h-full w-full object-cover object-[center_52%] opacity-90" />
           <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(270deg,rgba(1,18,18,.94)_0%,rgba(2,26,25,.78)_38%,rgba(3,26,25,.16)_100%),linear-gradient(0deg,rgba(2,14,14,.45),transparent_70%)]" />
           {nextPrayer ? <>
             <div data-prayer-next-info className="flex min-w-0 items-center justify-start gap-4 text-start">
@@ -238,7 +238,7 @@ export function PrayerCard({ currentDate, slots, lang, theme = 'dark', onAddPray
             className={`prayer-slot-card group relative isolate min-w-0 overflow-hidden rounded-2xl border shadow-md shadow-black/15 transition-[border-color,box-shadow,transform] duration-300 ease-out hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-teal-300/60 motion-reduce:transition-none ${
               status === 'done' ? 'border-[#18BFA5]/65 hover:shadow-[0_0_18px_rgba(24,191,165,0.22)]' : status === 'not-done' ? 'border-[#C65B76]/65 hover:shadow-[0_0_18px_rgba(198,91,118,0.22)]' : 'border-white/20 hover:shadow-[0_0_18px_rgba(255,255,255,0.12)]'
             }`}>
-            <img src={prayerImages[prayer.id]} alt="" aria-hidden="true" className="absolute inset-0 z-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 motion-reduce:transition-none" />
+            <img src={prayerImages[prayer.id]} alt="" aria-hidden="true" loading="lazy" decoding="async" className="absolute inset-0 z-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 motion-reduce:transition-none" />
             <div aria-hidden="true" className="absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(2,8,24,.12)_0%,rgba(2,8,24,.08)_36%,rgba(1,12,16,.78)_73%,rgba(1,12,16,.97)_100%)]" />
             {isUpcomingPrayer && <div data-prayer-upcoming-outline aria-hidden="true" className="pointer-events-none absolute inset-[2px] z-20 rounded-2xl border-2 border-[#2DD4BF] shadow-[inset_0_0_0_1px_rgba(45,212,191,0.28),0_0_8px_rgba(45,212,191,0.18)]" />}
             <div className="prayer-slot-content relative z-10 flex flex-col items-center px-3 py-3.5 text-center sm:px-4 sm:py-4">

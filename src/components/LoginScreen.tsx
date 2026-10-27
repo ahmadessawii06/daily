@@ -19,7 +19,7 @@ import {
 import { User, Language, Theme } from '../types';
 import { loginApi, registerApi } from '../services/api';
 import { saveStoredAuth } from '../utils/auth';
-import loginBackground from '../assets/images/login/login-background.jpg';
+import loginBackground from '../assets/images/login/login-background.webp';
 import { AuthLoadingScreen, type AuthLoadingStage } from './AuthLoadingScreen';
 import { readStoredWorkspace, storeWorkspace } from '../utils/workspace';
 import { mergeWorkspace } from '../shared/workspace';

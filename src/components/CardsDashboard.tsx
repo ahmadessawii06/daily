@@ -16,33 +16,33 @@ import { partitionPrayerTasks } from '../utils/prayerTasks';
 import { PrayerCard } from './PrayerCard';
 
 const emptySpaceTextures: Record<Theme, string> = {
-  dark: new URL('../assets/images/home/dashboard-negative-space-dark.png', import.meta.url).href,
-  light: new URL('../assets/images/home/dashboard-negative-space-light.png', import.meta.url).href,
+  dark: new URL('../assets/images/home/dashboard-negative-space-dark.webp', import.meta.url).href,
+  light: new URL('../assets/images/home/dashboard-negative-space-light.webp', import.meta.url).href,
 };
 const categoryBanners: Record<string, Record<Language, string>> = {
   study: {
-    ar: new URL('../assets/images/cards/study-rtl.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/study-ltr.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/study-rtl.webp', import.meta.url).href,
+    en: new URL('../assets/images/cards/study-ltr.webp', import.meta.url).href,
   },
   work: {
-    ar: new URL('../assets/images/cards/work-rtl.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/work-ltr.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/work-rtl.webp', import.meta.url).href,
+    en: new URL('../assets/images/cards/work-ltr.webp', import.meta.url).href,
   },
   ideas: {
-    ar: new URL('../assets/images/cards/ideas-rtl.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/ideas-ltr.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/ideas-rtl.webp', import.meta.url).href,
+    en: new URL('../assets/images/cards/ideas-ltr.webp', import.meta.url).href,
   },
   money: {
-    ar: new URL('../assets/images/cards/money-rtl.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/money-ltr.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/money-rtl.webp', import.meta.url).href,
+    en: new URL('../assets/images/cards/money-ltr.webp', import.meta.url).href,
   },
   health: {
-    ar: new URL('../assets/images/cards/health-rtl.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/health-ltr.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/health-rtl.webp', import.meta.url).href,
+    en: new URL('../assets/images/cards/health-ltr.webp', import.meta.url).href,
   },
   rest: {
-    ar: new URL('../assets/images/cards/personal-rtl.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/personal-ltr.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/personal-rtl.webp', import.meta.url).href,
+    en: new URL('../assets/images/cards/personal-ltr.webp', import.meta.url).href,
   },
 };
 
@@ -176,7 +176,7 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
     <article aria-label={name} data-category-id={category.id} data-card-complete={isComplete} style={{ ...colorStyle, '--category-span-md': gridSpans.md, '--category-span-lg': gridSpans.lg, '--category-span-xl': gridSpans.xl } as CSSProperties} className="dashboard-category-card planner-card relative z-10 min-w-0 overflow-hidden rounded-card border border-t-[3px] shadow-2xs">
       <div data-category-banner={banner ? category.id : undefined} className={`relative isolate flex items-center gap-3 overflow-hidden p-4 ${banner ? 'planner-card-banner text-white' : ''}`}>
         {banner && <>
-          <img src={banner} alt="" aria-hidden="true" loading="eager" decoding="async" className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center" />
+          <img src={banner} alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center" />
           <span aria-hidden="true" className="planner-card-image-shade pointer-events-none absolute inset-0 z-10" />
         </>}
         <div className={`relative z-20 flex min-w-0 flex-1 items-center gap-3 ${banner ? 'rounded-xl bg-gradient-to-r from-black/65 via-black/55 to-black/65 px-2 py-1' : ''}`}>

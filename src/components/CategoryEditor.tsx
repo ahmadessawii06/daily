@@ -7,33 +7,33 @@ import { CATEGORY_ICONS } from '../shared/workspace';
 export const CARD_ICONS = { book: BookOpen, briefcase: Briefcase, heart: Heart, leaf: Leaf, moon: Sparkles, layers: DollarSign };
 const previewBanners: Partial<Record<CategoryIcon, Record<Language, string>>> = {
   book: {
-    ar: new URL('../assets/images/cards/study-rtl.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/study-ltr.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/study-rtl.webp', import.meta.url).href,
+    en: new URL('../assets/images/cards/study-ltr.webp', import.meta.url).href,
   },
   briefcase: {
-    ar: new URL('../assets/images/cards/work-rtl.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/work-ltr.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/work-rtl.webp', import.meta.url).href,
+    en: new URL('../assets/images/cards/work-ltr.webp', import.meta.url).href,
   },
   heart: {
-    ar: new URL('../assets/images/cards/health-rtl.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/health-ltr.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/health-rtl.webp', import.meta.url).href,
+    en: new URL('../assets/images/cards/health-ltr.webp', import.meta.url).href,
   },
   leaf: {
-    ar: new URL('../assets/images/cards/personal-rtl.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/personal-ltr.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/personal-rtl.webp', import.meta.url).href,
+    en: new URL('../assets/images/cards/personal-ltr.webp', import.meta.url).href,
   },
   moon: {
-    ar: new URL('../assets/images/cards/ideas-rtl.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/ideas-ltr.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/ideas-rtl.webp', import.meta.url).href,
+    en: new URL('../assets/images/cards/ideas-ltr.webp', import.meta.url).href,
   },
   layers: {
-    ar: new URL('../assets/images/cards/money-rtl.png', import.meta.url).href,
-    en: new URL('../assets/images/cards/money-ltr.png', import.meta.url).href,
+    ar: new URL('../assets/images/cards/money-rtl.webp', import.meta.url).href,
+    en: new URL('../assets/images/cards/money-ltr.webp', import.meta.url).href,
   },
 };
 const defaultPreviewBanners: Record<Theme, string> = {
-  dark: new URL('../assets/images/home/daily-progress-abstract-dark.png', import.meta.url).href,
-  light: new URL('../assets/images/home/daily-progress-abstract-light.png', import.meta.url).href,
+  dark: new URL('../assets/images/home/daily-progress-abstract-dark.webp', import.meta.url).href,
+  light: new URL('../assets/images/home/daily-progress-abstract-light.webp', import.meta.url).href,
 };
 const iconNames = { book: ['كتاب', 'Book'], briefcase: ['شنطة', 'Work bag'], heart: ['صحة', 'Health'], leaf: ['حياة', 'Life'], moon: ['أفكار', 'Ideas'], layers: ['مال', 'Money'] };
 

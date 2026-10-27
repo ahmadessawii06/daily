@@ -8,8 +8,8 @@ import { ArabicLanguageIcon, EnglishLanguageIcon } from './LanguageIcons';
 import { WeatherIndicator } from './WeatherIndicator';
 
 const headerBackgrounds: Record<Theme, string> = {
-  dark: new URL('../assets/images/home/night-header-dark.png', import.meta.url).href,
-  light: new URL('../assets/images/home/night-header-light.png', import.meta.url).href,
+  dark: new URL('../assets/images/home/night-header-dark.webp', import.meta.url).href,
+  light: new URL('../assets/images/home/night-header-light.webp', import.meta.url).href,
 };
 
 const getLiveClock = (lang: Language) => {
@@ -73,7 +73,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
   return (
     <header data-main-header className="relative isolate flex flex-col gap-1.5 overflow-visible rounded-2xl border border-slate-200/80 bg-white/80 px-3 py-2 shadow-lg shadow-slate-900/10 backdrop-blur-md sm:px-5 sm:py-2.5 dark:border-emerald-400/20 dark:bg-[#071714] dark:shadow-emerald-950/20">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-2xl">
-        <img src={headerBackgrounds[theme]} alt="" className="absolute inset-0 h-full w-full object-cover object-center" />
+        <img src={headerBackgrounds[theme]} alt="" fetchPriority="high" decoding="async" className="absolute inset-0 h-full w-full object-cover object-center" />
         <div className={`absolute inset-0 ${headerOverlay}`} />
         <div className={`absolute inset-0 ${headerVerticalOverlay}`} />
         <div className={`absolute inset-0 ${headerContrastOverlay}`} />

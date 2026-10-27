@@ -4,8 +4,8 @@ import { DayStats, Language, StatusFilter, Theme } from '../types';
 import { StatCircle } from './StatCircle';
 
 const progressBackgrounds: Record<Theme, string> = {
-  dark: new URL('../assets/images/home/daily-progress-abstract-dark.png', import.meta.url).href,
-  light: new URL('../assets/images/home/daily-progress-abstract-light.png', import.meta.url).href,
+  dark: new URL('../assets/images/home/daily-progress-abstract-dark.webp', import.meta.url).href,
+  light: new URL('../assets/images/home/daily-progress-abstract-light.webp', import.meta.url).href,
 };
 
 interface TodayProgressProps {
