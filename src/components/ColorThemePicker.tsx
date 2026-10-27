@@ -19,7 +19,7 @@ export function ColorThemePicker({ lang, className }: { lang: Language; classNam
   }, []);
   return <>
     <button id="header-palette-btn" type="button" popoverTarget={id} onClick={() => setSelected(readColorTheme())} aria-label={ar ? 'ثيمات الألوان' : 'Color themes'} title={ar ? 'ثيمات الألوان' : 'Color themes'} aria-haspopup="dialog" className={className}>
-      <Palette aria-hidden="true" size={18} className="motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:-rotate-12" />
+      <Palette aria-hidden="true" size={18} strokeWidth={1.8} className="motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:-rotate-12" />
     </button>
     <div id={id} ref={panel} popover="manual" role="dialog" aria-labelledby={`${id}-title`} dir={ar ? 'rtl' : 'ltr'} className="theme-dock fixed inset-y-0 left-auto right-0 m-0 h-dvh max-h-dvh w-[min(310px,100%)] overflow-hidden rounded-none rounded-l-2xl border border-slate-200 bg-slate-50 p-2 text-slate-900 shadow-2xl dark:border-white/15 dark:bg-[#101219] dark:text-zinc-100 sm:p-2">
       <div className="sticky top-0 z-10 mb-1 flex items-center bg-slate-50 dark:bg-[#101219] justify-between gap-3 border-b border-slate-200 px-2 pb-2 pt-1 dark:border-white/10"><div className="space-y-1"><h2 id={`${id}-title`} className="flex items-center gap-2 text-sm font-bold"><Palette size={16} />{ar ? 'ثيم مساحتك' : 'Your space, your style'}</h2><p role="status" className="text-[11px] text-slate-500 dark:text-zinc-400">{ar ? 'التغيير مباشر والحفظ تلقائي' : 'Applied live. Saved automatically.'}</p></div></div>

@@ -254,6 +254,44 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
   gap: 0.75rem;
 }
 
+.main-header-secondary-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+}
+
+[data-main-header] {
+  margin-bottom: var(--date-picker-clearance, 0px);
+}
+
+.main-header-clock {
+  grid-column: 1;
+  justify-self: start;
+}
+
+@media (min-width: 640px) and (max-width: 1100px) {
+  .main-header-secondary-bar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .main-header-secondary-date {
+    grid-column: 2;
+  }
+}
+
+.main-header-secondary-date {
+  grid-column: 2;
+  justify-self: end;
+}
+
+.main-header-actions {
+  grid-column: 3;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+}
+
 @keyframes calendar-in {
   from { opacity: 0; transform: translateY(-4px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
@@ -271,7 +309,7 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 @media (max-width: 639px) {
@@ -283,6 +321,34 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
     grid-column: 1 / -1;
     order: 3;
     width: 100%;
+  }
+
+  .main-header-actions {
+    grid-column: 2;
+  }
+
+  .main-header-secondary-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .main-header-clock,
+  .main-header-secondary-date {
+    grid-column: 1;
+    justify-self: stretch;
+  }
+
+  .main-header-clock {
+    width: 100%;
+  }
+
+  .main-header-clock > nav,
+  .main-header-secondary-date > nav {
+    width: 100%;
+  }
+
+  .main-header-secondary-date {
+    display: flex;
+    justify-content: flex-end;
   }
 }
 /* Compact header progress: keep the hero ring premium in both themes. */

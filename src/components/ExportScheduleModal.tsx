@@ -20,7 +20,7 @@ import {
 
 
 import { DayStats, Language, Task } from '../types';
-import { formatHeaderDate, formatTime12h } from '../utils/date';
+import { formatHeaderDate, formatTime12h, toLatinDigits } from '../utils/date';
 import { ScreenshotLoadingScreen } from './ScreenshotLoadingScreen';
 
 interface ExportScheduleModalProps {
@@ -525,7 +525,7 @@ export const ExportScheduleModal: React.FC<ExportScheduleModalProps> = ({
                 <span>{lang === 'ar' ? 'منصة ميزان · Mizan' : 'Mizan Routine'}</span>
               </div>
               <span className="font-mono text-[10px] opacity-80">
-                {new Date().toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}
+                {toLatinDigits(new Date().toLocaleDateString(lang === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US-u-nu-latn'))}
               </span>
             </div>
           </div>

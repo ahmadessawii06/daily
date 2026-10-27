@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight, Loader2, Search, ShieldCheck, Users, X } from 'lucide-react';
 import { requestApi } from '../services/api';
 import { hasPermission, ROLES, rolePermissions, type AdminUser, type AuditEntry, type Permission, type Role } from '../shared/admin';
 import type { Language, User } from '../types';
+import { toLatinDigits } from '../utils/date';
 
 const field = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-normal text-slate-900 outline-none focus:border-emerald-500 dark:border-white/10 dark:bg-[#0c1016] dark:text-zinc-100';
 const button = 'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:hover:bg-white/5';
@@ -23,7 +24,7 @@ export function AdminPanel({ currentUser, lang, onClose, onImpersonate }: { curr
   const [action, setAction] = useState<Action | null>(null), [reason, setReason] = useState(''), [confirm, setConfirm] = useState(''), [busy, setBusy] = useState(false), [actionError, setActionError] = useState('');
   const dialogRef = useRef<HTMLDialogElement>(null);
   const can = (p: Permission) => hasPermission(currentUser.role, p);
-  const stamp = (s?: string) => s ? new Date(s).toLocaleString(ar ? 'ar-PS' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+  const stamp = (s?: string) => s ? toLatinDigits(new Date(s).toLocaleString(ar ? 'ar-PS-u-nu-latn' : 'en-GB-u-nu-latn', { dateStyle: 'medium', timeStyle: 'short' })) : '—';
   const statusText = (s: string) => s === 'active' ? t('نشط', 'Active') : s === 'deleted' ? t('محذوف', 'Deleted') : t('موقوف', 'Suspended');
   useEffect(() => {
     let alive = true;
@@ -91,3 +92,4 @@ export function AdminPanel({ currentUser, lang, onClose, onImpersonate }: { curr
     {action && target && <dialog ref={dialogRef} aria-labelledby="admin-action-title" onCancel={e => { if (busy) e.preventDefault(); else setAction(null); }} className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl backdrop:bg-black/70 dark:border-white/10 dark:bg-[#11161e] dark:text-white"><form onSubmit={execute} className="space-y-5"><div className="flex items-start justify-between gap-4"><div><h2 id="admin-action-title" className="font-bold">{action.title}</h2><p className="mt-2 text-sm text-slate-500 dark:text-zinc-400"><bdi>{target.name || target.username} (@{target.username})</bdi></p></div><button type="button" disabled={busy} className={button} aria-label={t('إغلاق', 'Close')} onClick={() => setAction(null)}><X size={16} /></button></div>{action.op === 'delete' && <><p className="text-sm leading-7 text-rose-600 dark:text-rose-300">{t('سيُمنع الدخول وتُلغى الجلسات. تبقى المهام والبيانات محفوظة ويمكن استعادة الحساب لاحقًا.', 'Sign-in will be blocked and sessions revoked. Tasks and data remain stored and the account can be restored.')}</p><label className="block space-y-2 text-xs"><span>{t('اكتب اسم المستخدم للتأكيد', 'Type the username to confirm')}</span><input className={field} autoComplete="off" required value={confirm} onChange={e => setConfirm(e.target.value)} /></label></>}{action.op === 'impersonate' && <p className="text-sm leading-7 text-slate-500 dark:text-zinc-400">{t('جلسة دعم للعرض فقط لمدة 15 دقيقة. سيظهر شريط دائم ويمكن العودة لحسابك في أي وقت.', 'A read-only support session lasts 15 minutes. A persistent banner lets you return to your account at any time.')}</p>}<label className="block space-y-2 text-xs"><span>{t('سبب الإجراء', 'Reason for this action')}</span><textarea required minLength={5} maxLength={500} rows={3} className={field} value={reason} onChange={e => setReason(e.target.value)} placeholder={t('سبب واضح دون كلمات مرور أو مفاتيح سرية', 'Explain the reason. Do not include passwords or tokens.')} /></label>{actionError && <p role="alert" className="text-sm text-rose-500">{actionError}</p>}<div className="flex gap-3"><button type="submit" disabled={busy || reason.trim().length < 5 || (action.op === 'delete' && confirm !== target.username)} className={`${button} ${action.op === 'delete' ? 'bg-rose-600 text-white hover:!bg-rose-700' : 'bg-emerald-600 text-white hover:!bg-emerald-700'}`}>{busy && <Loader2 size={15} className="animate-spin" />}{t('تأكيد العملية', 'Confirm action')}</button><button type="button" disabled={busy} className={button} onClick={() => setAction(null)}>{t('إلغاء', 'Cancel')}</button></div></form></dialog>}
   </div>;
 }
+

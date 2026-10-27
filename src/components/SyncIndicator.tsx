@@ -88,7 +88,7 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId, inte
 
   const content = <>
       <span className={`w-2 h-2 rounded-full ${current.dot} shrink-0`} />
-      <Icon aria-hidden="true" className={`w-3.5 h-3.5 shrink-0 ${current.iconClass || ''}`} />
+      <Icon aria-hidden="true" strokeWidth={1.8} className={`w-3.5 h-3.5 shrink-0 ${current.iconClass || ''}`} />
       <span className={compact ? 'hidden sm:inline' : undefined}>{current.text}</span>
       {syncInfo.pendingCount > 0 && (
         <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] font-bold">
