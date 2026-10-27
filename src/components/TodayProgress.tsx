@@ -136,10 +136,10 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
       ? `سورة ${arName} • ${arNumber.includes('–') ? 'الآيات' : 'الآية'} ${arNumber}`
       : `Surah ${enName} • ${enNumber.includes('–') ? 'Verses' : 'Verse'} ${enNumber}`;
     return (
-      <p className="mt-2 flex items-center justify-center gap-2 text-[15px] font-medium leading-5 text-[#8b6d2a] dark:text-[#D5B779]">
-        <span aria-hidden="true" className="h-px w-5 bg-[#8b6d2a]/35 dark:bg-[#D5B779]/35" />
+      <p className="mt-2 flex items-center justify-center gap-2 text-[15px] font-semibold leading-5 text-[#71551f] dark:text-[#E8D39C]">
+        <span aria-hidden="true" className="h-px w-5 bg-[#8b6d2a]/45 dark:bg-[#E8D39C]/45" />
         <span>{sourceText}</span>
-        <span aria-hidden="true" className="h-px w-5 bg-[#8b6d2a]/35 dark:bg-[#D5B779]/35" />
+        <span aria-hidden="true" className="h-px w-5 bg-[#8b6d2a]/45 dark:bg-[#E8D39C]/45" />
       </p>
     );
   };
@@ -226,7 +226,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
         )}
 
         {/* Main Section: Circular Progress Gauge + 4 Circular Metric Gauges (دوائر تفاعلية بدلاً من البطاقات) */}
-        <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-3xl grid-cols-5 items-center gap-1 rounded-2xl border border-slate-200/60 bg-white/10 px-1 py-1 shadow-[0_10px_28px_rgba(15,23,42,0.04)] backdrop-blur-[2px] dark:border-teal-400/25 dark:bg-[#06221d]/70 dark:shadow-[0_10px_32px_rgba(0,0,0,0.35)] dark:backdrop-blur-md' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
+        <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-3xl grid-cols-5 items-center gap-1 rounded-2xl border border-white/30 bg-white/25 px-1 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_10px_28px_rgba(15,23,42,0.08)] backdrop-blur-md dark:border-white/[0.16] dark:bg-[#06221d]/85 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_32px_rgba(0,0,0,0.4)] dark:backdrop-blur-md' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
           
           {/* Main Circular Progress Gauge */}
           <div data-progress-main className={`${compact ? 'col-start-3 row-start-1 w-auto justify-self-center' : 'w-full justify-center gap-3 sm:gap-4 md:w-auto md:flex-1 md:justify-start'} flex min-w-0 shrink-0 items-center`}>
@@ -244,7 +244,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={compact ? '8' : '7'}
-                  className="text-slate-200 dark:text-zinc-300/75"
+                  className="text-emerald-900/20 dark:text-emerald-100/30"
                 />
 
                 {/* Active progress arc (pure green) */}
@@ -259,7 +259,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                     strokeDasharray={circumference}
                     strokeDashoffset={strokeDashoffset}
                     strokeLinecap="round"
-                    className="transition-all duration-700 ease-out"
+                    className="drop-shadow-[0_0_5px_rgba(16,229,136,0.28)] transition-[stroke-dashoffset] duration-700 ease-out motion-reduce:transition-none"
                   />
                 )}
               </svg>
@@ -322,34 +322,11 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               isActive={currentFilter === 'done'}
               onClick={() => onFilterChange?.(currentFilter === 'done' ? 'all' : 'done')}
               compact={compact}
+              className={compact ? 'order-2 rtl:order-2' : ''}
               subLabel={stats.total > 0 ? `${Math.round((stats.done / stats.total) * 100)}%` : '0%'}
             />
 
-            {/* 2. Remaining (دائرة متبقية) */}
-            <StatCircle
-              label={lang === 'ar' ? 'متبقية' : 'Remaining'}
-              value={remaining}
-              percentage={stats.total > 0 ? (remaining / stats.total) * 100 : 0}
-              color="amber"
-              isActive={currentFilter === 'pending'}
-              onClick={() => onFilterChange?.(currentFilter === 'pending' ? 'all' : 'pending')}
-              compact={compact}
-              subLabel={stats.total > 0 ? `${Math.round((remaining / stats.total) * 100)}%` : '0%'}
-            />
-
-            {/* 3. Not Done (دائرة غير منجزة) */}
-            <StatCircle
-              label={lang === 'ar' ? 'غير منجزة' : 'Not Done'}
-              value={stats.notDone}
-              percentage={stats.total > 0 ? (stats.notDone / stats.total) * 100 : 0}
-              color="rose"
-              isActive={currentFilter === 'not-done'}
-              onClick={() => onFilterChange?.(currentFilter === 'not-done' ? 'all' : 'not-done')}
-              compact={compact}
-              subLabel={stats.total > 0 ? `${Math.round((stats.notDone / stats.total) * 100)}%` : '0%'}
-            />
-
-            {/* 4. Total (دائرة الإجمالي) */}
+            {/* 2. Total (دائرة الإجمالي) — adjacent to the center gauge in RTL */}
             <StatCircle
               label={lang === 'ar' ? 'الإجمالي' : 'Total'}
               value={stats.total}
@@ -358,7 +335,34 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               isActive={currentFilter === 'all'}
               onClick={() => onFilterChange?.('all')}
               compact={compact}
+              className={compact ? 'order-1 rtl:order-1' : ''}
               subLabel={lang === 'ar' ? 'مهمة' : 'tasks'}
+            />
+
+            {/* 3. Remaining (دائرة متبقية) */}
+            <StatCircle
+              label={lang === 'ar' ? 'متبقية' : 'Remaining'}
+              value={remaining}
+              percentage={stats.total > 0 ? (remaining / stats.total) * 100 : 0}
+              color="amber"
+              isActive={currentFilter === 'pending'}
+              onClick={() => onFilterChange?.(currentFilter === 'pending' ? 'all' : 'pending')}
+              compact={compact}
+              className={compact ? 'order-3 rtl:order-3' : ''}
+              subLabel={stats.total > 0 ? `${Math.round((remaining / stats.total) * 100)}%` : '0%'}
+            />
+
+            {/* 4. Not Done (دائرة غير منجزة) */}
+            <StatCircle
+              label={lang === 'ar' ? 'غير منجزة' : 'Not Done'}
+              value={stats.notDone}
+              percentage={stats.total > 0 ? (stats.notDone / stats.total) * 100 : 0}
+              color="rose"
+              isActive={currentFilter === 'not-done'}
+              onClick={() => onFilterChange?.(currentFilter === 'not-done' ? 'all' : 'not-done')}
+              compact={compact}
+              className={compact ? 'order-4 rtl:order-4' : ''}
+              subLabel={stats.total > 0 ? `${Math.round((stats.notDone / stats.total) * 100)}%` : '0%'}
             />
 
           </div>

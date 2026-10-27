@@ -102,22 +102,22 @@ export const DateNavigation: React.FC<DateNavigationProps> = ({ currentDate, onD
       id="onboarding-date-navigation"
       aria-label={ar ? 'التنقل بين الأيام' : 'Day navigation'}
       dir={ar ? 'rtl' : 'ltr'}
-      className="relative z-20 inline-flex max-w-full items-center gap-1 rounded-2xl border border-white/70 bg-white/55 p-1.5 text-xs shadow-sm backdrop-blur-md select-none dark:border-white/[.1] dark:bg-white/[.06]"
+      className="relative z-20 inline-flex max-w-full items-center gap-1 rounded-2xl border border-white/70 bg-white/55 p-1.5 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.55),0_2px_8px_rgba(38,63,48,0.08)] backdrop-blur-md select-none dark:border-white/[.16] dark:bg-white/[.06] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_2px_8px_rgba(0,0,0,0.18)]"
       ref={calendarRef}
     >
-      <button type="button" onClick={() => onDateChange(addDays(currentDate, -1))} aria-label={ar ? 'اليوم السابق' : 'Previous day'} title={ar ? 'اليوم السابق' : 'Previous day'} className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-slate-500 transition-[background-color,color,transform] hover:bg-white/70 hover:text-emerald-700 active:scale-95 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-emerald-300">
+      <button type="button" onClick={() => onDateChange(addDays(currentDate, -1))} aria-label={ar ? 'اليوم السابق' : 'Previous day'} title={ar ? 'اليوم السابق' : 'Previous day'} className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl text-slate-500 transition-[background-color,color,transform] hover:bg-white/70 hover:text-emerald-700 active:scale-95 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-emerald-300">
         {ar ? <ChevronRight className="size-4 stroke-[2.8]" /> : <ChevronLeft className="size-4 stroke-[2.8]" />}
       </button>
 
       <div className="flex min-w-0 items-center gap-1">
-        <button type="button" onClick={() => { setViewMonth(startOfMonth(parseDate(currentDate))); setFocusedDate(currentDate); setOpen(value => !value); }} aria-haspopup="dialog" aria-expanded={open} className="flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-xl px-3 text-center font-bold text-slate-900 transition-[background-color,transform] hover:bg-white/60 active:scale-95 focus-visible:outline-2 focus-visible:outline-emerald-500 cursor-pointer font-['Alexandria'] text-xs sm:px-4 sm:text-sm dark:text-white dark:hover:bg-white/10">
+        <button type="button" onClick={() => { setViewMonth(startOfMonth(parseDate(currentDate))); setFocusedDate(currentDate); setOpen(value => !value); }} aria-haspopup="dialog" aria-expanded={open} className="flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-2xl px-3 text-center font-bold text-slate-900 transition-[background-color,transform] hover:bg-white/60 active:scale-95 focus-visible:outline-2 focus-visible:outline-emerald-500 cursor-pointer font-['Alexandria'] text-xs sm:px-4 sm:text-sm dark:text-white dark:hover:bg-white/10">
           <Calendar className="size-3.5 shrink-0 text-emerald-700 dark:text-emerald-300 sm:size-4" strokeWidth={2.4} />
           <span className="truncate">{formatHeaderDate(currentDate, lang)}</span>
         </button>
         {!isCurrentToday && <button type="button" onClick={handleToday} className="flex min-h-9 shrink-0 items-center rounded-lg border border-emerald-300/70 bg-emerald-100/70 px-2 text-[10px] font-extrabold text-emerald-800 shadow-sm transition-[background-color,transform] hover:bg-emerald-100 active:scale-95 focus-visible:outline-2 focus-visible:outline-emerald-500 sm:px-2.5 sm:text-[11px] dark:border-emerald-400/25 dark:bg-emerald-500/15 dark:text-emerald-200 dark:hover:bg-emerald-500/25">{ar ? 'اليوم' : 'Today'}</button>}
       </div>
 
-      <button type="button" onClick={() => onDateChange(addDays(currentDate, 1))} aria-label={ar ? 'اليوم التالي' : 'Next day'} title={ar ? 'اليوم التالي' : 'Next day'} className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-slate-500 transition-[background-color,color,transform] hover:bg-white/70 hover:text-emerald-700 active:scale-95 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-emerald-300">
+      <button type="button" onClick={() => onDateChange(addDays(currentDate, 1))} aria-label={ar ? 'اليوم التالي' : 'Next day'} title={ar ? 'اليوم التالي' : 'Next day'} className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl text-slate-500 transition-[background-color,color,transform] hover:bg-white/70 hover:text-emerald-700 active:scale-95 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-emerald-300">
         {ar ? <ChevronLeft className="size-4 stroke-[2.8]" /> : <ChevronRight className="size-4 stroke-[2.8]" />}
       </button>
 
