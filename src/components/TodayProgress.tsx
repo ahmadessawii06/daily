@@ -150,29 +150,27 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
     <div
       data-today-progress
       style={{ backgroundColor: compact ? 'transparent' : theme === 'dark' ? '#071714' : 'rgba(255, 255, 255, 0.88)' }}
-      className={`${compact ? 'relative w-full p-0' : 'relative overflow-hidden rounded-2xl border p-3 shadow-xs sm:p-4'} transition-all duration-300 ${
-        isAllComplete
+      className={`${compact ? 'relative w-full p-0' : 'relative overflow-hidden rounded-2xl border p-3 shadow-xs sm:p-4'} transition-all duration-300 ${isAllComplete
           ? compact ? '' : 'border-emerald-500/40 shadow-[0_0_24px_rgba(16,185,129,0.12)] dark:border-emerald-500/30'
           : compact ? '' : 'border-slate-200/90 dark:border-white/[0.08]'
-      }`}
+        }`}
     >
       <div aria-hidden="true" className={`${compact ? 'hidden' : 'pointer-events-none absolute inset-0'}`}>
         <img src={progressBackgrounds[theme]} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-35 dark:opacity-30" />
         <div className="absolute inset-0 bg-white/65 dark:bg-[#07120f]/75" />
       </div>
       <div className={`relative z-10 flex flex-col ${compact ? 'gap-2' : 'gap-3'}`}>
-        
+
         {/* Top Row: Title, Subtitle, and Motivational Hint Badge */}
         <div className={`${compact ? 'hidden' : 'flex flex-col sm:flex-row sm:items-center'} justify-between gap-2 ${compact ? '' : 'border-b border-slate-100 pb-2 dark:border-white/[0.05]'}`}>
-          
+
           {/* Icon + Title + Task Summary */}
           <div className="flex items-center gap-3 min-w-0">
             <div
-              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                isAllComplete
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${isAllComplete
                   ? 'bg-emerald-500 text-white shadow-xs shadow-emerald-500/30'
                   : 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-              }`}
+                }`}
             >
               {isAllComplete ? (
                 <Trophy className="w-5 h-5 stroke-[2.5]" />
@@ -229,7 +227,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
 
         {/* Main Section: Circular Progress Gauge + 4 Circular Metric Gauges (دوائر تفاعلية بدلاً من البطاقات) */}
         <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-3xl grid-cols-5 items-center gap-1 rounded-2xl border border-white/30 bg-white/25 px-1 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_10px_28px_rgba(15,23,42,0.08)] backdrop-blur-md dark:border-white/[0.16] dark:bg-[#06221d]/85 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_32px_rgba(0,0,0,0.4)] dark:backdrop-blur-md' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
-          
+
           {/* Main Circular Progress Gauge */}
           <div data-progress-main className={`${compact ? 'col-start-3 row-start-1 w-auto justify-self-center' : 'w-full justify-center gap-3 sm:gap-4 md:w-auto md:flex-1 md:justify-start'} flex min-w-0 shrink-0 items-center`}>
             <div className={`${compact ? 'rounded-full bg-white/25 p-1 shadow-[0_8px_20px_rgba(16,185,129,0.14)] ring-1 ring-emerald-400/20 dark:bg-white/[0.03] dark:shadow-[0_8px_20px_rgba(0,0,0,0.28)] dark:ring-emerald-300/15' : ''} relative flex shrink-0 items-center justify-center`}>
@@ -314,7 +312,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               : 'w-full gap-1 border-t border-slate-100 pt-2 sm:gap-3 md:w-auto md:flex-1 md:border-s-0 md:border-t-0 md:ps-4 md:pt-0 lg:ps-6 dark:border-white/[0.05]'}`}
             style={compact ? { display: 'contents' } : undefined}
           >
-            
+
             {/* 1. Total (دائرة الإجمالي) — adjacent to the center gauge in RTL */}
             <StatCircle
               label={lang === 'ar' ? 'الإجمالي' : 'Total'}
