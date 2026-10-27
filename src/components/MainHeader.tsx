@@ -1,7 +1,6 @@
 import React from 'react';
 import { Archive, BarChart3, Camera, Columns2, Columns3, Columns4, Loader2, Power, Moon, Plus, Settings, Sun } from 'lucide-react';
 import { Language, Theme, User } from '../types';
-import { formatHeaderDate } from '../utils/date';
 import { SyncIndicator } from './SyncIndicator';
 import { ColorThemePicker } from './ColorThemePicker';
 
@@ -43,8 +42,8 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
     ? 'bg-gradient-to-b from-white/10 via-transparent to-white/15'
     : 'bg-gradient-to-b from-[#020908]/30 via-[#020908]/25 to-[#020908]/80';
   return (
-    <header data-main-header className="relative isolate flex flex-col gap-1.5 overflow-hidden rounded-2xl border border-slate-200/80 bg-white/80 px-3 py-2 shadow-lg shadow-slate-900/10 backdrop-blur-md sm:px-5 sm:py-2.5 dark:border-emerald-400/20 dark:bg-[#071714] dark:shadow-emerald-950/20">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0">
+    <header data-main-header className="relative isolate flex flex-col gap-1.5 overflow-visible rounded-2xl border border-slate-200/80 bg-white/80 px-3 py-2 shadow-lg shadow-slate-900/10 backdrop-blur-md sm:px-5 sm:py-2.5 dark:border-emerald-400/20 dark:bg-[#071714] dark:shadow-emerald-950/20">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-2xl">
         <img src={headerBackgrounds[theme]} alt="" className="absolute inset-0 h-full w-full object-cover object-center" />
         <div className={`absolute inset-0 ${headerOverlay}`} />
         <div className={`absolute inset-0 ${headerVerticalOverlay}`} />
@@ -81,10 +80,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
           </div>
         </div>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
-      <h1 className="text-xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-2xl md:text-3xl dark:text-white [text-shadow:_0_1px_4px_rgba(255,255,255,0.95),_0_2px_14px_rgba(255,255,255,0.85)]">
-        <time dateTime={currentDate}>{formatHeaderDate(currentDate, lang)}</time>
-      </h1>
+      <div dir={ar ? 'rtl' : 'ltr'} className="flex flex-wrap items-center justify-start gap-2 sm:gap-3">
       {dateNavigation}
       </div>
       {children && <div data-main-header-summary className="mt-1 border-t border-slate-200/70 pt-2 dark:border-emerald-400/15">
