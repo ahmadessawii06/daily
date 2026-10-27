@@ -55,7 +55,8 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
   };
 
   // Motivational title beside circular progress - Inspiring Quranic verses
-  const getMotivationalTitle = () => {
+  const getMotivationalTitle = (displayLang: Language = lang) => {
+    const lang = displayLang;
     if (stats.total === 0) {
       return lang === 'ar'
         ? '﴿وَقُل رَّبِّ أَدْخِلْنِي مُدْخَلَ صِدْقٍ﴾'
@@ -130,7 +131,8 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
           : percentage > 0
             ? [['التوبة', 'At-Tawbah', '١٠٥', '105'], ['الشرح', 'Ash-Sharh', '٦–٧', '6–7']]
             : [['آل عمران', 'Ali Imran', '١٥٩', '159'], ['هود', 'Hud', '٨٨', '88']];
-  const renderVerseSource = (index: number) => {
+  const renderVerseSource = (index: number, displayLang: Language = lang) => {
+    const lang = displayLang;
     const [arName, enName, arNumber, enNumber] = verseSources[index];
     const sourceText = lang === 'ar'
       ? `سورة ${arName} • ${arNumber.includes('–') ? 'الآيات' : 'الآية'} ${arNumber}`
@@ -216,12 +218,12 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
         {compact && (
           <div
             data-progress-verse
-            lang={lang}
-            dir={lang === 'ar' ? 'rtl' : 'ltr'}
+            lang="ar"
+            dir="rtl"
             className="mx-auto w-full min-w-0 max-w-3xl rounded-[14px] border border-[rgba(190,155,85,0.24)] bg-[rgba(5,20,18,0.72)] px-3 py-2 text-center text-[#F8EBCD] sm:px-4"
           >
-            <p className={lang === 'ar' ? 'quran-verse-text' : 'text-lg leading-relaxed'}>{getMotivationalTitle()}</p>
-            {renderVerseSource(0)}
+            <p className="quran-verse-text">{getMotivationalTitle('ar')}</p>
+            {renderVerseSource(0, 'ar')}
           </div>
         )}
 
@@ -270,7 +272,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                   <div className="flex flex-col items-center justify-center leading-none">
                     <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#10e588] mb-1 animate-pulse" />
                     <div className="flex items-baseline justify-center font-numbers">
-                      <span className={`${compact ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'} font-black tracking-tight text-slate-900 dark:text-white`}>
+                      <span className={`${compact ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'} font-black tracking-tight text-emerald-600 dark:text-[#10e588]`}>
                         100
                       </span>
                       <span className="text-[11px] sm:text-xs font-bold text-[#10e588] ms-0.5">
@@ -281,7 +283,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                 ) : (
                   <div className="flex flex-col items-center justify-center leading-none">
                     <div className="flex items-baseline justify-center font-numbers">
-                      <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+                      <span className="text-2xl font-black tracking-tight text-emerald-600 dark:text-[#10e588] sm:text-3xl">
                         {percentage}
                       </span>
                       <span className={`${compact ? 'text-[10px]' : 'text-xs sm:text-sm'} font-bold text-[#10e588] ms-0.5`}>
@@ -313,7 +315,20 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
             style={compact ? { display: 'contents' } : undefined}
           >
             
-            {/* 1. Completed (دائرة مكتملة) */}
+            {/* 1. Total (دائرة الإجمالي) — adjacent to the center gauge in RTL */}
+            <StatCircle
+              label={lang === 'ar' ? 'الإجمالي' : 'Total'}
+              value={stats.total}
+              percentage={stats.total > 0 ? 100 : 0}
+              color="indigo"
+              isActive={currentFilter === 'all'}
+              onClick={() => onFilterChange?.('all')}
+              compact={compact}
+              className={compact ? 'order-1 rtl:order-1' : ''}
+              subLabel={stats.total > 0 ? '100%' : '0%'}
+            />
+
+            {/* 2. Completed (دائرة مكتملة) */}
             <StatCircle
               label={lang === 'ar' ? 'مكتملة' : 'Done'}
               value={stats.done}
@@ -324,19 +339,6 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               compact={compact}
               className={compact ? 'order-2 rtl:order-2' : ''}
               subLabel={stats.total > 0 ? `${Math.round((stats.done / stats.total) * 100)}%` : '0%'}
-            />
-
-            {/* 2. Total (دائرة الإجمالي) — adjacent to the center gauge in RTL */}
-            <StatCircle
-              label={lang === 'ar' ? 'الإجمالي' : 'Total'}
-              value={stats.total}
-              percentage={stats.total > 0 ? 100 : 0}
-              color="indigo"
-              isActive={currentFilter === 'all'}
-              onClick={() => onFilterChange?.('all')}
-              compact={compact}
-              className={compact ? 'order-1 rtl:order-1' : ''}
-              subLabel={lang === 'ar' ? 'مهمة' : 'tasks'}
             />
 
             {/* 3. Remaining (دائرة متبقية) */}

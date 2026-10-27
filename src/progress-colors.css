@@ -1,17 +1,25 @@
-/* Shared dark progress colors for the daily summary, category cards and prayers.
+/* Shared progress colors for the daily summary, category cards and prayers.
    Keep the existing geometry, rings, shadows and interaction states. */
+[data-progress-tone="emerald"] { --progress-color: var(--executive-success, #059669); }
+[data-progress-tone="rose"] { --progress-color: var(--executive-danger, #e11d48); }
+[data-progress-tone="amber"] { --progress-color: var(--executive-warning, #d97706); }
+[data-progress-tone="indigo"] { --progress-color: var(--executive-total, #4f46e5); }
+
 html:root.dark:is([data-color-theme], :root) [data-progress-tone="emerald"] { --progress-color: var(--executive-success, #20d69a); }
 html:root.dark:is([data-color-theme], :root) [data-progress-tone="rose"] { --progress-color: var(--executive-danger, #f16b86); }
 html:root.dark:is([data-color-theme], :root) [data-progress-tone="amber"] { --progress-color: var(--executive-warning, #e8b54b); }
 html:root.dark:is([data-color-theme], :root) [data-progress-tone="indigo"] { --progress-color: var(--executive-total, #8585ff); }
 
-html:root.dark:is([data-color-theme], :root) [data-progress-tone] .progress-body {
+[data-progress-tone] .progress-body {
   background-color: var(--executive-progress-bg, color-mix(in srgb, var(--progress-color) var(--executive-progress-fill, 10%), transparent));
   --tw-ring-color: var(--progress-color);
   --tw-ring-offset-color: var(--theme-surface, #11131a);
 }
-html:root.dark:is([data-color-theme], :root) [data-progress-tone] .progress-value { color: var(--progress-color); }
+
+[data-progress-tone] .progress-value { color: var(--progress-color) !important; }
+[data-progress-tone] .progress-sublabel { color: var(--progress-color) !important; opacity: 0.85; }
 html:root.dark:is([data-color-theme], :root) [data-progress-active="true"] > div:last-child > span:first-child { color: var(--progress-color); }
 html:root.dark:is([data-color-theme], :root) [data-progress-tone] .progress-track {
   color: color-mix(in srgb, var(--progress-color) var(--executive-progress-track, 18%), var(--executive-track-base, transparent));
 }
+

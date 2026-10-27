@@ -31,28 +31,36 @@ export const StatCircle: React.FC<StatCircleProps> = ({
     emerald: {
       stroke: '#10e588',
       bgGlow: 'bg-gradient-to-br from-emerald-300/30 via-emerald-400/12 to-transparent dark:from-emerald-300/25 dark:via-emerald-400/15 dark:to-transparent shadow-[0_8px_18px_rgba(16,185,129,0.12)]',
-      text: 'text-emerald-600 dark:text-emerald-300',
+      text: 'text-emerald-700 dark:text-emerald-300',
+      valueText: 'text-emerald-600 dark:text-emerald-400',
+      subLabelText: 'text-emerald-700/85 dark:text-emerald-400/90',
       activeRing: 'ring-2 ring-[#10e588] ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
       track: 'text-emerald-400/20',
     },
     amber: {
       stroke: '#f59e0b',
       bgGlow: 'bg-gradient-to-br from-amber-300/28 via-amber-500/12 to-transparent dark:from-amber-300/22 dark:via-amber-500/15 dark:to-transparent shadow-[0_8px_18px_rgba(245,158,11,0.12)]',
-      text: 'text-amber-600 dark:text-amber-400',
+      text: 'text-amber-700 dark:text-amber-300',
+      valueText: 'text-amber-600 dark:text-amber-400',
+      subLabelText: 'text-amber-700/85 dark:text-amber-400/90',
       activeRing: 'ring-2 ring-amber-500 ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
       track: 'text-amber-500/15',
     },
     rose: {
       stroke: '#ff6b81',
       bgGlow: 'bg-gradient-to-br from-rose-300/28 via-rose-400/12 to-transparent dark:from-rose-300/24 dark:via-rose-400/15 dark:to-transparent shadow-[0_8px_18px_rgba(244,63,94,0.12)]',
-      text: 'text-rose-500 dark:text-rose-300',
+      text: 'text-rose-700 dark:text-rose-300',
+      valueText: 'text-rose-600 dark:text-rose-400',
+      subLabelText: 'text-rose-700/85 dark:text-rose-400/90',
       activeRing: 'ring-2 ring-[#ff6b81] ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
       track: 'text-rose-400/20',
     },
     indigo: {
       stroke: '#6366f1',
       bgGlow: 'bg-gradient-to-br from-indigo-300/26 via-indigo-500/12 to-transparent dark:from-indigo-300/22 dark:via-indigo-500/15 dark:to-transparent shadow-[0_8px_18px_rgba(99,102,241,0.12)]',
-      text: 'text-indigo-600 dark:text-indigo-400',
+      text: 'text-indigo-700 dark:text-indigo-300',
+      valueText: 'text-indigo-600 dark:text-indigo-400',
+      subLabelText: 'text-indigo-700/85 dark:text-indigo-400/90',
       activeRing: 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
       track: 'text-indigo-500/15',
     },
@@ -99,7 +107,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
 
         {/* Number inside Circle */}
         <span
-          className={`progress-value font-numbers ${compact ? 'text-base' : 'text-base sm:text-lg'} font-black tracking-tight ${colorConfig.text}`}
+          className={`progress-value font-numbers text-lg font-black leading-none tracking-tight sm:text-xl ${colorConfig.valueText}`}
         >
           {value}
         </span>
@@ -115,7 +123,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
           {label}
         </span>
         {subLabel && (
-          <span className="mt-1 text-[11px] font-numbers font-bold leading-none text-slate-800 dark:text-white/[0.86]">
+          <span className={`progress-sublabel mt-1 text-[11px] font-numbers font-bold leading-none ${colorConfig.subLabelText}`}>
             {subLabel}
           </span>
         )}

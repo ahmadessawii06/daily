@@ -890,10 +890,10 @@ function SelectedCardPreview({ selectedCell, workspace, lang }: {
         </div>
       </div>
       <div data-card-stats role="group" aria-label={ar ? `إحصائيات ${name}` : `${name} statistics`} className="mx-4 grid grid-cols-4 items-start gap-1 border-t border-slate-200/60 py-3 dark:border-white/[0.06]">
-        <StatCircle compact label={labels.done} value={stats.done} percentage={stats.total ? stats.done / stats.total * 100 : 0} color="emerald" isActive={false} subLabel={`${stats.total ? Math.round(stats.done / stats.total * 100) : 0}%`} />
-        <StatCircle compact label={labels.pending} value={stats.pending} percentage={stats.total ? stats.pending / stats.total * 100 : 0} color="amber" isActive={false} subLabel={`${stats.total ? Math.round(stats.pending / stats.total * 100) : 0}%`} />
-        <StatCircle compact label={labels.notDone} value={stats.notDone} percentage={stats.total ? stats.notDone / stats.total * 100 : 0} color="rose" isActive={false} subLabel={`${stats.total ? Math.round(stats.notDone / stats.total * 100) : 0}%`} />
-        <StatCircle compact label={ar ? 'الإجمالي' : 'Total'} value={stats.total} percentage={stats.total ? 100 : 0} color="indigo" isActive={true} subLabel={ar ? 'مهمة' : 'tasks'} />
+        <StatCircle compact label={ar ? 'الإجمالي' : 'Total'} value={stats.total} percentage={stats.total ? 100 : 0} color="indigo" isActive={false} subLabel={stats.total ? '100%' : '0%'} className="order-1 rtl:order-1" />
+        <StatCircle compact label={labels.done} value={stats.done} percentage={stats.total ? stats.done / stats.total * 100 : 0} color="emerald" isActive={false} subLabel={`${stats.total ? Math.round(stats.done / stats.total * 100) : 0}%`} className="order-2 rtl:order-2" />
+        <StatCircle compact label={labels.pending} value={stats.pending} percentage={stats.total ? stats.pending / stats.total * 100 : 0} color="amber" isActive={false} subLabel={`${stats.total ? Math.round(stats.pending / stats.total * 100) : 0}%`} className="order-3 rtl:order-3" />
+        <StatCircle compact label={labels.notDone} value={stats.notDone} percentage={stats.total ? stats.notDone / stats.total * 100 : 0} color="rose" isActive={false} subLabel={`${stats.total ? Math.round(stats.notDone / stats.total * 100) : 0}%`} className="order-4 rtl:order-4" />
       </div>
       <div className="p-3 pt-2">
         <div className="space-y-1">
@@ -936,10 +936,10 @@ function SelectedSchedulePreview({ selectedCell, lang }: {
   return (
     <div className="mt-4 space-y-2">
       <div className="mb-3 grid grid-cols-4 items-start gap-1 border-b border-slate-200/60 pb-3 dark:border-white/[0.06]">
-        <StatCircle compact label={ar ? 'مكتملة' : 'Completed'} value={stats.done} percentage={stats.total ? stats.done / stats.total * 100 : 0} color="emerald" isActive={false} />
-        <StatCircle compact label={ar ? 'متبقية' : 'Remaining'} value={stats.pending} percentage={stats.total ? stats.pending / stats.total * 100 : 0} color="amber" isActive={false} />
-        <StatCircle compact label={ar ? 'غير منجزة' : 'Not done'} value={stats.notDone} percentage={stats.total ? stats.notDone / stats.total * 100 : 0} color="rose" isActive={false} />
-        <StatCircle compact label={ar ? 'الإجمالي' : 'Total'} value={stats.total} percentage={stats.total ? 100 : 0} color="indigo" isActive={true} subLabel={ar ? 'مهمة' : 'tasks'} />
+        <StatCircle compact label={ar ? 'الإجمالي' : 'Total'} value={stats.total} percentage={stats.total ? 100 : 0} color="indigo" isActive={false} subLabel={stats.total ? '100%' : '0%'} className="order-1 rtl:order-1" />
+        <StatCircle compact label={ar ? 'مكتملة' : 'Completed'} value={stats.done} percentage={stats.total ? stats.done / stats.total * 100 : 0} color="emerald" isActive={false} subLabel={`${stats.total ? Math.round(stats.done / stats.total * 100) : 0}%`} className="order-2 rtl:order-2" />
+        <StatCircle compact label={ar ? 'متبقية' : 'Remaining'} value={stats.pending} percentage={stats.total ? stats.pending / stats.total * 100 : 0} color="amber" isActive={false} subLabel={`${stats.total ? Math.round(stats.pending / stats.total * 100) : 0}%`} className="order-3 rtl:order-3" />
+        <StatCircle compact label={ar ? 'غير منجزة' : 'Not done'} value={stats.notDone} percentage={stats.total ? stats.notDone / stats.total * 100 : 0} color="rose" isActive={false} subLabel={`${stats.total ? Math.round(stats.notDone / stats.total * 100) : 0}%`} className="order-4 rtl:order-4" />
       </div>
       {selectedCell.tasks.map(task => (
         <article key={task.id} data-task-status={task.status} className={`task-row relative flex min-w-0 items-center gap-3 overflow-hidden rounded-2xl border px-3 py-2.5 sm:px-4 ${task.status === 'done' || task.status === 'pending' || task.status === 'not-done' ? 'bg-white dark:bg-[#11131a] border-slate-200/70 dark:border-white/[0.06]' : ''}`}>
