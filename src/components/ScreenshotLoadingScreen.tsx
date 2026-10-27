@@ -19,7 +19,7 @@ export function ScreenshotLoadingScreen({ lang, theme }: { lang: Language; theme
       aria-label={lang === 'ar' ? 'جارٍ تجهيز لقطة الشاشة' : 'Preparing screenshot'}
       tabIndex={-1} onKeyDown={event => { if (event.key === 'Tab') event.preventDefault(); }}
       dir={lang === 'ar' ? 'rtl' : 'ltr'} data-screenshot-loading data-loading-theme={theme}
-      className="screenshot-loading">
+      className={`screenshot-loading screenshot-loading-${theme}`}>
       <div className="screenshot-loading-content">
         <div className="screenshot-loading-label"><Camera size={15} /><span>{lang === 'ar' ? 'لقطة من يومك' : 'A snapshot of your day'}</span></div>
         <div className="screenshot-loading-visual" aria-hidden="true">
