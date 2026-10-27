@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
-  formatShortDate
+  formatShortDate,
+  toLatinDigits,
 } from './utils/date';
 import { getPrayerTimeZoneDate } from './utils/prayerSchedule';
 import {
@@ -615,7 +616,7 @@ export default function App() {
     showToast(lang === 'ar' ? 'تم تسجيل الخروج بنجاح' : 'Logged out successfully');
   };
 
-  const supportBanner = support && <aside role="alert" dir={lang === 'ar' ? 'rtl' : 'ltr'} className="sticky top-0 z-[80] border-b border-amber-500/30 bg-amber-100 px-4 py-3 text-amber-950 shadow-sm dark:bg-[#292311] dark:text-amber-100"><div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3"><div><p className="text-sm font-semibold">{lang === 'ar' ? 'جلسة دعم — عرض فقط' : 'Support session — read only'} · <bdi>{currentUser?.name || currentUser?.username}</bdi></p><p className="mt-1 text-xs opacity-80">{lang === 'ar' ? 'تنتهي الساعة ' : 'Expires at '}{new Date(support.expiresAt).toLocaleTimeString(lang === 'ar' ? 'ar-PS' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}</p>{supportError && <p className="mt-2 text-xs">{supportError}</p>}</div><div className="flex gap-2"><button disabled={endingSupport} onClick={() => { void endSupport(); }} className="min-h-10 rounded-xl bg-amber-950 px-4 text-xs font-semibold text-amber-50 disabled:opacity-50 dark:bg-amber-100 dark:text-amber-950">{lang === 'ar' ? 'إنهاء والعودة لحسابي' : 'End & return to my account'}</button>{supportError && <button onClick={() => { clearStoredAuth(); location.reload(); }} className="min-h-10 px-3 text-xs underline">{lang === 'ar' ? 'تسجيل الخروج' : 'Sign out'}</button>}</div></div></aside>;
+  const supportBanner = support && <aside role="alert" dir={lang === 'ar' ? 'rtl' : 'ltr'} className="sticky top-0 z-[80] border-b border-amber-500/30 bg-amber-100 px-4 py-3 text-amber-950 shadow-sm dark:bg-[#292311] dark:text-amber-100"><div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3"><div><p className="text-sm font-semibold">{lang === 'ar' ? 'جلسة دعم — عرض فقط' : 'Support session — read only'} · <bdi>{currentUser?.name || currentUser?.username}</bdi></p><p className="mt-1 text-xs opacity-80">{lang === 'ar' ? 'تنتهي الساعة ' : 'Expires at '}{toLatinDigits(new Date(support.expiresAt).toLocaleTimeString(lang === 'ar' ? 'ar-PS-u-nu-latn' : 'en-GB-u-nu-latn', { hour: '2-digit', minute: '2-digit' }))}</p>{supportError && <p className="mt-2 text-xs">{supportError}</p>}</div><div className="flex gap-2"><button disabled={endingSupport} onClick={() => { void endSupport(); }} className="min-h-10 rounded-xl bg-amber-950 px-4 text-xs font-semibold text-amber-50 disabled:opacity-50 dark:bg-amber-100 dark:text-amber-950">{lang === 'ar' ? 'إنهاء والعودة لحسابي' : 'End & return to my account'}</button>{supportError && <button onClick={() => { clearStoredAuth(); location.reload(); }} className="min-h-10 px-3 text-xs underline">{lang === 'ar' ? 'تسجيل الخروج' : 'Sign out'}</button>}</div></div></aside>;
   if (resetToken && !support) return <ResetPasswordScreen token={resetToken} lang={lang} onDone={() => { clearStoredAuth(); setCurrentUser(null); setResetToken(null); }} />;
   // If user is not authenticated, show Lock / Login Screen
   if (!currentUser) {
@@ -682,6 +683,7 @@ export default function App() {
           {!support ? <MainHeader
             cardColumns={cardColumns} onToggleCardColumns={toggleCardColumns}
             dateNavigation={<DateNavigation currentDate={currentDate} onDateChange={setCurrentDate} lang={lang} />}
+            onDateChange={setCurrentDate}
             currentDate={currentDate}
             currentUser={currentUser}
             onOpenAddTask={() => setIsTaskDestinationOpen(true)}
@@ -695,9 +697,9 @@ export default function App() {
             exporting={isExportingImage || exportRequested}
             onToggleLang={handleToggleLang}
             onToggleTheme={() => { const next = theme === 'dark' ? 'light' : 'dark'; setStoredTheme(next); setTheme(next); }}
+            dayMemories={<DayMemories key={`${currentUser.id}-${currentDate}`} date={currentDate} lang={lang} onSaved={refreshArchive} />}
           ><>
             <TodayProgress stats={stats} currentFilter={currentFilter} onFilterChange={setCurrentFilter} lang={lang} theme={theme} compact />
-            <DayMemories key={`${currentUser.id}-${currentDate}`} date={currentDate} lang={lang} onSaved={refreshArchive} />
           </></MainHeader> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
           {support && <DateNavigation currentDate={currentDate} onDateChange={setCurrentDate} lang={lang} />}
 
@@ -712,7 +714,7 @@ export default function App() {
             />
           </div>}
 
-          <div id="onboarding-planner-area" className="space-y-4 sm:space-y-6">
+          <div id="onboarding-planner-area" className="space-y-4 pt-2 sm:space-y-6 sm:pt-3">
             <div className="flex flex-wrap items-center justify-between gap-3"><div id="onboarding-view-switcher" role="group" aria-label={lang === 'ar' ? 'طريقة عرض المهام' : 'Planning view'} className="inline-flex max-w-full gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
               {(['cards', 'timeline'] as const).map(view => {
                 const Icon = view === 'cards' ? LayoutGrid : ListChecks;
@@ -810,3 +812,6 @@ export default function App() {
     </div>
   );
 }
+
+
+

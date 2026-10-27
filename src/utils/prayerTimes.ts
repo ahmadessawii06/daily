@@ -1,6 +1,7 @@
 import { userStorage } from './scopedStorage';
 import { enqueue } from '../services/syncQueue';
 import { PrayerLocationConfig, PrayerTimeItem, PrayerTimesDayResponse } from '../types';
+import { toLatinDigits } from './date';
 
 export interface CalculationMethodInfo {
   id: number;
@@ -255,7 +256,7 @@ export async function fetchOfficialPrayerTimes(
         hijriDay: hijri?.day,
         hijriMonth: hijri?.month?.ar || hijri?.month?.en,
         hijriYear: hijri?.year,
-        hijriFormatted: hijri ? `${hijri.day} ${hijri.month?.ar || hijri.month?.en} ${hijri.year} هـ` : undefined,
+        hijriFormatted: hijri ? toLatinDigits(`${hijri.day} ${hijri.month?.ar || hijri.month?.en} ${hijri.year} هـ`) : undefined,
         locationNameAr: config.cityDisplayAr || config.city,
         locationNameEn: config.cityDisplayEn || config.city,
         methodNameAr: methodObj?.nameAr,

@@ -1,4 +1,13 @@
-import { Task } from '../types';
+﻿import { Task } from '../types';
+
+/** Convert Arabic-Indic and Persian digits to the Latin digits used in the UI. */
+export function toLatinDigits(value: string | number): string {
+  return String(value).replace(/[٠-٩۰-۹]/g, digit => {
+    const code = digit.charCodeAt(0);
+    return String(code >= 0x06f0 ? code - 0x06f0 : code - 0x0660);
+  });
+}
+
 
 export function getTodayDateString(): string {
   const d = new Date();
@@ -58,14 +67,18 @@ export function formatDate(dateStr: string, lang: 'ar' | 'en' = 'ar'): string {
 
 export function formatHeaderDate(dateStr: string, lang: 'ar' | 'en' = 'ar'): string {
   const d = parseDate(dateStr);
-  const dayIndex = d.getDay();
-  const monthIndex = d.getMonth();
-  const dayNum = d.getDate();
-
   if (lang === 'ar') {
-    return `${arabicDays[dayIndex]}، ${dayNum} ${arabicMonths[monthIndex]}`;
+    const locale = 'ar';
+    const options = { numberingSystem: 'latn' as const };
+    const weekday = new Intl.DateTimeFormat(locale, { ...options, weekday: 'long' }).format(d);
+    const day = new Intl.DateTimeFormat(locale, { ...options, day: 'numeric' }).format(d);
+    const month = new Intl.DateTimeFormat(locale, { ...options, month: 'long' }).format(d);
+    const year = new Intl.DateTimeFormat(locale, { ...options, year: 'numeric' }).format(d);
+    return `${weekday}، ${day} ${month}، ${year} مـ`;
   }
-  return `${englishDays[dayIndex]}, ${englishMonths[monthIndex]} ${dayNum}`;
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', numberingSystem: 'latn',
+  }).format(d);
 }
 
 export function formatMonthYear(dateStr: string, lang: 'ar' | 'en' = 'ar'): string {
@@ -157,3 +170,7 @@ export function formatTime12h(time24: string, lang: 'ar' | 'en' = 'ar'): Formatt
     formatted: `${time12} ${period}`,
   };
 }
+
+
+
+

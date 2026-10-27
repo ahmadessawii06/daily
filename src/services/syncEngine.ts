@@ -102,7 +102,7 @@ async function sync(userId: string, token: string): Promise<boolean> {
       status = 'warning';
       errorMessage = `Photo saved locally only (${[...deferredPhotos.keys()].join(', ')})`;
     }
-    lastSyncedAt = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    lastSyncedAt = new Date().toLocaleTimeString('en-GB-u-nu-latn', { hour: '2-digit', minute: '2-digit' });
     window.dispatchEvent(new Event('mizan:data-synced'));
     return true;
   } catch (err) {
