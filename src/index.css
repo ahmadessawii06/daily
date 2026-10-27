@@ -683,9 +683,17 @@ html[data-color-theme="paper"] .bg-mesh {
 @layer base {
   :root {
     --font-arabic: 'Alexandria', 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-latin: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-sans: var(--font-arabic);
     --font-display: 'Alexandria', 'Outfit', -apple-system, sans-serif;
     --font-mono: 'Outfit', 'Alexandria', 'Plus Jakarta Sans', sans-serif;
     --font-numbers: 'Outfit', 'Alexandria', 'Plus Jakarta Sans', sans-serif;
+    --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  html[lang="en"] {
+    --font-sans: var(--font-latin);
+    --font-display: 'Outfit', 'Plus Jakarta Sans', -apple-system, sans-serif;
   }
 
   * {
@@ -693,11 +701,11 @@ html[data-color-theme="paper"] .bg-mesh {
   }
 
   body {
-    font-family: var(--font-arabic);
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.25s ease, color 0.25s ease;
     touch-action: manipulation;
+    text-rendering: optimizeLegibility;
   }
 }
 
@@ -1007,26 +1015,7 @@ html.dark [data-progress-verse] .quran-verse-text {
   color: #F8EBCD;
 }
 
-/* Custom subtle scrollbar */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-html.dark ::-webkit-scrollbar-thumb,
-body:not(.light) ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 9999px;
-}
-
-html.light ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 9999px;
-}
 
 .font-mono,
 .font-numbers,
@@ -1088,11 +1077,12 @@ html.light [data-main-header] button:focus-visible {
 }
 
 /* ==========================================================================
-   Smooth Scrolling Experience
+   Ultra-Smooth 60FPS Scrolling Experience
    ========================================================================== */
 html {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
 }
 
 body,
@@ -1105,12 +1095,13 @@ dialog,
 .overflow-auto {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
-/* Elegant scrollbar aesthetics with smooth transitions */
+/* Premium Minimal Scrollbar with Smooth Transition */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
@@ -1118,15 +1109,15 @@ dialog,
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(148, 163, 184, 0.35);
+  background-color: rgba(148, 163, 184, 0.3);
   border-radius: 9999px;
-  border: 2px solid transparent;
+  border: 1.5px solid transparent;
   background-clip: padding-box;
-  transition: background-color 300ms ease;
+  transition: background-color 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.18);
+  background-color: rgba(255, 255, 255, 0.16);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -1134,23 +1125,23 @@ dialog,
 }
 
 /* ==========================================================================
-   Smooth Theme Transitions
+   Smooth Theme Transitions (250–350ms with cubic-bezier(0.22, 1, 0.36, 1))
    ========================================================================== */
 /* Active theme transition state: smoothly interpolates colors, borders, and shadows */
 html.theme-transitioning,
 html.theme-transitioning *,
 html.theme-transitioning *::before,
 html.theme-transitioning *::after {
-  transition: background-color 380ms cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 380ms cubic-bezier(0.4, 0, 0.2, 1),
-              color 380ms cubic-bezier(0.4, 0, 0.2, 1),
-              fill 380ms cubic-bezier(0.4, 0, 0.2, 1),
-              stroke 380ms cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 380ms cubic-bezier(0.4, 0, 0.2, 1),
-              text-decoration-color 380ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: background-color 320ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 320ms cubic-bezier(0.22, 1, 0.36, 1),
+              color 320ms cubic-bezier(0.22, 1, 0.36, 1),
+              fill 320ms cubic-bezier(0.22, 1, 0.36, 1),
+              stroke 320ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 320ms cubic-bezier(0.22, 1, 0.36, 1),
+              text-decoration-color 320ms cubic-bezier(0.22, 1, 0.36, 1) !important;
 }
 
-/* Persistent smooth transitions for primary surfaces */
+/* Persistent smooth transitions for primary UI surfaces */
 body,
 #root,
 main,
@@ -1166,10 +1157,10 @@ dialog,
 [data-prayer-next],
 [data-top-focus],
 [data-today-progress] {
-  transition: background-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
-              color 300ms cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
+              color 280ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ==========================================================================
@@ -1177,17 +1168,12 @@ dialog,
    ========================================================================== */
 @keyframes mizan-lang-crossfade {
   0% {
-    opacity: 0.7;
-    transform: scale(0.997);
-    filter: blur(1px);
-  }
-  50% {
-    opacity: 0.88;
+    opacity: 0.78;
+    transform: scale(0.998);
   }
   100% {
     opacity: 1;
     transform: scale(1);
-    filter: blur(0px);
   }
 }
 
@@ -1195,8 +1181,67 @@ html.lang-transitioning #daily-track-container,
 html.lang-transitioning .account-page,
 html.lang-transitioning [data-screenshot-loading],
 html.lang-transitioning main {
-  animation: mizan-lang-crossfade 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: opacity, transform, filter;
+  animation: mizan-lang-crossfade 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: opacity, transform;
+}
+
+/* ==========================================================================
+   Premium Micro-Interactions & Fluid Animations
+   ========================================================================== */
+button:not(:disabled):not([aria-disabled="true"]),
+[role="button"]:not([aria-disabled="true"]),
+a[href] {
+  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+              background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+              color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+button:not(:disabled):active,
+[role="button"]:not([aria-disabled="true"]):active {
+  transform: scale(0.975);
+}
+
+/* Modal and Dialog Fluid Entrance */
+.task-modal,
+dialog[open],
+[role="dialog"][aria-modal="true"] > div,
+.theme-dock {
+  animation: modal-pop-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+@keyframes modal-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Dropdown and Popover Fluid Entrance */
+[role="menu"],
+[data-task-actions] [role="menu"],
+[role="group"][aria-label*="status"],
+[role="group"][aria-label*="حالة"] {
+  animation: dropdown-pop-in 170ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top;
+  will-change: transform, opacity;
+}
+
+@keyframes dropdown-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 /* Accessibility: respect user preferences for reduced motion */
@@ -1223,6 +1268,15 @@ html.lang-transitioning main {
   html.lang-transitioning #daily-track-container,
   html.lang-transitioning .account-page,
   html.lang-transitioning main {
+    animation: none !important;
+  }
+
+  .task-modal,
+  dialog[open],
+  [role="dialog"][aria-modal="true"] > div,
+  .theme-dock,
+  [role="menu"],
+  [data-task-actions] [role="menu"] {
     animation: none !important;
   }
 }

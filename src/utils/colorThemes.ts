@@ -18,7 +18,14 @@ export function readColorTheme(): ColorTheme {
   } catch { return 'default'; }
 }
 export function applyColorTheme(theme: ColorTheme) {
-  document.documentElement.dataset.colorTheme = theme;
+  const root = document.documentElement;
+  root.classList.remove('theme-transitioning');
+  void root.offsetWidth;
+  root.classList.add('theme-transitioning');
+  root.dataset.colorTheme = theme;
+  setTimeout(() => {
+    root.classList.remove('theme-transitioning');
+  }, 400);
 }
 export function saveColorTheme(theme: ColorTheme) {
   try { localStorage.setItem('mizan_color_theme', theme); } catch {}

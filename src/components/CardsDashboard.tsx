@@ -110,7 +110,26 @@ export function CardsDashboard(props: CardsDashboardProps) {
           '--category-columns-xl': wideGrid.units,
         } as CSSProperties}
       >
-        <img src={emptySpaceTextures[theme]} alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.18] dark:opacity-[0.2]" />
+        <img
+          src={emptySpaceTextures.light}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+          className={`pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover transition-opacity duration-500 ease-in-out ${
+            theme === 'light' ? 'opacity-[0.18]' : 'opacity-0'
+          }`}
+        />
+        <img
+          src={emptySpaceTextures.dark}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+          className={`pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover transition-opacity duration-500 ease-in-out ${
+            theme === 'dark' ? 'opacity-[0.2]' : 'opacity-0'
+          }`}
+        />
         {cards.map((category, index) => {
           const mediumTail = index >= mediumGrid.tailStart;
           const largeTail = index >= largeGrid.tailStart;
@@ -150,9 +169,10 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   const collapsed = Boolean(category.collapsed);
   // User-created cards have UUID-based IDs; select their artwork by icon.
   const bannerCategory = { book: 'study', briefcase: 'work', heart: 'health', leaf: 'rest', moon: 'ideas', layers: 'money' }[category.icon];
-  const banner = (Object.hasOwn(categoryBanners, category.id)
+  const bannerPair = Object.hasOwn(categoryBanners, category.id)
     ? categoryBanners[category.id]
-    : categoryBanners[bannerCategory])?.[lang];
+    : categoryBanners[bannerCategory];
+  const banner = bannerPair?.[lang];
   useEffect(() => {
     if (!creationRequest || collapsed || handledCreationRef.current === creationRequest) return;
     const input = inputRef.current;
@@ -175,10 +195,32 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   return (
     <article aria-label={name} data-category-id={category.id} data-card-complete={isComplete} style={{ ...colorStyle, '--category-span-md': gridSpans.md, '--category-span-lg': gridSpans.lg, '--category-span-xl': gridSpans.xl } as CSSProperties} className="dashboard-category-card planner-card relative z-10 min-w-0 overflow-hidden rounded-card border border-t-[3px] shadow-2xs">
       <div data-category-banner={banner ? category.id : undefined} className={`relative isolate flex items-center gap-3 overflow-hidden p-4 ${banner ? 'planner-card-banner text-white' : ''}`}>
-        {banner && <>
+        {bannerPair ? <>
+          <img
+            src={bannerPair.ar}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            className={`pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center transition-opacity duration-300 ease-in-out ${
+              ar ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+          <img
+            src={bannerPair.en}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            className={`pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center transition-opacity duration-300 ease-in-out ${
+              !ar ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+          <span aria-hidden="true" className="planner-card-image-shade pointer-events-none absolute inset-0 z-10" />
+        </> : banner ? <>
           <img src={banner} alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center" />
           <span aria-hidden="true" className="planner-card-image-shade pointer-events-none absolute inset-0 z-10" />
-        </>}
+        </> : null}
         <div className={`relative z-20 flex min-w-0 flex-1 items-center gap-3 ${banner ? 'rounded-xl bg-gradient-to-r from-black/65 via-black/55 to-black/65 px-2 py-1' : ''}`}>
           <div aria-hidden="true" className={`planner-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${banner ? 'border-white/20 bg-black/45 text-white' : ''}`}><Icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></div>
           <div className="min-w-0 flex-1"><h3 className={`break-words text-sm font-bold leading-6 ${banner ? 'text-white' : ''}`}>{name}</h3></div>

@@ -175,7 +175,26 @@ export function PrayerCard({ currentDate, slots, lang, theme = 'dark', onAddPray
 
       <div className="prayer-card-content space-y-3 p-3 sm:space-y-4 sm:p-4">
         <section data-prayer-next dir={ar ? 'rtl' : 'ltr'} className="prayer-next-layout relative isolate min-w-0 items-center overflow-hidden rounded-2xl border border-teal-400/40 bg-[#06221d] px-4 py-4 shadow-[0_0_40px_-24px_rgba(16,229,200,0.45)] sm:px-5 sm:py-4 lg:px-8 lg:py-5">
-          <img src={mosqueImage} alt="" aria-hidden="true" loading="lazy" decoding="async" className="absolute inset-0 -z-20 h-full w-full object-cover object-[center_52%] opacity-90" />
+          <img
+            src={mosqueImages.light}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            className={`absolute inset-0 -z-20 h-full w-full object-cover object-[center_52%] transition-opacity duration-500 ease-in-out ${
+              theme === 'light' ? 'opacity-90' : 'opacity-0'
+            }`}
+          />
+          <img
+            src={mosqueImages.dark}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            className={`absolute inset-0 -z-20 h-full w-full object-cover object-[center_52%] transition-opacity duration-500 ease-in-out ${
+              theme === 'dark' ? 'opacity-90' : 'opacity-0'
+            }`}
+          />
           <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(270deg,rgba(1,18,18,.94)_0%,rgba(2,26,25,.78)_38%,rgba(3,26,25,.16)_100%),linear-gradient(0deg,rgba(2,14,14,.45),transparent_70%)]" />
           {nextPrayer ? <>
             <div data-prayer-next-info className="flex min-w-0 items-center justify-start gap-4 text-start">
@@ -238,7 +257,26 @@ export function PrayerCard({ currentDate, slots, lang, theme = 'dark', onAddPray
             className={`prayer-slot-card group relative isolate min-w-0 overflow-hidden rounded-2xl border shadow-md shadow-black/15 transition-[border-color,box-shadow,transform] duration-300 ease-out hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-teal-300/60 motion-reduce:transition-none ${
               status === 'done' ? 'border-[#18BFA5]/65 hover:shadow-[0_0_18px_rgba(24,191,165,0.22)]' : status === 'not-done' ? 'border-[#C65B76]/65 hover:shadow-[0_0_18px_rgba(198,91,118,0.22)]' : 'border-white/20 hover:shadow-[0_0_18px_rgba(255,255,255,0.12)]'
             }`}>
-            <img src={prayerImages[prayer.id]} alt="" aria-hidden="true" loading="lazy" decoding="async" className="absolute inset-0 z-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 motion-reduce:transition-none" />
+            <img
+              src={prayerImagesByTheme.light[prayer.id]}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              className={`absolute inset-0 z-0 h-full w-full object-cover transition-all duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none ${
+                theme === 'light' ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+            <img
+              src={prayerImagesByTheme.dark[prayer.id]}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              className={`absolute inset-0 z-0 h-full w-full object-cover transition-all duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none ${
+                theme === 'dark' ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
             <div aria-hidden="true" className="absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(2,8,24,.12)_0%,rgba(2,8,24,.08)_36%,rgba(1,12,16,.78)_73%,rgba(1,12,16,.97)_100%)]" />
             {isUpcomingPrayer && <div data-prayer-upcoming-outline aria-hidden="true" className="pointer-events-none absolute inset-[2px] z-20 rounded-2xl border-2 border-[#2DD4BF] shadow-[inset_0_0_0_1px_rgba(45,212,191,0.28),0_0_8px_rgba(45,212,191,0.18)]" />}
             <div className="prayer-slot-content relative z-10 flex flex-col items-center px-3 py-3.5 text-center sm:px-4 sm:py-4">

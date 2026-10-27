@@ -239,7 +239,7 @@ export default function App() {
     }
     const timer = setTimeout(() => {
       root.classList.remove('theme-transitioning');
-    }, 450);
+    }, 340);
     return () => clearTimeout(timer);
   }, [theme]);
 
@@ -281,8 +281,21 @@ export default function App() {
   const isFirstLangRender = useRef(true);
   useEffect(() => {
     const root = document.documentElement;
+    const currentScrollY = window.scrollY;
+
     root.setAttribute('lang', lang);
     root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+
+    // Keep scroll position completely stable across direction flip
+    if (window.scrollY !== currentScrollY) {
+      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+    }
+    requestAnimationFrame(() => {
+      if (Math.abs(window.scrollY - currentScrollY) > 1) {
+        window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+      }
+    });
+
     if (isFirstLangRender.current) {
       isFirstLangRender.current = false;
       return;
@@ -292,7 +305,7 @@ export default function App() {
     root.classList.add('lang-transitioning');
     const timer = setTimeout(() => {
       root.classList.remove('lang-transitioning');
-    }, 380);
+    }, 320);
     return () => clearTimeout(timer);
   }, [lang]);
 
@@ -699,7 +712,7 @@ export default function App() {
   </>;
 
   return (
-    <div className={`relative isolate min-h-screen bg-slate-50 dark:bg-[#07080b] bg-mesh text-slate-900 dark:text-zinc-100 flex flex-col font-['Alexandria','Cairo',sans-serif] transition-colors duration-200`}>
+    <div className={`relative isolate min-h-screen bg-slate-50 dark:bg-[#07080b] bg-mesh text-slate-900 dark:text-zinc-100 flex flex-col font-sans transition-colors duration-200`}>
       {supportBanner}
       {(isExportingImage || exportRequested) && <ScreenshotLoadingScreen lang={lang} theme={theme} />}
 
