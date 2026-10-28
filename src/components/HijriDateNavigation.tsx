@@ -4,6 +4,7 @@ import { Language } from '../types';
 import { addDays, getTodayDateString, parseDate, toLatinDigits } from '../utils/date';
 import { datePickerArrowClass, datePickerDayClass, datePickerGridClass, datePickerMonthButtonClass, datePickerMonthTitleClass, datePickerPopoverClass, datePickerShellClass, datePickerTodayClass, datePickerTriggerClass, datePickerWeekdayClass } from './datePickerStyles';
 import { useDatePickerPlacement } from './useDatePickerPlacement';
+import { Tooltip } from './Tooltip';
 
 interface HijriDateNavigationProps {
   currentDate: string;
@@ -149,9 +150,13 @@ export const HijriDateNavigation: React.FC<HijriDateNavigationProps> = ({ curren
 
   return (
     <nav ref={calendarRef} dir={ar ? 'rtl' : 'ltr'} aria-label={ar ? 'التنقل بالتاريخ الهجري' : 'Hijri date navigation'} className={datePickerShellClass}>
-      <button type="button" onClick={() => onDateChange(addDays(currentDate, -1))} aria-label={ar ? 'اليوم الهجري السابق' : 'Previous Hijri day'} title={ar ? 'اليوم الهجري السابق' : 'Previous Hijri day'} className={datePickerArrowClass}>{ar ? <ChevronRight className="size-4 stroke-[2.8]" /> : <ChevronLeft className="size-4 stroke-[2.8]" />}</button>
+      <Tooltip text={ar ? 'اليوم الهجري السابق' : 'Previous Hijri day'} className="shrink-0">
+        <button type="button" onClick={() => onDateChange(addDays(currentDate, -1))} aria-label={ar ? 'اليوم الهجري السابق' : 'Previous Hijri day'} className={datePickerArrowClass}>{ar ? <ChevronRight className="size-4 stroke-[2.8]" /> : <ChevronLeft className="size-4 stroke-[2.8]" />}</button>
+      </Tooltip>
       <button type="button" onClick={() => { setViewMonth({ year: selectedHijri.year, month: selectedHijri.month }); setFocusedDate(currentDate); setOpen(value => !value); }} aria-haspopup="dialog" aria-expanded={open} aria-label={ar ? `اختيار التاريخ الهجري: ${headerText}` : `Choose Hijri date: ${headerText}`} className={datePickerTriggerClass}><Calendar className="size-3.5 shrink-0 text-emerald-700 dark:text-emerald-300 sm:size-4" strokeWidth={2.4} /><span className="whitespace-nowrap">{headerText}</span></button>
-      <button type="button" onClick={() => onDateChange(addDays(currentDate, 1))} aria-label={ar ? 'اليوم الهجري التالي' : 'Next Hijri day'} title={ar ? 'اليوم الهجري التالي' : 'Next Hijri day'} className={datePickerArrowClass}>{ar ? <ChevronLeft className="size-4 stroke-[2.8]" /> : <ChevronRight className="size-4 stroke-[2.8]" />}</button>
+      <Tooltip text={ar ? 'اليوم الهجري التالي' : 'Next Hijri day'} className="shrink-0">
+        <button type="button" onClick={() => onDateChange(addDays(currentDate, 1))} aria-label={ar ? 'اليوم الهجري التالي' : 'Next Hijri day'} className={datePickerArrowClass}>{ar ? <ChevronLeft className="size-4 stroke-[2.8]" /> : <ChevronRight className="size-4 stroke-[2.8]" />}</button>
+      </Tooltip>
       {!isCurrentToday && <button type="button" onClick={() => chooseDate(today)} className="sr-only">{ar ? 'اليوم' : 'Today'}</button>}
       {open && <div ref={popoverRef} data-date-picker-popover="hijri" role="dialog" aria-label={ar ? 'اختيار التاريخ الهجري' : 'Choose Hijri date'} aria-modal="false" onPointerDown={event => event.stopPropagation()} style={popoverStyle} className={datePickerPopoverClass}>
         <div className="mb-1 flex items-center justify-between gap-2"><button type="button" onClick={() => setViewMonth(current => shiftMonth(current, -1))} aria-label={ar ? 'الشهر الهجري السابق' : 'Previous Hijri month'} className={datePickerMonthButtonClass}>{ar ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}</button><h2 className={datePickerMonthTitleClass}>{monthTitle(viewMonth, lang)}</h2><button type="button" onClick={() => setViewMonth(current => shiftMonth(current, 1))} aria-label={ar ? 'الشهر الهجري التالي' : 'Next Hijri month'} className={datePickerMonthButtonClass}>{ar ? <ChevronLeft className="size-4" /> : <ChevronRight className="size-4" />}</button></div>

@@ -5,6 +5,7 @@ import { addDays, formatHeaderDate, getTodayDateString, parseDate, toLatinDigits
 import { loadAllDays } from '../utils/storage';
 import { datePickerArrowClass, datePickerDayClass, datePickerGridClass, datePickerMonthButtonClass, datePickerMonthTitleClass, datePickerPopoverClass, datePickerShellClass, datePickerTodayClass, datePickerTriggerClass, datePickerWeekdayClass } from './datePickerStyles';
 import { useDatePickerPlacement } from './useDatePickerPlacement';
+import { Tooltip } from './Tooltip';
 
 interface DateNavigationProps {
   currentDate: string;
@@ -108,9 +109,11 @@ export const DateNavigation: React.FC<DateNavigationProps> = ({ currentDate, onD
       className={datePickerShellClass}
       ref={calendarRef}
     >
-      <button type="button" onClick={() => onDateChange(addDays(currentDate, -1))} aria-label={ar ? 'اليوم السابق' : 'Previous day'} title={ar ? 'اليوم السابق' : 'Previous day'} className={datePickerArrowClass}>
-        {ar ? <ChevronRight className="size-4 stroke-[2.8]" /> : <ChevronLeft className="size-4 stroke-[2.8]" />}
-      </button>
+      <Tooltip text={ar ? 'اليوم السابق' : 'Previous day'} className="shrink-0">
+        <button type="button" onClick={() => onDateChange(addDays(currentDate, -1))} aria-label={ar ? 'اليوم السابق' : 'Previous day'} className={datePickerArrowClass}>
+          {ar ? <ChevronRight className="size-4 stroke-[2.8]" /> : <ChevronLeft className="size-4 stroke-[2.8]" />}
+        </button>
+      </Tooltip>
 
       <div className="flex min-w-0 flex-1 items-center gap-1">
         <button type="button" onClick={() => { setViewMonth(startOfMonth(parseDate(currentDate))); setFocusedDate(currentDate); setOpen(value => !value); }} aria-haspopup="dialog" aria-expanded={open} className={datePickerTriggerClass}>
@@ -119,9 +122,11 @@ export const DateNavigation: React.FC<DateNavigationProps> = ({ currentDate, onD
         </button>
       </div>
 
-      <button type="button" onClick={() => onDateChange(addDays(currentDate, 1))} aria-label={ar ? 'اليوم التالي' : 'Next day'} title={ar ? 'اليوم التالي' : 'Next day'} className={datePickerArrowClass}>
-        {ar ? <ChevronLeft className="size-4 stroke-[2.8]" /> : <ChevronRight className="size-4 stroke-[2.8]" />}
-      </button>
+      <Tooltip text={ar ? 'اليوم التالي' : 'Next day'} className="shrink-0">
+        <button type="button" onClick={() => onDateChange(addDays(currentDate, 1))} aria-label={ar ? 'اليوم التالي' : 'Next day'} className={datePickerArrowClass}>
+          {ar ? <ChevronLeft className="size-4 stroke-[2.8]" /> : <ChevronRight className="size-4 stroke-[2.8]" />}
+        </button>
+      </Tooltip>
 
       {open && <div ref={popoverRef} data-date-picker-popover="gregorian" role="dialog" aria-label={ar ? 'اختيار التاريخ' : 'Choose a date'} aria-modal="false" onPointerDown={event => event.stopPropagation()} style={popoverStyle} className={datePickerPopoverClass}>
         <div className="mb-1 flex items-center justify-between gap-2">

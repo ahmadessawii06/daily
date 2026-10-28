@@ -4,6 +4,7 @@ import { syncHelp } from '../utils/syncHelp';
 import { CloudCheck, CloudOff, RefreshCw, AlertCircle } from 'lucide-react';
 import { subscribeToSyncStatus, triggerSync, SyncStatusInfo } from '../services/syncEngine';
 import { Language } from '../types';
+import { Tooltip } from './Tooltip';
 
 interface SyncIndicatorProps {
   lang: Language;
@@ -99,9 +100,10 @@ export const SyncIndicator: React.FC<SyncIndicatorProps> = ({ lang, userId, inte
   const classes = `inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-2.5 text-[11px] font-semibold select-none ${current.color}`;
   const failed = syncInfo.status === 'error' || syncInfo.status === 'offline' || syncInfo.status === 'warning';
   const actionLabel = syncInfo.status === 'warning' ? (lang === 'ar' ? 'تمت مزامنة اليوم — عرض تنبيه الصور' : 'Day synced — view photo warning') : failed ? (lang === 'ar' ? 'تعذرت المزامنة — عرض السبب والحلول' : 'Sync failed — view cause and solutions') : label;
+  const tooltipText = interactive ? actionLabel : label;
   return <>{interactive
-    ? <button type="button" onClick={() => failed ? setDetailsOpen(true) : handleManualSync()} title={actionLabel} aria-label={actionLabel} className={`${classes} cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500`}>{content}</button>
-    : <div role="status" title={label} aria-label={label} className={classes}>{content}</div>
+    ? <Tooltip text={tooltipText}><button type="button" onClick={() => failed ? setDetailsOpen(true) : handleManualSync()} aria-label={actionLabel} className={`${classes} cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500`}>{content}</button></Tooltip>
+    : <Tooltip text={tooltipText}><div role="status" aria-label={label} className={classes}>{content}</div></Tooltip>
     }{detailsOpen && createPortal(<dialog ref={dialog} onCancel={() => setDetailsOpen(false)} onClose={() => setDetailsOpen(false)} aria-labelledby="sync-details-title" dir={lang === 'ar' ? 'rtl' : 'ltr'} className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-rose-500/20 bg-white p-6 text-slate-800 shadow-xl backdrop:bg-black/50 dark:bg-zinc-900 dark:text-zinc-100">
       <h2 id="sync-details-title" className="font-bold">{syncInfo.status === 'warning' ? (lang === 'ar' ? 'تمت مزامنة اليوم مع تنبيه' : 'Day synced with a warning') : (lang === 'ar' ? 'سبب تعذر المزامنة' : 'Why sync failed')}</h2>
       <p role="status" className="mt-3 text-sm leading-7">{syncHelp(syncInfo.errorMessage, lang)}</p>

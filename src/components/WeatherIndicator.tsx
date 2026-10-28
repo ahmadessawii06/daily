@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Language } from '../types';
 import { getStoredLocationConfig } from '../utils/prayerTimes';
+import { Tooltip } from './Tooltip';
 
 interface WeatherIndicatorProps {
   lang: Language;
@@ -174,29 +175,33 @@ export const WeatherIndicator: React.FC<WeatherIndicatorProps> = ({ lang, compac
   const info = getWeatherInfo(weather.code, weather.isDay, lang);
   const Icon = info.icon;
 
+  const cityLabel = weather.cityName
+    ? (ar ? `طقس ${weather.cityName}` : `${weather.cityName} weather`)
+    : (ar ? 'الطقس' : 'Weather');
   const tooltip = ar
-    ? `الطقس اليوم في ${weather.cityName}: ${info.label}، ${weather.temp}° مئوية — انقر للتحديث`
-    : `Today's weather in ${weather.cityName}: ${info.label}, ${weather.temp}°C — click to refresh`;
+    ? `${cityLabel} — انقر للتحديث`
+    : `${cityLabel} — click to refresh`;
 
   return (
-    <button
-      type="button"
-      onClick={() => void fetchWeather(true)}
-      title={tooltip}
-      aria-label={tooltip}
-      className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-white/85 px-2.5 text-[11px] font-semibold text-emerald-800 shadow-xs backdrop-blur-md transition-colors hover:border-emerald-500/50 hover:bg-emerald-50/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 select-none dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
-    >
-      <span
-        aria-hidden="true"
-        className="h-2 w-2 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-      />
-      {loading ? (
-        <RefreshCw aria-hidden="true" strokeWidth={1.8} className="h-3.5 w-3.5 shrink-0 animate-spin text-emerald-600 dark:text-emerald-500" />
-      ) : (
-        <Icon aria-hidden="true" strokeWidth={1.8} className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-500" />
-      )}
-      <span className="font-bold tabular-nums">{weather.temp}°</span>
-      <span className={compact ? 'hidden sm:inline' : undefined}>{info.label}</span>
-    </button>
+    <Tooltip text={tooltip}>
+      <button
+        type="button"
+        onClick={() => void fetchWeather(true)}
+        aria-label={tooltip}
+        className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-white/85 px-2.5 text-[11px] font-semibold text-emerald-800 shadow-xs backdrop-blur-md transition-colors hover:border-emerald-500/50 hover:bg-emerald-50/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 select-none dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
+      >
+        <span
+          aria-hidden="true"
+          className="h-2 w-2 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+        />
+        {loading ? (
+          <RefreshCw aria-hidden="true" strokeWidth={1.8} className="h-3.5 w-3.5 shrink-0 animate-spin text-emerald-600 dark:text-emerald-500" />
+        ) : (
+          <Icon aria-hidden="true" strokeWidth={1.8} className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-500" />
+        )}
+        <span className="font-bold tabular-nums">{weather.temp}°</span>
+        <span className={compact ? 'hidden sm:inline' : undefined}>{info.label}</span>
+      </button>
+    </Tooltip>
   );
 };

@@ -4,6 +4,7 @@ import { SquarePen } from 'lucide-react';
 import type { Language } from '../types';
 import { QuickNotesModal } from './QuickNotesModal';
 import { getStoredQuickNotes } from '../utils/quickNotesStorage';
+import { Tooltip } from './Tooltip';
 
 export function QuickNotes({ lang }: { lang: Language }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,11 +48,11 @@ export function QuickNotes({ lang }: { lang: Language }) {
 
   return (
     <div className="contents">
+      <Tooltip text={ar ? (noteCount > 0 ? `الملاحظات (${noteCount})` : 'الملاحظات السريعة') : (noteCount > 0 ? `Quick Notes (${noteCount})` : 'Quick Notes')}>
       <button
         id="header-quick-notes-btn"
         ref={triggerButton}
         type="button"
-        title={label}
         aria-label={label}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
@@ -78,6 +79,7 @@ export function QuickNotes({ lang }: { lang: Language }) {
           </span>
         )}
       </button>
+      </Tooltip>
 
       {isOpen &&
         createPortal(
