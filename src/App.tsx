@@ -61,8 +61,8 @@ import { AlertCircle, CalendarArrowUp, CheckCircle2, LayoutGrid, ListChecks, Plu
 import { OnboardingTour } from './components/OnboardingTour';
 import { shouldShowOnboarding, saveOnboardingStatus } from './utils/onboardingStorage';
 
+import { SettingsPage } from './components/SettingsPage';
 const AdminPanel = React.lazy(() => import('./components/AdminPanel').then(module => ({ default: module.AdminPanel })));
-const SettingsPage = React.lazy(() => import('./components/SettingsPage').then(module => ({ default: module.SettingsPage })));
 
 export default function App() {
   useEffect(() => { applyColorTheme(readColorTheme()); }, []);
@@ -690,9 +690,18 @@ export default function App() {
     {toastMessage && <div role="status" className="flex max-w-full items-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-900 shadow-xl dark:border-white/15 dark:bg-[#121319] dark:text-zinc-100">{toastSuccess ? <CheckCircle2 aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-500" /> : <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-500" />}<span>{toastMessage}</span>{toastAction && <button type="button" onClick={toastAction.onClick} className="min-h-9 rounded-lg px-2 font-bold text-emerald-700 hover:bg-emerald-500/10 focus-visible:outline-2 focus-visible:outline-emerald-500 dark:text-emerald-300">{toastAction.label}</button>}</div>}
   </div>;
 
-  if (page === 'admin' && !support && hasPermission(currentUser.role, 'users.read')) return <React.Suspense fallback={<AuthLoadingScreen stage="preparing" lang={lang} theme={theme} />}><AdminPanel currentUser={currentUser} lang={lang} onClose={() => navigate('settings')} onImpersonate={(user, token) => { beginSupportSession(user, token); location.hash = ''; location.reload(); }} /></React.Suspense>;
+  if (page === 'admin' && !support && hasPermission(currentUser.role, 'users.read')) return (
+    <React.Suspense fallback={
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-slate-500 dark:text-zinc-400">
+        <span className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+        <span className="text-xs font-medium">{lang === 'ar' ? 'جارٍ التحميل…' : 'Loading…'}</span>
+      </div>
+    }>
+      <AdminPanel currentUser={currentUser} lang={lang} onClose={() => navigate('settings')} onImpersonate={(user, token) => { beginSupportSession(user, token); location.hash = ''; location.reload(); }} />
+    </React.Suspense>
+  );
 
-  if (page === 'settings' && !support) return <React.Suspense fallback={<AuthLoadingScreen stage="preparing" lang={lang} theme={theme} />}>
+  if (page === 'settings' && !support) return <>
     <SettingsPage currentUser={currentUser} lang={lang} theme={theme} archiveDaysCount={archiveDays.length} exporting={isExportingImage || exportRequested}
       onBack={() => navigate('planner')} onToggleLang={handleToggleLang} onSetTheme={next => { setStoredTheme(next); setTheme(next); }}
       onResetData={handleResetData} onApply24HourTemplate={handleApply24HourTemplate}
@@ -701,7 +710,7 @@ export default function App() {
       onExport={() => { setExportRequested(true); navigate('planner'); }} onLogout={handleLogout}
       onReplayTour={() => { navigate('planner'); setIsOnboardingOpen(true); }} />
     {feedback}
-  </React.Suspense>;
+  </>;
 
   if ((page === 'statistics' || page === 'archive') && !support) return <>
     <AccountPage key={page} lang={lang} title={page === 'statistics' ? (lang === 'ar' ? 'الإحصائيات والتقرير الأسبوعي' : 'Weekly statistics') : (lang === 'ar' ? 'الأرشيف وسجل الأيام' : 'Archive & history')}
