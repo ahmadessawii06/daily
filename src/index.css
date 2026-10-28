@@ -542,6 +542,10 @@ html[data-color-theme="paper"] .bg-mesh {
 
   /* Keep artwork shading separate from theme surface gradient overrides. */
   .planner-card-image-shade {
+    background: transparent;
+  }
+
+  .dark .planner-card-image-shade {
     background: linear-gradient(to right, rgb(0 0 0 / 18%), rgb(0 0 0 / 8%), rgb(0 0 0 / 18%));
   }
 
