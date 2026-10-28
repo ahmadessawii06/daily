@@ -29,7 +29,19 @@ export function mergeWorkspace(local: PlannerWorkspace | undefined, incoming: Pl
     }
   }
   const view = timestamp(incoming.viewUpdatedAt) >= timestamp(local.viewUpdatedAt) ? incoming : local;
-  return { view: view.view, viewUpdatedAt: view.viewUpdatedAt, categories: [...categories.values()].sort((a, b) => a.order - b.order || a.id.localeCompare(b.id)) };
+  const dailyCategories = { ...(local.dailyCategories || {}) };
+  for (const [date, incomingCategories] of Object.entries(incoming.dailyCategories || {})) {
+    const localCategories = dailyCategories[date];
+    if (!localCategories) { dailyCategories[date] = structuredClone(incomingCategories); continue; }
+    const merged = new Map(localCategories.map(category => [category.id, category]));
+    for (const category of incomingCategories) {
+      const previous = merged.get(category.id);
+      if (!previous || timestamp(category.updatedAt) >= timestamp(previous.updatedAt)) merged.set(category.id, category);
+    }
+    dailyCategories[date] = [...merged.values()].sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+  }
+  return { view: view.view, viewUpdatedAt: view.viewUpdatedAt, categories: [...categories.values()].sort((a, b) => a.order - b.order || a.id.localeCompare(b.id)),
+    ...(Object.keys(dailyCategories).length ? { dailyCategories } : {}) };
 }
 
 export function activeCategories(workspace: PlannerWorkspace): PlannerCategory[] {
@@ -86,5 +98,15 @@ export function parseWorkspace(value: unknown): PlannerWorkspace {
     return { id: category.id, name: category.name.trim(), nameEn: category.nameEn, icon: category.icon,
       order: category.order, collapsed: category.collapsed, updatedAt: category.updatedAt, deletedAt: category.deletedAt };
   });
-  return { categories, view: data.view, viewUpdatedAt: data.viewUpdatedAt };
+  const dailyCategories: Record<string, PlannerCategory[]> = {};
+  if (data.dailyCategories !== undefined) {
+    if (!data.dailyCategories || typeof data.dailyCategories !== 'object' || Array.isArray(data.dailyCategories)) return invalid();
+    for (const [date, items] of Object.entries(data.dailyCategories)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Array.isArray(items) || items.length > 1000) return invalid();
+      const parsed = parseWorkspace({ view: data.view, viewUpdatedAt: data.viewUpdatedAt, categories: items }).categories;
+      dailyCategories[date] = parsed;
+    }
+  }
+  return { categories, view: data.view, viewUpdatedAt: data.viewUpdatedAt,
+    ...(Object.keys(dailyCategories).length ? { dailyCategories } : {}) };
 }

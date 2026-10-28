@@ -68,6 +68,16 @@ const previewBanners: Partial<Record<CategoryIcon, BannerPreviewConfig>> = {
       en: new URL('../assets/images/cards/ideas-ltr-light.webp', import.meta.url).href,
     },
   },
+  'dollar-sign': {
+    dark: {
+      ar: new URL('../assets/images/cards/money-rtl-dark.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/money-ltr-dark.webp', import.meta.url).href,
+    },
+    light: {
+      ar: new URL('../assets/images/cards/money-rtl-light.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/money-ltr-light.webp', import.meta.url).href,
+    },
+  },
   layers: {
     dark: {
       ar: new URL('../assets/images/cards/money-rtl-dark.webp', import.meta.url).href,

@@ -110,6 +110,8 @@ export interface PlannerWorkspace {
   categories: PlannerCategory[];
   view: PlannerView;
   viewUpdatedAt: string;
+  /** Date-scoped card configurations. An absent date is intentionally uninitialized. */
+  dailyCategories?: Record<string, PlannerCategory[]>;
 }
 export type ActiveTab = 'daily' | 'stats' | 'archive';
 export type StatusFilter = 'all' | 'scheduled' | 'done' | 'pending' | 'not-done';
