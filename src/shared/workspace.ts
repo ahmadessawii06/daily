@@ -1,7 +1,7 @@
 import type { CategoryIcon, PlannerCategory, PlannerView, PlannerWorkspace, Task } from '../types';
 import { timestamp } from './merge.js';
 
-export const CATEGORY_ICONS: CategoryIcon[] = ['book', 'briefcase', 'heart', 'leaf', 'moon', 'layers'];
+export const CATEGORY_ICONS: CategoryIcon[] = ['book', 'briefcase', 'heart', 'leaf', 'moon', 'layers', 'dollar-sign'];
 export const WORKSPACE_EPOCH = '1970-01-01T00:00:00.000Z';
 export const UNASSIGNED_CATEGORY = '__unassigned';
 

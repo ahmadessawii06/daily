@@ -62,6 +62,16 @@ const categoryBanners: Record<string, BannerConfig> = {
       en: new URL('../assets/images/cards/ideas-ltr-light.webp', import.meta.url).href,
     },
   },
+  expenses: {
+    dark: {
+      ar: new URL('../assets/images/cards/money-rtl-dark.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/money-ltr-dark.webp', import.meta.url).href,
+    },
+    light: {
+      ar: new URL('../assets/images/cards/money-rtl-light.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/money-ltr-light.webp', import.meta.url).href,
+    },
+  },
   money: {
     dark: {
       ar: new URL('../assets/images/cards/money-rtl-dark.webp', import.meta.url).href,
@@ -216,7 +226,7 @@ function CategoryCard({ category, tasks, filter, lang, theme = 'dark', onAdd, on
   const visible = tasks.filter(task => filter === 'all' || filter === 'scheduled' || task.status === filter);
   const collapsed = Boolean(category.collapsed);
   // User-created cards have UUID-based IDs; select their artwork by icon.
-  const bannerCategory = { book: 'study', briefcase: 'work', heart: 'health', leaf: 'rest', moon: 'ideas', layers: 'money' }[category.icon];
+  const bannerCategory = { book: 'study', briefcase: 'work', heart: 'health', leaf: 'rest', moon: 'ideas', layers: 'money', 'dollar-sign': 'money' }[category.icon];
   const bannerConfig = Object.hasOwn(categoryBanners, category.id)
     ? categoryBanners[category.id]
     : categoryBanners[bannerCategory];

@@ -14,8 +14,79 @@ export function readStoredWorkspace(): PlannerWorkspace | undefined {
 }
 
 // Missing metadata identifies legacy accounts, including accounts opened on a new device.
+export function resetPlannerWorkspace(): PlannerWorkspace {
+  const ws = createWorkspace('cards');
+  return saveWorkspace(ws);
+}
+
+export const DEFAULT_CANONICAL_SPACES: Array<{ id: string; name: string; nameEn: string; icon: CategoryIcon }> = [
+  { id: 'work', name: 'العمل والمشاريع', nameEn: 'Work & projects', icon: 'briefcase' },
+  { id: 'study', name: 'الجامعة والدراسة', nameEn: 'University & Study', icon: 'book' },
+  { id: 'health', name: 'الصحة والنشاط', nameEn: 'Health & fitness', icon: 'heart' },
+  { id: 'rest', name: 'الحياة الشخصية', nameEn: 'Personal life', icon: 'leaf' },
+  { id: 'ideas', name: 'الأفكار والمساعدات', nameEn: 'Ideas & Assistance', icon: 'moon' },
+  { id: 'expenses', name: 'المصاريف اليومية', nameEn: 'Daily Expenses', icon: 'dollar-sign' },
+];
+
+export function ensureCanonicalSpaces(workspace: PlannerWorkspace): PlannerWorkspace {
+  const categories = [...workspace.categories];
+  let changed = false;
+  const now = new Date().toISOString();
+
+  // 1. Upgrade legacy study name if unchanged by user
+  const studyCat = categories.find(c => c.id === 'study' && !c.deletedAt);
+  if (studyCat && (studyCat.name === 'الدراسة' || studyCat.name === 'Study')) {
+    studyCat.name = 'الجامعة والدراسة';
+    studyCat.nameEn = 'University & Study';
+    studyCat.updatedAt = now;
+    changed = true;
+  }
+
+  // 2. Ensure each canonical category exists
+  for (let i = 0; i < DEFAULT_CANONICAL_SPACES.length; i++) {
+    const canonical = DEFAULT_CANONICAL_SPACES[i];
+    const existing = categories.find(c => c.id === canonical.id);
+    if (!existing) {
+      categories.push({
+        id: canonical.id,
+        name: canonical.name,
+        nameEn: canonical.nameEn,
+        icon: canonical.icon,
+        order: i,
+        updatedAt: now,
+      });
+      changed = true;
+    }
+  }
+
+  // 3. Retire legacy 'general' (مساحة مفتوحة) if present
+  const generalCat = categories.find(c => c.id === 'general' && !c.deletedAt);
+  if (generalCat && (generalCat.name === 'مساحة مفتوحة' || generalCat.name === 'Open space')) {
+    generalCat.deletedAt = now;
+    generalCat.updatedAt = now;
+    changed = true;
+  }
+
+  if (!changed) return workspace;
+
+  return {
+    ...workspace,
+    categories,
+  };
+}
+
 export function getPlannerWorkspace(): PlannerWorkspace {
-  return readStoredWorkspace() || createWorkspace('timeline');
+  const ws = readStoredWorkspace();
+  if (ws) {
+    const canonical = ensureCanonicalSpaces(ws);
+    if (canonical !== ws) {
+      storeWorkspace(canonical);
+      return canonical;
+    }
+    return ws;
+  }
+  const fresh = createWorkspace('timeline');
+  return ensureCanonicalSpaces(fresh);
 }
 
 export function storeWorkspace(workspace: PlannerWorkspace): void {

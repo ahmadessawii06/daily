@@ -32,7 +32,7 @@ import { LoginScreen } from './components/LoginScreen';
 import { AuthLoadingScreen } from './components/AuthLoadingScreen';
 import { ScreenshotLoadingScreen } from './components/ScreenshotLoadingScreen';
 import { CardsDashboard } from './components/CardsDashboard';
-import { getPlannerWorkspace, readStoredWorkspace, setPlannerView, updatePlannerCategory } from './utils/workspace';
+import { getPlannerWorkspace, readStoredWorkspace, resetPlannerWorkspace, setPlannerView, updatePlannerCategory } from './utils/workspace';
 import { deletePlannerCategoryAndTasks, restorePlannerCategoryAndTasks, type CategoryDeletionSnapshot } from './utils/categoryDeletion';
 import { activeCategories, UNASSIGNED_CATEGORY } from './shared/workspace';
 import { getTaskCardCategories } from './utils/cardCategories';
@@ -46,6 +46,7 @@ import { TodayProgress } from './components/TodayProgress';
 import { PrayerCard } from './components/PrayerCard';
 import { DateNavigation } from './components/DateNavigation';
 import { DayMemories } from './components/DayMemories';
+import { QuickNotes } from './components/QuickNotes';
 import { PlannerBackdrop } from './components/PlannerBackdrop';
 import { TaskList } from './components/TaskList';
 import { WeeklyReview } from './components/WeeklyReview';
@@ -555,6 +556,7 @@ export default function App() {
     if (support) return;
     setDeletedTasks([]);
     resetToDefaults();
+    setWorkspace(resetPlannerWorkspace());
     const rec = getDayRecord(currentDate);
     setTasks(rec.tasks);
     refreshArchive();
@@ -728,7 +730,7 @@ export default function App() {
       {/* Main Full-Width Centered Clean Canvas */}
       <main
         id="daily-track-container"
-        className={`relative z-10 isolate flex-1 w-full ${cardColumns === 4 ? 'max-w-[1600px]' : 'max-w-6xl'} mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors`}
+        className="relative z-10 isolate flex-1 w-full max-w-[1800px] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 bg-slate-50 dark:bg-[#07080b] bg-mesh transition-colors"
       >
         <PlannerBackdrop />
         <div className="relative z-10 space-y-2 sm:space-y-3">
@@ -752,6 +754,7 @@ export default function App() {
             onToggleLang={handleToggleLang}
             onToggleTheme={() => { const next = theme === 'dark' ? 'light' : 'dark'; setStoredTheme(next); setTheme(next); }}
             dayMemories={<DayMemories key={`${currentUser.id}-${currentDate}`} date={currentDate} lang={lang} onSaved={refreshArchive} />}
+            quickNotes={<QuickNotes lang={lang} />}
           ><>
             <TodayProgress stats={stats} currentFilter={currentFilter} onFilterChange={setCurrentFilter} lang={lang} theme={theme} compact />
           </></MainHeader> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}

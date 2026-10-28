@@ -93,7 +93,7 @@ export interface WeeklyDayData {
 
 export type ViewMode = 'timeline' | 'periods' | 'list';
 export type PlannerView = 'cards' | 'timeline';
-export type CategoryIcon = 'book' | 'briefcase' | 'heart' | 'leaf' | 'moon' | 'layers';
+export type CategoryIcon = 'book' | 'briefcase' | 'heart' | 'leaf' | 'moon' | 'layers' | 'dollar-sign';
 
 export interface PlannerCategory {
   id: string;
@@ -178,6 +178,18 @@ export interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
   token?: string;
+}
+
+export type QuickNoteColor = 'cream' | 'mint' | 'amber' | 'blue' | 'rose';
+
+export interface QuickNote {
+  id: string;
+  title: string;
+  content: string;
+  color?: QuickNoteColor;
+  isPinned: boolean;
+  createdAt: string; // ISO date string
+  updatedAt?: string; // ISO date string
 }
 
 
