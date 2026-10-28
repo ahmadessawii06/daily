@@ -10,6 +10,7 @@ interface StatCircleProps {
   compact?: boolean;
   subLabel?: string;
   className?: string;
+  title?: string;
 }
 
 export const StatCircle: React.FC<StatCircleProps> = ({
@@ -22,6 +23,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
   subLabel,
   compact = false,
   className = '',
+  title,
 }) => {
   const radius = 23;
   const circumference = 2 * Math.PI * radius; // ≈ 144.51
@@ -72,7 +74,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
       <div
         className={`progress-body relative ${compact ? 'w-12 h-12' : 'w-14 h-14 sm:w-16 sm:h-16'} rounded-full flex items-center justify-center transition-all duration-200 motion-reduce:transition-none shadow-2xs ${
           colorConfig.bgGlow
-        } ${isActive ? colorConfig.activeRing : 'ring-1 ring-white/20 hover:ring-white/50 hover:shadow-md'} `}
+        } ${isActive ? colorConfig.activeRing : 'ring-1 ring-white/20 group-hover:ring-2 group-hover:ring-current/60 group-hover:scale-105 group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)] group-hover:brightness-110'} `}
       >
         <svg
           viewBox="0 0 54 54"
@@ -134,9 +136,20 @@ export const StatCircle: React.FC<StatCircleProps> = ({
     isActive ? 'scale-105' : ''
   }`;
   return onClick ? (
-    <button data-progress-tone={color} data-progress-active={isActive} type="button" onClick={onClick} aria-label={`${label}: ${value}`} aria-pressed={isActive}
-      className={`${classes} cursor-pointer hover:-translate-y-0.5 hover:scale-105 hover:opacity-100 hover:brightness-105 active:scale-95 motion-reduce:transform-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-500 rounded-lg`}>
+    <button data-progress-tone={color} data-progress-active={isActive} type="button" onClick={onClick} aria-label={title || `${label}: ${value}`} aria-pressed={isActive}
+      className={`${classes} relative cursor-pointer hover:-translate-y-0.5 active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:rounded-full bg-transparent border-0 p-0`}>
       {content}
+      {title && (
+        <div
+          role="tooltip"
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 ease-out whitespace-nowrap"
+        >
+          <div dir="auto" className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold font-['Alexandria'] backdrop-blur-md shadow-[0_8px_20px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.45)] bg-white/95 text-slate-800 border border-slate-200/90 dark:bg-[#06201a]/95 dark:text-emerald-300 dark:border-emerald-400/30">
+            <span>{title}</span>
+          </div>
+        </div>
+      )}
     </button>
   ) : <div data-progress-tone={color} data-progress-active={isActive} aria-label={`${label}: ${value}`} className={classes}>{content}</div>;
 };

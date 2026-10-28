@@ -25,6 +25,15 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
   theme,
   compact = false,
 }) => {
+  // تتبع ما إذا كان فلتر 'all' (مطلوبة) مفعلاً بصرياً أم تم إلغاؤه بنقرة ثانية
+  const [isAllSelected, setIsAllSelected] = React.useState(false);
+
+  // إعادة الضبط إذا تم اختيار فلتر آخر
+  React.useEffect(() => {
+    if (currentFilter !== 'all') {
+      setIsAllSelected(false);
+    }
+  }, [currentFilter]);
   const percentage = Math.min(100, Math.max(0, stats.completionPercentage || 0));
   const isAllComplete = stats.total > 0 && stats.done === stats.total;
   const remaining = Math.max(0, stats.total - stats.done - stats.notDone);
@@ -235,7 +244,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
             data-progress-verse
             lang="ar"
             dir="rtl"
-            className="mx-auto w-full min-w-0 max-w-3xl rounded-[14px] border border-[rgba(190,155,85,0.24)] bg-[rgba(5,20,18,0.72)] px-3 py-2 text-center text-[#F8EBCD] sm:px-4"
+            className="mx-auto w-full min-w-0 max-w-4xl rounded-[14px] border border-[rgba(190,155,85,0.24)] bg-[rgba(5,20,18,0.72)] px-3 py-2 text-center text-[#F8EBCD] sm:px-4"
           >
             <p className="quran-verse-text">{getMotivationalTitle('ar')}</p>
             {renderVerseSource(0, 'ar')}
@@ -243,71 +252,82 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
         )}
 
         {/* Main Section: Circular Progress Gauge + 4 Circular Metric Gauges (دوائر تفاعلية بدلاً من البطاقات) */}
-        <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-3xl grid-cols-5 items-center gap-1 rounded-2xl border border-white/30 bg-white/25 px-1 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_10px_28px_rgba(15,23,42,0.08)] backdrop-blur-md dark:border-white/[0.16] dark:bg-[#06221d]/85 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_32px_rgba(0,0,0,0.4)] dark:backdrop-blur-md' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
+        <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-4xl grid-cols-5 items-center gap-2 sm:gap-4 rounded-2xl border border-white/30 bg-white/25 px-4 sm:px-6 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_10px_28px_rgba(15,23,42,0.08)] backdrop-blur-md dark:border-white/[0.16] dark:bg-[#06221d]/85 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_32px_rgba(0,0,0,0.4)] dark:backdrop-blur-md' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
           
           {/* Main Circular Progress Gauge */}
           <div data-progress-main className={`${compact ? 'col-start-3 row-start-1 w-auto justify-self-center' : 'w-full justify-center gap-3 sm:gap-4 md:w-auto md:flex-1 md:justify-start'} flex min-w-0 shrink-0 items-center`}>
-            <div className={`${compact ? 'rounded-full bg-white/25 p-1 shadow-[0_8px_20px_rgba(16,185,129,0.14)] ring-1 ring-emerald-400/20 dark:bg-white/[0.03] dark:shadow-[0_8px_20px_rgba(0,0,0,0.28)] dark:ring-emerald-300/15' : ''} relative flex shrink-0 items-center justify-center`}>
-              <svg
-                viewBox="0 0 100 100"
-                className={`${compact ? 'h-16 w-16 sm:h-20 sm:w-20' : 'h-24 w-24 sm:h-28 sm:w-28'} -rotate-90 shrink-0 transform-gpu`}
-                aria-label={`Progress: ${percentage}%`}
-              >
-                {/* Background track (neutral dark/light) */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r={radius}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={compact ? '8' : '7'}
-                  className="text-emerald-900/20 dark:text-emerald-100/30"
-                />
-
-                {/* Active progress arc (pure green) */}
-                {percentage > 0 && (
+            <div className="flex flex-col items-center select-none">
+              <div className={`progress-circle-wrap ${compact ? 'rounded-full bg-white/25 p-1 shadow-[0_8px_20px_rgba(16,185,129,0.14)] ring-1 ring-emerald-400/20 dark:bg-white/[0.03] dark:shadow-[0_8px_20px_rgba(0,0,0,0.28)] dark:ring-emerald-300/15' : ''} relative flex shrink-0 items-center justify-center`}>
+                <svg
+                  viewBox="0 0 100 100"
+                  className={`${compact ? 'h-16 w-16 sm:h-20 sm:w-20' : 'h-24 w-24 sm:h-28 sm:w-28'} -rotate-90 shrink-0 transform-gpu`}
+                  aria-label={`Progress: ${percentage}%`}
+                >
+                  {/* Background track (neutral dark/light) */}
                   <circle
                     cx="50"
                     cy="50"
                     r={radius}
                     fill="none"
-                    stroke="var(--theme-progress-main, #10e588)"
+                    stroke="currentColor"
                     strokeWidth={compact ? '8' : '7'}
-                    strokeDasharray={circumference}
-                    strokeDashoffset={strokeDashoffset}
-                    strokeLinecap="round"
-                    className="drop-shadow-[0_0_5px_rgba(16,229,136,0.28)] transition-[stroke-dashoffset] duration-700 ease-out motion-reduce:transition-none"
+                    className="text-emerald-900/20 dark:text-emerald-100/30"
                   />
-                )}
-              </svg>
 
-              {/* Inner Content inside Circle */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
-                {isAllComplete ? (
-                  <div className="flex flex-col items-center justify-center leading-none">
-                    <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#10e588] mb-1 animate-pulse" />
-                    <div className="flex items-baseline justify-center font-numbers">
-                      <span className={`${compact ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'} font-black tracking-tight text-emerald-600 dark:text-[#10e588]`}>
-                        100
-                      </span>
-                      <span className="text-[11px] sm:text-xs font-bold text-[#10e588] ms-0.5">
-                        %
-                      </span>
+                  {/* Active progress arc (pure green) */}
+                  {percentage > 0 && (
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r={radius}
+                      fill="none"
+                      stroke="var(--theme-progress-main, #10e588)"
+                      strokeWidth={compact ? '8' : '7'}
+                      strokeDasharray={circumference}
+                      strokeDashoffset={strokeDashoffset}
+                      strokeLinecap="round"
+                      className="drop-shadow-[0_0_5px_rgba(16,229,136,0.28)] transition-[stroke-dashoffset] duration-700 ease-out motion-reduce:transition-none"
+                    />
+                  )}
+                </svg>
+
+                {/* Inner Content inside Circle */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
+                  {isAllComplete ? (
+                    <div className="flex flex-col items-center justify-center leading-none">
+                      <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#10e588] mb-1 animate-pulse" />
+                      <div className="flex items-baseline justify-center font-numbers">
+                        <span className={`${compact ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'} font-black tracking-tight text-emerald-600 dark:text-[#10e588]`}>
+                          100
+                        </span>
+                        <span className="text-[11px] sm:text-xs font-bold text-[#10e588] ms-0.5">
+                          %
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center leading-none">
-                    <div className="flex items-baseline justify-center font-numbers">
-                      <span className="text-2xl font-black tracking-tight text-emerald-600 dark:text-[#10e588] sm:text-3xl">
-                        {percentage}
-                      </span>
-                      <span className={`${compact ? 'text-[10px]' : 'text-xs sm:text-sm'} font-bold text-[#10e588] ms-0.5`}>
-                        %
-                      </span>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center leading-none">
+                      <div className="flex items-baseline justify-center font-numbers">
+                        <span className="text-2xl font-black tracking-tight text-emerald-600 dark:text-[#10e588] sm:text-3xl">
+                          {percentage}
+                        </span>
+                        <span className={`${compact ? 'text-[10px]' : 'text-xs sm:text-sm'} font-bold text-[#10e588] ms-0.5`}>
+                          %
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
+
+              {/* Label under Circle (إنجاز اليوم فقط وبدون النسبة تحتها) */}
+              {compact && (
+                <div className="flex max-w-full flex-col items-center mt-1.5 leading-tight text-center">
+                  <span className="text-[11px] font-bold font-['Alexandria'] leading-snug text-slate-800 dark:text-white/[0.9]">
+                    {lang === 'ar' ? 'إنجاز اليوم' : "Today's Progress"}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Motivational Title & Subtitle beside main circle */}
@@ -330,14 +350,22 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
             style={compact ? { display: 'contents' } : undefined}
           >
             
-            {/* 1. Total (دائرة الإجمالي) — adjacent to the center gauge in RTL */}
+            {/* 1. Total (دائرة مطلوبة) — نقرة لتفعيل الفلتر ونقرة ثانية لإلغائه */}
             <StatCircle
-              label={lang === 'ar' ? 'الإجمالي' : 'Total'}
+              label={lang === 'ar' ? 'مطلوبة' : 'Required'}
+              title={lang === 'ar' ? (currentFilter === 'all' && isAllSelected ? 'إلغاء فلتر مطلوبة وعرض الكل' : 'اضغط لتطبيق فلتر - المهام المطلوبة') : 'Click to filter - Required tasks'}
               value={stats.total}
               percentage={stats.total > 0 ? 100 : 0}
               color="indigo"
-              isActive={currentFilter === 'all'}
-              onClick={() => onFilterChange?.('all')}
+              isActive={currentFilter === 'all' && isAllSelected}
+              onClick={() => {
+                if (currentFilter === 'all' && isAllSelected) {
+                  setIsAllSelected(false);
+                } else {
+                  setIsAllSelected(true);
+                  onFilterChange?.('all');
+                }
+              }}
               compact={compact}
               className={compact ? 'order-1 rtl:order-1' : ''}
               subLabel={stats.total > 0 ? '100%' : '0%'}
@@ -346,6 +374,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
             {/* 2. Completed (دائرة مكتملة) */}
             <StatCircle
               label={lang === 'ar' ? 'مكتملة' : 'Done'}
+              title={lang === 'ar' ? (currentFilter === 'done' ? 'إلغاء فلتر مكتملة وعرض الكل' : 'اضغط لتطبيق فلتر - المهام المكتملة') : 'Click to filter - Completed tasks'}
               value={stats.done}
               percentage={stats.total > 0 ? (stats.done / stats.total) * 100 : 0}
               color="emerald"
@@ -359,6 +388,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
             {/* 3. Remaining (دائرة متبقية) */}
             <StatCircle
               label={lang === 'ar' ? 'متبقية' : 'Remaining'}
+              title={lang === 'ar' ? (currentFilter === 'pending' ? 'إلغاء فلتر متبقية وعرض الكل' : 'اضغط لتطبيق فلتر - المهام المتبقية') : 'Click to filter - Remaining tasks'}
               value={remaining}
               percentage={stats.total > 0 ? (remaining / stats.total) * 100 : 0}
               color="amber"
@@ -372,6 +402,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
             {/* 4. Not Done (دائرة غير منجزة) */}
             <StatCircle
               label={lang === 'ar' ? 'غير منجزة' : 'Not Done'}
+              title={lang === 'ar' ? (currentFilter === 'not-done' ? 'إلغاء فلتر غير منجزة وعرض الكل' : 'اضغط لتطبيق فلتر - المهام غير المنجزة') : 'Click to filter - Not done tasks'}
               value={stats.notDone}
               percentage={stats.total > 0 ? (stats.notDone / stats.total) * 100 : 0}
               color="rose"
