@@ -2,19 +2,21 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { Task } from '../src/types';
 import { DAILY_PRAYERS } from '../src/utils/prayerTasks';
-import { calculateDailyProgress } from '../src/utils/dailyProgress';
+import { calculateDailyProgress, calculateAdhkarRepetitionsRatio } from '../src/utils/dailyProgress';
+import { AZKAR_SABAH } from '../src/data/azkarSabah';
+import { AZKAR_MASAA } from '../src/data/azkarMasaa';
 
 const task = (id: string, title: string, status: Task['status'] = 'pending'): Task => ({ id, title, status, time: '', createdAt: '2026-10-14T00:00:00Z' });
 const prayers = DAILY_PRAYERS.map(prayer => task(prayer.id, `صلاة ${prayer.nameAr}`, 'done'));
 
-test('daily progress includes five pending prayers on empty days without generating records', () => {
+test('daily progress includes five pending prayers on empty days without generating records (legacy call)', () => {
   const tasks: Task[] = [];
   assert.deepEqual(calculateDailyProgress(tasks), { total: 5, done: 0, notDone: 0, pending: 5, completionPercentage: 0, totalDurationMinutes: 0, doneDurationMinutes: 0 });
   assert.deepEqual(tasks, []);
   assert.equal(calculateDailyProgress([task('blank', '  ')]).total, 5);
 });
 
-test('eight ordinary tasks plus five prayers total thirteen throughout completion and removal', () => {
+test('eight ordinary tasks plus five prayers total thirteen throughout completion and removal (legacy call)', () => {
   const ordinary = Array.from({ length: 8 }, (_, index) => task(String(index), `Task ${index}`, 'done'));
   assert.equal(calculateDailyProgress(ordinary).total, 13);
   assert.equal(calculateDailyProgress(ordinary).completionPercentage, 62);
@@ -43,4 +45,107 @@ test('stored prayer statuses and duplicate records are counted once each, retain
   assert.equal(stats.doneDurationMinutes, 15);
   assert.deepEqual(stored, before);
   assert.equal(calculateDailyProgress([]).done, 0, 'New dates must not inherit completed prayers');
+});
+
+// ==========================================
+// UNIFIED DAILY PROGRESS SYSTEM TESTS (PRAYERS + ADHKAR + TASKS)
+// ==========================================
+
+test('unified progress with date: empty day has 7 total units (5 prayers + morning + evening) at 0%', () => {
+  const stats = calculateDailyProgress([], '2026-10-29', {
+    morningCounts: {},
+    eveningCounts: {},
+  });
+
+  assert.equal(stats.total, 7); // 5 prayers + 1 morning + 1 evening
+  assert.equal(stats.done, 0);
+  assert.equal(stats.pending, 7);
+  assert.equal(stats.completionPercentage, 0);
+});
+
+test('partial progress: accounts for repetitions correctly and caps at required count per zekr', () => {
+  const morningCounts: Record<string, number> = {
+    [AZKAR_SABAH[0].id]: 1000, // over-tapping must be capped at AZKAR_SABAH[0].count
+  };
+
+  const rep = calculateAdhkarRepetitionsRatio(AZKAR_SABAH, morningCounts);
+  const expectedRatio = AZKAR_SABAH[0].count / 464;
+  assert.equal(rep.ratio.toFixed(4), expectedRatio.toFixed(4));
+});
+
+test('double counting prevention: tasks titled "أذكار الصباح" or "أذكار المساء" are merged and not counted twice', () => {
+  const tasksWithDuplicates: Task[] = [
+    task('t1', 'أذكار الصباح', 'done'),
+    task('t2', 'أذكار المساء', 'pending'),
+    task('t3', 'برمجة المشروع', 'pending'),
+  ];
+
+  const stats = calculateDailyProgress(tasksWithDuplicates, '2026-10-29', {
+    morningCounts: {}, // Even if counts is empty, task status done sets morningRatio = 1
+    eveningCounts: {},
+  });
+
+  // Total units = 5 prayers + 1 morning + 1 evening + 1 ordinary task (برمجة المشروع) = 8 units.
+  assert.equal(stats.total, 8);
+  // Done: morning (1) = 1
+  assert.equal(stats.done, 1);
+  assert.equal(stats.completionPercentage, Math.round((1 / 8) * 100)); // 13%
+});
+
+test('section isolation: completing a prayer does not complete adhkar, and completing adhkar does not complete prayers', () => {
+  const morningCounts: Record<string, number> = {};
+  AZKAR_SABAH.forEach(item => { morningCounts[item.id] = item.count; });
+
+  const stats = calculateDailyProgress([], '2026-10-29', {
+    morningCounts,
+    eveningCounts: {},
+  });
+
+  assert.equal(stats.details?.morningAdhkar.ratio, 1);
+  assert.equal(stats.details?.eveningAdhkar.ratio, 0);
+  assert.equal(stats.details?.prayers.done, 0);
+});
+
+test('strict 100% precision: never shows 100% if any requirement is incomplete even with high floating rounding', () => {
+  const ordinaryTasks = Array.from({ length: 99 }, (_, i) => task(`t-${i}`, `Task ${i}`, 'done'));
+  ordinaryTasks.push(task('t-last', 'Pending Task', 'pending'));
+
+  const morningCounts: Record<string, number> = {};
+  AZKAR_SABAH.forEach(item => { morningCounts[item.id] = item.count; });
+  const eveningCounts: Record<string, number> = {};
+  AZKAR_MASAA.forEach(item => { eveningCounts[item.id] = item.count; });
+
+  const stats = calculateDailyProgress([...prayers, ...ordinaryTasks], '2026-10-29', {
+    morningCounts,
+    eveningCounts,
+  });
+
+  // 1 task is still pending
+  assert.notEqual(stats.completionPercentage, 100);
+  assert.ok(stats.completionPercentage <= 99);
+});
+
+test('100% completion: when all 5 prayers, morning adhkar, evening adhkar, and ordinary tasks are complete', () => {
+  const morningCounts: Record<string, number> = {};
+  AZKAR_SABAH.forEach(item => { morningCounts[item.id] = item.count; });
+
+  const eveningCounts: Record<string, number> = {};
+  AZKAR_MASAA.forEach(item => { eveningCounts[item.id] = item.count; });
+
+  const allPrayersAndTasks: Task[] = [
+    ...prayers,
+    task('work1', 'دراسة الرياضيات', 'done'),
+    task('work2', 'تمرين رياضي', 'done'),
+  ];
+
+  const stats = calculateDailyProgress(allPrayersAndTasks, '2026-10-29', {
+    morningCounts,
+    eveningCounts,
+  });
+
+  // Total units = 5 prayers + 1 morning + 1 evening + 2 ordinary tasks = 9 units.
+  assert.equal(stats.total, 9);
+  assert.equal(stats.done, 9);
+  assert.equal(stats.pending, 0);
+  assert.equal(stats.completionPercentage, 100);
 });
