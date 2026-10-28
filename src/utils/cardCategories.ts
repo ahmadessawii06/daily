@@ -7,7 +7,7 @@ export function getTaskCardCategories(tasks: Task[], workspace: PlannerWorkspace
   const grouped = groupTasksByCategory(partitionPrayerTasks(tasks).otherTasks, workspace);
   const categories = activeCategories(workspace).filter(category => category.id !== 'worship' || Boolean(grouped.get(category.id)?.length));
   if (includeUnassigned || grouped.get(UNASSIGNED_CATEGORY)?.length || !categories.length) {
-    categories.push({ id: UNASSIGNED_CATEGORY, name: 'غير مصنّف', nameEn: 'Unassigned', icon: 'layers', order: 0, updatedAt: WORKSPACE_EPOCH });
+    categories.push({ id: UNASSIGNED_CATEGORY, name: 'غير مصنّف', nameEn: 'Unassigned', icon: 'dollar-sign', order: 0, updatedAt: WORKSPACE_EPOCH });
   }
   return categories;
 }

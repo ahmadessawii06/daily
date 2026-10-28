@@ -93,7 +93,7 @@ export interface WeeklyDayData {
 
 export type ViewMode = 'timeline' | 'periods' | 'list';
 export type PlannerView = 'cards' | 'timeline';
-export type CategoryIcon = 'book' | 'briefcase' | 'heart' | 'leaf' | 'moon' | 'layers' | 'dollar-sign';
+export type CategoryIcon = 'book' | 'briefcase' | 'heart' | 'leaf' | 'moon' | 'dollar-sign' | 'layers';
 
 export interface PlannerCategory {
   id: string;

@@ -4,7 +4,7 @@ import { BookOpen, Briefcase, Heart, Leaf, Sparkles, DollarSign, X, Trash2 } fro
 import type { CategoryIcon, Language, PlannerCategory, Theme } from '../types';
 import { CATEGORY_ICONS } from '../shared/workspace';
 
-export const CARD_ICONS = { book: BookOpen, briefcase: Briefcase, heart: Heart, leaf: Leaf, moon: Sparkles, layers: DollarSign, 'dollar-sign': DollarSign };
+export const CARD_ICONS: Record<CategoryIcon, any> = { book: BookOpen, briefcase: Briefcase, heart: Heart, leaf: Leaf, moon: Sparkles, 'dollar-sign': DollarSign, layers: DollarSign };
 interface BannerLocalePair {
   ar: string;
   en: string;
@@ -95,7 +95,7 @@ const defaultPreviewBanners: Record<Theme, string> = {
   dark: new URL('../assets/images/home/daily-progress-abstract-dark.webp', import.meta.url).href,
   light: new URL('../assets/images/home/daily-progress-abstract-light.webp', import.meta.url).href,
 };
-const iconNames: Record<CategoryIcon, [string, string]> = { book: ['كتاب', 'Book'], briefcase: ['شنطة', 'Work bag'], heart: ['صحة', 'Health'], leaf: ['حياة', 'Life'], moon: ['أفكار', 'Ideas'], layers: ['مال', 'Money'], 'dollar-sign': ['مصاريف', 'Expenses'] };
+const iconNames: Record<CategoryIcon, [string, string]> = { book: ['كتاب', 'Book'], briefcase: ['شنطة', 'Work bag'], heart: ['صحة', 'Health'], leaf: ['حياة', 'Life'], moon: ['أفكار', 'Ideas'], 'dollar-sign': ['مصاريف', 'Expenses'], layers: ['مال', 'Money'] };
 
 interface CategoryEditorProps {
   category: PlannerCategory | null;
@@ -109,7 +109,7 @@ interface CategoryEditorProps {
 export function CategoryEditor({ category, lang, theme, onSave, onDelete, onClose }: CategoryEditorProps) {
   const ar = lang === 'ar';
   const [name, setName] = useState(category ? (lang === 'en' ? category.nameEn || category.name : category.name) : '');
-  const [icon, setIcon] = useState<CategoryIcon>(category?.icon || 'layers');
+  const [icon, setIcon] = useState<CategoryIcon>(category?.icon || 'dollar-sign');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [error, setError] = useState('');

@@ -1,7 +1,7 @@
 import type { CategoryIcon, PlannerCategory, PlannerView, PlannerWorkspace, Task } from '../types';
 import { timestamp } from './merge.js';
 
-export const CATEGORY_ICONS: CategoryIcon[] = ['book', 'briefcase', 'heart', 'leaf', 'moon', 'layers', 'dollar-sign'];
+export const CATEGORY_ICONS: CategoryIcon[] = ['book', 'briefcase', 'heart', 'leaf', 'moon', 'dollar-sign'];
 export const WORKSPACE_EPOCH = '1970-01-01T00:00:00.000Z';
 export const UNASSIGNED_CATEGORY = '__unassigned';
 
@@ -76,7 +76,7 @@ export function parseWorkspace(value: unknown): PlannerWorkspace {
   const categories = data.categories.map(category => {
     if (!category || typeof category.id !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(category.id) ||
       category.id === UNASSIGNED_CATEGORY || seen.has(category.id) || typeof category.name !== 'string' ||
-      !category.name.trim() || category.name.length > 80 || !CATEGORY_ICONS.includes(category.icon) ||
+      !category.name.trim() || category.name.length > 80 || !CATEGORY_ICONS.includes(category.icon) && category.icon !== 'layers' ||
       !Number.isFinite(category.order) || category.order < 0 || category.order > 1000000 ||
       typeof category.updatedAt !== 'string' || !Number.isFinite(Date.parse(category.updatedAt)) ||
       (category.nameEn !== undefined && (typeof category.nameEn !== 'string' || category.nameEn.length > 80)) ||
