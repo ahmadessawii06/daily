@@ -20,21 +20,21 @@ type BannerPreviewConfig = ThemedBannerConfig | BannerLocalePair;
 const previewBanners: Partial<Record<CategoryIcon, BannerPreviewConfig>> = {
   book: {
     dark: {
-      ar: new URL('../assets/images/cards/study-rtl.webp', import.meta.url).href,
+      ar: new URL('../assets/images/cards/study-rtl-dark.webp', import.meta.url).href,
       en: new URL('../assets/images/cards/study-ltr-dark.webp', import.meta.url).href,
     },
     light: {
-      ar: new URL('../assets/images/cards/study-rtl.webp', import.meta.url).href,
+      ar: new URL('../assets/images/cards/study-rtl-light.webp', import.meta.url).href,
       en: new URL('../assets/images/cards/study-ltr-light.webp', import.meta.url).href,
     },
   },
   briefcase: {
     dark: {
-      ar: new URL('../assets/images/cards/work-rtl.webp', import.meta.url).href,
+      ar: new URL('../assets/images/cards/work-rtl-dark.webp', import.meta.url).href,
       en: new URL('../assets/images/cards/work-ltr-dark.webp', import.meta.url).href,
     },
     light: {
-      ar: new URL('../assets/images/cards/work-rtl.webp', import.meta.url).href,
+      ar: new URL('../assets/images/cards/work-rtl-light.webp', import.meta.url).href,
       en: new URL('../assets/images/cards/work-ltr-light.webp', import.meta.url).href,
     },
   },
