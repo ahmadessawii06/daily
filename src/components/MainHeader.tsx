@@ -31,6 +31,7 @@ interface MainHeaderProps {
   onToggleCardColumns?: () => void;
   children?: React.ReactNode;
   dayMemories?: React.ReactNode;
+  quickNotes?: React.ReactNode;
   dateNavigation?: React.ReactNode;
   currentDate: string;
   onDateChange?: (date: string) => void;
@@ -48,7 +49,7 @@ interface MainHeaderProps {
   onLogout: () => void;
 }
 
-export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggleCardColumns, children, dayMemories, dateNavigation, currentDate, onDateChange, currentUser, onOpenAddTask, onOpenSettings, lang, theme, onToggleTheme, onToggleLang, onExport, exporting, onOpenArchive, onOpenStats, onLogout }) => {
+export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggleCardColumns, children, dayMemories, quickNotes, dateNavigation, currentDate, onDateChange, currentUser, onOpenAddTask, onOpenSettings, lang, theme, onToggleTheme, onToggleLang, onExport, exporting, onOpenArchive, onOpenStats, onLogout }) => {
   const ar = lang === 'ar';
   const [clock, setClock] = useState(() => getLiveClock(lang));
   useEffect(() => {
@@ -116,6 +117,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
           <button id="header-export-btn" type="button" onClick={onExport} disabled={exporting} aria-busy={exporting} aria-label={ar ? 'تصدير صورة اليوم' : 'Export today as an image'} title={ar ? 'تصدير صورة اليوم' : 'Export today as an image'} className={control}>{exporting ? <Loader2 aria-hidden="true" size={20} strokeWidth={2} className="animate-spin motion-reduce:animate-none" /> : <Share2 aria-hidden="true" size={20} strokeWidth={2} className={`${iconMotion} motion-safe:group-hover:scale-125 motion-safe:group-focus-visible:scale-125`} />}</button>
           </div>
           {dayMemories && <div className="contents" dir="ltr">{dayMemories}</div>}
+          {quickNotes && <div className="contents" dir="ltr">{quickNotes}</div>}
           <div className="contents">
           <ColorThemePicker lang={lang} className={control} />
           <button id="header-lang-btn" type="button" onClick={onToggleLang} aria-label={ar ? 'Switch to English' : 'التبديل إلى العربية'} title={ar ? 'Switch to English' : 'التبديل إلى العربية'} lang={ar ? 'en' : 'ar'} className={control}>
