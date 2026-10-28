@@ -61,6 +61,16 @@ import { playAchievementSound, playFailureSound, playChallengeCompleteSound, pre
 import { AlertCircle, CalendarArrowUp, CheckCircle2, LayoutGrid, ListChecks, Plus, Undo2, X } from 'lucide-react';
 import { OnboardingTour } from './components/OnboardingTour';
 import { shouldShowOnboarding, saveOnboardingStatus } from './utils/onboardingStorage';
+import type { ReligiousSection } from './components/religiousContent';
+import { ReligiousTabs } from './components/ReligiousTabs';
+import { AdhkarSection } from './components/AdhkarSection';
+import { MorningAdhkarIslamBook } from './components/MorningAdhkarIslamBook';
+import { EveningAdhkarIslamBook } from './components/EveningAdhkarIslamBook';
+import { QuranWirdSection } from './components/QuranWirdSection';
+import { DuasSection } from './components/DuasSection';
+import { ComingSoonFeature } from './components/ComingSoonFeature';
+import { BookOpen, HandHeart } from 'lucide-react';
+import { MORNING_ADHKAR, EVENING_ADHKAR } from './components/religiousContent';
 
 import { SettingsPage } from './components/SettingsPage';
 const AdminPanel = React.lazy(() => import('./components/AdminPanel').then(module => ({ default: module.AdminPanel })));
@@ -159,6 +169,7 @@ export default function App() {
     setCurrentDateState(date);
   }, []);
   const [currentFilter, setCurrentFilter] = useState<StatusFilter>('all');
+  const [religiousSection, setReligiousSection] = useState<ReligiousSection>('prayers');
   useEffect(() => {
     const updateTodayDate = () => {
       if (!followsTodayDate.current) return;
@@ -584,7 +595,22 @@ export default function App() {
     setIsTaskDestinationOpen(false);
   };
 
-  const stats = useMemo(() => calculateDailyProgress(tasks), [tasks]);
+  const [religiousTick, setReligiousTick] = useState(0);
+
+  useEffect(() => {
+    const handleReligiousProgress = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail || !detail.date || detail.date === currentDate) {
+        setReligiousTick(prev => prev + 1);
+      }
+    };
+    window.addEventListener('daily_religious_progress_changed', handleReligiousProgress);
+    return () => {
+      window.removeEventListener('daily_religious_progress_changed', handleReligiousProgress);
+    };
+  }, [currentDate]);
+
+  const stats = useMemo(() => calculateDailyProgress(tasks, currentDate), [tasks, currentDate, religiousTick]);
 
   const [isExportingImage, setIsExportingImage] = useState(false);
   const [exportRequested, setExportRequested] = useState(false);
@@ -772,6 +798,54 @@ export default function App() {
           </div>}
 
           <div id="onboarding-planner-area" className="space-y-4 pt-2 sm:space-y-6 sm:pt-3">
+            {religiousSection !== 'prayers' && <div className="flex flex-wrap items-center justify-between gap-3"><div id="onboarding-view-switcher" role="group" aria-label={lang === 'ar' ? 'طريقة عرض المهام' : 'Planning view'} className="inline-flex max-w-full gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
+              {(['cards', 'timeline'] as const).map(view => {
+                const Icon = view === 'cards' ? LayoutGrid : ListChecks;
+                const label = view === 'cards' ? (lang === 'ar' ? 'البطاقات' : 'Cards') : (lang === 'ar' ? 'الجدول' : 'Timeline');
+                return <button key={view} type="button" aria-pressed={workspace.view === view} onClick={() => handleChangeView(view)} className={`inline-flex min-h-11 items-center gap-2 rounded-xl px-4 text-xs font-semibold transition-colors ${workspace.view === view ? 'bg-white text-emerald-700 shadow-2xs dark:bg-[#1c2425] dark:text-emerald-300' : 'text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-100'}`}><Icon className="h-4 w-4" />{label}</button>;
+              })}
+            </div>{!support && <button type="button" onClick={handleMoveRemaining} disabled={!tasks.some(canMoveTask)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-600 hover:border-emerald-500/40 focus-visible:outline-2 focus-visible:outline-emerald-500 disabled:opacity-40 dark:border-white/10 dark:bg-white/[.02] dark:text-zinc-300"><CalendarArrowUp aria-hidden="true" size={15} />{lang === 'ar' ? 'نقل غير المكتمل لليوم التالي' : 'Move unfinished to next day'}</button>}</div>}
+            {religiousSection !== 'prayers' && <div className="religious-content-switch" key={religiousSection}>
+              <CardsDashboard showContent={false} religiousNavigation={<ReligiousTabs active={religiousSection} onChange={setReligiousSection} />} cardColumns={cardColumns} currentDate={currentDate} archiveDays={archiveDays} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} theme={theme} filter={currentFilter} onFilterChange={setCurrentFilter}
+                creationTarget={cardCreationTarget}
+                onOpenAddTask={() => setIsTaskDestinationOpen(true)}
+                onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
+                onAddPrayer={handleCompletePrayer}
+                onStatusChange={handlePrayerStatusChange} onEdit={support ? () => {} : setEditingTask} onDelete={handleDeleteTask} onDeleteCategory={handleDeleteCategory} onMove={id => handleMoveTasks([id])} />
+              {religiousSection === 'morning' && <MorningAdhkarIslamBook date={currentDate} />}
+              {religiousSection === 'evening' && <EveningAdhkarIslamBook date={currentDate} />}
+              {religiousSection === 'quran' && (
+                <ComingSoonFeature
+                  title="الورد القرآني الميسّر"
+                  badge="ميزة قيد التطوير"
+                  subtitle="قراءة، تدبر، وحفظ الورد اليومي برسم المصحف الشريف"
+                  description="يجري العمل على بناء تجربة قراءة وتدبر فاخرة برسم مصحف المدينة المنورة، مع عداد صفحات ذكي، حفظ تلقائي للموضع، وإحصائيات إنجاز متقدمة ترتبط بيومك بانسيابية."
+                  features={[
+                    'عرض صفحات المصحف الشريف بدقة عالية',
+                    'تثبيت مواضع الحفظ والتلاوة اليومية',
+                    'تحديد هدف الصفحات اليومي وتتبعه بدقة',
+                    'خط مصحف مجمع الملك فهد الأصيل'
+                  ]}
+                  icon={BookOpen}
+                />
+              )}
+              {religiousSection === 'duas' && (
+                <ComingSoonFeature
+                  title="موسوعة الأدعية والأذكار الجامعة"
+                  badge="ميزة قيد التطوير"
+                  subtitle="أدعية القرآن والسنة النبوية الصحيحة مصنفة ومحققة"
+                  description="نعمل على إعداد مكتبة أدعية جامعة ومفهرسة تشمل أدعية الرزق، تفريج الهم، الوالدين، الاستخارة، وأدعية الأنبياء، مع إمكانية البحث والنسخ والمشاركة الأنيقة."
+                  features={[
+                    'أدعية مأثورة ومحققة بالسند الموثق',
+                    'تصنيف موضوعي سريع للوصول السهل',
+                    'قائمة للأدعية المفضلة وحفظ الملاحظات',
+                    'مشاركة الأدعية ببطاقات وتصاميم راقية'
+                  ]}
+                  icon={HandHeart}
+                />
+              )}
+            </div>}
+            {religiousSection === 'prayers' && <>
             <div className="flex flex-wrap items-center justify-between gap-3"><div id="onboarding-view-switcher" role="group" aria-label={lang === 'ar' ? 'طريقة عرض المهام' : 'Planning view'} className="inline-flex max-w-full gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
               {(['cards', 'timeline'] as const).map(view => {
                 const Icon = view === 'cards' ? LayoutGrid : ListChecks;
@@ -781,7 +855,7 @@ export default function App() {
             </div>{!support && <button type="button" onClick={handleMoveRemaining} disabled={!tasks.some(canMoveTask)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-600 hover:border-emerald-500/40 focus-visible:outline-2 focus-visible:outline-emerald-500 disabled:opacity-40 dark:border-white/10 dark:bg-white/[.02] dark:text-zinc-300"><CalendarArrowUp aria-hidden="true" size={15} />{lang === 'ar' ? 'نقل غير المكتمل لليوم التالي' : 'Move unfinished to next day'}</button>}</div>
 
             <fieldset disabled={!!support} className="min-w-0 border-0 p-0 m-0">
-            {workspace.view === 'cards' ? <CardsDashboard cardColumns={cardColumns} currentDate={currentDate} archiveDays={archiveDays} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} theme={theme} filter={currentFilter} onFilterChange={setCurrentFilter}
+            {workspace.view === 'cards' ? <CardsDashboard religiousNavigation={<ReligiousTabs active={religiousSection} onChange={setReligiousSection} />} cardColumns={cardColumns} currentDate={currentDate} archiveDays={archiveDays} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} theme={theme} filter={currentFilter} onFilterChange={setCurrentFilter}
               creationTarget={cardCreationTarget}
               onOpenAddTask={() => setIsTaskDestinationOpen(true)}
               onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
@@ -807,6 +881,7 @@ export default function App() {
               lang={lang}
             /></div>}
           </fieldset>
+            </>}
           </div>
 
 

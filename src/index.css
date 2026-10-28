@@ -76,11 +76,36 @@
 }
 
 @font-face {
+  font-family: 'SF Pro Arabic';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/SF-Arabic-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: 'SF Pro Arabic';
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+  src: url("./assets/fonts/SF-Arabic-SemiBold.ttf") format("truetype");
+}
+
+@font-face {
   font-family: 'Amiri Quran';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
   src: url("./assets/fonts/AmiriQuran-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: 'KFGQPC Uthmanic Script';
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/npm/kfgqpc-uthmanic-script-hafs-regular@latest/fonts/KFGQPC-Uthmanic-Script-Hafs.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/kfgqpc-uthmanic-script-hafs-regular@latest/fonts/KFGQPC-Uthmanic-Script-Hafs.woff') format('woff');
 }
 
 .quran-verse-text {
@@ -190,6 +215,141 @@
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* Islamic dashboard sections share the prayer card's dark emerald and brass language. */
+.religious-dashboard-header { position: relative; display: flex; align-items: center; justify-content: center; gap: .85rem; overflow: hidden; border: 1px solid rgba(16, 185, 160, .24); border-radius: 1.35rem; padding: .55rem .75rem; background: linear-gradient(135deg, #071f1b, #0b3029 58%, #102a25); color: #f7f0df; box-shadow: 0 18px 45px -32px rgba(5, 28, 24, .8); }
+.religious-dashboard-title { display: flex; min-width: max-content; align-items: center; gap: .65rem; }
+.religious-dashboard-title p, .religious-dashboard-title strong { display: block; margin: 0; }
+.religious-dashboard-title p { color: rgba(229, 248, 239, .65); font-size: .68rem; }
+.religious-dashboard-title strong { margin-top: .1rem; font-size: .92rem; }
+.religious-dashboard-mark { display: grid; width: 2.45rem; height: 2.45rem; place-items: center; border: 1px solid rgba(213, 183, 121, .3); border-radius: .85rem; background: rgba(213, 183, 121, .1); color: #d5b779; }
+.religious-mini-prayer { justify-self: center; text-align: center; color: rgba(226, 248, 238, .65); font-size: .68rem; }
+.religious-mini-prayer b { display: block; margin-top: .15rem; color: #5eead4; font-size: .8rem; }
+.religious-tabs { display: flex; max-width: 100%; align-items: center; justify-content: flex-end; gap: .25rem; overflow-x: auto; scrollbar-width: none; }
+.religious-tabs::-webkit-scrollbar { display: none; }
+.religious-tabs button { display: inline-flex; min-height: 2.45rem; flex: 0 0 auto; align-items: center; gap: .4rem; border: 1px solid transparent; border-radius: .75rem; padding: .45rem .65rem; color: rgba(226, 248, 238, .62); font-size: .7rem; font-weight: 700; transition: background-color .2s, color .2s, border-color .2s, transform .2s; }
+.religious-tabs button:hover { color: #f4e7c7; background: rgba(255, 255, 255, .06); }
+.religious-tabs button.is-active { border-color: rgba(94, 234, 212, .35); background: rgba(45, 212, 191, .15); color: #8ff7e4; box-shadow: inset 0 0 18px rgba(45, 212, 191, .06); }
+.religious-content-switch { animation: religious-content-in .24s ease-out both; }
+@keyframes religious-content-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.religious-section { min-width: 0; overflow: hidden; border: 1px solid rgba(16, 185, 160, .2); border-radius: 1.5rem; padding: clamp(1rem, 3vw, 1.75rem); background: linear-gradient(145deg, #071e1a, #0a2a24 60%, #10261f); color: #f8f2e2; box-shadow: 0 20px 55px -35px rgba(0, 0, 0, .75); }
+.religious-section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+.religious-section-heading h2 { margin: .2rem 0; font-size: clamp(1.25rem, 3vw, 1.75rem); font-weight: 900; letter-spacing: -.02em; }
+.religious-section-heading p:not(.religious-kicker) { margin: 0; color: rgba(226, 248, 238, .62); font-size: .78rem; }
+.religious-kicker { margin: 0; color: #d5b779; font-size: .7rem; font-weight: 800; }
+.religious-heading-icon { margin-top: .25rem; color: #d5b779; }
+.religious-ghost-button, .religious-primary-button { display: inline-flex; min-height: 2.55rem; align-items: center; justify-content: center; gap: .4rem; border-radius: .75rem; padding: .55rem .8rem; font-size: .72rem; font-weight: 800; transition: transform .2s, background-color .2s, border-color .2s; }
+.religious-ghost-button { border: 1px solid rgba(213, 183, 121, .25); color: #e9d6a8; background: rgba(213, 183, 121, .07); }
+.religious-ghost-button:hover { background: rgba(213, 183, 121, .14); }
+.religious-primary-button { width: 100%; border: 1px solid rgba(94, 234, 212, .4); background: #0f8b7d; color: white; }
+.religious-primary-button:hover { background: #12a291; }
+.religious-progress-card { margin-bottom: 1rem; border: 1px solid rgba(94, 234, 212, .16); border-radius: 1rem; padding: .9rem 1rem; background: rgba(0, 0, 0, .15); }
+.religious-progress-copy, .quran-progress-meta { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.religious-progress-copy strong { color: #8ff7e4; font-size: 1.05rem; }
+.religious-progress-copy span, .quran-progress-meta { color: rgba(226, 248, 238, .62); font-size: .72rem; }
+.religious-progress-track { height: .42rem; overflow: hidden; border-radius: 999px; background: rgba(94, 234, 212, .12); }
+.religious-progress-track span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #0f8b7d, #5eead4); transition: width .3s ease; }
+.religious-progress-card .religious-progress-track { margin-top: .65rem; }
+.religious-success { display: flex; align-items: center; gap: .45rem; margin-bottom: 1rem; border: 1px solid rgba(213, 183, 121, .3); border-radius: .9rem; padding: .7rem .85rem; background: rgba(213, 183, 121, .1); color: #f4ddb0; font-size: .78rem; font-weight: 700; }
+.adhkar-grid, .dua-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .85rem; }
+.adhkar-card, .dua-card, .quran-goal-card, .quran-reading-card { border: 1px solid rgba(226, 248, 238, .13); border-radius: 1.1rem; background: rgba(255, 255, 255, .055); box-shadow: 0 12px 28px -22px rgba(0, 0, 0, .9); }
+.adhkar-card { display: flex; min-width: 0; flex-direction: column; padding: 1rem; }
+.adhkar-card.is-complete { border-color: rgba(94, 234, 212, .5); background: rgba(45, 212, 191, .1); }
+.adhkar-card-top, .dua-card-header, .adhkar-card-footer, .dua-card footer { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.adhkar-card-top span { display: inline-flex; min-height: 1.55rem; align-items: center; gap: .25rem; border-radius: 999px; padding: .2rem .55rem; background: rgba(213, 183, 121, .12); color: #e5ca8d; font-size: .65rem; font-weight: 800; }
+.adhkar-card.is-complete .adhkar-card-top span { background: rgba(94, 234, 212, .16); color: #8ff7e4; }
+.adhkar-card-top small { color: rgba(226, 248, 238, .55); font-size: .68rem; }
+.adhkar-card h3 { margin: .9rem 0 .55rem; font-size: .95rem; }
+.adhkar-text, .dua-card p { color: #f7f0df; font-family: 'Amiri Quran', serif; font-size: 1.08rem; line-height: 2; }
+.adhkar-text { flex: 1; margin: 0 0 1rem; }
+.adhkar-card-footer a, .dua-card footer a { color: rgba(226, 248, 238, .52); font-size: .62rem; text-decoration: underline; text-underline-offset: 3px; }
+.adhkar-card-footer button { display: inline-flex; min-width: 5.3rem; align-items: center; justify-content: space-between; gap: .4rem; border: 1px solid rgba(94, 234, 212, .32); border-radius: .7rem; padding: .45rem .55rem; background: rgba(15, 139, 125, .17); color: #8ff7e4; font-size: .67rem; font-weight: 800; }
+.adhkar-card-footer button:disabled { border-color: rgba(94, 234, 212, .5); background: rgba(94, 234, 212, .15); color: #b8fff1; }
+.quran-wird-layout { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 1rem; }
+.quran-goal-card, .quran-reading-card { padding: 1.15rem; }
+.quran-goal-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; color: rgba(226, 248, 238, .65); font-size: .75rem; }
+.quran-goal-heading strong { color: #f4ddb0; font-size: 1.15rem; }
+.quran-progress-meta { margin-top: .55rem; }
+.quran-stepper { display: flex; align-items: center; justify-content: space-between; margin: 1.4rem 0; color: rgba(226, 248, 238, .65); font-size: .75rem; }
+.quran-stepper button { display: grid; width: 2rem; height: 2rem; place-items: center; border: 1px solid rgba(94, 234, 212, .25); border-radius: .65rem; color: #8ff7e4; background: rgba(94, 234, 212, .08); }
+.quran-reading-card h3 { margin: .3rem 0; font-size: 1.2rem; }
+.quran-reading-card > p:not(.religious-kicker) { color: rgba(226, 248, 238, .62); font-size: .76rem; line-height: 1.7; }
+.quran-position-fields { display: flex; gap: .5rem; margin: 1rem 0; }
+.quran-position-fields input, .dua-search input { min-width: 0; border: 1px solid rgba(226, 248, 238, .15); border-radius: .7rem; padding: .65rem .75rem; outline: none; background: rgba(0, 0, 0, .16); color: #fff; font-size: .78rem; }
+.quran-position-fields input:first-child { flex: 1; }
+.quran-position-fields input:last-child { width: 5rem; }
+.quran-ayah-list { display: grid; gap: .45rem; }
+.quran-ayah-list a { display: flex; align-items: center; justify-content: space-between; gap: .75rem; border-radius: .7rem; padding: .65rem .75rem; background: rgba(94, 234, 212, .06); color: #f7f0df; font-family: 'Amiri Quran', serif; font-size: .95rem; }
+.quran-ayah-list small { color: #d5b779; font-family: inherit; font-size: .65rem; white-space: nowrap; }
+.dua-toolbar { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+.dua-search { display: flex; min-width: 11rem; flex: 1; align-items: center; gap: .45rem; border: 1px solid rgba(226, 248, 238, .15); border-radius: .75rem; padding-inline: .7rem; background: rgba(0, 0, 0, .14); color: rgba(226, 248, 238, .55); }
+.dua-search input { width: 100%; border: 0; padding-inline: .1rem; background: transparent; }
+.dua-categories { display: flex; max-width: 60%; gap: .3rem; overflow-x: auto; scrollbar-width: none; }
+.dua-categories button { flex: 0 0 auto; border: 1px solid rgba(226, 248, 238, .12); border-radius: 999px; padding: .5rem .7rem; color: rgba(226, 248, 238, .6); background: rgba(255, 255, 255, .04); font-size: .67rem; }
+.dua-categories button.is-active { border-color: rgba(94, 234, 212, .35); color: #8ff7e4; background: rgba(45, 212, 191, .14); }
+.dua-card { padding: 1rem; }
+.dua-card-header span { color: #d5b779; font-size: .68rem; font-weight: 800; }
+.dua-card-header button, .dua-card footer button { display: grid; width: 2rem; height: 2rem; place-items: center; border: 1px solid rgba(226, 248, 238, .12); border-radius: .6rem; color: rgba(226, 248, 238, .65); background: rgba(255, 255, 255, .04); }
+.dua-card-header button.is-favorite { border-color: rgba(213, 183, 121, .4); color: #e5ca8d; }
+.dua-card p { min-height: 7rem; margin: 1rem 0; }
+.dua-card footer > div { display: flex; gap: .3rem; }
+.religious-empty { border: 1px dashed rgba(226, 248, 238, .2); border-radius: .8rem; padding: 1.5rem; color: rgba(226, 248, 238, .6); text-align: center; }
+@media (max-width: 900px) { .religious-dashboard-header { grid-template-columns: 1fr auto; } .religious-mini-prayer { justify-self: end; } .religious-tabs { grid-column: 1 / -1; justify-content: flex-start; } .adhkar-grid, .dua-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .religious-dashboard-header { grid-template-columns: 1fr; } .religious-mini-prayer { justify-self: start; } .religious-tabs { margin-inline: -.25rem; } .religious-tabs button { padding-inline: .55rem; } .religious-tabs button span { font-size: .64rem; } .religious-section-heading { align-items: flex-start; } .religious-ghost-button { font-size: .65rem; } .adhkar-grid, .dua-grid, .quran-wird-layout { grid-template-columns: 1fr; } .dua-toolbar { align-items: stretch; flex-direction: column; } .dua-categories { max-width: 100%; } }
+
+/* Keep the religious dashboard aligned with the light planner surface. */
+.religious-prayer-composition { overflow: hidden; border: 1px solid #d7e7df; border-radius: 1.5rem; background: #ffffff; box-shadow: 0 18px 45px -34px rgba(15, 118, 110, .4); }
+.religious-planner-heading { display: flex; min-height: 2.75rem; align-items: center; justify-content: flex-start; margin-bottom: 1rem; }
+.religious-planner-heading h2 { margin: 0; color: #17243b; font-size: 1.125rem; font-weight: 800; letter-spacing: -.02em; }
+.religious-prayer-composition .religious-dashboard-header { border: 0; border-bottom: 1px solid #e4eee9; border-radius: 0; box-shadow: none; }
+.religious-prayer-composition [data-prayer-card] { border: 0; border-radius: 0; box-shadow: none; }
+.religious-dashboard-header { min-height: 66px; box-sizing: border-box; justify-content: center; overflow: visible; border: 0; border-radius: 0; padding: .75rem 1rem; background: transparent; color: #17243b; box-shadow: none; }
+.religious-prayer-composition .religious-dashboard-header { padding: .75rem 1rem; background: #f1f8f6; }
+.religious-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); direction: rtl; justify-content: center; width: min(100%, 980px); max-width: 100%; gap: .625rem; }
+.religious-tabs button { position: relative; display: inline-flex; width: 100%; min-height: 42px; align-items: center; justify-content: center; direction: rtl; gap: .5rem; border: 1px solid #d7e7df; border-radius: 12px; padding: .5rem .7rem; color: #526b68; background: #ffffff; font-size: .86rem; font-weight: 800; white-space: nowrap; transition: background-color .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+.religious-tabs button:hover { border-color: #9fcfc2; color: #0f766e; background: #f0fdfa; box-shadow: 0 6px 14px -10px rgba(15, 118, 110, .55); transform: translateY(-1px); }
+.religious-tabs button.is-active { border-color: #5cae9e; background: #e3f4ee; color: #0f766e; box-shadow: 0 7px 16px -12px rgba(15, 118, 110, .7); }
+@media (max-width: 640px) {
+  .religious-dashboard-header { justify-content: flex-start; }
+  .religious-tabs { display: flex; width: 100%; justify-content: flex-start; overflow-x: auto; padding-bottom: .15rem; }
+  .religious-tabs button { width: auto; }
+  .religious-tabs button span { font-size: .8rem; }
+}
+@media (min-width: 641px) and (max-width: 900px) {
+  .religious-dashboard-header { justify-content: flex-start; overflow: hidden; }
+  .religious-tabs { display: flex; width: 100%; justify-content: flex-start; overflow-x: auto; }
+  .religious-tabs button { width: auto; }
+}
+.religious-section { border-color: rgb(16 185 129 / .28); background: #f1f8f6; color: #123c37; box-shadow: 0 18px 36px -28px rgb(15 118 110 / .45); }
+.religious-section-heading { margin: calc(-1 * clamp(1rem, 3vw, 1.75rem)) calc(-1 * clamp(1rem, 3vw, 1.75rem)) 1.25rem; padding: 1rem clamp(1rem, 3vw, 1.75rem); border-bottom: 1px solid rgb(16 185 129 / .2); background: rgb(231 243 239 / .72); }
+.religious-section-heading p:not(.religious-kicker), .religious-progress-copy span, .quran-progress-meta, .quran-goal-heading, .quran-stepper, .quran-reading-card > p:not(.religious-kicker) { color: #64748b; }
+.religious-ghost-button { border-color: #d9c99f; color: #806a34; background: #fffaf0; }
+.religious-ghost-button:hover { background: #fff4d9; }
+.religious-progress-card { border-color: #cfe7df; background: #ffffff; }
+.religious-progress-copy strong { color: #0f766e; }
+.religious-progress-track { background: #dcefe9; }
+.religious-progress-track span { background: linear-gradient(90deg, #0f766e, #5cae9e); }
+.religious-success { border-color: #e7d6a8; background: #fff8e7; color: #806a34; }
+.adhkar-card, .dua-card, .quran-goal-card, .quran-reading-card { border-color: #e7e5e4; background: #ffffff; box-shadow: 0 12px 28px -24px rgba(23, 36, 59, .45); }
+.adhkar-card.is-complete { border-color: #b8ddd3; background: #f0faf7; }
+.adhkar-card-top span { background: #fff5df; color: #8d733b; }
+.adhkar-card.is-complete .adhkar-card-top span { background: #e3f4ee; color: #0f766e; }
+.adhkar-card-top small, .adhkar-card-footer a, .dua-card footer a { color: #94a3b8; }
+.adhkar-text, .dua-card p { color: #17243b; }
+.adhkar-card-footer button { border-color: #b8ddd3; background: #e8f5f1; color: #0f766e; }
+.adhkar-card-footer button:disabled { border-color: #9fcfc2; background: #dff2ec; color: #0f766e; }
+.quran-goal-heading strong { color: #806a34; }
+.quran-stepper button { border-color: #b8ddd3; color: #0f766e; background: #effaf7; }
+.quran-position-fields input, .dua-search input { border-color: #e7e5e4; background: #ffffff; color: #17243b; }
+.quran-ayah-list a { background: #f0faf7; color: #17243b; }
+.quran-ayah-list small { color: #8d733b; }
+.dua-search { border-color: #e7e5e4; background: #ffffff; color: #94a3b8; }
+.dua-categories button { border-color: #e7e5e4; color: #64748b; background: #ffffff; }
+.dua-categories button.is-active { border-color: #b8ddd3; color: #0f766e; background: #e8f5f1; }
+.dua-card-header span { color: #8d733b; }
+.dua-card-header button, .dua-card footer button { border-color: #e7e5e4; color: #64748b; background: #fafafa; }
+.dua-card-header button.is-favorite { border-color: #d9c99f; color: #8d733b; }
+.religious-empty { border-color: #cbd5e1; color: #64748b; }
 
 html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="mizan-developed"]) {
   --theme-progress-main: var(--color-emerald-600);
@@ -352,11 +512,11 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
   }
 }
 /* Compact header progress: keep the hero ring premium in both themes. */
-html:not(.dark) [data-progress-layout="compact"] [data-progress-main] > div {
+html:not(.dark) [data-progress-layout="compact"] [data-progress-main] .progress-circle-wrap {
   background: radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.24) 52%, rgba(16, 185, 129, 0.06));
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8), inset 0 -2px 5px rgba(15, 23, 42, 0.06), 0 8px 20px rgba(16, 185, 129, 0.14);
 }
-html.dark [data-progress-layout="compact"] [data-progress-main] > div {
+html.dark [data-progress-layout="compact"] [data-progress-main] .progress-circle-wrap {
   background: radial-gradient(circle at 35% 28%, rgba(6, 34, 29, 0.85), rgba(4, 23, 20, 0.65) 60%, rgba(16, 229, 136, 0.08));
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.12), inset 0 -2px 5px rgba(0, 0, 0, 0.35), 0 8px 20px rgba(0, 0, 0, 0.4);
 }
@@ -1095,8 +1255,8 @@ html.dark [data-progress-verse] .quran-verse-text {
 @keyframes auth-dot { 50% { opacity: .25; transform: translateY(-2px); } }
 @media (max-width: 420px) { .auth-orbit-outer { width: 280px; height: 280px; } .auth-float-start { top: -10px; } .auth-float-end { bottom: -10px; } }
 @media (prefers-reduced-motion: reduce) { .auth-scene *, .auth-scene *::after { animation: none !important; } .auth-core-scan { display: none; } }
-html.light [data-main-header] button:hover:not(:disabled),
-html.light [data-main-header] button:focus-visible {
+html.light [data-main-header] button:not([data-progress-tone]):hover:not(:disabled),
+html.light [data-main-header] button:not([data-progress-tone]):focus-visible {
   border-color: rgb(16 185 129 / 0.55);
   background-color: rgb(236 253 245 / 0.88);
   color: #047857;
