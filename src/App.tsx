@@ -136,7 +136,7 @@ export default function App() {
   const [isPreparingWorkspace, setIsPreparingWorkspace] = useState(() => Boolean(
     getStoredAuth().user && !readStoredWorkspace() && Object.keys(loadAllDays()).length === 0
   ));
-  const [workspace, setWorkspace] = useState(getPlannerWorkspace);
+  const [workspace, setWorkspace] = useState(() => getPlannerWorkspace(getPrayerTimeZoneDate(new Date())));
 
   // Navigation & view states
   const [lang, setLang] = useState<Language>('ar');
@@ -250,7 +250,7 @@ export default function App() {
     let loadingTimer: ReturnType<typeof setTimeout> | undefined;
     const refresh = () => {
       if (disposed) return;
-      setWorkspace(getPlannerWorkspace());
+      setWorkspace(getPlannerWorkspace(currentDate));
       setTasks(getDayRecord(currentDate).tasks);
       setArchiveDays(getAllArchiveDays());
       setTheme(getStoredTheme());
@@ -358,7 +358,7 @@ export default function App() {
   const playStatusFeedback = (before: Task[], after: Task[], taskId: string, status: TaskStatus) => {
     if (before.find(task => task.id === taskId)?.status === status || after.find(task => task.id === taskId)?.status !== status) return;
     if (status === 'done') {
-      const currentWorkspace = getPlannerWorkspace();
+      const currentWorkspace = getPlannerWorkspace(currentDate);
       if (shouldPlayListCompletionSound(before, after, currentWorkspace, currentWorkspace.view, taskId)) playChallengeCompleteSound();
       else playAchievementSound();
     } else if (status === 'not-done') playFailureSound();
@@ -464,9 +464,9 @@ export default function App() {
 
   const handleDeleteCategory = (categoryId: string) => {
     if (support) return;
-    const snapshot = deletePlannerCategoryAndTasks(categoryId);
+    const snapshot = deletePlannerCategoryAndTasks(categoryId, currentDate);
     setDeletedCategories(entries => [...entries, { ownerId: currentUser!.id, snapshot, expiresAt: Date.now() + 10000 }]);
-    setWorkspace(getPlannerWorkspace());
+    setWorkspace(getPlannerWorkspace(currentDate));
     setTasks(getDayRecord(currentDate).tasks);
     refreshArchive();
   };
@@ -482,7 +482,7 @@ export default function App() {
     }
     setDeletedCategories(remaining);
     setUndoPaused(false);
-    setWorkspace(getPlannerWorkspace());
+    setWorkspace(getPlannerWorkspace(currentDate));
     setTasks(getDayRecord(currentDate).tasks);
     refreshArchive();
     showToast(
@@ -565,7 +565,7 @@ export default function App() {
 
   const handleChangeView = (view: PlannerView) => {
     setCardCreationTarget(null);
-    setWorkspace(setPlannerView(view));
+    setWorkspace(setPlannerView(view, currentDate));
     setCurrentFilter('all');
   };
 
@@ -576,10 +576,10 @@ export default function App() {
   };
 
   const handleCreateInCard = (categoryId: string) => {
-    const category = activeCategories(getPlannerWorkspace()).find(card => card.id === categoryId);
+    const category = activeCategories(getPlannerWorkspace(currentDate)).find(card => card.id === categoryId);
     if (!category && categoryId !== UNASSIGNED_CATEGORY) return;
     handleChangeView('cards');
-    if (category?.collapsed) setWorkspace(updatePlannerCategory(categoryId, { collapsed: false }));
+    if (category?.collapsed) setWorkspace(updatePlannerCategory(categoryId, { collapsed: false }, currentDate));
     setCardCreationTarget({ categoryId, requestId: ++cardCreationRequest.current });
     setIsTaskDestinationOpen(false);
   };

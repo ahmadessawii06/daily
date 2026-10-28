@@ -1,7 +1,7 @@
 import type { DayRecord, PlannerWorkspace } from '../types';
 import { timestamp, nextRecordTimestamp } from '../shared/merge';
 import { enqueue, enqueueDays, getQueue, saveQueue } from '../services/syncQueue';
-import { getPlannerWorkspace, markPlannerCategoryDeleted, storeWorkspace } from './workspace';
+import { getPlannerWorkspace, markPlannerCategoryDeleted, storePlannerWorkspaceForDate, storeWorkspace } from './workspace';
 import { loadAllDays, saveAllDays } from './storage';
 
 function taskBelongsToCategory(task: DayRecord['tasks'][number], categoryId: string): boolean {
@@ -10,6 +10,7 @@ function taskBelongsToCategory(task: DayRecord['tasks'][number], categoryId: str
 
 export interface CategoryDeletionSnapshot {
   categoryId: string;
+  date?: string;
   categoryName: string;
   previousWorkspace: PlannerWorkspace;
   previousDays: Record<string, DayRecord>;
@@ -18,9 +19,9 @@ export interface CategoryDeletionSnapshot {
   expectedDays: Record<string, DayRecord>;
 }
 
-/** Permanently removes a category's tasks locally and sends the workspace/day changes as one sync batch. */
-export function deletePlannerCategoryAndTasks(categoryId: string): CategoryDeletionSnapshot {
-  const workspace = getPlannerWorkspace();
+/** Removes a card from one selected day; legacy calls without a date retain the older task-cleanup behavior. */
+export function deletePlannerCategoryAndTasks(categoryId: string, date?: string): CategoryDeletionSnapshot {
+  const workspace = getPlannerWorkspace(date);
   if (!workspace.categories.some(category => category.id === categoryId && !category.deletedAt)) {
     throw new Error('Category not found');
   }
@@ -30,6 +31,19 @@ export function deletePlannerCategoryAndTasks(categoryId: string): CategoryDelet
   const previousQueue = getQueue();
   const changedAt = new Date(Math.max(Date.now(), timestamp(workspace.viewUpdatedAt) + 1, ...workspace.categories.map(category => timestamp(category.updatedAt) + 1))).toISOString();
   const updatedWorkspace = markPlannerCategoryDeleted(workspace, categoryId, changedAt);
+  if (date) {
+    const savedWorkspace = storePlannerWorkspaceForDate(date, updatedWorkspace);
+    return {
+      categoryId,
+      date,
+      categoryName: workspace.categories.find(category => category.id === categoryId)?.name || categoryId,
+      previousWorkspace: workspace,
+      previousDays: {},
+      affectedDates: [],
+      expectedWorkspace: savedWorkspace,
+      expectedDays: {},
+    };
+  }
   const updatedDays: Record<string, DayRecord> = { ...previousDays };
   const affectedDays: DayRecord[] = [];
   const previousAffectedDays: Record<string, DayRecord> = {};
@@ -72,7 +86,13 @@ export function deletePlannerCategoryAndTasks(categoryId: string): CategoryDelet
   }
 }
 
-export function restorePlannerCategoryAndTasks(snapshot: CategoryDeletionSnapshot): boolean {
+export function restorePlannerCategoryAndTasks(snapshot: CategoryDeletionSnapshot, date = snapshot.date): boolean {
+  if (date) {
+    const currentWorkspace = getPlannerWorkspace(date);
+    if (JSON.stringify(currentWorkspace) !== JSON.stringify(snapshot.expectedWorkspace)) return false;
+    storePlannerWorkspaceForDate(date, snapshot.previousWorkspace);
+    return true;
+  }
   const currentWorkspace = getPlannerWorkspace();
   if (JSON.stringify(currentWorkspace) !== JSON.stringify(snapshot.expectedWorkspace)) return false;
   const currentDays = loadAllDays();

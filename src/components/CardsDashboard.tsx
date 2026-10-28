@@ -4,7 +4,7 @@ import { CheckCheck, ChevronDown, Clock, MoreHorizontal, Plus, StickyNote, X } f
 import type { DayRecord, Language, PlannerCategory, PlannerWorkspace, StatusFilter, Task, TaskStatus, Theme } from '../types';
 import { groupTasksByCategory, UNASSIGNED_CATEGORY } from '../shared/workspace';
 import { getTaskCardCategories } from '../utils/cardCategories';
-import { createPlannerCategory, updatePlannerCategory } from '../utils/workspace';
+import { createPlannerCategory, updatePlannerCategory as persistPlannerCategory } from '../utils/workspace';
 import { formatTime12h } from '../utils/date';
 import { nextTaskStatus } from '../utils/taskStatus';
 import { CARD_ICONS, CategoryEditor } from './CategoryEditor';
@@ -141,6 +141,8 @@ interface CardsDashboardProps {
 
 export function CardsDashboard(props: CardsDashboardProps) {
   const { tasks, workspace, filter, lang, theme = 'dark', onFilterChange } = props;
+  const updatePlannerCategory = (id: string, updates: { name?: string; icon?: PlannerCategory['icon']; collapsed?: boolean }, _date?: string) =>
+    persistPlannerCategory(id, updates, props.currentDate);
   const ar = lang === 'ar';
   const [editor, setEditor] = useState<PlannerCategory | 'new' | null>(null);
   const prayerTasks = partitionPrayerTasks(tasks);
@@ -204,14 +206,16 @@ export function CardsDashboard(props: CardsDashboardProps) {
         })}
       </div>
       {editor && <CategoryEditor key={editor === 'new' ? 'new' : editor.id} category={editor === 'new' ? null : editor} lang={lang} theme={theme}
-        onClose={() => setEditor(null)} onSave={(name, icon) => { if (editor === 'new') createPlannerCategory(name, icon); else updatePlannerCategory(editor.id, { name, icon }); setEditor(null); }}
+        onClose={() => setEditor(null)} onSave={(name, icon) => { if (editor === 'new') createPlannerCategory(name, icon, props.currentDate); else updatePlannerCategory(editor.id, { name, icon }, props.currentDate); setEditor(null); }}
         onDelete={async () => { if (editor !== 'new') { await props.onDeleteCategory?.(editor.id); setEditor(null); } }} />}
     </section>
   );
 }
 
-function CategoryCard({ category, tasks, filter, lang, theme = 'dark', onAdd, onEdit, onDelete, onMove, onToggleFocus, onStatusChange, onCustomize, creationRequest, gridSpans }: CardsDashboardProps & { category: PlannerCategory; onCustomize?: () => void; creationRequest?: number; gridSpans: { md: number; lg: number; xl: number } }) {
+function CategoryCard({ category, tasks, filter, lang, theme = 'dark', currentDate, onAdd, onEdit, onDelete, onMove, onToggleFocus, onStatusChange, onCustomize, creationRequest, gridSpans }: CardsDashboardProps & { category: PlannerCategory; onCustomize?: () => void; creationRequest?: number; gridSpans: { md: number; lg: number; xl: number } }) {
   const ar = lang === 'ar';
+  const updatePlannerCategory = (id: string, updates: { name?: string; icon?: PlannerCategory['icon']; collapsed?: boolean }) =>
+    persistPlannerCategory(id, updates, currentDate);
   const name = ar ? category.name : category.nameEn || category.name;
   const Icon = CARD_ICONS[category.icon];
   const regionId = useId();
