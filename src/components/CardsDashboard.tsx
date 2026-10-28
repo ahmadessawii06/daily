@@ -19,30 +19,78 @@ const emptySpaceTextures: Record<Theme, string> = {
   dark: new URL('../assets/images/home/dashboard-negative-space-dark.webp', import.meta.url).href,
   light: new URL('../assets/images/home/dashboard-negative-space-light.webp', import.meta.url).href,
 };
-const categoryBanners: Record<string, Record<Language, string>> = {
+interface BannerLocalePair {
+  ar: string;
+  en: string;
+}
+
+interface ThemedBannerConfig {
+  dark: BannerLocalePair;
+  light?: BannerLocalePair;
+}
+
+type BannerConfig = ThemedBannerConfig | BannerLocalePair;
+
+const categoryBanners: Record<string, BannerConfig> = {
   study: {
-    ar: new URL('../assets/images/cards/study-rtl.webp', import.meta.url).href,
-    en: new URL('../assets/images/cards/study-ltr.webp', import.meta.url).href,
+    dark: {
+      ar: new URL('../assets/images/cards/study-rtl.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/study-ltr-dark.webp', import.meta.url).href,
+    },
+    light: {
+      ar: new URL('../assets/images/cards/study-rtl.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/study-ltr-light.webp', import.meta.url).href,
+    },
   },
   work: {
-    ar: new URL('../assets/images/cards/work-rtl.webp', import.meta.url).href,
-    en: new URL('../assets/images/cards/work-ltr.webp', import.meta.url).href,
+    dark: {
+      ar: new URL('../assets/images/cards/work-rtl.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/work-ltr-dark.webp', import.meta.url).href,
+    },
+    light: {
+      ar: new URL('../assets/images/cards/work-rtl.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/work-ltr-light.webp', import.meta.url).href,
+    },
   },
   ideas: {
-    ar: new URL('../assets/images/cards/ideas-rtl.webp', import.meta.url).href,
-    en: new URL('../assets/images/cards/ideas-ltr.webp', import.meta.url).href,
+    dark: {
+      ar: new URL('../assets/images/cards/ideas-rtl-dark.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/ideas-ltr-dark.webp', import.meta.url).href,
+    },
+    light: {
+      ar: new URL('../assets/images/cards/ideas-rtl-light.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/ideas-ltr-light.webp', import.meta.url).href,
+    },
   },
   money: {
-    ar: new URL('../assets/images/cards/money-rtl.webp', import.meta.url).href,
-    en: new URL('../assets/images/cards/money-ltr.webp', import.meta.url).href,
+    dark: {
+      ar: new URL('../assets/images/cards/money-rtl-dark.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/money-ltr-dark.webp', import.meta.url).href,
+    },
+    light: {
+      ar: new URL('../assets/images/cards/money-rtl-light.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/money-ltr-light.webp', import.meta.url).href,
+    },
   },
   health: {
-    ar: new URL('../assets/images/cards/health-rtl.webp', import.meta.url).href,
-    en: new URL('../assets/images/cards/health-ltr.webp', import.meta.url).href,
+    dark: {
+      ar: new URL('../assets/images/cards/health-rtl-dark.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/health-ltr-dark.webp', import.meta.url).href,
+    },
+    light: {
+      ar: new URL('../assets/images/cards/health-rtl-light.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/health-ltr-light.webp', import.meta.url).href,
+    },
   },
   rest: {
-    ar: new URL('../assets/images/cards/personal-rtl.webp', import.meta.url).href,
-    en: new URL('../assets/images/cards/personal-ltr.webp', import.meta.url).href,
+    dark: {
+      ar: new URL('../assets/images/cards/personal-rtl-dark.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/personal-ltr-dark.webp', import.meta.url).href,
+    },
+    light: {
+      ar: new URL('../assets/images/cards/personal-rtl-light.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/personal-ltr-light.webp', import.meta.url).href,
+    },
   },
 };
 
@@ -152,7 +200,7 @@ export function CardsDashboard(props: CardsDashboardProps) {
   );
 }
 
-function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, onMove, onToggleFocus, onStatusChange, onCustomize, creationRequest, gridSpans }: CardsDashboardProps & { category: PlannerCategory; onCustomize?: () => void; creationRequest?: number; gridSpans: { md: number; lg: number; xl: number } }) {
+function CategoryCard({ category, tasks, filter, lang, theme = 'dark', onAdd, onEdit, onDelete, onMove, onToggleFocus, onStatusChange, onCustomize, creationRequest, gridSpans }: CardsDashboardProps & { category: PlannerCategory; onCustomize?: () => void; creationRequest?: number; gridSpans: { md: number; lg: number; xl: number } }) {
   const ar = lang === 'ar';
   const name = ar ? category.name : category.nameEn || category.name;
   const Icon = CARD_ICONS[category.icon];
@@ -169,10 +217,19 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   const collapsed = Boolean(category.collapsed);
   // User-created cards have UUID-based IDs; select their artwork by icon.
   const bannerCategory = { book: 'study', briefcase: 'work', heart: 'health', leaf: 'rest', moon: 'ideas', layers: 'money' }[category.icon];
-  const bannerPair = Object.hasOwn(categoryBanners, category.id)
+  const bannerConfig = Object.hasOwn(categoryBanners, category.id)
     ? categoryBanners[category.id]
     : categoryBanners[bannerCategory];
-  const banner = bannerPair?.[lang];
+  const darkPair = bannerConfig
+    ? ('dark' in bannerConfig ? bannerConfig.dark : bannerConfig)
+    : undefined;
+  const lightPair = bannerConfig
+    ? ('light' in bannerConfig ? bannerConfig.light : undefined)
+    : undefined;
+  const hasLightVariant = Boolean(lightPair);
+  const isLightBanner = theme === 'light' && hasLightVariant;
+  const activePair = isLightBanner ? lightPair : darkPair;
+  const banner = activePair?.[lang];
   useEffect(() => {
     if (!creationRequest || collapsed || handledCreationRef.current === creationRequest) return;
     const input = inputRef.current;
@@ -194,38 +251,98 @@ function CategoryCard({ category, tasks, filter, lang, onAdd, onEdit, onDelete, 
   const colorStyle = { '--card-hue': hue, '--card-saturation': category.id === UNASSIGNED_CATEGORY ? '0%' : '65%' } as CSSProperties;
   return (
     <article aria-label={name} data-category-id={category.id} data-card-complete={isComplete} style={{ ...colorStyle, '--category-span-md': gridSpans.md, '--category-span-lg': gridSpans.lg, '--category-span-xl': gridSpans.xl } as CSSProperties} className="dashboard-category-card planner-card relative z-10 min-w-0 overflow-hidden rounded-card border border-t-[3px] shadow-2xs">
-      <div data-category-banner={banner ? category.id : undefined} className={`relative isolate flex items-center gap-3 overflow-hidden p-4 ${banner ? 'planner-card-banner text-white' : ''}`}>
-        {bannerPair ? <>
-          <img
-            src={bannerPair.ar}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            decoding="async"
-            className={`pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center transition-opacity duration-300 ease-in-out ${
-              ar ? 'opacity-100' : 'opacity-0'
-            }`}
-          />
-          <img
-            src={bannerPair.en}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            decoding="async"
-            className={`pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center transition-opacity duration-300 ease-in-out ${
-              !ar ? 'opacity-100' : 'opacity-0'
-            }`}
-          />
-          <span aria-hidden="true" className="planner-card-image-shade pointer-events-none absolute inset-0 z-10" />
-        </> : banner ? <>
-          <img src={banner} alt="" aria-hidden="true" loading="lazy" decoding="async" className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center" />
+      <div data-category-banner={banner ? category.id : undefined} className={`relative isolate flex items-center gap-3 overflow-hidden p-4 ${banner ? 'planner-card-banner' : ''}`}>
+        {bannerConfig ? <>
+          {darkPair?.ar && (
+            <img
+              src={darkPair.ar}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              className={`pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center transition-opacity duration-300 ease-in-out ${
+                ar && (!hasLightVariant || theme === 'dark') ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          )}
+          {darkPair?.en && (
+            <img
+              src={darkPair.en}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              className={`pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center transition-opacity duration-300 ease-in-out ${
+                !ar && (!hasLightVariant || theme === 'dark') ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          )}
+          {lightPair?.ar && (
+            <img
+              src={lightPair.ar}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              className={`pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center transition-opacity duration-300 ease-in-out ${
+                ar && theme === 'light' ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          )}
+          {lightPair?.en && (
+            <img
+              src={lightPair.en}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              className={`pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-center transition-opacity duration-300 ease-in-out ${
+                !ar && theme === 'light' ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          )}
           <span aria-hidden="true" className="planner-card-image-shade pointer-events-none absolute inset-0 z-10" />
         </> : null}
         <div className="relative z-20 flex min-w-0 flex-1 items-center gap-3">
-          <div aria-hidden="true" className={`planner-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${banner ? 'border-white/25 bg-black/20 text-white shadow-xs backdrop-blur-sm dark:bg-black/35' : ''}`}><Icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></div>
-          <div className="min-w-0 flex-1"><h3 className={`break-words text-sm font-bold leading-6 ${banner ? 'text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]' : ''}`}>{name}</h3></div>
+          <div aria-hidden="true" className={`planner-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
+            banner
+              ? isLightBanner
+                ? 'border-emerald-600/25 bg-white/70 text-emerald-800 shadow-xs backdrop-blur-md'
+                : 'border-white/25 bg-black/20 text-white shadow-xs backdrop-blur-sm dark:bg-black/35'
+              : ''
+          }`}><Icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></div>
+          <div className="min-w-0 flex-1">
+            <h3 className={`break-words text-sm font-bold leading-6 ${
+              banner
+                ? isLightBanner
+                  ? 'text-slate-900 drop-shadow-[0_1px_2px_rgba(255,255,255,0.7)]'
+                  : 'text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]'
+                : ''
+            }`}>{name}</h3>
+          </div>
         </div>
-        {onCustomize && <div className={`relative z-20 flex shrink-0 items-center gap-0.5 ${banner ? 'rounded-xl border border-white/20 bg-black/20 p-0.5 backdrop-blur-sm dark:border-transparent dark:bg-black/35' : ''}`}><button type="button" aria-label={ar ? `تخصيص ${name}` : `Customize ${name}`} onClick={onCustomize} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${banner ? 'text-white/90 hover:bg-white/20 hover:text-white' : 'text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5'}`}><MoreHorizontal className="h-4 w-4" /></button><button type="button" aria-label={ar ? (collapsed ? `توسيع ${name}` : `طي ${name}`) : (collapsed ? `Expand ${name}` : `Collapse ${name}`)} aria-expanded={!collapsed} aria-controls={regionId} onClick={() => updatePlannerCategory(category.id, { collapsed: !collapsed })} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${banner ? 'text-white/90 hover:bg-white/20 hover:text-white' : 'text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5'}`}><ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${collapsed ? '-rotate-90 rtl:rotate-90' : ''}`} /></button></div>}
+        {onCustomize && <div className={`relative z-20 flex shrink-0 items-center gap-0.5 ${
+          banner
+            ? isLightBanner
+              ? 'rounded-xl border border-slate-900/10 bg-white/70 p-0.5 backdrop-blur-md'
+              : 'rounded-xl border border-white/20 bg-black/20 p-0.5 backdrop-blur-sm dark:border-transparent dark:bg-black/35'
+            : ''
+        }`}>
+          <button type="button" aria-label={ar ? `تخصيص ${name}` : `Customize ${name}`} onClick={onCustomize} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+            banner
+              ? isLightBanner
+                ? 'text-slate-700 hover:bg-black/10 hover:text-slate-950'
+                : 'text-white/90 hover:bg-white/20 hover:text-white'
+              : 'text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5'
+          }`}><MoreHorizontal className="h-4 w-4" /></button>
+          <button type="button" aria-label={ar ? (collapsed ? `توسيع ${name}` : `طي ${name}`) : (collapsed ? `Expand ${name}` : `Collapse ${name}`)} aria-expanded={!collapsed} aria-controls={regionId} onClick={() => updatePlannerCategory(category.id, { collapsed: !collapsed })} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+            banner
+              ? isLightBanner
+                ? 'text-slate-700 hover:bg-black/10 hover:text-slate-950'
+                : 'text-white/90 hover:bg-white/20 hover:text-white'
+              : 'text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5'
+          }`}><ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${collapsed ? '-rotate-90 rtl:rotate-90' : ''}`} /></button>
+        </div>}
       </div>
       {isComplete && <div dir={ar ? 'rtl' : 'ltr'} data-card-completion-banner role="status" className="mx-4 mt-2 mb-3 flex items-center justify-between gap-2 rounded-xl border border-emerald-300/40 bg-emerald-400/10 px-3 py-2 text-[11px] font-semibold text-emerald-700 dark:border-emerald-400/25 dark:bg-emerald-400/10 dark:text-emerald-300"><span className="inline-flex items-center gap-2"><span>{ar ? 'اكتملت كل المهام' : 'All tasks complete'}</span><CheckCheck aria-hidden="true" className="h-4 w-4 shrink-0" /></span><span dir="ltr" className="tabular-nums">100%</span></div>}
       {tasks.length > 0 && <div data-card-stats role="group" aria-label={ar ? `إحصائيات ${name}` : `${name} statistics`} className="mx-4 grid grid-cols-4 items-start gap-1 border-t border-slate-200/60 py-3 dark:border-white/[0.06]">

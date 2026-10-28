@@ -5,32 +5,92 @@ import type { CategoryIcon, Language, PlannerCategory, Theme } from '../types';
 import { CATEGORY_ICONS } from '../shared/workspace';
 
 export const CARD_ICONS = { book: BookOpen, briefcase: Briefcase, heart: Heart, leaf: Leaf, moon: Sparkles, layers: DollarSign };
-const previewBanners: Partial<Record<CategoryIcon, Record<Language, string>>> = {
+interface BannerLocalePair {
+  ar: string;
+  en: string;
+}
+
+interface ThemedBannerConfig {
+  dark: BannerLocalePair;
+  light?: BannerLocalePair;
+}
+
+type BannerPreviewConfig = ThemedBannerConfig | BannerLocalePair;
+
+const previewBanners: Partial<Record<CategoryIcon, BannerPreviewConfig>> = {
   book: {
-    ar: new URL('../assets/images/cards/study-rtl.webp', import.meta.url).href,
-    en: new URL('../assets/images/cards/study-ltr.webp', import.meta.url).href,
+    dark: {
+      ar: new URL('../assets/images/cards/study-rtl.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/study-ltr-dark.webp', import.meta.url).href,
+    },
+    light: {
+      ar: new URL('../assets/images/cards/study-rtl.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/study-ltr-light.webp', import.meta.url).href,
+    },
   },
   briefcase: {
-    ar: new URL('../assets/images/cards/work-rtl.webp', import.meta.url).href,
-    en: new URL('../assets/images/cards/work-ltr.webp', import.meta.url).href,
+    dark: {
+      ar: new URL('../assets/images/cards/work-rtl.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/work-ltr-dark.webp', import.meta.url).href,
+    },
+    light: {
+      ar: new URL('../assets/images/cards/work-rtl.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/work-ltr-light.webp', import.meta.url).href,
+    },
   },
   heart: {
-    ar: new URL('../assets/images/cards/health-rtl.webp', import.meta.url).href,
-    en: new URL('../assets/images/cards/health-ltr.webp', import.meta.url).href,
+    dark: {
+      ar: new URL('../assets/images/cards/health-rtl-dark.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/health-ltr-dark.webp', import.meta.url).href,
+    },
+    light: {
+      ar: new URL('../assets/images/cards/health-rtl-light.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/health-ltr-light.webp', import.meta.url).href,
+    },
   },
   leaf: {
-    ar: new URL('../assets/images/cards/personal-rtl.webp', import.meta.url).href,
-    en: new URL('../assets/images/cards/personal-ltr.webp', import.meta.url).href,
+    dark: {
+      ar: new URL('../assets/images/cards/personal-rtl-dark.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/personal-ltr-dark.webp', import.meta.url).href,
+    },
+    light: {
+      ar: new URL('../assets/images/cards/personal-rtl-light.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/personal-ltr-light.webp', import.meta.url).href,
+    },
   },
   moon: {
-    ar: new URL('../assets/images/cards/ideas-rtl.webp', import.meta.url).href,
-    en: new URL('../assets/images/cards/ideas-ltr.webp', import.meta.url).href,
+    dark: {
+      ar: new URL('../assets/images/cards/ideas-rtl-dark.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/ideas-ltr-dark.webp', import.meta.url).href,
+    },
+    light: {
+      ar: new URL('../assets/images/cards/ideas-rtl-light.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/ideas-ltr-light.webp', import.meta.url).href,
+    },
   },
   layers: {
-    ar: new URL('../assets/images/cards/money-rtl.webp', import.meta.url).href,
-    en: new URL('../assets/images/cards/money-ltr.webp', import.meta.url).href,
+    dark: {
+      ar: new URL('../assets/images/cards/money-rtl-dark.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/money-ltr-dark.webp', import.meta.url).href,
+    },
+    light: {
+      ar: new URL('../assets/images/cards/money-rtl-light.webp', import.meta.url).href,
+      en: new URL('../assets/images/cards/money-ltr-light.webp', import.meta.url).href,
+    },
   },
 };
+
+function getPreviewBanner(icon: CategoryIcon, lang: Language, theme: Theme): string {
+  const config = previewBanners[icon];
+  if (!config) return defaultPreviewBanners[theme];
+  if ('dark' in config) {
+    if (theme === 'light' && config.light) {
+      return config.light[lang] || config.dark[lang];
+    }
+    return config.dark[lang];
+  }
+  return config[lang];
+}
 const defaultPreviewBanners: Record<Theme, string> = {
   dark: new URL('../assets/images/home/daily-progress-abstract-dark.webp', import.meta.url).href,
   light: new URL('../assets/images/home/daily-progress-abstract-light.webp', import.meta.url).href,
@@ -135,7 +195,7 @@ export function CategoryEditor({ category, lang, theme, onSave, onDelete, onClos
             <p className="text-xs font-semibold text-slate-700 dark:text-zinc-200">{ar ? 'معاينة المساحة' : 'Space preview'}</p>
             <div dir={ar ? 'rtl' : 'ltr'} className="overflow-hidden rounded-2xl border border-white/10 bg-[#1d2b3e] text-slate-100 shadow-inner" aria-label={ar ? 'معاينة شكل المساحة' : 'Space appearance preview'}>
             <div className="relative h-24 overflow-hidden">
-              <img src={previewBanners[icon]?.[lang] || defaultPreviewBanners[theme]} alt="" aria-hidden="true" loading="eager" decoding="async" className="absolute inset-0 h-full w-full object-cover object-center" />
+              <img src={getPreviewBanner(icon, lang, theme)} alt="" aria-hidden="true" loading="eager" decoding="async" className="absolute inset-0 h-full w-full object-cover object-center" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-[#1d2b3e]/82" />
               <div className="relative flex h-full items-center justify-start gap-3 p-3">
                 <div className="flex min-w-0 flex-1 items-center gap-2.5"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-black/35"><Icon className="h-4 w-4" /></span><p className="min-w-0 flex-1 truncate text-[15px] font-bold leading-6 text-white" title={trimmedName || undefined}>{trimmedName || (ar ? 'اسم المساحة' : 'Space name')}</p></div>
