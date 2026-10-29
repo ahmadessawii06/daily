@@ -11,13 +11,20 @@ const tabs: Array<{ id: ReligiousSection; label: string; icon: typeof Sun }> = [
 
 export function ReligiousTabs({ active, onChange }: { active: ReligiousSection; onChange: (section: ReligiousSection) => void }) {
   return (
-    <div dir="rtl" className="religious-dashboard-header">
+    <div dir="rtl" className="flex items-center justify-center w-full px-2 py-1">
       <nav className="religious-tabs" aria-label="أقسام العبادة">
         {tabs.map(tab => {
           const Icon = tab.icon;
+          const isActive = active === tab.id;
           return (
-            <button key={tab.id} type="button" aria-current={active === tab.id ? 'page' : undefined} onClick={() => onChange(tab.id)} className={active === tab.id ? 'is-active' : ''}>
-              <Icon size={18} aria-hidden="true" />
+            <button
+              key={tab.id}
+              type="button"
+              aria-current={isActive ? 'page' : undefined}
+              onClick={() => onChange(tab.id)}
+              className={isActive ? 'is-active' : ''}
+            >
+              <Icon size={16} aria-hidden="true" className={isActive ? 'text-emerald-700 dark:text-teal-300' : 'text-slate-500 dark:text-zinc-400'} />
               <span>{tab.label}</span>
             </button>
           );
