@@ -262,23 +262,7 @@
 .adhkar-card h3 { margin: .9rem 0 .55rem; font-size: .95rem; }
 .adhkar-text, .dua-card p { color: #f7f0df; font-family: 'Amiri Quran', serif; font-size: 1.08rem; line-height: 2; }
 .adhkar-text { margin: 0 0 .5rem; }
-.adhkar-card-footer a, .dua-card footer a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  border-radius: 0.5rem;
-  padding: 0.2rem 0.6rem;
-  background: rgba(16, 185, 129, 0.14);
-  color: #065f46;
-  font-size: 0.82rem;
-  font-weight: 800;
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-.dark .adhkar-card-footer a, .dark .dua-card footer a {
-  background: rgba(45, 212, 191, 0.18);
-  color: #5eead4;
-}
+.adhkar-card-footer a, .dua-card footer a { color: rgba(226, 248, 238, .52); font-size: .62rem; text-decoration: underline; text-underline-offset: 3px; }
 .adhkar-card-footer button { display: inline-flex; min-width: 5.3rem; align-items: center; justify-content: space-between; gap: .4rem; border: 1px solid rgba(94, 234, 212, .32); border-radius: .7rem; padding: .45rem .55rem; background: rgba(15, 139, 125, .17); color: #8ff7e4; font-size: .67rem; font-weight: 800; }
 .adhkar-card-footer button:disabled { border-color: rgba(94, 234, 212, .5); background: rgba(94, 234, 212, .15); color: #b8fff1; }
 .quran-wird-layout { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 1rem; }
@@ -350,8 +334,7 @@
 .adhkar-card.is-complete { border-color: #b8ddd3; background: #f0faf7; }
 .adhkar-card-top span { background: #fff5df; color: #8d733b; }
 .adhkar-card.is-complete .adhkar-card-top span { background: #e3f4ee; color: #0f766e; }
-.adhkar-card-top small { color: #94a3b8; }
-.adhkar-card-footer a, .dua-card footer a { color: #047857; font-weight: 800; }
+.adhkar-card-top small, .adhkar-card-footer a, .dua-card footer a { color: #94a3b8; }
 .adhkar-text, .dua-card p { color: #17243b; }
 .adhkar-card-footer button { border-color: #b8ddd3; background: #e8f5f1; color: #0f766e; }
 .adhkar-card-footer button:disabled { border-color: #9fcfc2; background: #dff2ec; color: #0f766e; }
