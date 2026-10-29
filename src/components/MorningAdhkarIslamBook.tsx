@@ -560,7 +560,7 @@ const parseZekrContent = (text: string) => {
               id={`zekr-row-${zekr.id}`}
               className={`ib-zekr-row relative flex items-stretch gap-3.5 sm:gap-5 overflow-hidden rounded-2xl p-3.5 sm:p-5 transition-all duration-300 ${
                 isActive
-                  ? 'border-2 border-emerald-500/50 bg-emerald-50/20 dark:border-teal-400/40 dark:bg-[#06241e]/70 shadow-md ring-1 ring-emerald-500/15'
+                  ? 'border border-emerald-500/40 bg-emerald-50/20 dark:border-teal-400/35 dark:bg-[#06241e]/50 shadow-sm'
                   : isDone
                     ? 'border border-emerald-500/25 bg-emerald-50/40 dark:border-teal-500/20 dark:bg-[#031d17]/50 shadow-xs'
                     : 'border border-slate-200/80 bg-white hover:border-emerald-500/35 dark:border-white/10 dark:bg-[#071815]/95 shadow-xs'
@@ -575,7 +575,7 @@ const parseZekrContent = (text: string) => {
                   aria-label={isDone ? `الذكر ${index + 1} مكتمل` : `تكرار الذكر ${index + 1}، المتبقي ${remaining}`}
                   className={`group/tap relative flex shrink-0 w-20 sm:w-24 md:w-26 h-full min-h-[92px] sm:min-h-[100px] flex-col items-center justify-center rounded-xl p-2 sm:p-2.5 transition-all duration-150 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-500 motion-safe:active:scale-95 ${
                     isActive
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-teal-500 dark:hover:bg-teal-600 dark:text-slate-950 shadow-sm'
+                      ? 'bg-emerald-600/90 hover:bg-emerald-600 text-white dark:bg-teal-500/90 dark:hover:bg-teal-500 dark:text-slate-950 shadow-xs'
                       : isDone
                         ? 'bg-emerald-100/80 text-emerald-900 dark:bg-teal-950/70 dark:text-teal-200 border border-emerald-300/70 dark:border-teal-700/50 cursor-default'
                         : 'bg-slate-50/90 hover:bg-emerald-50/80 text-slate-800 dark:bg-white/5 dark:hover:bg-teal-950/30 dark:text-white border border-slate-200/80 dark:border-white/10 hover:border-emerald-500/30 hover:shadow-2xs'
@@ -639,7 +639,7 @@ const parseZekrContent = (text: string) => {
                       #{index + 1}
                     </span>
                     {isActive && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100/90 text-emerald-900 border border-emerald-300/80 dark:bg-teal-950/80 dark:border-teal-500/40 dark:text-teal-200 px-2.5 py-0.5 text-xs font-bold shadow-2xs">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/90 dark:bg-teal-950/50 dark:border-teal-500/30 dark:text-teal-200 px-2.5 py-0.5 text-[11px] font-semibold shadow-2xs">
                         الذكر الحالي
                       </span>
                     )}

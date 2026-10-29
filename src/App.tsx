@@ -781,9 +781,11 @@ export default function App() {
             onToggleTheme={() => { const next = theme === 'dark' ? 'light' : 'dark'; setStoredTheme(next); setTheme(next); }}
             dayMemories={<DayMemories key={`${currentUser.id}-${currentDate}`} date={currentDate} lang={lang} onSaved={refreshArchive} />}
             quickNotes={<QuickNotes lang={lang} />}
-          ><>
-            <TodayProgress stats={stats} currentFilter={currentFilter} onFilterChange={setCurrentFilter} lang={lang} theme={theme} compact />
-          </></MainHeader> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
+          >{
+            religiousSection === 'prayers' ? (
+              <TodayProgress stats={stats} currentFilter={currentFilter} onFilterChange={setCurrentFilter} lang={lang} theme={theme} compact />
+            ) : null
+          }</MainHeader> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
           {support && <DateNavigation currentDate={currentDate} onDateChange={setCurrentDate} lang={lang} />}
 
           {/* Today Progress Section (bar & metrics) */}
