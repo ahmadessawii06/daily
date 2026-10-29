@@ -12,7 +12,9 @@ import {
   Copy,
   Plus,
   Minus,
-  MoonStar
+  MoonStar,
+  Moon,
+  Sparkles
 } from 'lucide-react';
 import { AZKAR_MASAA, type ZekrItem } from '../data/azkarMasaa';
 import { userStorage } from '../utils/scopedStorage';
@@ -93,6 +95,16 @@ export function EveningAdhkarIslamBook({ date }: EveningAdhkarProps) {
       return saved.endTime || null;
     } catch { return null; }
   });
+
+    // Active Zekr detection for visual guidance
+  const activeZekrId = useMemo(() => {
+    if (bookmarkId) {
+      const bZekr = AZKAR_MASAA.find(z => z.id === bookmarkId);
+      if (bZekr && (counts[bZekr.id] || 0) < bZekr.count) return bookmarkId;
+    }
+    const firstUnfinished = AZKAR_MASAA.find(z => (counts[z.id] || 0) < z.count);
+    return firstUnfinished ? firstUnfinished.id : null;
+  }, [bookmarkId, counts]);
 
   const [isConfirmed, setIsConfirmed] = useState<boolean>(() => {
     try {
@@ -299,531 +311,407 @@ export function EveningAdhkarIslamBook({ date }: EveningAdhkarProps) {
   };
 
   return (
-    <div className="islambook-container mt-[10px]" dir="rtl" lang="ar">
-      {/* Sticky Compact Header for continuous progress visibility while scrolling */}
-      <div className="sticky top-[10px] z-40 mb-4 -mx-2 px-2 sm:mx-0 sm:px-0">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-2.5 rounded-2xl border border-emerald-500/20 bg-white/95 text-slate-800 dark:border-emerald-400/25 dark:bg-[#06221d]/95 dark:text-white p-2.5 sm:px-4 sm:py-2.5 shadow-xl backdrop-blur-md transition-all">
-          {/* Right side (RTL): Section title & settings */}
-          <div className="flex w-full lg:w-auto items-center justify-between lg:justify-start gap-2 shrink-0" ref={settingsRef}>
+    <div className="islambook-container mt-2 max-w-5xl mx-auto" dir="rtl" lang="ar">
+      {/* 1. Low-Profile Sticky Accomplishment & Navigation Header */}
+      <div className="sticky top-[8px] z-40 mb-3.5 -mx-2 px-2 sm:mx-0 sm:px-0">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-4 rounded-2xl border border-emerald-600/20 bg-white/95 text-slate-900 dark:border-teal-400/25 dark:bg-[#06221d]/95 dark:text-white px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-lg shadow-slate-900/5 dark:shadow-emerald-950/20 backdrop-blur-md transition-all">
+          
+          {/* Section Title & Navigation to Current Zekr */}
+          <div className="flex w-full sm:w-auto items-center justify-between sm:justify-start gap-2.5 shrink-0">
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                className="flex h-8 w-8 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-300/30 dark:bg-emerald-500/15 dark:text-teal-200 dark:hover:bg-emerald-500/30 dark:hover:text-white transition-all shadow-2xs"
-                aria-label="إعدادات القراءة"
-                title="إعدادات القراءة والخط"
-              >
-                <Sliders size={15} />
-              </button>
-
-              <div className="flex items-center gap-1.5">
-                <MoonStar size={16} className="text-emerald-600 dark:text-[#2DD4BF]" />
-                <span className="font-arabic text-sm font-black text-slate-800 dark:text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 border border-emerald-500/25 dark:bg-teal-400/10 dark:border-teal-400/20 shadow-2xs">
+                <Moon size={18} className="text-indigo-400 dark:text-indigo-300" />
+              </span>
+              <div>
+                <h1 className="font-arabic text-sm sm:text-base font-black text-slate-950 dark:text-white leading-tight">
                   أذكار المساء
-                </span>
+                </h1>
+                <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-zinc-400">
+                  {completedZekrCount === AZKAR_MASAA.length ? 'أتممت أذكارك بنجاح' : `${remainingZekrCount} متبقية من ${AZKAR_MASAA.length}`}
+                </p>
               </div>
             </div>
 
-            {/* Jump to bookmark on mobile */}
-            {bookmarkId && (
+            {/* Jump to Active Zekr Button */}
+            {activeZekrId && (
               <button
                 type="button"
                 onClick={() => {
-                  const el = document.getElementById(`evening-zekr-row-${bookmarkId}`);
+                  const el = document.getElementById(`evening-zekr-row-${activeZekrId}`);
                   el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }}
-                className="lg:hidden flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-50 px-2 py-0.5 text-xs text-emerald-800 dark:border-emerald-300/30 dark:bg-teal-400/15 dark:text-teal-100"
+                className="flex items-center gap-1.5 rounded-full border border-emerald-600/30 bg-emerald-50/90 hover:bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-900 dark:border-teal-400/30 dark:bg-teal-400/15 dark:text-[#5EEAD4] dark:hover:bg-teal-400/25 transition shadow-2xs"
+                title="الانتقال فوراً إلى الذكر الحالي"
               >
-                <BookmarkCheck size={12} className="text-emerald-600 dark:text-emerald-400" />
-                <span>تابع القراءة</span>
+                <BookmarkCheck size={13} className="text-emerald-700 dark:text-[#2DD4BF]" />
+                <span>الذكر الحالي #{AZKAR_MASAA.findIndex(z => z.id === activeZekrId) + 1}</span>
               </button>
             )}
-
-            {isSettingsOpen && (
-              <div className="ib-dropdown-menu absolute right-2 top-12 z-50 w-72 rounded-xl border border-slate-200 bg-white py-2 text-sm text-slate-800 shadow-2xl dark:border-white/10 dark:bg-[#0c2621] dark:text-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowTashkeel(!showTashkeel)}
-                  className="flex w-full items-center justify-between px-4 py-2 text-right transition hover:bg-slate-100 dark:hover:bg-white/5"
-                >
-                  <span>إظهار التشكيل</span>
-                  <span className={`rounded px-2 py-0.5 text-xs font-bold ${showTashkeel ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-[#2DD4BF]' : 'bg-slate-200 text-slate-600 dark:bg-white/10 dark:text-zinc-400'}`}>
-                    {showTashkeel ? 'مفعل' : 'معطل'}
-                  </span>
-                </button>
-
-                <div className="my-1 h-px bg-slate-200 dark:bg-white/10" />
-
-                <button
-                  type="button"
-                  onClick={() => setIsBold(!isBold)}
-                  className="flex w-full items-center justify-between px-4 py-2 text-right transition hover:bg-slate-100 dark:hover:bg-white/5"
-                >
-                  <span className="font-bold">خط عريض</span>
-                  <span className={`rounded px-2 py-0.5 text-xs font-bold ${isBold ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-[#2DD4BF]' : 'bg-slate-200 text-slate-600 dark:bg-white/10 dark:text-zinc-400'}`}>
-                    {isBold ? 'مفعل' : 'معطل'}
-                  </span>
-                </button>
-
-                <div className="my-1 h-px bg-slate-200 dark:bg-white/10" />
-
-                <div className="px-4 py-2">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-semibold text-slate-600 dark:text-zinc-400">حجم الخط</span>
-                    <span className="rounded border bg-slate-100 px-1.5 py-0.5 font-mono text-xs dark:border-white/10 dark:bg-white/5">{fontSize}px</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setFontSize(prev => Math.min(42, prev + 2))}
-                      className="flex flex-1 items-center justify-center gap-1 rounded bg-slate-100 py-1 text-xs font-bold transition hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10"
-                    >
-                      <Plus size={14} /> تكبير
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFontSize(prev => Math.max(18, prev - 2))}
-                      className="flex flex-1 items-center justify-center gap-1 rounded bg-slate-100 py-1 text-xs font-bold transition hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10"
-                    >
-                      <Minus size={14} /> تصغير
-                    </button>
-                  </div>
-                </div>
-
-                <div className="my-1 h-px bg-slate-200 dark:bg-white/10" />
-
-                {/* Font Family Selection */}
-                <div className="px-4 py-2">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-700 dark:text-zinc-300">نوع الخط العربي المعتمد</span>
-                    <span className="text-[10px] text-emerald-600 dark:text-[#2DD4BF]">خطوط آبل وشركات عالمية</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { id: 'sf-arabic', name: 'SF Arabic (آبل الرسمي)', font: "'SF Pro Arabic', sans-serif", badge: 'خط الآيفون المعتمد' },
-                      { id: 'sf-rounded', name: 'SF Rounded (آيفون ناعم)', font: "'SF Pro Arabic', sans-serif", badge: 'انسيابي هادئ' },
-                      { id: 'almarai', name: 'المراعي (Almarai)', font: "'Almarai', sans-serif", badge: 'فائق الوضوح' },
-                      { id: 'readex', name: 'ريدكس (Readex)', font: "'Readex Pro', sans-serif", badge: 'مريح للنظر' },
-                      { id: 'tajawal', name: 'تجوال (Tajawal)', font: "'Tajawal', sans-serif", badge: 'تطبيقات الأذكار' },
-                      { id: 'ibm', name: 'آي بي إم (IBM Plex)', font: "'IBM Plex Sans Arabic', sans-serif", badge: 'تقني فاخر' },
-                      { id: 'uthmanic', name: 'مصحف المدينة (حفص)', font: "'KFGQPC Uthmanic Script', serif", badge: 'رسم المصحف' },
-                      { id: 'naskh', name: 'نسخ راقي (Naskh)', font: "'Noto Naskh Arabic', serif", badge: 'كلاسيكي أصيل' },
-                    ].map(f => (
-                      <button
-                        key={f.id}
-                        type="button"
-                        onClick={() => setFontFamily(f.id)}
-                        className={`group relative flex flex-col items-center justify-center rounded-xl p-2 text-center transition-all border ${
-                          fontFamily === f.id
-                            ? 'border-emerald-500 bg-emerald-500/15 text-emerald-800 dark:text-teal-200 ring-2 ring-emerald-500/30 font-bold shadow-xs'
-                            : 'border-slate-200 bg-white/70 hover:bg-slate-100 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:bg-white/10'
-                        }`}
-                        style={{ fontFamily: f.font }}
-                      >
-                        <span className="text-[13px] leading-tight">{f.name}</span>
-                        <span className="mt-1 text-[10px] text-slate-500 dark:text-white/50 group-hover:text-emerald-600 dark:group-hover:text-teal-300">
-                          {f.badge}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="my-1 h-px bg-slate-200 dark:bg-white/10" />
-
-                <label className="flex cursor-pointer select-none items-center gap-2 px-4 py-2 transition hover:bg-slate-100 dark:hover:bg-white/5">
-                  <input
-                    type="checkbox"
-                    checked={autoScroll}
-                    onChange={e => setAutoScroll(e.target.checked)}
-                    className="rounded text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span className="text-xs text-slate-700 dark:text-zinc-300">التمرير التلقائي للذكر التالي</span>
-                </label>
-
-                <div className="my-1 h-px bg-slate-200 dark:bg-white/10" />
-
-                <button
-                  type="button"
-                  onClick={handleResetAll}
-                  className="flex w-full items-center gap-2 px-4 py-2 text-right text-xs font-bold text-rose-600 transition hover:bg-rose-50 dark:hover:bg-rose-500/10"
-                >
-                  <RotateCcw size={14} /> إعادة ضبط جميع العدادات
-                </button>
-              </div>
-            )}
           </div>
 
-          {/* All 5 Stat Circles - Flex centered naturally between right and left controls without overlapping */}
-          <div className="flex flex-1 items-center justify-center py-0.5">
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-3.5">
-              {/* 1. الإجمالي (Total) - Indigo */}
-              <div className="flex items-center gap-1.5" title={`إجمالي الأذكار: ${AZKAR_MASAA.length}`}>
-                <div className="relative flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-emerald-50 border-2 border-emerald-500/40 dark:bg-emerald-500/15 dark:border-emerald-400/50 shadow-xs">
-                  <span className="font-numbers text-xs sm:text-sm font-black text-emerald-600 dark:text-[#2DD4BF]">{AZKAR_MASAA.length}</span>
-                </div>
-                <span className="hidden xl:inline text-xs font-bold text-emerald-700 dark:text-teal-200/90">الإجمالي</span>
-              </div>
-
-              {/* 2. مكتملة (Done) - Emerald */}
-              <div className="flex items-center gap-1.5" title={`الأذكار المكتملة: ${completedZekrCount}`}>
-                <div className="relative flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-emerald-50 border-2 border-emerald-500/40 dark:bg-emerald-500/15 dark:border-emerald-400/50 shadow-xs">
-                  <span className="font-numbers text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-300">{completedZekrCount}</span>
-                </div>
-                <span className="hidden xl:inline text-xs font-bold text-emerald-700 dark:text-emerald-200/90">مكتملة</span>
-              </div>
-
-              {/* 3. نسبة الإنجاز في المنتصف (Overall Progress %) - Blue/Indigo */}
-              <div className="flex items-center gap-1.5" title={`نسبة الإنجاز: ${overallPercentage}%`}>
-                <div className="relative flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-emerald-50 border-2 border-emerald-500/50 dark:bg-emerald-500/15 dark:border-emerald-400/60 shadow-[0_0_12px_rgba(16,185,129,0.25)]">
-                  <span className="font-numbers text-xs sm:text-sm font-black text-emerald-600 dark:text-[#2DD4BF]">{overallPercentage}%</span>
-                </div>
-                <span className="hidden lg:inline text-xs font-bold text-emerald-700 dark:text-[#2DD4BF]">الإنجاز</span>
-              </div>
-
-              {/* 4. متبقية (Remaining) - Amber */}
-              <div className="flex items-center gap-1.5" title={`الأذكار المتبقية: ${remainingZekrCount}`}>
-                <div className="relative flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-amber-50 border-2 border-amber-500/40 dark:bg-amber-500/15 dark:border-amber-400/50 shadow-xs">
-                  <span className="font-numbers text-xs sm:text-sm font-black text-amber-600 dark:text-amber-300">{remainingZekrCount}</span>
-                </div>
-                <span className="hidden xl:inline text-xs font-bold text-amber-700 dark:text-amber-200/90">متبقية</span>
-              </div>
-
-              {/* 5. التكرارات (Repetitions) - Rose */}
-              <div className="flex items-center gap-1.5" title={`التكرارات المنجزة: ${totalCounted} من ${totalCountRequired}`}>
-                <div className="relative flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-rose-50 border-2 border-rose-500/40 dark:bg-rose-500/15 dark:border-rose-400/50 shadow-xs">
-                  <span className="font-numbers text-xs sm:text-sm font-black text-rose-600 dark:text-rose-300">{totalCounted}</span>
-                </div>
-                <span className="hidden xl:inline text-xs font-bold text-rose-700 dark:text-rose-200/90">التكرارات</span>
-              </div>
+          {/* Central Accomplishment & Progress Hero */}
+          <div className="flex flex-1 flex-col items-center justify-center w-full max-w-sm gap-1 select-none">
+            <div className="flex items-center justify-between w-full text-xs">
+              <span className="font-bold text-slate-700 dark:text-zinc-200 text-[11px] sm:text-xs">
+                {completedZekrCount === AZKAR_MASAA.length ? '✨ اكتملت جميع الأذكار' : `${completedZekrCount} من ${AZKAR_MASAA.length} أذكار مكتملة`}
+              </span>
+              <span className="font-numbers text-emerald-800 dark:text-[#5EEAD4] font-black text-xs sm:text-sm">
+                {overallPercentage}%
+              </span>
+            </div>
+            {/* Visual Progress Track */}
+            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-white/10 shadow-inner">
+              <div
+                className="h-full rounded-full bg-gradient-to-l from-emerald-500 via-teal-600 to-emerald-700 dark:from-[#2DD4BF] dark:to-[#0d9488] transition-all duration-500 ease-out"
+                style={{ width: `${overallPercentage}%` }}
+              />
             </div>
           </div>
 
-          {/* Left side (RTL): Quick live indicators & session controls inside sticky header */}
-          <div className="flex w-full lg:w-auto items-center justify-between lg:justify-end gap-1.5 sm:gap-2 shrink-0">
-            {/* Stopwatch timer */}
-            <div className="flex items-center gap-1.5 text-xs text-slate-700 bg-slate-100 border border-slate-200 dark:text-teal-200 dark:bg-white/5 dark:border-white/10 px-2 py-1 rounded-xl">
-              <Timer size={14} className="text-amber-600 dark:text-amber-400" />
-              <span className="font-numbers font-bold tabular-nums text-emerald-700 dark:text-[#2DD4BF]">{formatClock(elapsedSeconds)}</span>
+          {/* Secondary Tools Menu & Controls */}
+          <div className="flex w-full sm:w-auto items-center justify-between sm:justify-end gap-2 shrink-0" ref={settingsRef}>
+            {/* Stopwatch Badge */}
+            <div className="flex items-center gap-1.5 text-xs text-slate-700 bg-slate-100/90 border border-slate-200 dark:text-teal-200 dark:bg-white/5 dark:border-white/10 px-2.5 py-1 rounded-xl">
+              <Timer size={13} className="text-amber-600 dark:text-[#D5B779]" />
+              <span className="font-numbers font-bold tabular-nums text-emerald-800 dark:text-[#5EEAD4]">{formatClock(elapsedSeconds)}</span>
             </div>
 
-            {/* Buttons: إيقاف مؤقت / استئناف & ابدأ من جديد */}
-            <button
-              type="button"
-              onClick={() => setTimerRunning(!timerRunning)}
-              className="flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-2 sm:px-2.5 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/15 shadow-2xs"
-              title={timerRunning ? 'إيقاف مؤقت للوقت' : 'استئناف مؤقت الوقت'}
-            >
-              {timerRunning ? <Pause size={13} /> : <Play size={13} />}
-              <span className="hidden sm:inline">{timerRunning ? 'إيقاف مؤقت' : 'استئناف'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleResetAll}
-              className="flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-2 sm:px-2.5 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/15 shadow-2xs"
-              title="إعادة ضبط وبدء القراءة من جديد"
-            >
-              <RotateCcw size={13} />
-              <span className="hidden sm:inline">ابدأ من جديد</span>
-            </button>
-
-            {/* Scroll to Top button */}
+            {/* Scroll to Top */}
             <button
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-2 sm:px-2.5 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/15 shadow-2xs"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/15 transition shadow-2xs"
               title="الرجوع لأعلى الصفحة"
               aria-label="الرجوع لأعلى الصفحة"
             >
-              <ArrowUp size={13} />
-              <span className="hidden sm:inline">للأعلى</span>
+              <ArrowUp size={14} />
             </button>
 
-            {/* Progress ratio */}
-            <div className="hidden 2xl:flex items-center gap-2 text-xs">
-              <span className="font-numbers font-black text-emerald-700 dark:text-[#2DD4BF]" dir="ltr">
-                {totalCounted}/{totalCountRequired}
-              </span>
-              <div className="w-14 sm:w-16 h-2 rounded-full bg-slate-200 dark:bg-white/15 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-l from-emerald-500 to-teal-700 transition-all duration-300"
-                  style={{ width: `${overallPercentage}%` }}
-                />
-              </div>
-              <span className="font-numbers text-[11px] font-bold text-emerald-700 dark:text-[#2DD4BF]">{overallPercentage}%</span>
-            </div>
-
-            {/* Jump to bookmark */}
-            {bookmarkId && (
+            {/* Options Dropdown Trigger */}
+            <div className="relative">
               <button
                 type="button"
-                onClick={() => {
-                  const el = document.getElementById(`evening-zekr-row-${bookmarkId}`);
-                  el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }}
-                className="hidden lg:flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-50 px-2.5 py-1 text-xs text-emerald-800 hover:bg-emerald-100 dark:border-emerald-300/30 dark:bg-teal-400/15 dark:text-teal-100 dark:hover:bg-teal-400/25 transition shadow-2xs"
-                title="الانتقال إلى آخر ذكر قرأته"
+                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                className="flex items-center gap-1.5 h-8 px-2.5 rounded-xl border border-emerald-600/30 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 dark:border-teal-400/30 dark:bg-teal-400/15 dark:text-[#5EEAD4] dark:hover:bg-teal-400/25 transition text-xs font-bold shadow-2xs"
+                aria-label="خيارات وأدوات القراءة"
+                title="خيارات القراءة والخط والمؤقت"
               >
-                <BookmarkCheck size={13} className="text-emerald-600 dark:text-emerald-400" />
-                <span>تابع القراءة</span>
+                <Sliders size={14} />
+                <span>خيارات</span>
               </button>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* Main Stats Circles Bar matching the home page design with Evening Identity */}
-      <section className="mb-4 overflow-hidden rounded-2xl border border-slate-200 bg-white/95 text-slate-800 dark:border-emerald-400/25 dark:bg-gradient-to-l dark:from-[#041a16]/90 dark:via-[#07241e]/80 dark:to-[#041a16]/90 dark:text-white p-3 sm:p-4 shadow-xl backdrop-blur-md transition-colors">
-        <div className="flex flex-wrap items-center justify-around gap-2 sm:gap-4">
-          {/* 1. الإجمالي (Total) - Indigo ring */}
-          <div className="group flex min-w-0 flex-col items-center select-none">
-            <div className="relative flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-emerald-50 border border-emerald-200 dark:border-0 dark:bg-emerald-500/10 shadow-inner">
-              <div className="absolute inset-0 rounded-full border-2 border-emerald-500/40 dark:border-emerald-400/40" />
-              <div className="absolute inset-1 rounded-full border border-emerald-500/60 dark:border-emerald-400/60" />
-              <span className="font-numbers text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                {AZKAR_MASAA.length}
-              </span>
-            </div>
-            <span className="mt-1.5 font-arabic text-xs font-bold text-slate-700 dark:text-slate-200">
-              الإجمالي
-            </span>
-            <span className="font-numbers text-[11px] font-bold text-emerald-600/90 dark:text-emerald-400/90">
-              100%
-            </span>
-          </div>
-
-          {/* 2. مكتملة (Done) - Emerald ring */}
-          <div className="group flex min-w-0 flex-col items-center select-none">
-            <div className="relative flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-emerald-50 border border-emerald-200 dark:border-0 dark:bg-emerald-500/10 shadow-inner">
-              <div className="absolute inset-0 rounded-full border-2 border-emerald-500/40 dark:border-emerald-400/40" />
-              <div className="absolute inset-1 rounded-full border border-emerald-500/60 dark:border-emerald-400/60" />
-              <span className="font-numbers text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                {completedZekrCount}
-              </span>
-            </div>
-            <span className="mt-1.5 font-arabic text-xs font-bold text-slate-700 dark:text-slate-200">
-              مكتملة
-            </span>
-            <span className="font-numbers text-[11px] font-bold text-emerald-600/90 dark:text-emerald-400/90">
-              {Math.round((completedZekrCount / AZKAR_MASAA.length) * 100)}%
-            </span>
-          </div>
-
-          {/* Center Gauge: Overall Progress % (matching center gauge in reference image) */}
-          <div className="group flex min-w-0 flex-col items-center select-none">
-            <div className="relative flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-slate-50 border border-emerald-500/30 dark:bg-white/5 dark:border-emerald-400/30 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-              {/* SVG circular gauge */}
-              <svg className="absolute inset-0 h-full w-full -rotate-90 transform-gpu p-1" viewBox="0 0 70 70">
-                <circle cx="35" cy="35" r="28" fill="none" stroke="currentColor" strokeWidth="4" className="text-slate-200 dark:text-white/10" />
-                <circle
-                  cx="35"
-                  cy="35"
-                  r="28"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  strokeDasharray={2 * Math.PI * 28}
-                  strokeDashoffset={2 * Math.PI * 28 - (2 * Math.PI * 28 * overallPercentage) / 100}
-                  strokeLinecap="round"
-                  className="text-emerald-500 dark:text-emerald-400 transition-all duration-700 ease-out"
-                />
-              </svg>
-              <span className="font-numbers text-xl sm:text-2xl font-black text-slate-800 dark:text-white">
-                {overallPercentage}<span className="text-xs text-emerald-600 dark:text-[#2DD4BF]">%</span>
-              </span>
-            </div>
-            <span className="mt-1 font-arabic text-xs font-bold text-emerald-700 dark:text-[#2DD4BF]">
-              نسبة الإنجاز
-            </span>
-          </div>
-
-          {/* 3. متبقية (Remaining) - Amber ring */}
-          <div className="group flex min-w-0 flex-col items-center select-none">
-            <div className="relative flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-amber-50 border border-amber-200 dark:border-0 dark:bg-amber-500/10 shadow-inner">
-              <div className="absolute inset-0 rounded-full border-2 border-amber-500/40 dark:border-amber-400/40" />
-              <div className="absolute inset-1 rounded-full border border-amber-500/60 dark:border-amber-400/60" />
-              <span className="font-numbers text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400">
-                {remainingZekrCount}
-              </span>
-            </div>
-            <span className="mt-1.5 font-arabic text-xs font-bold text-slate-700 dark:text-slate-200">
-              متبقية
-            </span>
-            <span className="font-numbers text-[11px] font-bold text-amber-600/90 dark:text-amber-400/90">
-              {Math.round((remainingZekrCount / AZKAR_MASAA.length) * 100)}%
-            </span>
-          </div>
-
-          {/* 4. تكرارات منجزة - Rose ring */}
-          <div className="group flex min-w-0 flex-col items-center select-none">
-            <div className="relative flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-rose-50 border border-rose-200 dark:border-0 dark:bg-rose-500/10 shadow-inner">
-              <div className="absolute inset-0 rounded-full border-2 border-rose-500/40 dark:border-rose-400/40" />
-              <div className="absolute inset-1 rounded-full border border-rose-500/60 dark:border-rose-400/60" />
-              <span className="font-numbers text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400">
-                {totalCounted}
-              </span>
-            </div>
-            <span className="mt-1.5 font-arabic text-xs font-bold text-slate-700 dark:text-slate-200">
-              التكرارات
-            </span>
-            <span className="font-numbers text-[11px] font-bold text-rose-600/90 dark:text-rose-400/90">
-              من {totalCountRequired}
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* Azkar Rows List */}
-      <div className="ib-card ib-panel mb-4 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-[#06221d] text-slate-800 dark:text-white shadow-xl transition-colors">
-        <div className="ib-card-body space-y-2.5 p-2 sm:p-3.5">
-          {AZKAR_MASAA.map((zekr, index) => {
-            const tapped = counts[zekr.id] || 0;
-            const remaining = Math.max(0, zekr.count - tapped);
-            const isDone = remaining === 0;
-            const isBookmarked = bookmarkId === zekr.id;
-
-            // Circular progress calculation matching main page StatCircle
-            const radius = 20;
-            const circumference = 2 * Math.PI * radius; // ~ 125.66
-            const progressRatio = zekr.count > 0 ? (tapped / zekr.count) : 0;
-            const strokeDashoffset = circumference - circumference * Math.min(1, Math.max(0, progressRatio));
-
-            return (
-              <div key={zekr.id} className="relative">
-                {/* Row with Counter on the RIGHT in RTL */}
-                <div
-                  id={`evening-zekr-row-${zekr.id}`}
-                  className={`ib-zekr-row relative flex items-center gap-3 sm:gap-4 overflow-hidden rounded-2xl border p-3 sm:p-4 transition-all duration-300 ${
-                    isDone 
-                      ? 'border-emerald-300/40 bg-emerald-50/30 dark:border-emerald-400/35 dark:bg-[#0a352c]/90' 
-                      : 'border-slate-200/90 bg-white dark:border-white/10 dark:bg-[#06231d]/95 hover:border-emerald-500/30'
-                  } ${isBookmarked ? 'ring-2 ring-emerald-500 dark:ring-emerald-400/80 shadow-[0_0_20px_rgba(16,185,129,0.18)]' : 'shadow-xs dark:shadow-md dark:shadow-black/20'}`}
-                >
-                  {/* Counter Button on the RIGHT (in RTL flex-row, this first child is on the far right) */}
-                  <div className="ib-zekr-counter-col relative flex shrink-0 items-center justify-center">
+              {isSettingsOpen && (
+                <div className="ib-dropdown-menu absolute left-0 sm:left-auto sm:right-0 top-10 z-50 w-72 rounded-2xl border border-slate-200 bg-white p-3 text-sm text-slate-800 shadow-2xl dark:border-white/10 dark:bg-[#0c2621] dark:text-slate-100">
+                  <div className="mb-2 pb-2 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
+                    <span className="font-bold text-xs text-slate-900 dark:text-white">خيارات وأدوات القراءة</span>
                     <button
                       type="button"
-                      onClick={() => handleTap(zekr, index)}
-                      disabled={isDone}
-                      aria-label={isDone ? `الذكر ${index + 1} مكتمل` : `تكرار الذكر ${index + 1}، المتبقي ${remaining}`}
-                      className={`group/tap relative flex shrink-0 w-16 sm:w-20 flex-col items-center justify-center rounded-xl p-2 sm:p-2.5 transition-all duration-200 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-500 motion-safe:active:scale-95 ${
-                        isDone
-                          ? 'bg-emerald-500/15 text-emerald-800 dark:bg-teal-400/15 dark:text-teal-100 border border-emerald-500/30 dark:border-teal-400/30 cursor-default'
-                          : 'bg-emerald-50/70 hover:bg-emerald-100/80 text-slate-900 dark:bg-[#082821] dark:hover:bg-[#0b332a] dark:text-white border border-emerald-500/25 dark:border-emerald-400/20 hover:border-emerald-500/50 hover:shadow-xs'
-                      }`}
+                      onClick={() => setTimerRunning(!timerRunning)}
+                      className="flex items-center gap-1 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-white/10 text-xs text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/5"
                     >
-                      {/* Gauge Circle */}
-                      <div className="relative flex h-12 w-12 items-center justify-center">
-                        <div className={`absolute inset-0 rounded-full border-2 transition-all ${
-                          isDone 
-                            ? 'border-emerald-500/30 bg-emerald-500/15 dark:border-teal-400/30 dark:bg-teal-400/10' 
-                            : 'border-emerald-500/20 bg-emerald-50/5 dark:border-emerald-400/15 dark:bg-emerald-400/5 group-hover/tap:scale-105'
-                        }`} />
-
-                        <svg className="absolute inset-0 h-full w-full -rotate-90 transform-gpu" viewBox="0 0 48 48">
-                          <circle
-                            cx="24"
-                            cy="24"
-                            r={radius}
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="3.2"
-                            className="text-slate-200 dark:text-zinc-700/60"
-                          />
-                          <circle
-                            cx="24"
-                            cy="24"
-                            r={radius}
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="3.2"
-                            strokeDasharray={circumference}
-                            strokeDashoffset={strokeDashoffset}
-                            strokeLinecap="round"
-                            className="text-emerald-600 dark:text-emerald-400 transition-all duration-500 ease-out"
-                          />
-                        </svg>
-
-                        {isDone ? (
-                          <Check strokeWidth={3} size={20} className="text-emerald-600 dark:text-[#2DD4BF] drop-shadow-xs" />
-                        ) : (
-                          <span className="font-numbers text-xl font-black tabular-nums tracking-tight text-slate-800 dark:text-white">
-                            {remaining}
-                          </span>
-                        )}
-                      </div>
-
-                      <span className="mt-1 text-[11px] font-bold text-emerald-700 dark:text-teal-200">
-                        {isDone ? 'مكتمل ✓' : `${tapped}/${zekr.count}`}
-                      </span>
+                      {timerRunning ? <Pause size={12} /> : <Play size={12} />}
+                      <span>{timerRunning ? 'إيقاف المؤقت' : 'تشغيل المؤقت'}</span>
                     </button>
                   </div>
 
-                  {/* Left side (in RTL): Zekr Text and Blessing */}
-                  <div className="ib-zekr-content-col flex min-w-0 flex-1 flex-col justify-center">
-                    {/* Meta Bar: Index, Subtitle, and Quick Actions */}
-                    <div className="flex items-center justify-between gap-2 border-b border-emerald-500/10 dark:border-white/5 pb-1 mb-1.5 text-xs">
-                      <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                        <span className="font-numbers font-bold text-slate-400 dark:text-white/60 text-xs">
-                          #{index + 1}
-                        </span>
-                        {zekr.subtitle && (
-                          <span className="font-bold text-emerald-700 dark:text-[#5EEAD4] text-xs sm:text-sm truncate">
-                            {formatText(zekr.subtitle)}
-                          </span>
-                        )}
-                      </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowTashkeel(!showTashkeel)}
+                    className="flex w-full items-center justify-between py-1.5 text-right transition hover:text-emerald-700 dark:hover:text-teal-300"
+                  >
+                    <span className="text-xs font-semibold">إظهار التشكيل</span>
+                    <span className={`rounded px-2 py-0.5 text-xs font-bold ${showTashkeel ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-slate-200 text-slate-600 dark:bg-white/10 dark:text-zinc-400'}`}>
+                      {showTashkeel ? 'مفعل' : 'معطل'}
+                    </span>
+                  </button>
 
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        <button
-                          type="button"
-                          onClick={(e) => handleCopy(zekr, e)}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 transition"
-                          title="نسخ الذكر"
-                          aria-label="نسخ نص الذكر"
-                        >
-                          {copiedId === zekr.id ? <Check size={14} className="text-emerald-600 dark:text-[#2DD4BF]" /> : <Copy size={14} />}
-                        </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsBold(!isBold)}
+                    className="flex w-full items-center justify-between py-1.5 text-right transition hover:text-emerald-700 dark:hover:text-teal-300"
+                  >
+                    <span className="text-xs font-semibold">خط عريض</span>
+                    <span className={`rounded px-2 py-0.5 text-xs font-bold ${isBold ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-slate-200 text-slate-600 dark:bg-white/10 dark:text-zinc-400'}`}>
+                      {isBold ? 'مفعل' : 'معطل'}
+                    </span>
+                  </button>
 
-                        <button
-                          type="button"
-                          onClick={(e) => handleResetZekr(zekr.id, e)}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 transition"
-                          title="إعادة ضبط هذا الذكر"
-                          aria-label="إعادة ضبط عداد الذكر"
-                        >
-                          <RotateCcw size={14} />
-                        </button>
-                      </div>
+                  <div className="my-1.5 h-px bg-slate-100 dark:bg-white/10" />
+
+                  <div className="py-1">
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-600 dark:text-zinc-400">حجم الخط</span>
+                      <span className="rounded border bg-slate-100 px-1.5 py-0.5 font-mono text-xs dark:border-white/10 dark:bg-white/5">{fontSize}px</span>
                     </div>
-
-                    {/* Main Zekr Text */}
-                    <p
-                      className="ib-zekr-text select-text text-justify leading-relaxed text-slate-800 dark:text-[#f7faf8]"
-                      style={{
-                        fontFamily: getFontFamilyStyle(fontFamily),
-                        fontSize: `${fontSize}px`,
-                        fontWeight: isBold ? 700 : 400
-                      }}
-                    >
-                      {formatText(zekr.text)}
-                    </p>
-
-                    {/* Fadl / Blessing text */}
-                    {zekr.fadl && (
-                      <div className="ib-zekrbless mt-2 flex items-start gap-1.5 border-t border-emerald-500/10 dark:border-white/5 pt-1.5 text-xs sm:text-sm font-semibold text-emerald-800 dark:text-[#a7f3d0]">
-                        <span className="shrink-0 font-bold text-amber-600 dark:text-[#D5B779]">الفضل:</span>
-                        <span className="flex-1 leading-normal text-emerald-900/80 dark:text-emerald-100/90">{formatText(zekr.fadl)}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setFontSize(prev => Math.min(38, prev + 2))}
+                        className="flex flex-1 items-center justify-center gap-1 rounded bg-slate-100 py-1 text-xs font-bold transition hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10"
+                      >
+                        <Plus size={13} /> تكبير
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFontSize(prev => Math.max(18, prev - 2))}
+                        className="flex flex-1 items-center justify-center gap-1 rounded bg-slate-100 py-1 text-xs font-bold transition hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10"
+                      >
+                        <Minus size={13} /> تصغير
+                      </button>
+                    </div>
                   </div>
+
+                  <div className="my-1.5 h-px bg-slate-100 dark:bg-white/10" />
+
+                  {/* Font selection */}
+                  <div className="py-1">
+                    <span className="text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5 block">الخط العربي المعتمد</span>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {[
+                        { id: 'sf-arabic', name: 'SF Arabic (آبل)', font: "'SF Pro Arabic', sans-serif" },
+                        { id: 'almarai', name: 'المراعي (واضح)', font: "'Almarai', sans-serif" },
+                        { id: 'readex', name: 'ريدكس (مريح)', font: "'Readex Pro', sans-serif" },
+                        { id: 'uthmanic', name: 'رسم المصحف', font: "'KFGQPC Uthmanic Script', serif" },
+                      ].map(f => (
+                        <button
+                          key={f.id}
+                          type="button"
+                          onClick={() => setFontFamily(f.id)}
+                          className={`rounded-lg p-1.5 text-center text-xs transition border ${fontFamily === f.id ? 'border-emerald-500 bg-emerald-50 text-emerald-800 dark:text-teal-200 font-bold' : 'border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                          style={{ fontFamily: f.font }}
+                        >
+                          {f.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="my-1.5 h-px bg-slate-100 dark:bg-white/10" />
+
+                  <label className="flex cursor-pointer select-none items-center gap-2 py-1 text-xs text-slate-700 dark:text-zinc-300">
+                    <input
+                      type="checkbox"
+                      checked={autoScroll}
+                      onChange={e => setAutoScroll(e.target.checked)}
+                      className="rounded text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <span>التمرير التلقائي للذكر التالي</span>
+                  </label>
+
+                  <div className="my-1.5 h-px bg-slate-100 dark:bg-white/10" />
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm('هل تود إعادة ضبط جميع عدادات هذه الجلسة؟')) {
+                        handleResetAll();
+                        setIsSettingsOpen(false);
+                      }
+                    }}
+                    className="flex w-full items-center gap-1.5 py-1 text-xs font-bold text-rose-600 transition hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg px-1.5"
+                  >
+                    <RotateCcw size={13} />
+                    <span>إعادة ضبط جميع الأذكار</span>
+                  </button>
                 </div>
-              </div>
-            );
-          })}
+              )}
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* 2. Structured Adhkar Cards List with Strong Visual Hierarchy */}
+      <div className="space-y-3">
+        {AZKAR_MASAA.map((zekr, index) => {
+          const tapped = counts[zekr.id] || 0;
+          const remaining = Math.max(0, zekr.count - tapped);
+          const isDone = remaining === 0;
+          const isActive = zekr.id === activeZekrId && !isDone;
+          const isBookmarked = bookmarkId === zekr.id;
+
+          // Circular progress calculation
+          const radius = 20;
+          const circumference = 2 * Math.PI * radius;
+          const progressRatio = zekr.count > 0 ? (tapped / zekr.count) : 0;
+          const strokeDashoffset = circumference - circumference * Math.min(1, Math.max(0, progressRatio));
+
+          return (
+            <article
+              key={zekr.id}
+              id={`evening-zekr-row-${zekr.id}`}
+              className={`ib-zekr-row relative flex items-center gap-3.5 sm:gap-5 overflow-hidden rounded-2xl p-3.5 sm:p-4.5 transition-all duration-300 ${
+                isActive
+                  ? 'border-2 ring-emerald-500/25 border-emerald-600 dark:border-teal-400 dark:bg-[#07261f] shadow-md'
+                  : isDone
+                    ? 'border border-slate-200/60 bg-slate-50/60 opacity-80 hover:opacity-100 dark:border-white/5 dark:bg-[#031310]/60'
+                    : 'border border-slate-200/90 bg-white hover:border-emerald-500/35 dark:border-white/10 dark:bg-[#071815]/95 shadow-xs'
+              }`}
+            >
+              {/* Counter Button on the RIGHT (in RTL flex-row) */}
+              <div className="ib-zekr-counter-col relative flex shrink-0 items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => handleTap(zekr, index)}
+                  disabled={isDone}
+                  aria-label={isDone ? `الذكر ${index + 1} مكتمل` : `تكرار الذكر ${index + 1}، المتبقي ${remaining}`}
+                  className={`group/tap relative flex shrink-0 w-16 sm:w-20 flex-col items-center justify-center rounded-xl p-2 sm:p-2.5 transition-all duration-200 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-500 motion-safe:active:scale-95 ${
+                    isActive
+                      ? 'bg-emerald-700 hover:bg-emerald-800 text-white dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:text-slate-950 shadow-md ring-2 ring-emerald-500/40'
+                      : isDone
+                        ? 'bg-emerald-100/70 text-emerald-800 dark:bg-teal-950/50 dark:text-teal-300 border border-emerald-300/40 dark:border-teal-800/40 cursor-default'
+                        : 'bg-emerald-50/70 hover:bg-emerald-100/80 text-slate-900 dark:bg-[#082821] dark:hover:bg-[#0b332a] dark:text-white border border-emerald-500/25 dark:border-emerald-400/20 hover:border-emerald-500/50 hover:shadow-xs'
+                  }`}
+                >
+                  {/* Gauge Circle */}
+                  <div className="relative flex h-12 w-12 items-center justify-center">
+                    <div className={`absolute inset-0 rounded-full border-2 transition-all ${
+                      isActive
+                        ? 'border-white/40 bg-white/10'
+                        : isDone 
+                          ? 'border-emerald-500/30 bg-emerald-500/10 dark:border-teal-400/30 dark:bg-teal-400/10' 
+                          : 'border-emerald-500/20 bg-emerald-500/5 dark:border-emerald-400/15 dark:bg-emerald-400/5 group-hover/tap:scale-105'
+                    }`} />
+
+                    <svg className="absolute inset-0 h-full w-full -rotate-90 transform-gpu" viewBox="0 0 48 48">
+                      <circle
+                        cx="24"
+                        cy="24"
+                        r={radius}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3.2"
+                        className={`${isActive ? 'text-white/30 dark:text-slate-900/30' : 'text-slate-200 dark:text-zinc-700/60'}`}
+                      />
+                      <circle
+                        cx="24"
+                        cy="24"
+                        r={radius}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3.2"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={strokeDashoffset}
+                        strokeLinecap="round"
+                        className={`${isActive ? 'text-white dark:text-slate-950' : 'text-emerald-600 dark:text-[#2DD4BF]'} transition-all duration-500 ease-out`}
+                      />
+                    </svg>
+
+                    {isDone ? (
+                      <Check strokeWidth={3} size={20} className="text-emerald-700 dark:text-[#2DD4BF] drop-shadow-xs" />
+                    ) : (
+                      <span className={`font-numbers text-xl font-black tabular-nums tracking-tight ${isActive ? 'text-white dark:text-slate-950' : 'text-slate-900 dark:text-white'}`}>
+                        {remaining}
+                      </span>
+                    )}
+                  </div>
+
+                  <span className={`mt-1 text-[11px] font-bold ${isActive ? 'text-white/90 dark:text-slate-950' : isDone ? 'text-emerald-800 dark:text-teal-300' : 'text-emerald-900 dark:text-teal-200'}`}>
+                    {isDone ? 'مكتمل ✓' : `${tapped}/${zekr.count}`}
+                  </span>
+                </button>
+              </div>
+
+              {/* Left side (in RTL): Zekr Text and Blessing with Controlled Measure */}
+              <div className="ib-zekr-content-col flex min-w-0 flex-1 flex-col justify-center max-w-2xl lg:max-w-3xl">
+                {/* Meta Bar: Index, Subtitle, Status Badge, and Quick Actions */}
+                <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-white/5 pb-1 mb-1.5 text-xs">
+                  <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                    <span className="font-numbers font-bold text-slate-700 dark:text-zinc-300 text-xs">
+                      #{index + 1}
+                    </span>
+                    {isActive && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-700 text-white dark:bg-emerald-400 dark:text-slate-950 px-2 py-0.5 text-[10px] font-black shadow-2xs">
+                        الذكر الحالي
+                      </span>
+                    )}
+                    {isDone && (
+                      <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-emerald-800 dark:text-teal-300">
+                        <Check size={12} strokeWidth={2.5} /> تم القراءة
+                      </span>
+                    )}
+                    {zekr.subtitle && (
+                      <span className="font-extrabold text-emerald-950 dark:text-[#5EEAD4] text-xs sm:text-sm truncate">
+                        {formatText(zekr.subtitle)}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={(e) => handleCopy(zekr, e)}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 transition"
+                      title="نسخ الذكر"
+                      aria-label="نسخ نص الذكر"
+                    >
+                      {copiedId === zekr.id ? <Check size={14} className="text-emerald-700 dark:text-[#a7f3d0]" /> : <Copy size={14} />}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => handleResetZekr(zekr.id, e)}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 transition"
+                      title="إعادة ضبط هذا الذكر"
+                      aria-label="إعادة ضبط عداد الذكر"
+                    >
+                      <RotateCcw size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Main Zekr Text with Optimal Line Height and High Contrast */}
+                <p
+                  className={`ib-zekr-text select-text text-right ${isDone ? 'text-slate-600 dark:text-zinc-400 font-normal' : 'text-slate-950 dark:text-[#f8fafc]'}`}
+                  style={{
+                    fontFamily: getFontFamilyStyle(fontFamily),
+                    fontSize: `${fontSize}px`,
+                    fontWeight: isBold ? 700 : 400,
+                    lineHeight: 1.95,
+                  }}
+                >
+                  {formatText(zekr.text)}
+                </p>
+
+                {/* Fadl / Blessing text with Clear Legibility */}
+                {zekr.fadl && (
+                  <div className="ib-zekrbless mt-2 flex items-start gap-2 border-t border-slate-100 dark:border-white/5 pt-1.5 text-xs sm:text-sm">
+                    <span className="shrink-0 font-bold bg-amber-100/90 text-amber-950 border border-amber-300/60 dark:bg-amber-400/15 dark:text-amber-200 dark:border-amber-400/30 px-2 py-0.5 rounded-md text-[11px]">
+                      الفضل:
+                    </span>
+                    <span className="flex-1 leading-relaxed text-slate-800 dark:text-slate-200 font-medium">
+                      {formatText(zekr.fadl)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+
+      {/* 3. Rewarding Completion Banner when All Adhkar are Done */}
+      {overallPercentage === 100 && (
+        <section className="mt-6 overflow-hidden rounded-3xl border-2 border-emerald-600/30 bg-gradient-to-br from-emerald-50/90 via-white to-teal-50/60 p-6 sm:p-8 text-center shadow-xl dark:border-teal-400/40 dark:from-[#06221d] dark:via-[#082b24] dark:to-[#041a15]">
+          <div className="mx-auto mb-3.5 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white dark:bg-teal-400 dark:text-slate-950 shadow-md ring-4 ring-emerald-500/20">
+            <CheckCheck size={28} strokeWidth={2.5} />
+          </div>
+          <h2 className="text-xl sm:text-2xl font-black text-emerald-950 dark:text-white">
+            ما شاء الله! أتممت أذكار المساء كاملة
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+            جعلها الله في ميزان حسناتك، وحفظاً وبركةً ليومك وسائر أوقاتك.
+          </p>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 text-xs">
+            <span className="rounded-xl border border-emerald-300/60 bg-white/90 dark:border-white/10 dark:bg-white/5 px-3.5 py-2 font-bold text-slate-900 dark:text-white shadow-2xs">
+              ⏱️ مدة الجلسة: <strong className="font-numbers text-emerald-800 dark:text-[#5EEAD4]">{formatClock(elapsedSeconds)}</strong>
+            </span>
+            <span className="rounded-xl border border-emerald-300/60 bg-white/90 dark:border-white/10 dark:bg-white/5 px-3.5 py-2 font-bold text-slate-900 dark:text-white shadow-2xs">
+              📿 إجمالي التكرارات: <strong className="font-numbers text-emerald-800 dark:text-[#5EEAD4]">{totalCounted}</strong>
+            </span>
+          </div>
+        </section>
+      )}
+
 
       {/* Reading Summary and Session Box (Aligned with Evening Navy / Indigo Theme) */}
       <section className="ib-reading-summary-card mb-8 mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-800 dark:border-emerald-400/35 dark:bg-[#06221d] dark:text-white shadow-2xl transition-colors">
