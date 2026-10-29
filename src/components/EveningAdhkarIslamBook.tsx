@@ -676,7 +676,7 @@ export function EveningAdhkarIslamBook({ date }: EveningAdhkarProps) {
 
       {/* Azkar Rows List */}
       <div className="ib-card ib-panel mb-4 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-[#06221d] text-slate-800 dark:text-white shadow-xl transition-colors">
-        <div className="ib-card-body space-y-3.5 p-2.5 sm:p-4">
+        <div className="ib-card-body space-y-2.5 p-2 sm:p-3.5">
           {AZKAR_MASAA.map((zekr, index) => {
             const tapped = counts[zekr.id] || 0;
             const remaining = Math.max(0, zekr.count - tapped);
@@ -684,8 +684,8 @@ export function EveningAdhkarIslamBook({ date }: EveningAdhkarProps) {
             const isBookmarked = bookmarkId === zekr.id;
 
             // Circular progress calculation matching main page StatCircle
-            const radius = 28;
-            const circumference = 2 * Math.PI * radius; // ~ 175.93
+            const radius = 20;
+            const circumference = 2 * Math.PI * radius; // ~ 125.66
             const progressRatio = zekr.count > 0 ? (tapped / zekr.count) : 0;
             const strokeDashoffset = circumference - circumference * Math.min(1, Math.max(0, progressRatio));
 
@@ -694,153 +694,131 @@ export function EveningAdhkarIslamBook({ date }: EveningAdhkarProps) {
                 {/* Row with Counter on the RIGHT in RTL */}
                 <div
                   id={`evening-zekr-row-${zekr.id}`}
-                  className={`ib-zekr-row flex flex-col md:flex-row items-stretch overflow-hidden rounded-2xl border transition-all duration-300 ${
+                  className={`ib-zekr-row relative flex items-center gap-3 sm:gap-4 overflow-hidden rounded-2xl border p-3 sm:p-4 transition-all duration-300 ${
                     isDone 
                       ? 'border-emerald-300/40 bg-emerald-50/30 dark:border-emerald-400/35 dark:bg-[#0a352c]/90' 
                       : 'border-slate-200/90 bg-white dark:border-white/10 dark:bg-[#06231d]/95 hover:border-emerald-500/30'
                   } ${isBookmarked ? 'ring-2 ring-emerald-500 dark:ring-emerald-400/80 shadow-[0_0_20px_rgba(16,185,129,0.18)]' : 'shadow-xs dark:shadow-md dark:shadow-black/20'}`}
                 >
-                  {/* Counter Box on the RIGHT (in RTL flex-row, this first child is on the far right) */}
-                  <div className="ib-zekr-counter-col relative flex shrink-0 flex-col md:w-36 border-b md:border-b-0 md:border-l border-slate-200 dark:border-emerald-500/20">
-                    <div
-                      role="button"
-                      tabIndex={0}
+                  {/* Counter Button on the RIGHT (in RTL flex-row, this first child is on the far right) */}
+                  <div className="ib-zekr-counter-col relative flex shrink-0 items-center justify-center">
+                    <button
+                      type="button"
                       onClick={() => handleTap(zekr, index)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleTap(zekr, index);
-                        }
-                      }}
-                      className={`ib-zekr-counter-box group relative flex h-full cursor-pointer select-none flex-col items-center justify-between p-3.5 transition-all duration-200 ${
+                      disabled={isDone}
+                      aria-label={isDone ? `الذكر ${index + 1} مكتمل` : `تكرار الذكر ${index + 1}، المتبقي ${remaining}`}
+                      className={`group/tap relative flex shrink-0 w-16 sm:w-20 flex-col items-center justify-center rounded-xl p-2 sm:p-2.5 transition-all duration-200 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-500 motion-safe:active:scale-95 ${
                         isDone
-                          ? 'bg-emerald-500/10 text-emerald-800 dark:bg-[#0f4438] dark:text-teal-100 shadow-inner'
-                          : 'bg-emerald-50/50 hover:bg-emerald-100/60 dark:bg-[#093229] dark:hover:bg-[#0d3b31] text-slate-900 dark:text-white shadow-xs'
+                          ? 'bg-emerald-500/15 text-emerald-800 dark:bg-teal-400/15 dark:text-teal-100 border border-emerald-500/30 dark:border-teal-400/30 cursor-default'
+                          : 'bg-emerald-50/70 hover:bg-emerald-100/80 text-slate-900 dark:bg-[#082821] dark:hover:bg-[#0b332a] dark:text-white border border-emerald-500/25 dark:border-emerald-400/20 hover:border-emerald-500/50 hover:shadow-xs'
                       }`}
-                      aria-label={`تكرار الذكر، المتبقي ${remaining}`}
                     >
-                      {/* Top actions: Check on right, Index on left */}
-                      <div className="flex w-full items-center justify-between">
-                        <span className="ib-completion-icon inline-flex items-center">
-                          {isDone ? (
-                            <Check strokeWidth={3} size={22} className="text-emerald-600 dark:text-[#2DD4BF] drop-shadow-xs" />
-                          ) : (
-                            <span className="block h-5 w-5 rounded-full border-2 border-slate-300 dark:border-white/50 group-hover:border-emerald-500 dark:group-hover:border-white" />
-                          )}
-                        </span>
+                      {/* Gauge Circle */}
+                      <div className="relative flex h-12 w-12 items-center justify-center">
+                        <div className={`absolute inset-0 rounded-full border-2 transition-all ${
+                          isDone 
+                            ? 'border-emerald-500/30 bg-emerald-500/15 dark:border-teal-400/30 dark:bg-teal-400/10' 
+                            : 'border-emerald-500/20 bg-emerald-50/5 dark:border-emerald-400/15 dark:bg-emerald-400/5 group-hover/tap:scale-105'
+                        }`} />
 
-                        <span className="font-numbers text-xs font-bold text-slate-400 dark:text-white/60">
-                          {index + 1}
-                        </span>
-                      </div>
+                        <svg className="absolute inset-0 h-full w-full -rotate-90 transform-gpu" viewBox="0 0 48 48">
+                          <circle
+                            cx="24"
+                            cy="24"
+                            r={radius}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3.2"
+                            className="text-slate-200 dark:text-zinc-700/60"
+                          />
+                          <circle
+                            cx="24"
+                            cy="24"
+                            r={radius}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3.2"
+                            strokeDasharray={circumference}
+                            strokeDashoffset={strokeDashoffset}
+                            strokeLinecap="round"
+                            className="text-emerald-600 dark:text-emerald-400 transition-all duration-500 ease-out"
+                          />
+                        </svg>
 
-                      {/* Center: StatCircle style circular gauge with concentric borders and main page font-numbers */}
-                      <div className="relative my-2.5 flex flex-col items-center justify-center">
-                        <div className="relative flex h-[72px] w-[72px] items-center justify-center">
-                          {/* Inner glow and concentric ring background like main page StatCircle */}
-                          <div className={`absolute inset-0 rounded-full border-2 transition-all ${
-                            isDone 
-                              ? 'border-emerald-500/30 bg-emerald-500/15 dark:border-emerald-400/30 dark:bg-teal-400/10' 
-                              : 'border-emerald-500/20 bg-emerald-500/5 dark:border-emerald-400/15 dark:bg-teal-400/5 group-hover:scale-105'
-                          }`} />
-
-                          {/* SVG Progress Circle matching StatCircle */}
-                          <svg className="absolute inset-0 h-full w-full -rotate-90 transform-gpu" viewBox="0 0 68 68">
-                            {/* Track circle */}
-                            <circle
-                              cx="34"
-                              cy="34"
-                              r={radius}
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3.5"
-                              className="text-slate-200 dark:text-zinc-700/60"
-                            />
-                            {/* Active filled arc */}
-                            <circle
-                              cx="34"
-                              cy="34"
-                              r={radius}
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3.5"
-                              strokeDasharray={circumference}
-                              strokeDashoffset={strokeDashoffset}
-                              strokeLinecap="round"
-                              className="text-emerald-600 dark:text-emerald-400 transition-all duration-500 ease-out"
-                            />
-                          </svg>
-
-                          {/* Center number inside circle: Exact font-numbers from main page */}
-                          <span className="font-numbers text-2xl font-black tabular-nums tracking-tight text-slate-800 dark:text-white">
+                        {isDone ? (
+                          <Check strokeWidth={3} size={20} className="text-emerald-600 dark:text-[#2DD4BF] drop-shadow-xs" />
+                        ) : (
+                          <span className="font-numbers text-xl font-black tabular-nums tracking-tight text-slate-800 dark:text-white">
                             {remaining}
                           </span>
-                        </div>
-
-                        <span className="mt-1.5 text-[11px] font-bold text-emerald-700 dark:text-[#2DD4BF]">
-                          {isDone ? 'مكتمل ✓' : 'اضغط للعد'}
-                        </span>
+                        )}
                       </div>
 
-                      {/* Bottom actions: Reset & Copy */}
-                      <div className="flex w-full items-center justify-between border-t border-slate-200 dark:border-white/10 pt-1.5 text-slate-500 dark:text-white/80">
-                        <button
-                          type="button"
-                          onClick={(e) => handleResetZekr(zekr.id, e)}
-                          className="rounded-lg p-1 transition hover:bg-slate-200 dark:hover:bg-black/20 hover:text-slate-800 dark:hover:text-white"
-                          title="إعادة ضبط هذا الذكر"
-                        >
-                          <RotateCcw size={15} />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={(e) => handleCopy(zekr, e)}
-                          className="rounded-lg p-1 transition hover:bg-slate-200 dark:hover:bg-black/20 hover:text-slate-800 dark:hover:text-white"
-                          title="نسخ الذكر"
-                        >
-                          {copiedId === zekr.id ? <Check size={15} className="text-emerald-600 dark:text-[#2DD4BF]" /> : <Copy size={15} />}
-                        </button>
-                      </div>
-                    </div>
+                      <span className="mt-1 text-[11px] font-bold text-emerald-700 dark:text-teal-200">
+                        {isDone ? 'مكتمل ✓' : `${tapped}/${zekr.count}`}
+                      </span>
+                    </button>
                   </div>
 
                   {/* Left side (in RTL): Zekr Text and Blessing */}
-                  <div className="ib-zekr-content-col flex flex-1 flex-col justify-between p-4 sm:p-5">
-                    <div>
-                      {/* Subtitle / Basmala / Taawwudh */}
-                      {zekr.subtitle && (
-                        <div className="ib-subtitle mb-2.5 border-b border-emerald-500/15 pb-1.5 font-bold text-emerald-700 dark:text-[#2DD4BF] text-sm sm:text-base">
-                          {formatText(zekr.subtitle)}
-                        </div>
-                      )}
+                  <div className="ib-zekr-content-col flex min-w-0 flex-1 flex-col justify-center">
+                    {/* Meta Bar: Index, Subtitle, and Quick Actions */}
+                    <div className="flex items-center justify-between gap-2 border-b border-emerald-500/10 dark:border-white/5 pb-1 mb-1.5 text-xs">
+                      <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                        <span className="font-numbers font-bold text-slate-400 dark:text-white/60 text-xs">
+                          #{index + 1}
+                        </span>
+                        {zekr.subtitle && (
+                          <span className="font-bold text-emerald-700 dark:text-[#5EEAD4] text-xs sm:text-sm truncate">
+                            {formatText(zekr.subtitle)}
+                          </span>
+                        )}
+                      </div>
 
-                      {/* Main Zekr Text */}
-                      <p
-                        className="ib-zekr-text select-text text-justify leading-relaxed text-slate-800 dark:text-[#f7faf8]"
-                        style={{
-                          fontFamily: getFontFamilyStyle(fontFamily),
-                          fontSize: `${fontSize}px`,
-                          fontWeight: isBold ? 700 : 400
-                        }}
-                      >
-                        {formatText(zekr.text)}
-                      </p>
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => handleCopy(zekr, e)}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 transition"
+                          title="نسخ الذكر"
+                          aria-label="نسخ نص الذكر"
+                        >
+                          {copiedId === zekr.id ? <Check size={14} className="text-emerald-600 dark:text-[#2DD4BF]" /> : <Copy size={14} />}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => handleResetZekr(zekr.id, e)}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 transition"
+                          title="إعادة ضبط هذا الذكر"
+                          aria-label="إعادة ضبط عداد الذكر"
+                        >
+                          <RotateCcw size={14} />
+                        </button>
+                      </div>
                     </div>
+
+                    {/* Main Zekr Text */}
+                    <p
+                      className="ib-zekr-text select-text text-justify leading-relaxed text-slate-800 dark:text-[#f7faf8]"
+                      style={{
+                        fontFamily: getFontFamilyStyle(fontFamily),
+                        fontSize: `${fontSize}px`,
+                        fontWeight: isBold ? 700 : 400
+                      }}
+                    >
+                      {formatText(zekr.text)}
+                    </p>
 
                     {/* Fadl / Blessing text */}
                     {zekr.fadl && (
-                      <div className="ib-zekrbless mt-3.5 flex items-start gap-2 border-t border-emerald-500/15 pt-2.5 text-sm font-semibold text-emerald-800 dark:text-teal-200">
-                        <span className="shrink-0 font-bold text-amber-600 dark:text-amber-400">الفضل:</span>
-                        <span className="flex-1 leading-normal text-emerald-950/80 dark:text-teal-100/90">{formatText(zekr.fadl)}</span>
+                      <div className="ib-zekrbless mt-2 flex items-start gap-1.5 border-t border-emerald-500/10 dark:border-white/5 pt-1.5 text-xs sm:text-sm font-semibold text-emerald-800 dark:text-[#a7f3d0]">
+                        <span className="shrink-0 font-bold text-amber-600 dark:text-[#D5B779]">الفضل:</span>
+                        <span className="flex-1 leading-normal text-emerald-900/80 dark:text-emerald-100/90">{formatText(zekr.fadl)}</span>
                       </div>
                     )}
                   </div>
                 </div>
-
-                {index < AZKAR_MASAA.length - 1 && (
-                  <hr className="ib-divider my-2.5 h-0.5 border-0 bg-slate-200 dark:bg-emerald-500/10 rounded-full" />
-                )}
               </div>
             );
           })}
