@@ -557,37 +557,37 @@ const parseZekrContent = (text: string) => {
             <article
               key={zekr.id}
               id={`evening-zekr-row-${zekr.id}`}
-              className={`ib-zekr-row relative flex items-center gap-3.5 sm:gap-6 overflow-hidden rounded-2xl p-4 sm:p-5 transition-all duration-300 ${
+              className={`ib-zekr-row relative flex items-stretch gap-3.5 sm:gap-5 overflow-hidden rounded-2xl p-3.5 sm:p-5 transition-all duration-300 ${
                 isActive
-                  ? 'border-2 ring-4 ring-emerald-500/25 border-emerald-600 dark:border-[#2DD4BF] dark:bg-[#07241e] shadow-lg'
+                  ? 'border-2 border-emerald-500/50 bg-emerald-50/20 dark:border-teal-400/40 dark:bg-[#06241e]/70 shadow-md ring-1 ring-emerald-500/15'
                   : isDone
-                    ? 'border-2 border-emerald-500/30 bg-emerald-50/40 dark:border-teal-500/25 dark:bg-[#031d17]/60 shadow-xs'
-                    : 'border border-slate-200/90 bg-white hover:border-emerald-500/40 dark:border-white/10 dark:bg-[#071815]/95 shadow-xs'
+                    ? 'border border-emerald-500/25 bg-emerald-50/40 dark:border-teal-500/20 dark:bg-[#031d17]/50 shadow-xs'
+                    : 'border border-slate-200/80 bg-white hover:border-emerald-500/35 dark:border-white/10 dark:bg-[#071815]/95 shadow-xs'
               }`}
             >
-              {/* Counter Button with Generous Palm/Thumb Touch Target (Point 3) */}
-              <div className="ib-zekr-counter-col relative flex shrink-0 items-center justify-center">
+              {/* Integrated Counter Column (Point 3) */}
+              <div className="ib-zekr-counter-col relative flex shrink-0 items-center justify-center pl-3.5 sm:pl-4 border-l border-slate-100 dark:border-white/5 rtl:pl-0 rtl:border-l-0 rtl:border-r rtl:border-slate-100 dark:rtl:border-white/5 rtl:pr-3.5 sm:rtl:pr-4 self-stretch">
                 <button
                   type="button"
                   onClick={() => handleTap(zekr, index)}
                   disabled={isDone}
                   aria-label={isDone ? `الذكر ${index + 1} مكتمل` : `تكرار الذكر ${index + 1}، المتبقي ${remaining}`}
-                  className={`group/tap relative flex shrink-0 w-20 sm:w-24 md:w-28 min-h-[86px] sm:min-h-[96px] flex-col items-center justify-center rounded-2xl p-2.5 sm:p-3 transition-all duration-150 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-500 motion-safe:active:scale-92 ${
+                  className={`group/tap relative flex shrink-0 w-20 sm:w-24 md:w-26 h-full min-h-[92px] sm:min-h-[100px] flex-col items-center justify-center rounded-xl p-2 sm:p-2.5 transition-all duration-150 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-500 motion-safe:active:scale-95 ${
                     isActive
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-[#2DD4BF] dark:hover:bg-[#14b8a6] dark:text-slate-950 shadow-lg ring-4 ring-emerald-500/30'
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-teal-500 dark:hover:bg-teal-600 dark:text-slate-950 shadow-sm'
                       : isDone
-                        ? 'bg-emerald-100/90 text-emerald-900 dark:bg-teal-950/80 dark:text-teal-200 border border-emerald-300 dark:border-teal-700/60 cursor-default'
-                        : 'bg-emerald-50 hover:bg-emerald-100 text-slate-900 dark:bg-[#082821] dark:hover:bg-[#0b332a] dark:text-white border-2 border-emerald-500/30 dark:border-emerald-400/30 hover:border-emerald-500 hover:shadow-md'
+                        ? 'bg-emerald-100/80 text-emerald-900 dark:bg-teal-950/70 dark:text-teal-200 border border-emerald-300/70 dark:border-teal-700/50 cursor-default'
+                        : 'bg-slate-50/90 hover:bg-emerald-50/80 text-slate-800 dark:bg-white/5 dark:hover:bg-teal-950/30 dark:text-white border border-slate-200/80 dark:border-white/10 hover:border-emerald-500/30 hover:shadow-2xs'
                   }`}
                 >
                   {/* Gauge Circle */}
-                  <div className="relative flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center">
+                  <div className="relative flex h-14 w-14 sm:h-15 sm:w-15 items-center justify-center">
                     <div className={`absolute inset-0 rounded-full border-2 transition-all ${
                       isActive
-                        ? 'border-white/50 bg-white/15'
+                        ? 'border-white/40 bg-white/15'
                         : isDone 
-                          ? 'border-emerald-500/40 bg-emerald-500/15 dark:border-teal-400/40 dark:bg-teal-400/15' 
-                          : 'border-emerald-500/25 bg-emerald-500/10 dark:border-emerald-400/20 dark:bg-emerald-400/10 group-hover/tap:scale-105'
+                          ? 'border-emerald-500/35 bg-emerald-500/15 dark:border-teal-400/35 dark:bg-teal-400/15' 
+                          : 'border-emerald-500/20 bg-emerald-500/10 dark:border-emerald-400/20 dark:bg-emerald-400/10 group-hover/tap:scale-105'
                     }`} />
 
                     <svg className="absolute inset-0 h-full w-full -rotate-90 transform-gpu" viewBox="0 0 56 56">
@@ -623,22 +623,22 @@ const parseZekrContent = (text: string) => {
                     )}
                   </div>
 
-                  <span className={`mt-1.5 text-xs sm:text-sm font-extrabold tracking-wide ${isActive ? 'text-white dark:text-slate-950' : isDone ? 'text-emerald-900 dark:text-teal-200' : 'text-emerald-950 dark:text-teal-200'}`}>
+                  <span className={`mt-1 text-xs sm:text-xs font-bold tracking-wide ${isActive ? 'text-white/95 dark:text-slate-950 font-extrabold' : isDone ? 'text-emerald-900 dark:text-teal-200' : 'text-slate-700 dark:text-zinc-300'}`}>
                     {isDone ? 'مكتمل ✓' : `${tapped}/${zekr.count}`}
                   </span>
                 </button>
               </div>
 
               {/* Left side (in RTL): Zekr Text and Blessing with Controlled Measure */}
-              <div className="ib-zekr-content-col flex min-w-0 flex-1 flex-col justify-center max-w-2xl lg:max-w-3xl">
+              <div className="ib-zekr-content-col flex min-w-0 flex-1 flex-col justify-center max-w-2xl lg:max-w-3xl py-1">
                 {/* Meta Bar: Index, Subtitle/Title, Status Badge, and Quick Actions */}
-                <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-white/5 pb-1.5 mb-2 text-xs sm:text-sm">
+                <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-white/5 pb-1.5 mb-2.5 text-xs sm:text-sm">
                   <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
                     <span className="font-numbers font-black text-slate-800 dark:text-zinc-200 text-xs sm:text-sm">
                       #{index + 1}
                     </span>
                     {isActive && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white dark:bg-[#2DD4BF] dark:text-slate-950 px-2.5 py-0.5 text-xs font-black shadow-2xs">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100/90 text-emerald-900 border border-emerald-300/80 dark:bg-teal-950/80 dark:border-teal-500/40 dark:text-teal-200 px-2.5 py-0.5 text-xs font-bold shadow-2xs">
                         الذكر الحالي
                       </span>
                     )}
@@ -648,11 +648,11 @@ const parseZekrContent = (text: string) => {
                       </span>
                     )}
                     {zekr.subtitle ? (
-                      <h3 className="font-black text-emerald-950 dark:text-[#5EEAD4] text-sm sm:text-base leading-snug">
+                      <h3 className="font-bold text-emerald-950 dark:text-[#5EEAD4] text-sm sm:text-base leading-snug">
                         {formatText(zekr.subtitle)}
                       </h3>
                     ) : (
-                      <span className="font-extrabold text-emerald-900 dark:text-teal-300 text-sm sm:text-base">
+                      <span className="font-bold text-emerald-900 dark:text-teal-300 text-sm sm:text-base">
                         الذكر #{index + 1}
                       </span>
                     )}
@@ -681,26 +681,26 @@ const parseZekrContent = (text: string) => {
                   </div>
                 </div>
 
-                {/* Main Zekr Text (100% Crisp High Contrast, NEVER FADED - Point 1) */}
+                {/* Main Zekr Text (Comfortable Weight 400, Elevated Line-Height 2.15, Breathing Space - Point 2) */}
                 {(() => {
                   const { body: zekrBody, source: zekrSource } = parseZekrContent(zekr.text);
                   return (
                     <>
                       <p
-                        className="ib-zekr-text select-text text-right text-slate-950 dark:text-[#f8fafc]"
+                        className="ib-zekr-text select-text text-right text-slate-950 dark:text-[#f8fafc] py-1.5 sm:py-2.5"
                         style={{
                           fontFamily: getFontFamilyStyle(fontFamily),
                           fontSize: `${fontSize}px`,
-                          fontWeight: isBold ? 700 : 500,
-                          lineHeight: 1.95,
+                          fontWeight: isBold ? 700 : 400,
+                          lineHeight: 2.15,
                         }}
                       >
                         {formatText(zekrBody)}
                       </p>
 
-                      {/* Explicit Source Badge with High Contrast and Clear Size (Point 2) */}
+                      {/* Explicit Source Badge with High Contrast and Clear Size */}
                       {zekrSource && (
-                        <div className="mt-2.5 flex items-center gap-2">
+                        <div className="mt-3 flex items-center gap-2">
                           <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300/80 bg-emerald-100/90 dark:border-teal-500/40 dark:bg-teal-950/70 px-3 py-1 text-xs sm:text-sm font-black text-emerald-950 dark:text-teal-200 shadow-2xs">
                             <BookOpen size={14} className="text-emerald-700 dark:text-teal-400" />
                             <span>المصدر: {formatText(zekrSource)}</span>
@@ -711,9 +711,9 @@ const parseZekrContent = (text: string) => {
                   );
                 })()}
 
-                {/* Fadl / Blessing text with Elevated Contrast and Larger Size (Point 2) */}
+                {/* Fadl / Blessing text with Elevated Contrast and Larger Size */}
                 {zekr.fadl && (
-                  <div className="ib-zekrbless mt-2.5 flex items-start gap-2.5 rounded-xl border border-amber-300/60 bg-amber-50/70 p-2.5 sm:p-3 dark:border-amber-400/25 dark:bg-amber-950/30">
+                  <div className="ib-zekrbless mt-3 flex items-start gap-2.5 rounded-xl border border-amber-300/60 bg-amber-50/70 p-2.5 sm:p-3 dark:border-amber-400/25 dark:bg-amber-950/30">
                     <span className="shrink-0 font-black bg-amber-200/90 text-amber-950 border border-amber-400/70 dark:bg-amber-400/25 dark:text-amber-100 dark:border-amber-400/50 px-2.5 py-1 rounded-lg text-xs sm:text-sm shadow-2xs flex items-center gap-1">
                       <Sparkles size={13} className="text-amber-800 dark:text-amber-300" />
                       <span>الفضل:</span>
@@ -723,7 +723,8 @@ const parseZekrContent = (text: string) => {
                     </span>
                   </div>
                 )}
-              </div>            </article>
+              </div>
+            </article>
           );
         })}
       </div>
