@@ -313,7 +313,7 @@
 }
 
 .worship-navigation {
-  --worship-surface: linear-gradient(90deg, rgba(240, 246, 243, 0.74) 0%, rgba(247, 248, 244, 0.74) 100%);
+  --worship-surface: linear-gradient(90deg, rgba(242, 247, 244, 0.64) 0%, rgba(248, 249, 245, 0.64) 100%);
   --worship-border: rgba(195, 220, 208, 0.45);
   --worship-text: #405c52;
   --worship-hover-bg: rgba(255, 255, 255, 0.45);
@@ -1504,9 +1504,10 @@ html.light [data-prayer-slot] [data-task-status] {
 
 html.light [data-prayer-verse],
 html.light [data-progress-verse] {
-  border-color: rgb(190 155 85 / 0.3);
-  background-color: rgb(255 255 255 / 0.62);
-  color: #23544e;
+  border-color: rgba(190, 155, 85, 0.22);
+  background-color: rgba(250, 248, 242, 0.42);
+  color: #2b554e;
+  box-shadow: none;
 }
 
 html.light [data-prayer-verse] .quran-verse-text,

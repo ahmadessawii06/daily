@@ -35,7 +35,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
       bgGlow: 'bg-gradient-to-br from-emerald-300/30 via-emerald-400/12 to-transparent dark:from-emerald-300/25 dark:via-emerald-400/15 dark:to-transparent shadow-[0_8px_18px_rgba(16,185,129,0.12)]',
       text: 'text-emerald-700 dark:text-emerald-300',
       valueText: 'text-emerald-600 dark:text-emerald-400',
-      subLabelText: 'text-emerald-700/85 dark:text-emerald-400/90',
+      subLabelText: 'text-emerald-800 dark:text-emerald-300 font-extrabold',
       activeRing: 'ring-2 ring-[#10e588] ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
       track: 'text-emerald-400/20',
     },
@@ -44,7 +44,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
       bgGlow: 'bg-gradient-to-br from-amber-300/28 via-amber-500/12 to-transparent dark:from-amber-300/22 dark:via-amber-500/15 dark:to-transparent shadow-[0_8px_18px_rgba(245,158,11,0.12)]',
       text: 'text-amber-700 dark:text-amber-300',
       valueText: 'text-amber-600 dark:text-amber-400',
-      subLabelText: 'text-amber-700/85 dark:text-amber-400/90',
+      subLabelText: 'text-amber-800 dark:text-amber-300 font-extrabold',
       activeRing: 'ring-2 ring-amber-500 ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
       track: 'text-amber-500/15',
     },
@@ -53,7 +53,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
       bgGlow: 'bg-gradient-to-br from-rose-300/28 via-rose-400/12 to-transparent dark:from-rose-300/24 dark:via-rose-400/15 dark:to-transparent shadow-[0_8px_18px_rgba(244,63,94,0.12)]',
       text: 'text-rose-700 dark:text-rose-300',
       valueText: 'text-rose-600 dark:text-rose-400',
-      subLabelText: 'text-rose-700/85 dark:text-rose-400/90',
+      subLabelText: 'text-rose-800 dark:text-rose-300 font-extrabold',
       activeRing: 'ring-2 ring-[#ff6b81] ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
       track: 'text-rose-400/20',
     },
@@ -62,7 +62,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
       bgGlow: 'bg-gradient-to-br from-indigo-300/26 via-indigo-500/12 to-transparent dark:from-indigo-300/22 dark:via-indigo-500/15 dark:to-transparent shadow-[0_8px_18px_rgba(99,102,241,0.12)]',
       text: 'text-indigo-700 dark:text-indigo-300',
       valueText: 'text-indigo-600 dark:text-indigo-400',
-      subLabelText: 'text-indigo-700/85 dark:text-indigo-400/90',
+      subLabelText: 'text-indigo-800 dark:text-indigo-300 font-extrabold',
       activeRing: 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
       track: 'text-indigo-500/15',
     },
@@ -119,7 +119,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
       <div className="flex max-w-full flex-col items-center mt-1.5 leading-tight text-center">
         <span
             className={`${compact ? 'text-[11px] leading-snug' : 'text-xs'} font-bold font-['Alexandria'] ${
-            isActive ? colorConfig.text : compact ? 'text-slate-800 dark:text-white/[0.9]' : 'text-slate-700 dark:text-zinc-300'
+            isActive ? colorConfig.text : compact ? 'text-slate-900 dark:text-white font-extrabold' : 'text-slate-800 dark:text-zinc-200'
           }`}
         >
           {label}

@@ -252,7 +252,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
         )}
 
         {/* Main Section: Circular Progress Gauge + 4 Circular Metric Gauges (دوائر تفاعلية بدلاً من البطاقات) */}
-        <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-4xl grid-cols-5 items-center gap-2 sm:gap-4 rounded-2xl border border-white/30 bg-white/25 px-4 sm:px-6 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_10px_28px_rgba(15,23,42,0.08)] backdrop-blur-md dark:border-white/[0.16] dark:bg-[#06221d]/85 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_32px_rgba(0,0,0,0.4)] dark:backdrop-blur-md' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
+        <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-4xl grid-cols-5 items-center gap-2 sm:gap-4 rounded-2xl border border-white/40 bg-white/60 px-4 sm:px-6 py-2 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.07)] backdrop-blur-md dark:border-white/[0.16] dark:bg-[#06221d]/90 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_32px_rgba(0,0,0,0.4)] dark:backdrop-blur-md' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
           
           {/* Main Circular Progress Gauge */}
           <div data-progress-main className={`${compact ? 'col-start-3 row-start-1 w-auto justify-self-center' : 'w-full justify-center gap-3 sm:gap-4 md:w-auto md:flex-1 md:justify-start'} flex min-w-0 shrink-0 items-center`}>
