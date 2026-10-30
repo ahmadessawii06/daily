@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties } from 'react';
 import { CheckCheck, ChevronDown, Clock, MoreHorizontal, Plus, StickyNote, X } from 'lucide-react';
 import type { DayRecord, Language, PlannerCategory, PlannerWorkspace, StatusFilter, Task, TaskStatus, Theme } from '../types';
 import { groupTasksByCategory, UNASSIGNED_CATEGORY } from '../shared/workspace';
@@ -137,7 +137,6 @@ interface CardsDashboardProps {
   onToggleFocus?: (id: string) => void;
   creationTarget?: { categoryId: string; requestId: number } | null;
   onOpenAddTask?: () => void;
-  religiousNavigation?: ReactNode;
   showContent?: boolean;
 }
 
@@ -164,10 +163,7 @@ export function CardsDashboard(props: CardsDashboardProps) {
         <button type="button" aria-label={ar ? 'إنشاء مساحة جديدة' : 'Create a new space'} title={ar ? 'إنشاء مساحة لتنظيم مهامك' : 'Create a space to organize your tasks'} onClick={() => setEditor('new')} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold transition-colors hover:border-emerald-400 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-emerald-400/40"><Plus className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />{ar ? 'مساحة جديدة' : 'New space'}</button>
       </div>
       {filter !== 'all' && <div className="flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs"><span>{ar ? 'عرض: ' : 'Showing: '}{filterName}</span><button type="button" onClick={() => onFilterChange('all')} className="inline-flex min-h-9 items-center gap-1 font-semibold"><X className="h-3 w-3" />{ar ? 'عرض الكل' : 'Show all'}</button></div>}
-      {showContent ? <div className="religious-prayer-composition">
-        {props.religiousNavigation}
-        <PrayerCard currentDate={props.currentDate} slots={prayerTasks.slots} lang={lang} theme={theme} onAddPrayer={props.onAddPrayer} onStatusChange={props.onStatusChange} />
-      </div> : props.religiousNavigation}
+      {showContent && <PrayerCard currentDate={props.currentDate} slots={prayerTasks.slots} lang={lang} theme={theme} onAddPrayer={props.onAddPrayer} onStatusChange={props.onStatusChange} />}
       {showContent && <div
         className={`category-card-grid relative isolate grid items-start gap-4 ${cardColumns === 3 ? 'category-card-grid-three' : cardColumns === 4 ? 'category-card-grid-four' : 'category-card-grid-two'}`}
         style={{

@@ -34,6 +34,7 @@ interface MainHeaderProps {
   dayMemories?: React.ReactNode;
   quickNotes?: React.ReactNode;
   dateNavigation?: React.ReactNode;
+  worshipNavigation?: React.ReactNode;
   currentDate: string;
   onDateChange?: (date: string) => void;
   currentUser?: User | null;
@@ -50,7 +51,7 @@ interface MainHeaderProps {
   onLogout: () => void;
 }
 
-export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggleCardColumns, children, dayMemories, quickNotes, dateNavigation, currentDate, onDateChange, currentUser, onOpenAddTask, onOpenSettings, lang, theme, onToggleTheme, onToggleLang, onExport, exporting, onOpenArchive, onOpenStats, onLogout }) => {
+export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggleCardColumns, children, dayMemories, quickNotes, dateNavigation, worshipNavigation, currentDate, onDateChange, currentUser, onOpenAddTask, onOpenSettings, lang, theme, onToggleTheme, onToggleLang, onExport, exporting, onOpenArchive, onOpenStats, onLogout }) => {
   const ar = lang === 'ar';
   const [clock, setClock] = useState(() => getLiveClock(lang));
   useEffect(() => {
@@ -152,14 +153,21 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
         </div>
       </div>
       <div className="main-header-secondary-bar" dir="ltr">
-        {onDateChange ? <div className="main-header-clock"><HijriDateNavigation currentDate={currentDate} onDateChange={onDateChange} lang={lang} /></div> : <div className="main-header-clock" />}
+        <div className="main-header-clock">
+          {onDateChange && <HijriDateNavigation currentDate={currentDate} onDateChange={onDateChange} lang={lang} />}
+        </div>
         <div className="main-header-secondary-date" dir={ar ? 'rtl' : 'ltr'}>
           {dateNavigation}
         </div>
+        {children && <div data-main-header-summary dir={ar ? 'rtl' : 'ltr'}>
+          {children}
+        </div>}
       </div>
-      {children && <div data-main-header-summary className="mt-1 pt-2">
-        {children}
-      </div>}
+      {worshipNavigation && (
+        <div className="main-header-dock-container">
+          {worshipNavigation}
+        </div>
+      )}
       </div>
     </header>
   );

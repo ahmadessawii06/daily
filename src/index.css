@@ -297,6 +297,199 @@
 @media (max-width: 900px) { .religious-dashboard-header { grid-template-columns: 1fr auto; } .religious-mini-prayer { justify-self: end; } .religious-tabs { grid-column: 1 / -1; justify-content: flex-start; } .adhkar-grid, .dua-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .religious-dashboard-header { grid-template-columns: 1fr; } .religious-mini-prayer { justify-self: start; } .religious-tabs { margin-inline: -.25rem; } .religious-tabs button { padding-inline: .55rem; } .religious-tabs button span { font-size: .64rem; } .religious-section-heading { align-items: flex-start; } .religious-ghost-button { font-size: .65rem; } .adhkar-grid, .dua-grid, .quran-wird-layout { grid-template-columns: 1fr; } .dua-toolbar { align-items: stretch; flex-direction: column; } .dua-categories { max-width: 100%; } }
 
+/* =========================================================================
+   Unified Floating Navigation Dock (Premium SaaS x Islamic Minimalism)
+   ========================================================================= */
+
+.main-header-dock-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  position: relative;
+  z-index: 25;
+  margin-top: 0.5rem;
+  margin-bottom: -16px;
+}
+
+.worship-navigation {
+  --worship-surface: rgba(255, 255, 255, 0.84);
+  --worship-border: rgba(209, 231, 219, 0.95);
+  --worship-text: #415e50;
+  --worship-hover-bg: rgba(16, 185, 129, 0.08);
+  --worship-hover-text: #065f46;
+  --worship-active-bg: #e1f5eb;
+  --worship-active-text: #065f46;
+  --worship-active-border: rgba(16, 185, 129, 0.35);
+  --worship-shadow: 0 8px 24px -4px rgba(18, 56, 38, 0.12), 0 2px 6px -1px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+
+  width: min(100%, 780px);
+  margin-inline: auto;
+  padding: 4px;
+  border: 1px solid var(--worship-border);
+  border-radius: 1.125rem;
+  background: var(--worship-surface);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: var(--worship-shadow);
+  transition: all 0.25s ease;
+}
+
+.dark .worship-navigation {
+  --worship-surface: rgba(9, 28, 22, 0.85);
+  --worship-border: rgba(52, 211, 153, 0.22);
+  --worship-text: #a3c7b4;
+  --worship-hover-bg: rgba(255, 255, 255, 0.06);
+  --worship-hover-text: #6ee7b7;
+  --worship-active-bg: rgba(16, 185, 129, 0.22);
+  --worship-active-text: #6ee7b7;
+  --worship-active-border: rgba(52, 211, 153, 0.4);
+  --worship-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.worship-navigation-items {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+}
+
+.worship-navigation-items button {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid transparent;
+  border-radius: 0.85rem;
+  background: transparent;
+  color: var(--worship-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-family: inherit;
+  line-height: 1.5;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.worship-navigation-items button:hover {
+  background: var(--worship-hover-bg);
+  color: var(--worship-hover-text);
+}
+
+.dark .worship-navigation-items button:hover {
+  color: var(--worship-hover-text);
+}
+
+.worship-navigation-items button:active {
+  transform: scale(0.98);
+}
+
+.worship-navigation-items button.is-active {
+  background: var(--worship-active-bg);
+  color: var(--worship-active-text);
+  border-color: var(--worship-active-border);
+  box-shadow: 0 2px 8px -2px rgba(16, 185, 129, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  font-weight: 800;
+}
+
+.dark .worship-navigation-items button.is-active {
+  box-shadow: 0 2px 8px -2px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.worship-navigation-items button:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: -2px;
+}
+
+.worship-navigation-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.worship-navigation-items button:hover .worship-navigation-icon {
+  transform: translateY(-1px);
+}
+
+.worship-navigation-items button.is-active .worship-navigation-icon {
+  transform: scale(1.08);
+}
+
+.worship-navigation-label {
+  min-width: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* Tablet & iPad adjustments (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .worship-navigation {
+    width: min(100%, 720px);
+    padding: 4px;
+  }
+  .worship-navigation-items {
+    gap: 4px;
+  }
+  .worship-navigation-items button {
+    min-height: 42px;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.775rem;
+    gap: 5px;
+  }
+}
+
+/* Mobile adjustments (< 768px) */
+@media (max-width: 767px) {
+  .main-header-dock-container {
+    margin-bottom: -14px;
+    padding-inline: 4px;
+  }
+  .worship-navigation {
+    width: 100%;
+    padding: 4px;
+    border-radius: 1rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-inline: 8px;
+  }
+  .worship-navigation::-webkit-scrollbar {
+    display: none;
+  }
+  .worship-navigation-items {
+    display: flex;
+    gap: 4px;
+    min-width: max-content;
+  }
+  .worship-navigation-items button {
+    flex: 0 0 auto;
+    min-height: 44px;
+    gap: 6px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.775rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .worship-navigation,
+  .worship-navigation-items button,
+  .worship-navigation-icon {
+    transition: none;
+  }
+}
+
 /* Keep the religious dashboard aligned with the light planner surface. */
 .religious-prayer-composition { overflow: hidden; border: 1px solid #d7e7df; border-radius: 1.5rem; background: #ffffff; box-shadow: 0 18px 45px -34px rgba(15, 118, 110, .4); }
 .religious-planner-heading { display: flex; min-height: 2.75rem; align-items: center; justify-content: flex-start; margin-bottom: 1rem; }
@@ -445,8 +638,57 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
   gap: 0.75rem;
 }
 
+.main-header-secondary-bar > [data-main-header-summary] {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .header-progress-content {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: .75rem;
+  }
+  .header-progress-content [data-progress-verse] {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    max-width: none;
+    margin: 0;
+    padding: .5rem .625rem;
+  }
+  .header-progress-content [data-progress-layout="compact"] {
+    min-width: 0;
+    max-width: none;
+    gap: .375rem;
+    padding: .5rem;
+  }
+  .header-progress-content [data-progress-main] svg { width: 3.5rem; height: 3.5rem; }
+  .header-progress-content [data-progress-main] .font-numbers > span:first-child { font-size: 1.5rem; }
+  .header-progress-content [data-progress-tone] .progress-body { width: 2.5rem; height: 2.5rem; }
+}
+
+@media (min-width: 1600px) {
+  .main-header-secondary-bar {
+    grid-template-columns: 340px minmax(0, 1fr) 340px;
+    align-items: center;
+  }
+  .main-header-secondary-bar > [data-main-header-summary] { grid-column: 2; grid-row: 1; }
+  .main-header-secondary-bar > .main-header-clock { grid-column: 1; grid-row: 1; }
+  .main-header-secondary-bar > .main-header-secondary-date { grid-column: 3; grid-row: 1; }
+  .main-header-secondary-bar > :is(.main-header-clock, .main-header-secondary-date) { width: 100%; min-width: 0; }
+  .main-header-secondary-bar > :is(.main-header-clock, .main-header-secondary-date) > nav { width: 100%; max-width: 100%; }
+  .header-progress-content [data-progress-verse] .quran-verse-text { font-size: 1.35rem; white-space: normal; }
+  .header-progress-content [data-progress-verse] > p:last-child { font-size: .75rem; margin-top: .375rem; }
+}
+
 [data-main-header] {
   margin-bottom: var(--date-picker-clearance, 0px);
+}
+[data-main-header]:has(.main-header-dock-container) {
+  margin-bottom: calc(var(--date-picker-clearance, 0px) + 24px);
 }
 
 .main-header-clock {
@@ -468,6 +710,8 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
   grid-column: 2;
   justify-self: end;
 }
+
+
 
 .main-header-actions {
   grid-column: 3;

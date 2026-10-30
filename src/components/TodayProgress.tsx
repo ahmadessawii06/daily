@@ -184,7 +184,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
         />
         <div className="absolute inset-0 bg-white/65 dark:bg-[#07120f]/75 transition-colors duration-500" />
       </div>
-      <div className={`relative z-10 flex flex-col ${compact ? 'gap-2' : 'gap-3'}`}>
+      <div className={`relative z-10 flex flex-col ${compact ? 'header-progress-content gap-2' : 'gap-3'}`}>
         
         {/* Top Row: Title, Subtitle, and Motivational Hint Badge */}
         <div className={`${compact ? 'hidden' : 'flex flex-col sm:flex-row sm:items-center'} justify-between gap-2 ${compact ? '' : 'border-b border-slate-100 pb-2 dark:border-white/[0.05]'}`}>

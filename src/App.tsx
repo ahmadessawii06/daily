@@ -765,6 +765,7 @@ export default function App() {
           {!support ? <MainHeader
             cardColumns={cardColumns} onToggleCardColumns={toggleCardColumns}
             dateNavigation={<DateNavigation currentDate={currentDate} onDateChange={setCurrentDate} lang={lang} />}
+            worshipNavigation={<ReligiousTabs active={religiousSection} onChange={setReligiousSection} />}
             onDateChange={setCurrentDate}
             currentDate={currentDate}
             currentUser={currentUser}
@@ -781,11 +782,9 @@ export default function App() {
             onToggleTheme={() => { const next = theme === 'dark' ? 'light' : 'dark'; setStoredTheme(next); setTheme(next); }}
             dayMemories={<DayMemories key={`${currentUser.id}-${currentDate}`} date={currentDate} lang={lang} onSaved={refreshArchive} />}
             quickNotes={<QuickNotes lang={lang} />}
-          >{
-            religiousSection === 'prayers' ? (
-              <TodayProgress stats={stats} currentFilter={currentFilter} onFilterChange={setCurrentFilter} lang={lang} theme={theme} compact />
-            ) : null
-          }</MainHeader> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
+          >
+            <TodayProgress stats={stats} currentFilter={currentFilter} onFilterChange={setCurrentFilter} lang={lang} theme={theme} compact />
+          </MainHeader> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
           {support && <DateNavigation currentDate={currentDate} onDateChange={setCurrentDate} lang={lang} />}
 
           {/* Today Progress Section (bar & metrics) */}
@@ -799,11 +798,9 @@ export default function App() {
             />
           </div>}
 
-          <div id="onboarding-planner-area" className="space-y-4 pt-2 sm:space-y-6 sm:pt-3">
+          {support && <div className="flex justify-center w-full"><ReligiousTabs active={religiousSection} onChange={setReligiousSection} /></div>}
+          <div id="onboarding-planner-area" className="space-y-4 sm:space-y-6">
             {religiousSection !== 'prayers' && <div className="religious-content-switch" key={religiousSection}>
-              <div className="mb-3 flex justify-center">
-                <ReligiousTabs active={religiousSection} onChange={setReligiousSection} />
-              </div>
               {religiousSection === 'morning' && <MorningAdhkarIslamBook date={currentDate} />}
               {religiousSection === 'evening' && <EveningAdhkarIslamBook date={currentDate} />}
               {religiousSection === 'quran' && (
@@ -846,8 +843,9 @@ export default function App() {
               })}
             </div>{!support && <button type="button" onClick={handleMoveRemaining} disabled={!tasks.some(canMoveTask)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-600 hover:border-emerald-500/40 focus-visible:outline-2 focus-visible:outline-emerald-500 disabled:opacity-40 dark:border-white/10 dark:bg-white/[.02] dark:text-zinc-300"><CalendarArrowUp aria-hidden="true" size={15} />{lang === 'ar' ? 'نقل غير المكتمل لليوم التالي' : 'Move unfinished to next day'}</button>}</div>
 
+
             <fieldset disabled={!!support} className="min-w-0 border-0 p-0 m-0">
-            {workspace.view === 'cards' ? <CardsDashboard religiousNavigation={<ReligiousTabs active={religiousSection} onChange={setReligiousSection} />} cardColumns={cardColumns} currentDate={currentDate} archiveDays={archiveDays} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} theme={theme} filter={currentFilter} onFilterChange={setCurrentFilter}
+            {workspace.view === 'cards' ? <CardsDashboard cardColumns={cardColumns} currentDate={currentDate} archiveDays={archiveDays} tasks={tasks} workspace={support ? { ...workspace, categories: workspace.categories.map(c => ({ ...c, collapsed: false })) } : workspace} lang={lang} theme={theme} filter={currentFilter} onFilterChange={setCurrentFilter}
               creationTarget={cardCreationTarget}
               onOpenAddTask={() => setIsTaskDestinationOpen(true)}
               onAdd={(title, categoryId) => { handleAddTask({ title, categoryId, time: '', status: 'pending' }); setCurrentFilter('all'); }}
@@ -857,7 +855,7 @@ export default function App() {
               <div><h2 className="text-lg font-bold tracking-tight">{lang === 'ar' ? 'جدولك اليومي' : 'Your daily schedule'}</h2></div>
               {!support && <button type="button" onClick={() => setIsAddTaskOpen(true)} title={lang === 'ar' ? 'إضافة مهمة بوقت محدد إلى الجدول' : 'Add a scheduled task to the timeline'} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold transition-colors hover:border-emerald-400 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-emerald-400/40"><Plus aria-hidden="true" className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />{lang === 'ar' ? 'مهمة بوقت محدد' : 'Scheduled task'}</button>}
             </div>
-            <PrayerCard currentDate={currentDate} slots={partitionPrayerTasks(tasks).slots} lang={lang} onAddPrayer={handleCompletePrayer} onStatusChange={handlePrayerStatusChange} />
+            <PrayerCard currentDate={currentDate} slots={partitionPrayerTasks(tasks).slots} lang={lang} theme={theme} onAddPrayer={handleCompletePrayer} onStatusChange={handlePrayerStatusChange} />
             <TaskList
               tasks={tasks}
               onStatusChange={handleStatusChange}
