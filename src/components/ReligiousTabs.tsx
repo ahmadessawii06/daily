@@ -6,7 +6,7 @@ import type { ReligiousSection } from './religiousContent';
 const tabs: Array<{ id: ReligiousSection; label: string; icon: typeof Sun }> = [
   { id: 'quran', label: 'الورد القرآني', icon: BookOpen },
   { id: 'morning', label: 'أذكار الصباح', icon: Sun },
-  { id: 'prayers', label: 'الصلوات الخمس', icon: Sunrise },
+  { id: 'prayers', label: 'الصلوات الخمس والمهام اليومية', icon: Sunrise },
   { id: 'evening', label: 'أذكار المساء', icon: MoonStar },
   { id: 'duas', label: 'الأدعية', icon: HandHeart },
 ];
@@ -82,7 +82,7 @@ export function ReligiousTabs({
     >
       <div
         className="worship-navigation-items"
-        style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, minmax(0, 1fr))` }}
+        style={visibleTabs.length === 5 ? undefined : { gridTemplateColumns: `repeat(${visibleTabs.length}, minmax(0, 1fr))` }}
       >
         {visibleTabs.map(tab => {
           const Icon = tab.icon;

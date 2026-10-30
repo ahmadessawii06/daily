@@ -162,12 +162,12 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
         {children && <div data-main-header-summary dir={ar ? 'rtl' : 'ltr'}>
           {children}
         </div>}
+        {worshipNavigation && (
+          <div className="main-header-dock-container">
+            {worshipNavigation}
+          </div>
+        )}
       </div>
-      {worshipNavigation && (
-        <div className="main-header-dock-container">
-          {worshipNavigation}
-        </div>
-      )}
       </div>
     </header>
   );
