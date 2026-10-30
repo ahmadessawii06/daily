@@ -309,16 +309,40 @@
 .religious-tabs button { position: relative; display: inline-flex; width: 100%; min-height: 42px; align-items: center; justify-content: center; direction: rtl; gap: .5rem; border: 1px solid #d7e7df; border-radius: 12px; padding: .5rem .7rem; color: #526b68; background: #ffffff; font-size: .86rem; font-weight: 800; white-space: nowrap; transition: background-color .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
 .religious-tabs button:hover { border-color: #9fcfc2; color: #0f766e; background: #f0fdfa; box-shadow: 0 6px 14px -10px rgba(15, 118, 110, .55); transform: translateY(-1px); }
 .religious-tabs button.is-active { border-color: #5cae9e; background: #e3f4ee; color: #0f766e; box-shadow: 0 7px 16px -12px rgba(15, 118, 110, .7); }
-@media (max-width: 640px) {
-  .religious-dashboard-header { justify-content: flex-start; }
-  .religious-tabs { display: flex; width: 100%; justify-content: flex-start; overflow-x: auto; padding-bottom: .15rem; }
-  .religious-tabs button { width: auto; }
-  .religious-tabs button span { font-size: .8rem; }
-}
-@media (min-width: 641px) and (max-width: 900px) {
-  .religious-dashboard-header { justify-content: flex-start; overflow: hidden; }
-  .religious-tabs { display: flex; width: 100%; justify-content: flex-start; overflow-x: auto; }
-  .religious-tabs button { width: auto; }
+@media (max-width: 1024px) {
+  .religious-dashboard-header {
+    justify-content: center;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.5rem 0.75rem;
+  }
+  .religious-dashboard-header::-webkit-scrollbar {
+    display: none;
+  }
+  .religious-tabs {
+    display: flex;
+    width: auto;
+    max-width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    gap: 0.5rem;
+    padding-bottom: 0.25rem;
+  }
+  .religious-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .religious-tabs button {
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 40px;
+    padding: 0.45rem 0.85rem;
+  }
+  .religious-tabs button span {
+    font-size: 0.825rem;
+  }
 }
 .religious-section { border-color: rgb(16 185 129 / .28); background: #f1f8f6; color: #123c37; box-shadow: 0 18px 36px -28px rgb(15 118 110 / .45); }
 .religious-section-heading { margin: calc(-1 * clamp(1rem, 3vw, 1.75rem)) calc(-1 * clamp(1rem, 3vw, 1.75rem)) 1.25rem; padding: 1rem clamp(1rem, 3vw, 1.75rem); border-bottom: 1px solid rgb(16 185 129 / .2); background: rgb(231 243 239 / .72); }
@@ -470,6 +494,13 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.main-header-tools::-webkit-scrollbar {
+  display: none;
 }
 
 @media (max-width: 1180px) {
@@ -493,10 +524,14 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
   }
 }
 
-@media (min-width: 640px) and (max-width: 820px) {
+@media (min-width: 640px) and (max-width: 1024px) {
   .main-header-tools {
     gap: 0.25rem;
-    padding: 0.25rem;
+    padding: 0.25rem 0.375rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
   }
 
   .main-header-tools button {

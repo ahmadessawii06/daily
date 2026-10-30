@@ -330,10 +330,10 @@ const parseZekrContent = (text: string) => {
   };
 
   return (
-    <div className="islambook-container mt-2 max-w-5xl mx-auto" dir="rtl" lang="ar">
+    <div className="islambook-container mt-2 w-full max-w-full md:max-w-[740px] lg:max-w-3xl xl:max-w-4xl mx-auto px-2 sm:px-3 md:px-0" dir="rtl" lang="ar">
       {/* 1. Low-Profile Sticky Accomplishment & Navigation Header */}
-      <div className="sticky top-[8px] z-40 mb-3.5 -mx-2 px-2 sm:mx-0 sm:px-0">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-4 rounded-2xl border border-emerald-600/20 bg-white/95 text-slate-900 dark:border-teal-400/25 dark:bg-[#06221d]/95 dark:text-white px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-lg shadow-slate-900/5 dark:shadow-emerald-950/20 backdrop-blur-md transition-all">
+      <div className="sticky top-[8px] z-40 mb-3 sm:mb-4 -mx-1 px-1 sm:mx-0 sm:px-0">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3.5 rounded-2xl border border-emerald-600/20 bg-white/95 text-slate-900 dark:border-teal-400/25 dark:bg-[#06221d]/95 dark:text-white px-3 py-2 sm:px-4 sm:py-2.5 shadow-lg shadow-slate-900/5 dark:shadow-emerald-950/20 backdrop-blur-md transition-all">
           
           {/* Section Title & Navigation to Current Zekr */}
           <div className="flex w-full sm:w-auto items-center justify-between sm:justify-start gap-2.5 shrink-0">
@@ -558,7 +558,7 @@ const parseZekrContent = (text: string) => {
             <article
               key={zekr.id}
               id={`zekr-row-${zekr.id}`}
-              className={`ib-zekr-row relative flex items-stretch gap-3.5 sm:gap-5 overflow-hidden rounded-2xl p-3.5 sm:p-5 transition-all duration-300 ${
+              className={`ib-zekr-row relative flex items-stretch gap-3 sm:gap-4 md:gap-4.5 overflow-hidden rounded-2xl p-3 sm:p-4 md:p-4.5 transition-all duration-300 ${
                 isActive
                   ? 'border border-emerald-500/40 bg-emerald-50/20 dark:border-teal-400/35 dark:bg-[#06241e]/50 shadow-sm'
                   : isDone
@@ -566,14 +566,14 @@ const parseZekrContent = (text: string) => {
                     : 'border border-slate-200/80 bg-white hover:border-emerald-500/30 dark:border-white/10 dark:bg-[#071815]/95 shadow-xs'
               }`}
             >
-              {/* Integrated Counter Column */}
-              <div className="ib-zekr-counter-col relative flex shrink-0 items-center justify-center pl-3.5 sm:pl-4 border-l border-slate-100 dark:border-white/5 rtl:pl-0 rtl:border-l-0 rtl:border-r rtl:border-slate-100 dark:rtl:border-white/5 rtl:pr-3.5 sm:rtl:pr-4 self-stretch">
+              {/* Integrated Counter Column (Optimized for Tablet Thumb Ergonomics) */}
+              <div className="ib-zekr-counter-col relative flex shrink-0 items-center justify-center pl-2.5 sm:pl-3 md:pl-3.5 border-l border-slate-100 dark:border-white/5 rtl:pl-0 rtl:border-l-0 rtl:border-r rtl:border-slate-100 dark:rtl:border-white/5 rtl:pr-2.5 sm:rtl:pr-3 md:rtl:pr-3.5 self-stretch">
                 <button
                   type="button"
                   onClick={() => handleTap(zekr, index)}
                   disabled={isDone}
                   aria-label={isDone ? `الذكر ${index + 1} مكتمل` : `تكرار الذكر ${index + 1}، المتبقي ${remaining}`}
-                  className={`group/tap relative flex shrink-0 w-20 sm:w-24 md:w-26 h-full min-h-[92px] sm:min-h-[100px] flex-col items-center justify-center rounded-xl p-2 sm:p-2.5 transition-all duration-150 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-500 motion-safe:active:scale-95 ${
+                  className={`group/tap relative flex shrink-0 w-16 sm:w-[72px] md:w-[76px] h-full min-h-[96px] sm:min-h-[104px] flex-col items-center justify-center rounded-xl p-1.5 sm:p-2 transition-all duration-150 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-500 motion-safe:active:scale-95 ${
                     isActive
                       ? 'bg-emerald-600/90 hover:bg-emerald-600 text-white dark:bg-teal-500/90 dark:hover:bg-teal-500 dark:text-slate-950 shadow-xs'
                       : isDone
@@ -582,7 +582,7 @@ const parseZekrContent = (text: string) => {
                   }`}
                 >
                   {/* Gauge Circle */}
-                  <div className="relative flex h-14 w-14 sm:h-15 sm:w-15 items-center justify-center">
+                  <div className="relative flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center">
                     <div className={`absolute inset-0 rounded-full border-2 transition-all ${
                       isActive
                         ? 'border-white/40 bg-white/15'
@@ -591,47 +591,47 @@ const parseZekrContent = (text: string) => {
                           : 'border-emerald-500/20 bg-emerald-500/10 dark:border-emerald-400/20 dark:bg-emerald-400/10 group-hover/tap:scale-105'
                     }`} />
 
-                    <svg className="absolute inset-0 h-full w-full -rotate-90 transform-gpu" viewBox="0 0 56 56">
+                    <svg className="absolute inset-0 h-full w-full -rotate-90 transform-gpu" viewBox="0 0 52 52">
                       <circle
-                        cx="28"
-                        cy="28"
-                        r={24}
+                        cx="26"
+                        cy="26"
+                        r={22}
                         fill="none"
                         stroke="currentColor"
-                        strokeWidth="3.6"
+                        strokeWidth="3.2"
                         className={`${isActive ? 'text-white/30 dark:text-slate-900/30' : 'text-slate-200 dark:text-zinc-700/60'}`}
                       />
                       <circle
-                        cx="28"
-                        cy="28"
-                        r={24}
+                        cx="26"
+                        cy="26"
+                        r={22}
                         fill="none"
                         stroke="currentColor"
-                        strokeWidth="3.6"
-                        strokeDasharray={2 * Math.PI * 24}
-                        strokeDashoffset={2 * Math.PI * 24 - (2 * Math.PI * 24 * Math.min(1, Math.max(0, progressRatio)))}
+                        strokeWidth="3.2"
+                        strokeDasharray={2 * Math.PI * 22}
+                        strokeDashoffset={2 * Math.PI * 22 - (2 * Math.PI * 22 * Math.min(1, Math.max(0, progressRatio)))}
                         strokeLinecap="round"
                         className={`${isActive ? 'text-white dark:text-slate-950' : 'text-emerald-600 dark:text-[#2DD4BF]'} transition-all duration-300 ease-out`}
                       />
                     </svg>
 
                     {isDone ? (
-                      <Check strokeWidth={3} size={22} className="text-emerald-600 dark:text-teal-300 drop-shadow-xs" />
+                      <Check strokeWidth={3} size={20} className="text-emerald-600 dark:text-teal-300 drop-shadow-xs" />
                     ) : (
-                      <span className={`font-numbers text-2xl sm:text-3xl font-black tabular-nums tracking-tight ${isActive ? 'text-white dark:text-slate-950' : 'text-slate-950 dark:text-white'}`}>
+                      <span className={`font-numbers text-xl sm:text-2xl font-black tabular-nums tracking-tight ${isActive ? 'text-white dark:text-slate-950' : 'text-slate-950 dark:text-white'}`}>
                         {remaining}
                       </span>
                     )}
                   </div>
 
-                  <span className={`mt-1 text-xs font-semibold tracking-wide ${isActive ? 'text-white/95 dark:text-slate-950 font-bold' : isDone ? 'text-emerald-700 dark:text-teal-400' : 'text-slate-700 dark:text-zinc-300'}`}>
+                  <span className={`mt-1 text-[11px] sm:text-xs font-semibold tracking-wide ${isActive ? 'text-white/95 dark:text-slate-950 font-bold' : isDone ? 'text-emerald-700 dark:text-teal-400' : 'text-slate-700 dark:text-zinc-300'}`}>
                     {isDone ? 'مكتمل ✓' : `${tapped}/${zekr.count}`}
                   </span>
                 </button>
               </div>
 
               {/* Left side (in RTL): Zekr Text and Blessing with Controlled Measure */}
-              <div className="ib-zekr-content-col flex min-w-0 flex-1 flex-col justify-center max-w-2xl lg:max-w-3xl py-1">
+              <div className="ib-zekr-content-col flex min-w-0 flex-1 flex-col justify-center py-0.5 sm:py-1">
                 {/* Meta Bar: Title on the right, light secondary info, quick actions on left (Point 4) */}
                 <div className="flex items-center justify-between gap-3 border-b border-slate-100 dark:border-white/5 pb-2 mb-3">
                   <div className="flex items-center gap-2 min-w-0 flex-wrap">
