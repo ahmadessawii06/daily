@@ -6,7 +6,7 @@ import type { ReligiousSection } from './religiousContent';
 const tabs: Array<{ id: ReligiousSection; label: string; icon: typeof Sun }> = [
   { id: 'quran', label: 'الورد القرآني', icon: BookOpen },
   { id: 'morning', label: 'أذكار الصباح', icon: Sun },
-  { id: 'prayers', label: 'الصلوات الخمس والمهام اليومية', icon: Sunrise },
+  { id: 'prayers', label: 'الصلوات والمهام', icon: Sunrise },
   { id: 'evening', label: 'أذكار المساء', icon: MoonStar },
   { id: 'duas', label: 'الأدعية', icon: HandHeart },
 ];
