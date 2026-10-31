@@ -37,7 +37,7 @@
   outline: none;
   color: var(--sl-text);
   background: var(--sl-bg);
-  font-family: var(--font-sans, 'Alexandria', 'Cairo', sans-serif);
+  font-family: var(--font-sans, 'IBM Plex Sans Arabic', 'Alexandria', 'Cairo', sans-serif);
   transition: background 300ms ease, color 300ms ease;
 }
 
