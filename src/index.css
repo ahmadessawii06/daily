@@ -656,25 +656,34 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
 
 @media (min-width: 900px) {
   .header-progress-content {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: stretch;
-    gap: .75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .625rem;
+    width: 100%;
   }
   .header-progress-content [data-progress-verse] {
     display: flex;
     min-width: 0;
+    width: 100%;
+    max-width: 56rem;
     flex-direction: column;
     justify-content: center;
-    max-width: none;
-    margin: 0;
-    padding: .5rem .625rem;
+    margin: 0 auto;
+    padding: .5rem .75rem;
   }
   .header-progress-content [data-progress-layout="compact"] {
     min-width: 0;
-    max-width: none;
+    width: 100%;
+    max-width: 56rem;
+    margin: 0 auto;
     gap: .375rem;
     padding: .5rem;
+  }
+  .header-progress-content .main-header-dock-container {
+    width: 100%;
+    max-width: 56rem;
+    margin: 0 auto;
   }
   .header-progress-content [data-progress-main] svg { width: 3.5rem; height: 3.5rem; }
   .header-progress-content [data-progress-main] .font-numbers > span:first-child { font-size: 1.5rem; }

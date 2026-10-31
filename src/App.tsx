@@ -767,8 +767,7 @@ export default function App() {
           {!support ? <MainHeader
             cardColumns={cardColumns} onToggleCardColumns={toggleCardColumns}
             dateNavigation={<DateNavigation currentDate={currentDate} onDateChange={setCurrentDate} lang={lang} />}
-            worshipNavigation={<ReligiousTabs active={religiousSection} onChange={setReligiousSection} />}
-            onDateChange={setCurrentDate}
+                        onDateChange={setCurrentDate}
             currentDate={currentDate}
             currentUser={currentUser}
             onOpenAddTask={() => setIsTaskDestinationOpen(true)}
