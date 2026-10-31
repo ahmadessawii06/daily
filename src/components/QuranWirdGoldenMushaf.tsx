@@ -109,43 +109,6 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
   const [isDisplayMenuOpen, setIsDisplayMenuOpen] = useState(false);
   const displayMenuRef = useRef<HTMLDivElement>(null);
 
-  // Smart Auto-Hide on Scroll: Hides when scrolling down, reappears when scrolling up
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  const lastScrollYRef = useRef(0);
-
-  useEffect(() => {
-    const getScrollY = () => {
-      if (isFullscreen && readerContainerRef.current) {
-        return readerContainerRef.current.scrollTop;
-      }
-      return typeof window !== 'undefined' ? window.scrollY : 0;
-    };
-
-    const handleScroll = () => {
-      const currentScrollY = getScrollY();
-      const diff = currentScrollY - lastScrollYRef.current;
-
-      // Near top of page: always show
-      if (currentScrollY <= 60) {
-        setIsHeaderVisible(true);
-      } else if (diff > 12) {
-        // Scrolling down: hide toolbar for immersion
-        setIsHeaderVisible(false);
-        setIsDisplayMenuOpen(false);
-      } else if (diff < -12) {
-        // Scrolling up: reveal toolbar
-        setIsHeaderVisible(true);
-      }
-      lastScrollYRef.current = currentScrollY;
-    };
-
-    const target = (isFullscreen && readerContainerRef.current) ? readerContainerRef.current : window;
-    target.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      target.removeEventListener('scroll', handleScroll);
-    };
-  }, [isFullscreen]);
-
   // Close display settings menu on click outside or escape key
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -415,12 +378,8 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
       dir="rtl" 
       lang="ar"
     >
-      {/* 1. Sticky Navigation & Header (Auto-Hides on Scroll Down, Reveals on Scroll Up) */}
-      <div 
-        className={`sticky top-[8px] z-40 mb-2 sm:mb-3 transition-all duration-300 ease-in-out ${
-          isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-28 opacity-0 pointer-events-none'
-        }`}
-      >
+      {/* 1. Sticky Navigation & Header (Permanently Sticky on Scroll) */}
+      <div className="sticky top-[8px] z-40 mb-2 sm:mb-3">
         <div className="flex flex-col gap-1 sm:gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 text-slate-900 dark:border-white/10 dark:bg-[#071d18]/95 dark:text-white py-1.5 px-2.5 sm:py-2 sm:px-3.5 shadow-md shadow-slate-900/5 dark:shadow-emerald-950/20 backdrop-blur-md transition-all">
           
           {/* Row 1: Title & Status (Right) + Display Settings Trigger (Left) */}
