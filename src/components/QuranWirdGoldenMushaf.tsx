@@ -616,13 +616,13 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
           className="mushaf-sheet relative flex flex-col items-center justify-center rounded-xl sm:rounded-2xl transition-all select-none shadow-2xl"
           style={{
             background: isNight
-              ? 'linear-gradient(180deg, #1f1b15 0%, #1b1712 55%, #15120e 100%)'
+              ? '#0b0f0e'
               : 'linear-gradient(180deg, #fbf6e9 0%, #f7efdc 55%, #efe4c8 100%)',
             border: isNight
-              ? '1px solid rgba(196, 156, 64, 0.28)'
+              ? '1px solid rgba(196, 156, 64, 0.3)'
               : '1px solid rgba(184, 145, 47, 0.40)',
             boxShadow: isNight
-              ? '0 24px 60px -20px rgba(0, 0, 0, 0.85), 0 0 1px rgba(196, 156, 64, 0.3)'
+              ? '0 24px 60px -20px rgba(0, 0, 0, 0.95), 0 0 1px rgba(255, 255, 255, 0.1)'
               : '0 24px 60px -20px rgba(63, 43, 8, 0.28), 0 0 1px rgba(184, 145, 47, 0.4)',
             // Exact King Fahd Medina Mushaf scan aspect ratio (1024 / 1656)
             aspectRatio: '1024 / 1656',
@@ -642,9 +642,9 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
         >
           {/* Loading Spinner / Placeholder */}
           {isLoadingImage && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#fbf6e9]/90 dark:bg-[#15120e]/95 z-20 backdrop-blur-xs rounded-xl">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#fbf6e9]/90 dark:bg-[#0b0f0e]/95 z-20 backdrop-blur-xs rounded-xl">
               <div className="h-10 w-10 animate-spin rounded-full border-3 border-amber-600 border-t-transparent dark:border-amber-400 dark:border-t-transparent" />
-              <p className="mt-3 text-xs font-bold text-amber-900 dark:text-amber-200">
+              <p className="mt-3 text-xs font-bold text-amber-900 dark:text-zinc-200">
                 جارٍ تحميل صفحة المصحف الشريف #{currentPage}...
               </p>
             </div>
@@ -659,9 +659,9 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
             className="mushaf-scan w-full h-full block select-none pointer-events-auto transition-transform duration-150"
             style={{
               objectFit: 'contain',
-              // GoldenQuran's exact night mode filter
+              // Crisp bright white verses in dark mode with golden borders preserved
               filter: isNight
-                ? 'invert(.9) hue-rotate(180deg) sepia(.2) saturate(1.5) brightness(.95)'
+                ? 'invert(1) hue-rotate(180deg) contrast(1.18) brightness(1.04)'
                 : 'none',
               touchAction: 'pan-y pinch-zoom',
               userSelect: 'none',
