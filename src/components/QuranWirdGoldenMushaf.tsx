@@ -607,7 +607,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
               </span>
               <div className="flex items-baseline gap-1">
                 <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">سورة</span>
-                <h2 className="font-arabic text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-none">
+                <h2 className="font-arabic text-base sm:text-lg font-normal text-slate-800 dark:text-slate-100 leading-none">
                   {currentSurah.name}
                 </h2>
               </div>
