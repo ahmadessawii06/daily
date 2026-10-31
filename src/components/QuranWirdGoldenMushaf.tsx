@@ -109,6 +109,43 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
   const [isDisplayMenuOpen, setIsDisplayMenuOpen] = useState(false);
   const displayMenuRef = useRef<HTMLDivElement>(null);
 
+  // Smart Auto-Hide on Scroll: Hides when scrolling down, reappears when scrolling up
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const lastScrollYRef = useRef(0);
+
+  useEffect(() => {
+    const getScrollY = () => {
+      if (isFullscreen && readerContainerRef.current) {
+        return readerContainerRef.current.scrollTop;
+      }
+      return typeof window !== 'undefined' ? window.scrollY : 0;
+    };
+
+    const handleScroll = () => {
+      const currentScrollY = getScrollY();
+      const diff = currentScrollY - lastScrollYRef.current;
+
+      // Near top of page: always show
+      if (currentScrollY <= 60) {
+        setIsHeaderVisible(true);
+      } else if (diff > 12) {
+        // Scrolling down: hide toolbar for immersion
+        setIsHeaderVisible(false);
+        setIsDisplayMenuOpen(false);
+      } else if (diff < -12) {
+        // Scrolling up: reveal toolbar
+        setIsHeaderVisible(true);
+      }
+      lastScrollYRef.current = currentScrollY;
+    };
+
+    const target = (isFullscreen && readerContainerRef.current) ? readerContainerRef.current : window;
+    target.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      target.removeEventListener('scroll', handleScroll);
+    };
+  }, [isFullscreen]);
+
   // Close display settings menu on click outside or escape key
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -358,15 +395,15 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
   };
 
   // Proportional stage sizing
-  // In fit-width mode, scale width comfortably (700px on desktop is ideal for reading King Fahd Mushaf)
-  const baseWidth = isFullscreen ? 900 : 700;
+  // In fit-width mode, scale width comfortably (620px desktop default for comfortable reading size)
+  const baseWidth = isFullscreen ? 820 : 620;
   const scaledWidth = Math.round(baseWidth * (zoomLevel / 100));
 
   // Dynamic page width strictly matching zoom level (100%, 150%, 200%, etc.) and view mode
   const activePageWidth = sheetWidth || (
     viewMode === 'fit-width'
       ? scaledWidth
-      : Math.round(((typeof window !== 'undefined' ? window.innerHeight : 800) - (isFullscreen ? 70 : 165)) * (zoomLevel / 100) * (1024 / 1656))
+      : Math.round(((typeof window !== 'undefined' ? window.innerHeight : 800) - (isFullscreen ? 70 : 160)) * (zoomLevel / 100) * (1024 / 1656))
   );
 
   return (
@@ -378,8 +415,12 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
       dir="rtl" 
       lang="ar"
     >
-      {/* 1. Sticky Navigation & Header */}
-      <div className="sticky top-[8px] z-40 mb-2 sm:mb-3">
+      {/* 1. Sticky Navigation & Header (Auto-Hides on Scroll Down, Reveals on Scroll Up) */}
+      <div 
+        className={`sticky top-[8px] z-40 mb-2 sm:mb-3 transition-all duration-300 ease-in-out ${
+          isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-28 opacity-0 pointer-events-none'
+        }`}
+      >
         <div className="flex flex-col gap-1 sm:gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 text-slate-900 dark:border-white/10 dark:bg-[#071d18]/95 dark:text-white py-1.5 px-2.5 sm:py-2 sm:px-3.5 shadow-md shadow-slate-900/5 dark:shadow-emerald-950/20 backdrop-blur-md transition-all">
           
           {/* Row 1: Title & Status (Right) + Display Settings Trigger (Left) */}
@@ -571,8 +612,8 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
 
           </div>
 
-          {/* Row 2: Primary Quran Navigation (Surah + Juz + Page together on Right, Today Button on Left) */}
-          <div className="flex items-center justify-between w-full pt-1 border-t border-slate-100 dark:border-white/5 gap-2">
+          {/* Row 2: Primary Quran Navigation (Surah + Juz + Page on Right, Quick Page Flips & Today Button on Left) */}
+          <div className="flex items-center justify-between w-full pt-1 border-t border-slate-200/70 dark:border-white/10 gap-2">
             
             {/* Right: Unified Navigation Group (Surah + Juz + Page clustered together) */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap">
@@ -610,9 +651,12 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                 <ChevronDown size={12} className="absolute left-1.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 pointer-events-none" />
               </div>
 
-              {/* Current Page Capsule (Grouped right alongside Surah & Juz) */}
-              <div className="flex items-center gap-1 h-7 sm:h-7.5 px-2 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs font-bold text-slate-800 dark:text-zinc-100 shadow-2xs">
-                <span className="text-slate-400 dark:text-zinc-400 text-[11px]">صفحة</span>
+              {/* Current Page Capsule (Interactive input pill with hover & focus ring) */}
+              <div 
+                className="flex items-center gap-1 h-7 sm:h-7.5 px-2 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs font-bold text-slate-800 dark:text-zinc-100 hover:border-emerald-500/50 dark:hover:border-emerald-400/40 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500/20 transition shadow-2xs cursor-text group"
+                title="انقر لتعديل رقم الصفحة والانتقال مباشرة إليها"
+              >
+                <span className="text-slate-400 dark:text-zinc-400 text-[11px] group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">صفحة</span>
                 <input
                   type="number"
                   min={1}
@@ -622,24 +666,50 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                     const val = parseInt(e.target.value, 10);
                     if (!isNaN(val)) goToPage(val);
                   }}
-                  className="w-8 sm:w-9 text-center font-numbers font-black text-xs text-emerald-700 dark:text-emerald-300 bg-transparent focus:outline-none border-b border-emerald-500/40"
+                  className="w-8 sm:w-9 text-center font-numbers font-black text-xs text-emerald-700 dark:text-emerald-300 bg-transparent focus:outline-none border-b border-emerald-500/30 focus:border-emerald-500"
                   aria-label="رقم صفحة المصحف"
-                  title="انقر لتعديل رقم الصفحة"
                 />
               </div>
             </div>
 
-            {/* Left: Today's Assigned Wird Page Button */}
-            <div>
+            {/* Left: Quick Page Turning (السابقة / التالية) & Today's Wird Button */}
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+              {/* Previous Page Button */}
+              <button
+                type="button"
+                onClick={prevPage}
+                disabled={currentPage <= 1}
+                className="flex items-center gap-0.5 sm:gap-1 h-7 sm:h-7.5 px-2 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition shadow-2xs cursor-pointer select-none"
+                title="الانتقال إلى الصفحة السابقة"
+                aria-label="الصفحة السابقة"
+              >
+                <span>السابقة</span>
+                <ChevronRight size={13} className="text-slate-400" />
+              </button>
+
+              {/* Next Page Button */}
+              <button
+                type="button"
+                onClick={nextPage}
+                disabled={currentPage >= 604}
+                className="flex items-center gap-0.5 sm:gap-1 h-7 sm:h-7.5 px-2 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition shadow-2xs cursor-pointer select-none"
+                title="الانتقال إلى الصفحة التالية"
+                aria-label="الصفحة التالية"
+              >
+                <ChevronLeft size={13} className="text-slate-400" />
+                <span>التالية</span>
+              </button>
+
+              {/* Today's Assigned Wird Page Button */}
               {!isTodayAssignedPage && (
                 <button
                   type="button"
                   onClick={() => goToPage(defaultDailyPage)}
-                  className="flex items-center gap-1 h-7 sm:h-7.5 px-2 sm:px-2.5 rounded-lg sm:rounded-xl border border-emerald-500/40 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20 text-xs font-bold transition shadow-2xs cursor-pointer"
+                  className="flex items-center gap-1 h-7 sm:h-7.5 px-2 rounded-lg sm:rounded-xl border border-emerald-500/40 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20 text-xs font-bold transition shadow-2xs cursor-pointer"
                   title={`الرجوع لصفحة الورد المخصصة لهذا اليوم (${defaultDailyPage})`}
                 >
                   <Calendar size={12} className="text-emerald-600 dark:text-emerald-400" />
-                  <span>صفحة اليوم</span>
+                  <span className="hidden sm:inline">صفحة اليوم</span>
                 </button>
               )}
             </div>
@@ -708,11 +778,11 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                   ? `calc((100vh - 70px) * ${zoomLevel / 100})` 
                   : `calc((100vh - 160px) * ${zoomLevel / 100})`)
               : 'none',
-            // In Fit Width mode, expand generously to fill width and zoom proportionally
+            // In Fit Width mode, expand proportionally; in Fit Screen, constrain comfortably
             width: viewMode === 'fit-width' ? '100%' : 'auto',
             maxWidth: viewMode === 'fit-width' 
               ? `${scaledWidth}px` 
-              : '100%',
+              : `min(100%, calc(640px * ${zoomLevel / 100}))`,
             touchAction: 'pan-y pinch-zoom',
           }}
         >
