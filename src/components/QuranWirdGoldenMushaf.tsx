@@ -566,62 +566,101 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
         </div>
       </div>
 
-      {/* 2. Top Page Header & Navigation Bar (Width dynamically matches Mushaf page width at 100%, 150%, 200%) */}
+      {/* 2. Top Page Header & Navigation Bar (Luxury Islamic Heritage UI) */}
       <div 
-        className="mx-auto mb-2.5 px-1 sm:px-0 transition-all duration-200"
+        className="mx-auto mb-3 px-1 sm:px-0 transition-all duration-200"
         style={{
           width: activePageWidth ? `${activePageWidth}px` : '100%',
           maxWidth: '100%',
         }}
       >
-        <div className="flex items-center justify-between gap-2 rounded-2xl border border-amber-500/25 bg-gradient-to-r from-amber-50/70 via-white/90 to-emerald-50/70 dark:border-amber-400/20 dark:from-[#081f1a]/95 dark:via-[#0b2721]/95 dark:to-[#081f1a]/95 p-1.5 sm:p-2.5 shadow-sm backdrop-blur-md transition-all">
+        <div className="relative overflow-hidden flex items-center justify-between gap-2 sm:gap-3 rounded-2xl sm:rounded-3xl border border-[#C8A15C]/45 dark:border-[#C8A15C]/30 bg-gradient-to-r from-[#FDFBF7] via-[#FBF7EC] to-[#F7F2E4] dark:from-[#071914] dark:via-[#09221b] dark:to-[#071914] px-2.5 sm:px-4 py-2 sm:py-2.5 min-h-[68px] sm:min-h-[74px] shadow-[0_4px_20px_-4px_rgba(38,55,47,0.08),0_0_1px_rgba(200,161,92,0.35)] dark:shadow-[0_8px_25px_-6px_rgba(0,0,0,0.6),0_0_1px_rgba(200,161,92,0.3)] transition-all">
           
-          {/* Right Button: Previous Page */}
+          {/* Subtle Geometric Background Watermark (3.5% Opacity) */}
+          <div 
+            className="absolute inset-0 opacity-[0.035] dark:opacity-[0.05] pointer-events-none select-none bg-[radial-gradient(#0B5946_1px,transparent_1px)] [background-size:16px_16px]"
+            aria-hidden="true" 
+          />
+
+          {/* Delicate Antique Gold Corner Accents (Islamic Manuscript Brackets) */}
+          <svg className="absolute top-1.5 right-1.5 w-3.5 h-3.5 text-[#C8A15C]/40 dark:text-[#C8A15C]/30 pointer-events-none" viewBox="0 0 14 14" fill="none">
+            <path d="M2 12V3.5A1.5 1.5 0 0 1 3.5 2H12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            <circle cx="4.5" cy="4.5" r="1" fill="currentColor" />
+          </svg>
+          <svg className="absolute top-1.5 left-1.5 w-3.5 h-3.5 text-[#C8A15C]/40 dark:text-[#C8A15C]/30 pointer-events-none" viewBox="0 0 14 14" fill="none">
+            <path d="M12 12V3.5A1.5 1.5 0 0 0 10.5 2H2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            <circle cx="9.5" cy="4.5" r="1" fill="currentColor" />
+          </svg>
+          <svg className="absolute bottom-1.5 right-1.5 w-3.5 h-3.5 text-[#C8A15C]/40 dark:text-[#C8A15C]/30 pointer-events-none" viewBox="0 0 14 14" fill="none">
+            <path d="M2 2v8.5A1.5 1.5 0 0 0 3.5 12H12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            <circle cx="4.5" cy="9.5" r="1" fill="currentColor" />
+          </svg>
+          <svg className="absolute bottom-1.5 left-1.5 w-3.5 h-3.5 text-[#C8A15C]/40 dark:text-[#C8A15C]/30 pointer-events-none" viewBox="0 0 14 14" fill="none">
+            <path d="M12 2v8.5A1.5 1.5 0 0 1 10.5 12H2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            <circle cx="9.5" cy="9.5" r="1" fill="currentColor" />
+          </svg>
+
+          {/* Right Button: Previous Page («السابقة») */}
           <button
             type="button"
             onClick={prevPage}
             disabled={currentPage <= 1}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border border-amber-500/20 bg-white/90 dark:border-white/10 dark:bg-white/5 text-slate-700 dark:text-zinc-200 hover:border-amber-500/40 hover:bg-amber-50/60 dark:hover:bg-amber-400/10 dark:hover:border-amber-400/30 disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer shrink-0 group"
+            className="relative z-10 flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-[#C8A15C]/35 bg-[#FBF7EC]/90 dark:border-[#C8A15C]/25 dark:bg-[#061612]/90 text-[#26372F] dark:text-[#FBF7EC] hover:bg-[#F3EBD8] hover:border-[#C8A15C] dark:hover:bg-[#0b2820] dark:hover:border-[#C8A15C]/60 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-[#C8A15C] focus-visible:outline-offset-2 disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer shrink-0 group select-none"
             title="الانتقال إلى الصفحة السابقة"
+            aria-label={`الصفحة السابقة ${currentPage > 1 ? currentPage - 1 : 1}`}
           >
-            <ChevronRight size={18} className="text-amber-600 dark:text-amber-400 group-hover:translate-x-0.5 transition-transform" />
+            <span className="flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-[#0B5946]/10 dark:bg-[#C8A15C]/15 text-[#0B5946] dark:text-[#C8A15C] group-hover:bg-[#0B5946] group-hover:text-white dark:group-hover:bg-[#C8A15C] dark:group-hover:text-[#061612] transition-colors">
+              <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+            </span>
             <div className="flex flex-col items-start leading-tight">
-              <span className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-zinc-200">السابقة</span>
-              <span className="text-[10px] font-numbers text-slate-400 dark:text-zinc-500">
+              <span className="text-[11px] sm:text-xs font-bold text-[#26372F] dark:text-[#FBF7EC]">السابقة</span>
+              <span className="text-[10px] font-numbers font-medium text-[#87928B] dark:text-[#a0ab9f]">
                 {currentPage > 1 ? `صـ ${currentPage - 1}` : 'الأولى'}
               </span>
             </div>
           </button>
 
-          {/* Central Highlight: Surah Name, Juz & Interactive Page Badge */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 py-0.5 px-2 text-center min-w-0">
-            {/* Surah Name Badge */}
+          {/* Central Showcase: Surah, 8-Pointed Star Badge, Juz & Page Capsule */}
+          <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-3 py-0.5 px-1 text-center min-w-0">
+            {/* Surah Name & Islamic Octagonal Badge */}
             <div className="flex items-center gap-2 shrink-0">
-              <span className="flex items-center justify-center h-6 w-6 rounded-lg bg-amber-500/15 text-amber-800 dark:bg-amber-400/15 dark:text-amber-300 font-numbers text-xs font-black">
-                {currentSurah.number}
-              </span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-[11px] font-bold text-slate-400 dark:text-zinc-500">سورة</span>
-                <h2 className="font-arabic text-base sm:text-lg font-black text-amber-900 dark:text-amber-300 tracking-wide">
+              {/* Authentic 8-Pointed Islamic Star (Rub El Hizb) with Surah Number */}
+              <div 
+                className="relative flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 select-none shrink-0" 
+                title={`سورة رقم ${currentSurah.number}`}
+              >
+                <svg className="absolute inset-0 w-full h-full drop-shadow-2xs" viewBox="0 0 24 24" fill="none">
+                  <rect x="3.8" y="3.8" width="16.4" height="16.4" rx="2" className="fill-[#0B5946] dark:fill-[#0c3127] stroke-[#C8A15C] dark:stroke-[#C8A15C]" strokeWidth="1.2" />
+                  <rect x="3.8" y="3.8" width="16.4" height="16.4" rx="2" transform="rotate(45 12 12)" className="fill-[#0B5946] dark:fill-[#0c3127] stroke-[#C8A15C] dark:stroke-[#C8A15C]" strokeWidth="1.2" />
+                </svg>
+                <span className="relative z-10 font-numbers text-[11px] sm:text-xs font-black text-[#FBF7EC] dark:text-[#E8D198]">
+                  {currentSurah.number}
+                </span>
+              </div>
+
+              {/* Surah Title (Visual Peak) */}
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[11px] font-bold text-[#87928B] dark:text-[#9eaba3]">سورة</span>
+                <h2 className="font-arabic text-lg sm:text-2xl font-black text-[#0B5946] dark:text-[#E8D198] tracking-wide leading-none">
                   {currentSurah.name}
                 </h2>
               </div>
             </div>
 
-            {/* Separator Dot */}
-            <span className="hidden sm:inline-block text-amber-500/40 font-bold">•</span>
+            {/* Islamic Separator (Antique Gold Medallion) */}
+            <span className="hidden sm:inline-block text-[#C8A15C]/65 text-xs select-none" aria-hidden="true">۞</span>
 
-            {/* Juz Name Badge */}
-            <div className="hidden md:flex items-center gap-1 text-xs font-bold text-emerald-800 dark:text-teal-300 shrink-0">
-              <span>{currentJuz.name}</span>
+            {/* Juz Info Badge */}
+            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border border-[#C8A15C]/25 bg-[#0B5946]/5 dark:bg-[#0B5946]/20 text-xs font-bold text-[#26372F] dark:text-[#c7d4cc] shrink-0">
+              <span className="text-[#0B5946] dark:text-[#7ee8ce]">{currentJuz.name}</span>
             </div>
 
-            {/* Separator Dot */}
-            <span className="hidden md:inline-block text-amber-500/40 font-bold">•</span>
+            {/* Islamic Separator (Antique Gold Medallion) */}
+            <span className="hidden md:inline-block text-[#C8A15C]/65 text-xs select-none" aria-hidden="true">۞</span>
 
-            {/* Direct Page Input & Progress */}
-            <div className="flex items-center gap-1.5 bg-amber-50/80 dark:bg-white/5 border border-amber-500/30 dark:border-amber-400/20 px-2.5 py-1 rounded-xl shadow-inner shrink-0">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400">صفحة</span>
+            {/* Interactive Page Capsule with Gold Border */}
+            <div className="flex items-center gap-1.5 bg-[#FBF7EC] dark:bg-[#061612] border border-[#C8A15C]/45 dark:border-[#C8A15C]/35 px-2.5 sm:px-3 py-1 rounded-xl shadow-inner shrink-0">
+              <span className="text-[11px] font-bold text-[#87928B] dark:text-[#9eaba3]">صفحة</span>
               <input
                 type="number"
                 min={1}
@@ -631,28 +670,31 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                   const val = parseInt(e.target.value, 10);
                   if (!isNaN(val)) goToPage(val);
                 }}
-                className="w-12 text-center font-numbers font-black text-sm sm:text-base text-amber-900 dark:text-amber-200 bg-transparent border-b border-amber-500/40 focus:outline-none selection:bg-amber-200"
+                className="w-12 text-center font-numbers font-black text-sm sm:text-base text-[#0B5946] dark:text-[#E8D198] bg-transparent border-b border-[#C8A15C]/50 focus:outline-none selection:bg-[#C8A15C]/30"
                 aria-label="رقم صفحة المصحف"
               />
-              <span className="text-[11px] font-bold text-slate-400 dark:text-zinc-500 font-numbers">من 604</span>
+              <span className="text-[11px] font-bold text-[#87928B] dark:text-[#9eaba3] font-numbers">من 604</span>
             </div>
           </div>
 
-          {/* Left Button: Next Page */}
+          {/* Left Button: Next Page («التالية») */}
           <button
             type="button"
             onClick={nextPage}
             disabled={currentPage >= 604}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border border-amber-500/20 bg-white/90 dark:border-white/10 dark:bg-white/5 text-slate-700 dark:text-zinc-200 hover:border-amber-500/40 hover:bg-amber-50/60 dark:hover:bg-amber-400/10 dark:hover:border-amber-400/30 disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer shrink-0 group"
+            className="relative z-10 flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-[#C8A15C]/35 bg-[#FBF7EC]/90 dark:border-[#C8A15C]/25 dark:bg-[#061612]/90 text-[#26372F] dark:text-[#FBF7EC] hover:bg-[#F3EBD8] hover:border-[#C8A15C] dark:hover:bg-[#0b2820] dark:hover:border-[#C8A15C]/60 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-[#C8A15C] focus-visible:outline-offset-2 disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer shrink-0 group select-none"
             title="الانتقال إلى الصفحة التالية"
+            aria-label={`الصفحة التالية ${currentPage < 604 ? currentPage + 1 : 604}`}
           >
             <div className="flex flex-col items-end leading-tight">
-              <span className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-zinc-200">التالية</span>
-              <span className="text-[10px] font-numbers text-slate-400 dark:text-zinc-500">
+              <span className="text-[11px] sm:text-xs font-bold text-[#26372F] dark:text-[#FBF7EC]">التالية</span>
+              <span className="text-[10px] font-numbers font-medium text-[#87928B] dark:text-[#a0ab9f]">
                 {currentPage < 604 ? `صـ ${currentPage + 1}` : 'الختام'}
               </span>
             </div>
-            <ChevronLeft size={18} className="text-amber-600 dark:text-amber-400 group-hover:-translate-x-0.5 transition-transform" />
+            <span className="flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-[#0B5946]/10 dark:bg-[#C8A15C]/15 text-[#0B5946] dark:text-[#C8A15C] group-hover:bg-[#0B5946] group-hover:text-white dark:group-hover:bg-[#C8A15C] dark:group-hover:text-[#061612] transition-colors">
+              <ChevronLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
+            </span>
           </button>
 
         </div>
