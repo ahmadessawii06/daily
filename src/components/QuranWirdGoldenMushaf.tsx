@@ -6,6 +6,8 @@ import {
   Shuffle,
   ChevronLeft, 
   ChevronRight, 
+  ChevronDown,
+  SlidersHorizontal,
   Maximize2, 
   Minimize2, 
   ExternalLink, 
@@ -104,6 +106,30 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoadingImage, setIsLoadingImage] = useState(true);
+  const [isDisplayMenuOpen, setIsDisplayMenuOpen] = useState(false);
+  const displayMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close display settings menu on click outside or escape key
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (displayMenuRef.current && !displayMenuRef.current.contains(event.target as Node)) {
+        setIsDisplayMenuOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsDisplayMenuOpen(false);
+      }
+    }
+    if (isDisplayMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isDisplayMenuOpen]);
 
   // Timer & Session state
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(() => {
@@ -354,210 +380,273 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
     >
       {/* 1. Sticky Navigation & Header */}
       <div className="sticky top-[8px] z-40 mb-3 sm:mb-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3.5 rounded-2xl border border-emerald-600/20 bg-white/95 text-slate-900 dark:border-teal-400/25 dark:bg-[#06221d]/95 dark:text-white px-3 py-2 sm:px-4 sm:py-2.5 shadow-lg shadow-slate-900/5 dark:shadow-emerald-950/20 backdrop-blur-md transition-all">
+        <div className="flex flex-col gap-2 rounded-2xl border border-slate-200/90 bg-white/95 text-slate-900 dark:border-white/10 dark:bg-[#071d18]/95 dark:text-white p-2.5 sm:p-3 shadow-lg shadow-slate-900/5 dark:shadow-emerald-950/20 backdrop-blur-md transition-all">
           
-          {/* Right side: Title & Current Page Meta */}
-          <div className="flex w-full sm:w-auto items-center justify-between sm:justify-start gap-2.5 shrink-0">
+          {/* Row 1: Title & Status (Right) + Display Settings Trigger (Left) */}
+          <div className="flex items-center justify-between w-full px-0.5">
+            
+            {/* Title & Status Badge */}
             <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 border border-amber-500/25 dark:bg-amber-400/10 dark:border-amber-400/20 shadow-2xs">
-                <BookOpen size={18} className="text-amber-600 dark:text-amber-300" />
+              <span className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 dark:bg-amber-400/10 dark:border-amber-400/20 shadow-2xs">
+                <BookOpen size={16} className="text-amber-600 dark:text-amber-300" />
               </span>
-              <div className="flex items-center gap-1.5">
-                <h1 className="font-arabic text-sm sm:text-base font-black text-slate-950 dark:text-white leading-tight">
-                  الورد القرآني
-                </h1>
-                {isCompleted && (
-                  <span className="rounded-full bg-emerald-100 text-emerald-800 dark:bg-teal-500/20 dark:text-[#5EEAD4] px-2 py-0.2 text-[10px] font-bold">
-                    تم الإنجاز ✓
-                  </span>
-                )}
+              <h1 className="font-arabic text-sm sm:text-base font-black text-slate-900 dark:text-white leading-tight">
+                الورد القرآني
+              </h1>
+              {isCompleted && (
+                <span className="rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-800 dark:bg-emerald-500/15 dark:text-[#5EEAD4] dark:border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold select-none">
+                  تم الإنجاز
+                </span>
+              )}
+            </div>
+
+            {/* Display Settings Menu Trigger */}
+            <div className="relative" ref={displayMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsDisplayMenuOpen(prev => !prev)}
+                className={`flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-xl border text-xs sm:text-sm font-bold transition shadow-2xs cursor-pointer select-none ${
+                  isDisplayMenuOpen
+                    ? 'border-emerald-500/50 bg-emerald-50 text-emerald-900 dark:border-emerald-400/40 dark:bg-emerald-950/40 dark:text-emerald-200'
+                    : 'border-slate-200/90 bg-slate-50/80 text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 dark:hover:bg-white/10'
+                }`}
+                title="إعدادات العرض والتكبير والمؤقت"
+                aria-expanded={isDisplayMenuOpen}
+              >
+                <SlidersHorizontal size={14} className="text-slate-500 dark:text-zinc-400" />
+                <span>العرض</span>
+              </button>
+
+              {/* Display Settings Popover Menu */}
+              {isDisplayMenuOpen && (
+                <div className="absolute left-0 top-full mt-2 w-72 sm:w-80 rounded-2xl border border-slate-200/90 bg-white/98 p-3.5 shadow-xl backdrop-blur-md dark:border-white/10 dark:bg-[#0c1c18]/98 dark:text-white z-50 transition-all text-xs">
+                  
+                  {/* Header */}
+                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-100 dark:border-white/10">
+                    <span className="font-bold text-slate-800 dark:text-zinc-100 text-xs">إعدادات العرض</span>
+                    <span className="text-[10px] text-slate-400 dark:text-zinc-500">تخصيص القراءة</span>
+                  </div>
+
+                  {/* 1. View Mode */}
+                  <div className="space-y-1.5 mb-3">
+                    <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400">وضع عرض الصفحة</span>
+                    <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
+                      <button
+                        type="button"
+                        onClick={() => handleSetViewMode('fit-screen')}
+                        className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg font-bold transition cursor-pointer ${
+                          viewMode === 'fit-screen'
+                            ? 'bg-emerald-600 text-white dark:bg-[#22D3B6] dark:text-[#04251F] shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900 dark:text-zinc-300 dark:hover:text-white'
+                        }`}
+                        title="عرض الصفحة كاملة متناسقة مع ارتفاع الشاشة دون أي قص"
+                      >
+                        <StretchHorizontal size={13} />
+                        <span>ملاء الشاشة</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSetViewMode('fit-width')}
+                        className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg font-bold transition cursor-pointer ${
+                          viewMode === 'fit-width'
+                            ? 'bg-emerald-600 text-white dark:bg-[#22D3B6] dark:text-[#04251F] shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900 dark:text-zinc-300 dark:hover:text-white'
+                        }`}
+                        title="توسيع الصفحة لكامل العرض مع تكبير الخط والتمرير العمودي"
+                      >
+                        <Expand size={13} />
+                        <span>ملاء العرض</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 2. Zoom Controls */}
+                  <div className="space-y-1.5 mb-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400">نسبة التكبير</span>
+                      <button
+                        type="button"
+                        onClick={handleResetZoom}
+                        className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                        title="إعادة ضبط الحجم إلى 100%"
+                      >
+                        إعادة ضبط (100%)
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 p-1.5 rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/5">
+                      <button
+                        type="button"
+                        onClick={handleZoomOut}
+                        disabled={zoomLevel <= 75}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white dark:hover:bg-white/10 text-slate-700 dark:text-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer shadow-2xs"
+                        title="تصغير (-)"
+                        aria-label="تصغير حجم الصفحة"
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <span className="font-numbers font-black text-sm text-slate-800 dark:text-zinc-100">
+                        {zoomLevel}%
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleZoomIn}
+                        disabled={zoomLevel >= 500}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white dark:hover:bg-white/10 text-slate-700 dark:text-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer shadow-2xs"
+                        title="تكبير (+)"
+                        aria-label="تكبير حجم الصفحة"
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 3. Fullscreen */}
+                  <button
+                    type="button"
+                    onClick={toggleFullscreen}
+                    className="w-full flex items-center justify-between p-2 mb-3 rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 text-xs font-bold text-slate-700 dark:text-zinc-200 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                      <span>{isFullscreen ? 'الخروج من ملء الشاشة' : 'عرض بملء الشاشة'}</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-normal">مفتاح F</span>
+                  </button>
+
+                  {/* 4. Session Timer */}
+                  <div className="p-2 mb-3 rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/5 flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-medium">مدة الجلسة الحالية</span>
+                      <span className="font-numbers font-black text-sm text-emerald-800 dark:text-[#5EEAD4] tabular-nums">
+                        {formatClock(elapsedSeconds)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setTimerRunning(!timerRunning)}
+                        className="flex h-7 px-2.5 items-center gap-1 rounded-lg bg-emerald-600 text-white dark:bg-teal-500/20 dark:text-[#5EEAD4] text-xs font-bold hover:opacity-90 transition cursor-pointer"
+                        title={timerRunning ? 'إيقاف المؤقت' : 'تشغيل المؤقت'}
+                      >
+                        {timerRunning ? <Pause size={12} /> : <Play size={12} />}
+                        <span>{timerRunning ? 'إيقاف' : 'بدء'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setElapsedSeconds(0); setTimerRunning(false); }}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 transition cursor-pointer"
+                        title="تصفير المؤقت"
+                      >
+                        <RotateCcw size={12} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 5. Random Page & External Source */}
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => { rollRandomPage(); setIsDisplayMenuOpen(false); }}
+                      className="flex items-center gap-1.5 text-slate-600 dark:text-zinc-300 hover:text-emerald-700 dark:hover:text-emerald-400 font-bold transition cursor-pointer"
+                      title="اختيار صفحة عشوائية من المصحف"
+                    >
+                      <Shuffle size={13} />
+                      <span>صفحة عشوائية 🎲</span>
+                    </button>
+
+                    <a
+                      href={`https://goldenquran.org/mushaf/${currentPage}/`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-slate-500 dark:text-zinc-400 hover:underline text-[11px]"
+                    >
+                      <span>المصحف الذهبي</span>
+                      <ExternalLink size={11} />
+                    </a>
+                  </div>
+
+                </div>
+              )}
+            </div>
+
+          </div>
+
+          {/* Row 2: Primary Quran Navigation (Surah & Juz on Right, Current Page & Today Button on Left) */}
+          <div className="flex items-center justify-between w-full pt-1.5 border-t border-slate-100 dark:border-white/10 gap-2">
+            
+            {/* Right: Surah & Juz selectors */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* Surah Dropdown */}
+              <div className="relative">
+                <select
+                  value={currentSurah.page}
+                  onChange={(e) => goToPage(Number(e.target.value))}
+                  className="appearance-none h-8 sm:h-8.5 pl-7 pr-3 rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs sm:text-sm font-bold text-slate-800 dark:text-zinc-100 hover:border-slate-300 dark:hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition shadow-2xs"
+                  aria-label="الانتقال إلى سورة"
+                >
+                  {QURAN_SURAHS.map((s) => (
+                    <option key={s.number} value={s.page} className="bg-white dark:bg-[#071915] text-slate-900 dark:text-white">
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 pointer-events-none" />
+              </div>
+
+              {/* Juz Dropdown */}
+              <div className="relative">
+                <select
+                  value={currentJuz.page}
+                  onChange={(e) => goToPage(Number(e.target.value))}
+                  className="appearance-none h-8 sm:h-8.5 pl-7 pr-3 rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs sm:text-sm font-bold text-slate-800 dark:text-zinc-100 hover:border-slate-300 dark:hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition shadow-2xs"
+                  aria-label="الانتقال إلى جزء"
+                >
+                  {QURAN_JUZS.map((j) => (
+                    <option key={j.number} value={j.page} className="bg-white dark:bg-[#071915] text-slate-900 dark:text-white">
+                      {j.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 pointer-events-none" />
               </div>
             </div>
 
-            {/* Quick Randomize Page Button */}
-            <button
-              type="button"
-              onClick={rollRandomPage}
-              className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-50/90 hover:bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-amber-200 dark:hover:bg-amber-400/25 transition shadow-2xs cursor-pointer"
-              title="اختيار صفحة عشوائية جديدة من المصحف الشريف"
-            >
-              <Shuffle size={13} className="text-amber-700 dark:text-amber-300" />
-              <span>صفحة عشوائية 🎲</span>
-            </button>
-          </div>
+            {/* Left: Current Page Capsule & Back to Today Button */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Current Page Capsule */}
+              <div className="flex items-center gap-1 h-8 sm:h-8.5 px-2.5 rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs sm:text-sm font-bold text-slate-800 dark:text-zinc-100 shadow-2xs">
+                <span className="text-slate-400 dark:text-zinc-400 text-xs">صفحة</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={604}
+                  value={currentPage}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value, 10);
+                    if (!isNaN(val)) goToPage(val);
+                  }}
+                  className="w-8 sm:w-10 text-center font-numbers font-black text-xs sm:text-sm text-emerald-700 dark:text-emerald-300 bg-transparent focus:outline-none border-b border-emerald-500/40"
+                  aria-label="رقم صفحة المصحف"
+                  title="انقر لتعديل رقم الصفحة"
+                />
+              </div>
 
-          {/* Central Controls: Surah & Juz jump + Daily button */}
-          <div className="flex flex-wrap items-center justify-center gap-2 w-full sm:w-auto">
-            {/* Surah Dropdown */}
-            <select
-              value={currentSurah.page}
-              onChange={(e) => goToPage(Number(e.target.value))}
-              className="h-8 rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5 px-2 text-xs font-bold text-slate-800 dark:text-zinc-200 focus:outline-emerald-500 cursor-pointer"
-              aria-label="الانتقال إلى سورة"
-            >
-              <option value="" disabled>اختر السورة...</option>
-              {QURAN_SURAHS.map((s) => (
-                <option key={s.number} value={s.page}>
-                  {s.number}. {s.name}
-                </option>
-              ))}
-            </select>
-
-            {/* Juz Dropdown */}
-            <select
-              value={currentJuz.page}
-              onChange={(e) => goToPage(Number(e.target.value))}
-              className="h-8 rounded-xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5 px-2 text-xs font-bold text-slate-800 dark:text-zinc-200 focus:outline-emerald-500 cursor-pointer"
-              aria-label="الانتقال إلى جزء"
-            >
-              <option value="" disabled>اختر الجزء...</option>
-              {QURAN_JUZS.map((j) => (
-                <option key={j.number} value={j.page}>
-                  {j.name} (ص {j.page})
-                </option>
-              ))}
-            </select>
-
-            {/* Back to Today's Assigned Wird button if not on it */}
-            {!isTodayAssignedPage && (
-              <button
-                type="button"
-                onClick={() => goToPage(defaultDailyPage)}
-                className="flex items-center gap-1 h-8 rounded-xl border border-emerald-600/30 bg-emerald-50/80 hover:bg-emerald-100 px-2.5 text-xs font-bold text-emerald-900 dark:border-teal-400/30 dark:bg-teal-400/10 dark:text-[#5EEAD4] transition cursor-pointer"
-                title="الرجوع لصفحة الورد المخصصة لهذا اليوم"
-              >
-                <Calendar size={13} />
-                <span>صفحة اليوم ({defaultDailyPage})</span>
-              </button>
-            )}
-          </div>
-
-          {/* Tools Menu: View Mode Switcher, Zoom Controls, Night Mode, Stopwatch, Fullscreen */}
-          <div className="flex flex-wrap w-full sm:w-auto items-center justify-between sm:justify-end gap-1.5 shrink-0">
-            
-            {/* View Mode Switcher: ملاء الشاشة vs ملاء العرض */}
-            <div className="flex items-center rounded-xl border border-emerald-600/20 bg-slate-100/90 dark:border-white/10 dark:bg-white/5 p-0.5 shadow-2xs">
-              <button
-                type="button"
-                onClick={() => handleSetViewMode('fit-screen')}
-                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                  viewMode === 'fit-screen'
-                    ? 'bg-emerald-600 text-white dark:bg-[#22D3B6] dark:text-[#04251F] shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 dark:text-zinc-300 dark:hover:text-white'
-                }`}
-                title="ملاء الشاشة: عرض الصفحة بالكامل متناسقة مع ارتفاع الشاشة دون أي قص"
-              >
-                <StretchHorizontal size={13} />
-                <span>ملاء الشاشة</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSetViewMode('fit-width')}
-                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                  viewMode === 'fit-width'
-                    ? 'bg-emerald-600 text-white dark:bg-[#22D3B6] dark:text-[#04251F] shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 dark:text-zinc-300 dark:hover:text-white'
-                }`}
-                title="ملاء العرض: توسيع الصفحة لكامل العرض لتكبير الكلمات وقراءة مريحة مع تمرير عمودي"
-              >
-                <Expand size={13} />
-                <span>ملاء العرض</span>
-              </button>
-            </div>
-
-            {/* Stopwatch Badge */}
-            <div className="flex items-center gap-1 text-xs text-slate-700 bg-slate-100/90 border border-slate-200 dark:text-teal-200 dark:bg-white/5 dark:border-white/10 px-2 py-1 rounded-xl">
-              <button
-                type="button"
-                onClick={() => setTimerRunning(!timerRunning)}
-                className="hover:opacity-75 transition cursor-pointer"
-                title={timerRunning ? 'إيقاف المؤقت' : 'تشغيل المؤقت'}
-              >
-                {timerRunning ? <Pause size={12} className="text-emerald-600" /> : <Play size={12} className="text-slate-500" />}
-              </button>
-              <span className="font-numbers font-bold tabular-nums text-emerald-800 dark:text-[#5EEAD4]">{formatClock(elapsedSeconds)}</span>
-            </div>
-
-            {/* Zoom Stepper Controls: [-] [100%] [+] up to 500% */}
-            <div className="flex items-center gap-0.5 rounded-xl border border-slate-200 bg-slate-50/90 dark:border-white/10 dark:bg-white/5 px-1 py-0.5 text-xs shadow-2xs">
-              <button
-                type="button"
-                onClick={handleZoomOut}
-                disabled={zoomLevel <= 75}
-                className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white dark:hover:bg-white/10 text-slate-700 dark:text-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
-                title="تصغير (-)"
-                aria-label="تصغير حجم الصفحة"
-              >
-                <Minus size={13} />
-              </button>
-
-              <button
-                type="button"
-                onClick={handleResetZoom}
-                className="px-1.5 py-0.5 font-numbers text-[11px] font-black text-slate-700 dark:text-zinc-200 hover:text-emerald-700 dark:hover:text-[#5EEAD4] transition cursor-pointer"
-                title="إعادة ضبط الحجم الافتراضي (100%)"
-              >
-                {zoomLevel}%
-              </button>
-
-              <button
-                type="button"
-                onClick={handleZoomIn}
-                disabled={zoomLevel >= 500}
-                className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white dark:hover:bg-white/10 text-slate-700 dark:text-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
-                title="تكبير (+ حتى 500%)"
-                aria-label="تكبير حجم الصفحة حتى 500%"
-              >
-                <Plus size={13} />
-              </button>
-            </div>
-
-            {/* Quick Preset Buttons (100%, 150%, 200%) */}
-            <div className="hidden lg:flex items-center gap-1">
-              {[
-                { label: '100%', val: 100 },
-                { label: '150%', val: 150 },
-                { label: '200%', val: 200 }
-              ].map(preset => (
+              {/* Today's Assigned Wird Page Button */}
+              {!isTodayAssignedPage && (
                 <button
-                  key={preset.val}
                   type="button"
-                  onClick={() => handleSetZoomLevel(preset.val)}
-                  className={`h-7 px-2 rounded-lg text-[10px] font-bold border transition cursor-pointer ${
-                    zoomLevel === preset.val
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-800 dark:bg-teal-500/20 dark:text-[#5EEAD4]'
-                      : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/5'
-                  }`}
-                  title={`تكبير ${preset.label}`}
+                  onClick={() => goToPage(defaultDailyPage)}
+                  className="flex items-center gap-1 h-8 sm:h-8.5 px-2.5 rounded-xl border border-emerald-500/40 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20 text-xs sm:text-sm font-bold transition shadow-2xs cursor-pointer"
+                  title={`الرجوع لصفحة الورد المخصصة لهذا اليوم (${defaultDailyPage})`}
                 >
-                  {preset.label}
+                  <Calendar size={13} className="text-emerald-600 dark:text-emerald-400" />
+                  <span>صفحة اليوم</span>
                 </button>
-              ))}
+              )}
             </div>
 
-            {/* Fullscreen toggle */}
-            <button
-              type="button"
-              onClick={toggleFullscreen}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 transition shadow-2xs cursor-pointer"
-              title={isFullscreen ? 'الخروج من ملء الشاشة' : 'عرض ملء الشاشة (F)'}
-              aria-label="ملء الشاشة"
-            >
-              {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-            </button>
-
-            {/* Direct GoldenQuran link */}
-            <a
-              href={`https://goldenquran.org/mushaf/${currentPage}/`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-50 text-amber-900 hover:bg-amber-100 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-200 transition shadow-2xs"
-              title="فتح هذه الصفحة في المصحف الذهبي"
-              aria-label="المصحف الذهبي"
-            >
-              <ExternalLink size={14} />
-            </a>
           </div>
+
         </div>
       </div>
 
