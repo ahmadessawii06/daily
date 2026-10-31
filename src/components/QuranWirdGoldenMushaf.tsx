@@ -115,6 +115,32 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
 
   const [timerRunning, setTimerRunning] = useState<boolean>(false);
   const readerContainerRef = useRef<HTMLDivElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const [sheetWidth, setSheetWidth] = useState<number | null>(null);
+
+  // Sync sheetWidth in real-time with the Mushaf page container's rendered width
+  useEffect(() => {
+    if (!sheetRef.current) return;
+    const updateWidth = () => {
+      if (sheetRef.current) {
+        const rect = sheetRef.current.getBoundingClientRect();
+        if (rect && rect.width > 0) {
+          setSheetWidth(Math.round(rect.width));
+        }
+      }
+    };
+
+    updateWidth();
+    const observer = new ResizeObserver(() => {
+      updateWidth();
+    });
+    observer.observe(sheetRef.current);
+    window.addEventListener('resize', updateWidth);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateWidth);
+    };
+  }, [viewMode, zoomLevel, currentPage, isFullscreen]);
 
   // Surah & Juz meta
   const currentSurah = getSurahForPage(currentPage);
@@ -309,6 +335,13 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
   // In fit-width mode, scale width generously up to 1180px (like GoldenQuran's max-width: 1180px)
   const baseWidth = isFullscreen ? 1100 : 860;
   const scaledWidth = Math.round(baseWidth * (zoomLevel / 100));
+
+  // Dynamic page width strictly matching zoom level (100%, 150%, 200%, etc.) and view mode
+  const activePageWidth = sheetWidth || (
+    viewMode === 'fit-width'
+      ? scaledWidth
+      : Math.round(((typeof window !== 'undefined' ? window.innerHeight : 800) - (isFullscreen ? 100 : 180)) * (zoomLevel / 100) * (1024 / 1656))
+  );
 
   return (
     <div 
@@ -533,8 +566,14 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
         </div>
       </div>
 
-      {/* 2. Top Page Header & Navigation Bar */}
-      <div className="w-full max-w-4xl mx-auto mb-3 px-1 sm:px-2">
+      {/* 2. Top Page Header & Navigation Bar (Width dynamically matches Mushaf page width at 100%, 150%, 200%) */}
+      <div 
+        className="mx-auto mb-2.5 px-1 sm:px-0 transition-all duration-200"
+        style={{
+          width: activePageWidth ? `${activePageWidth}px` : '100%',
+          maxWidth: '100%',
+        }}
+      >
         <div className="flex items-center justify-between gap-2 rounded-2xl border border-amber-500/25 bg-gradient-to-r from-amber-50/70 via-white/90 to-emerald-50/70 dark:border-amber-400/20 dark:from-[#081f1a]/95 dark:via-[#0b2721]/95 dark:to-[#081f1a]/95 p-1.5 sm:p-2.5 shadow-sm backdrop-blur-md transition-all">
           
           {/* Right Button: Previous Page */}
@@ -656,6 +695,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
 
         {/* The Golden Quran Sheet Container */}
         <div 
+          ref={sheetRef}
           className="mushaf-sheet relative flex flex-col items-center justify-center rounded-xl sm:rounded-2xl transition-all select-none shadow-2xl"
           style={{
             background: isNight
@@ -719,8 +759,14 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
         </div>
       </div>
 
-      {/* 4. Page Footer Ribbon Info (Below the sheet, never overlaps image) */}
-      <div className="w-full max-w-4xl mx-auto my-2 flex items-center justify-between rounded-xl border border-[#C8A951]/25 bg-white/90 dark:bg-[#061b17]/90 px-4 py-2 text-xs text-slate-700 dark:text-zinc-300 shadow-xs">
+      {/* 4. Page Footer Ribbon Info (Below the sheet, matches exact page width) */}
+      <div 
+        className="mx-auto my-2 flex items-center justify-between rounded-xl border border-[#C8A951]/25 bg-white/90 dark:bg-[#061b17]/90 px-3 sm:px-4 py-2 text-xs text-slate-700 dark:text-zinc-300 shadow-xs transition-all duration-200"
+        style={{
+          width: activePageWidth ? `${activePageWidth}px` : '100%',
+          maxWidth: '100%',
+        }}
+      >
         <div className="flex items-center gap-2">
           <span className="font-bold text-amber-800 dark:text-amber-300">{currentSurah.name}</span>
           <span className="text-slate-400">•</span>
@@ -755,7 +801,13 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
       </div>
 
       {/* 5. Action Section: Completion Button & Session Tracker */}
-      <div className="w-full max-w-4xl mx-auto mt-4 sm:mt-5 space-y-3">
+      <div 
+        className="mx-auto mt-4 sm:mt-5 space-y-3 transition-all duration-200"
+        style={{
+          width: activePageWidth ? `${activePageWidth}px` : '100%',
+          maxWidth: '100%',
+        }}
+      >
         {/* Main Wird Completion Button */}
         <button
           type="button"
