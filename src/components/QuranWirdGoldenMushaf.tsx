@@ -358,15 +358,15 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
   };
 
   // Proportional stage sizing
-  // In fit-width mode, scale width generously up to 1180px (like GoldenQuran's max-width: 1180px)
-  const baseWidth = isFullscreen ? 1100 : 860;
+  // In fit-width mode, scale width comfortably (700px on desktop is ideal for reading King Fahd Mushaf)
+  const baseWidth = isFullscreen ? 900 : 700;
   const scaledWidth = Math.round(baseWidth * (zoomLevel / 100));
 
   // Dynamic page width strictly matching zoom level (100%, 150%, 200%, etc.) and view mode
   const activePageWidth = sheetWidth || (
     viewMode === 'fit-width'
       ? scaledWidth
-      : Math.round(((typeof window !== 'undefined' ? window.innerHeight : 800) - (isFullscreen ? 100 : 180)) * (zoomLevel / 100) * (1024 / 1656))
+      : Math.round(((typeof window !== 'undefined' ? window.innerHeight : 800) - (isFullscreen ? 70 : 165)) * (zoomLevel / 100) * (1024 / 1656))
   );
 
   return (
@@ -379,22 +379,22 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
       lang="ar"
     >
       {/* 1. Sticky Navigation & Header */}
-      <div className="sticky top-[8px] z-40 mb-3 sm:mb-4">
-        <div className="flex flex-col gap-2 rounded-2xl border border-slate-200/90 bg-white/95 text-slate-900 dark:border-white/10 dark:bg-[#071d18]/95 dark:text-white p-2.5 sm:p-3 shadow-lg shadow-slate-900/5 dark:shadow-emerald-950/20 backdrop-blur-md transition-all">
+      <div className="sticky top-[8px] z-40 mb-2 sm:mb-3">
+        <div className="flex flex-col gap-1 sm:gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 text-slate-900 dark:border-white/10 dark:bg-[#071d18]/95 dark:text-white py-1.5 px-2.5 sm:py-2 sm:px-3.5 shadow-md shadow-slate-900/5 dark:shadow-emerald-950/20 backdrop-blur-md transition-all">
           
           {/* Row 1: Title & Status (Right) + Display Settings Trigger (Left) */}
           <div className="flex items-center justify-between w-full px-0.5">
             
             {/* Title & Status Badge */}
-            <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 dark:bg-amber-400/10 dark:border-amber-400/20 shadow-2xs">
-                <BookOpen size={16} className="text-amber-600 dark:text-amber-300" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="flex h-6.5 w-6.5 sm:h-7 sm:w-7 items-center justify-center rounded-lg sm:rounded-xl bg-amber-500/10 border border-amber-500/20 dark:bg-amber-400/10 dark:border-amber-400/20 shadow-2xs">
+                <BookOpen size={14} className="text-amber-600 dark:text-amber-300" />
               </span>
-              <h1 className="font-arabic text-sm sm:text-base font-black text-slate-900 dark:text-white leading-tight">
+              <h1 className="font-arabic text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight">
                 الورد القرآني
               </h1>
               {isCompleted && (
-                <span className="rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-800 dark:bg-emerald-500/15 dark:text-[#5EEAD4] dark:border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold select-none">
+                <span className="rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-800 dark:bg-emerald-500/15 dark:text-[#5EEAD4] dark:border-emerald-500/30 px-2 py-0.2 text-[10px] font-bold select-none">
                   تم الإنجاز
                 </span>
               )}
@@ -405,16 +405,16 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
               <button
                 type="button"
                 onClick={() => setIsDisplayMenuOpen(prev => !prev)}
-                className={`flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-xl border text-xs sm:text-sm font-bold transition shadow-2xs cursor-pointer select-none ${
+                className={`flex items-center gap-1.5 h-7 sm:h-7.5 px-2.5 rounded-lg sm:rounded-xl border text-xs font-bold transition shadow-2xs cursor-pointer select-none ${
                   isDisplayMenuOpen
                     ? 'border-emerald-500/50 bg-emerald-50 text-emerald-900 dark:border-emerald-400/40 dark:bg-emerald-950/40 dark:text-emerald-200'
                     : 'border-slate-200/90 bg-slate-50/80 text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 dark:hover:bg-white/10'
                 }`}
-                title="إعدادات العرض والتكبير والمؤقت"
+                title="خيارات العرض والتكبير والمؤقت"
                 aria-expanded={isDisplayMenuOpen}
               >
-                <SlidersHorizontal size={14} className="text-slate-500 dark:text-zinc-400" />
-                <span>العرض</span>
+                <SlidersHorizontal size={13} className="text-slate-500 dark:text-zinc-400" />
+                <span>إعدادات العرض</span>
               </button>
 
               {/* Display Settings Popover Menu */}
@@ -423,7 +423,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                   
                   {/* Header */}
                   <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-100 dark:border-white/10">
-                    <span className="font-bold text-slate-800 dark:text-zinc-100 text-xs">إعدادات العرض</span>
+                    <span className="font-bold text-slate-800 dark:text-zinc-100 text-xs">إعدادات العرض والتكبير</span>
                     <span className="text-[10px] text-slate-400 dark:text-zinc-500">تخصيص القراءة</span>
                   </div>
 
@@ -571,17 +571,17 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
 
           </div>
 
-          {/* Row 2: Primary Quran Navigation (Surah & Juz on Right, Current Page & Today Button on Left) */}
-          <div className="flex items-center justify-between w-full pt-1.5 border-t border-slate-100 dark:border-white/10 gap-2">
+          {/* Row 2: Primary Quran Navigation (Surah + Juz + Page together on Right, Today Button on Left) */}
+          <div className="flex items-center justify-between w-full pt-1 border-t border-slate-100 dark:border-white/5 gap-2">
             
-            {/* Right: Surah & Juz selectors */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Right: Unified Navigation Group (Surah + Juz + Page clustered together) */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap">
               {/* Surah Dropdown */}
               <div className="relative">
                 <select
                   value={currentSurah.page}
                   onChange={(e) => goToPage(Number(e.target.value))}
-                  className="appearance-none h-8 sm:h-8.5 pl-7 pr-3 rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs sm:text-sm font-bold text-slate-800 dark:text-zinc-100 hover:border-slate-300 dark:hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition shadow-2xs"
+                  className="appearance-none h-7 sm:h-7.5 pl-6 pr-2.5 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs font-bold text-slate-800 dark:text-zinc-100 hover:border-slate-300 dark:hover:border-white/20 focus:outline-none focus:ring-1 focus:ring-emerald-500/20 cursor-pointer transition shadow-2xs"
                   aria-label="الانتقال إلى سورة"
                 >
                   {QURAN_SURAHS.map((s) => (
@@ -590,7 +590,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                     </option>
                   ))}
                 </select>
-                <ChevronDown size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 pointer-events-none" />
+                <ChevronDown size={12} className="absolute left-1.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 pointer-events-none" />
               </div>
 
               {/* Juz Dropdown */}
@@ -598,7 +598,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                 <select
                   value={currentJuz.page}
                   onChange={(e) => goToPage(Number(e.target.value))}
-                  className="appearance-none h-8 sm:h-8.5 pl-7 pr-3 rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs sm:text-sm font-bold text-slate-800 dark:text-zinc-100 hover:border-slate-300 dark:hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer transition shadow-2xs"
+                  className="appearance-none h-7 sm:h-7.5 pl-6 pr-2.5 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs font-bold text-slate-800 dark:text-zinc-100 hover:border-slate-300 dark:hover:border-white/20 focus:outline-none focus:ring-1 focus:ring-emerald-500/20 cursor-pointer transition shadow-2xs"
                   aria-label="الانتقال إلى جزء"
                 >
                   {QURAN_JUZS.map((j) => (
@@ -607,15 +607,12 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                     </option>
                   ))}
                 </select>
-                <ChevronDown size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 pointer-events-none" />
+                <ChevronDown size={12} className="absolute left-1.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 pointer-events-none" />
               </div>
-            </div>
 
-            {/* Left: Current Page Capsule & Back to Today Button */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* Current Page Capsule */}
-              <div className="flex items-center gap-1 h-8 sm:h-8.5 px-2.5 rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs sm:text-sm font-bold text-slate-800 dark:text-zinc-100 shadow-2xs">
-                <span className="text-slate-400 dark:text-zinc-400 text-xs">صفحة</span>
+              {/* Current Page Capsule (Grouped right alongside Surah & Juz) */}
+              <div className="flex items-center gap-1 h-7 sm:h-7.5 px-2 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs font-bold text-slate-800 dark:text-zinc-100 shadow-2xs">
+                <span className="text-slate-400 dark:text-zinc-400 text-[11px]">صفحة</span>
                 <input
                   type="number"
                   min={1}
@@ -625,21 +622,23 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                     const val = parseInt(e.target.value, 10);
                     if (!isNaN(val)) goToPage(val);
                   }}
-                  className="w-8 sm:w-10 text-center font-numbers font-black text-xs sm:text-sm text-emerald-700 dark:text-emerald-300 bg-transparent focus:outline-none border-b border-emerald-500/40"
+                  className="w-8 sm:w-9 text-center font-numbers font-black text-xs text-emerald-700 dark:text-emerald-300 bg-transparent focus:outline-none border-b border-emerald-500/40"
                   aria-label="رقم صفحة المصحف"
                   title="انقر لتعديل رقم الصفحة"
                 />
               </div>
+            </div>
 
-              {/* Today's Assigned Wird Page Button */}
+            {/* Left: Today's Assigned Wird Page Button */}
+            <div>
               {!isTodayAssignedPage && (
                 <button
                   type="button"
                   onClick={() => goToPage(defaultDailyPage)}
-                  className="flex items-center gap-1 h-8 sm:h-8.5 px-2.5 rounded-xl border border-emerald-500/40 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20 text-xs sm:text-sm font-bold transition shadow-2xs cursor-pointer"
+                  className="flex items-center gap-1 h-7 sm:h-7.5 px-2 sm:px-2.5 rounded-lg sm:rounded-xl border border-emerald-500/40 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20 text-xs font-bold transition shadow-2xs cursor-pointer"
                   title={`الرجوع لصفحة الورد المخصصة لهذا اليوم (${defaultDailyPage})`}
                 >
-                  <Calendar size={13} className="text-emerald-600 dark:text-emerald-400" />
+                  <Calendar size={12} className="text-emerald-600 dark:text-emerald-400" />
                   <span>صفحة اليوم</span>
                 </button>
               )}
@@ -654,7 +653,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
 
       {/* 3. GoldenQuran Reading Stage (Never traps vertical scroll or crops the page) */}
       <div 
-        className={`mushaf-stage relative w-full flex items-center justify-center mx-auto my-2 ${
+        className={`mushaf-stage relative w-full flex items-center justify-center mx-auto my-1.5 scroll-mt-24 ${
           viewMode === 'fit-width' && zoomLevel > 100 ? 'overflow-x-auto' : 'overflow-visible'
         }`}
         style={{
@@ -706,8 +705,8 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
             // In Fit Screen mode, constrain by viewport height so nothing is ever clipped
             maxHeight: viewMode === 'fit-screen'
               ? (isFullscreen 
-                  ? `calc((100vh - 100px) * ${zoomLevel / 100})` 
-                  : `calc((100vh - 180px) * ${zoomLevel / 100})`)
+                  ? `calc((100vh - 70px) * ${zoomLevel / 100})` 
+                  : `calc((100vh - 160px) * ${zoomLevel / 100})`)
               : 'none',
             // In Fit Width mode, expand generously to fill width and zoom proportionally
             width: viewMode === 'fit-width' ? '100%' : 'auto',
