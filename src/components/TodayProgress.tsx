@@ -15,6 +15,7 @@ interface TodayProgressProps {
   lang: Language;
   theme: Theme;
   compact?: boolean;
+  worshipNavigation?: React.ReactNode;
 }
 
 export const TodayProgress: React.FC<TodayProgressProps> = ({
@@ -24,6 +25,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
   lang,
   theme,
   compact = false,
+  worshipNavigation,
 }) => {
   // تتبع ما إذا كان فلتر 'all' (مطلوبة) مفعلاً بصرياً أم تم إلغاؤه بنقرة ثانية
   const [isAllSelected, setIsAllSelected] = React.useState(false);
@@ -238,7 +240,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
 
         </div>
 
-        {/* Motivational Quran Verse (placed at top: nothing rises above the Quran) */}
+                {/* 1. Motivational Quran Verse (placed at top in the center) */}
         {compact && (
           <div
             data-progress-verse
@@ -248,6 +250,13 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
           >
             <p className="quran-verse-text">{getMotivationalTitle('ar')}</p>
             {renderVerseSource(0, 'ar')}
+          </div>
+        )}
+
+        {/* 2. Worship Navigation Tabs (centered in the middle between Ayah and Progress) */}
+        {worshipNavigation && (
+          <div className="main-header-dock-container mx-auto w-full max-w-4xl flex justify-center">
+            {worshipNavigation}
           </div>
         )}
 

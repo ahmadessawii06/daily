@@ -455,8 +455,8 @@
 /* Mobile adjustments (< 768px) - Perfect 5-column grid fit with zero horizontal scroll or truncation */
 @media (max-width: 767px) {
   .main-header-dock-container {
-    margin-bottom: -14px;
-    padding-inline: 4px;
+    margin-bottom: 0;
+    padding-inline: 0;
   }
   .worship-navigation {
     width: 100%;
