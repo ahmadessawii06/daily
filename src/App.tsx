@@ -786,6 +786,7 @@ export default function App() {
           >
             <TodayProgress
               stats={stats}
+              currentDate={currentDate}
               currentFilter={currentFilter}
               onFilterChange={setCurrentFilter}
               lang={lang}
@@ -800,6 +801,7 @@ export default function App() {
           {support && <div id="onboarding-today-progress">
             <TodayProgress
               stats={stats}
+              currentDate={currentDate}
               currentFilter={currentFilter}
               onFilterChange={setCurrentFilter}
               lang={lang}

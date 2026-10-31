@@ -2,6 +2,7 @@ import React from 'react';
 import { Target, Trophy, Sparkles, CheckCircle2, Clock, XCircle, ListTodo } from 'lucide-react';
 import { DayStats, Language, StatusFilter, Theme } from '../types';
 import { StatCircle } from './StatCircle';
+import { getDailyVerse } from '../data/dailyVerses';
 
 const progressBackgrounds: Record<Theme, string> = {
   dark: new URL('../assets/images/home/daily-progress-abstract-dark.webp', import.meta.url).href,
@@ -15,6 +16,7 @@ interface TodayProgressProps {
   lang: Language;
   theme: Theme;
   compact?: boolean;
+  currentDate?: string;
   worshipNavigation?: React.ReactNode;
 }
 
@@ -25,8 +27,11 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
   lang,
   theme,
   compact = false,
+  currentDate,
   worshipNavigation,
 }) => {
+  const dailyVerse = React.useMemo(() => getDailyVerse(currentDate), [currentDate]);
+
   // تتبع ما إذا كان فلتر 'all' (مطلوبة) مفعلاً بصرياً أم تم إلغاؤه بنقرة ثانية
   const [isAllSelected, setIsAllSelected] = React.useState(false);
 
@@ -248,8 +253,16 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
             dir="rtl"
             className="mx-auto w-full min-w-0 max-w-4xl rounded-[14px] border border-[rgba(190,155,85,0.24)] bg-[rgba(5,20,18,0.72)] px-3 py-2 text-center text-[#F8EBCD] sm:px-4"
           >
-            <p className="quran-verse-text">{getMotivationalTitle('ar')}</p>
-            {renderVerseSource(0, 'ar')}
+            <p className="quran-verse-text">{lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn}</p>
+            <p className="mt-2 flex items-center justify-center gap-2 text-[15px] font-semibold leading-5 text-[#71551f] dark:text-[#E8D39C]">
+              <span aria-hidden="true" className="h-px w-5 bg-[#8b6d2a]/45 dark:bg-[#E8D39C]/45" />
+              <span>
+                {lang === 'ar'
+                  ? `سورة ${dailyVerse.surahAr} • ${dailyVerse.ayahNumberAr.includes('–') ? 'الآيات' : 'الآية'} ${dailyVerse.ayahNumberAr}`
+                  : `Surah ${dailyVerse.surahEn} • ${dailyVerse.ayahNumberEn.includes('–') ? 'Verses' : 'Verse'} ${dailyVerse.ayahNumberEn}`}
+              </span>
+              <span aria-hidden="true" className="h-px w-5 bg-[#8b6d2a]/45 dark:bg-[#E8D39C]/45" />
+            </p>
           </div>
         )}
 
