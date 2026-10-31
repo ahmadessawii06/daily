@@ -380,21 +380,21 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
     >
       {/* 1. Sticky Navigation & Header (Permanently Sticky on Scroll) */}
       <div className="sticky top-[8px] z-40 mb-2 sm:mb-3">
-        <div className="flex flex-col gap-1 sm:gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 text-slate-900 dark:border-amber-500/40 dark:bg-black/95 dark:text-amber-50 py-1.5 px-2.5 sm:py-2 sm:px-3.5 shadow-md shadow-slate-900/5 dark:shadow-[0_4px_25px_-5px_rgba(212,175,55,0.18)] backdrop-blur-md transition-all">
+        <div className="flex flex-col gap-1 sm:gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 text-slate-900 dark:border-white/10 dark:bg-[#071d18]/95 dark:text-white py-1.5 px-2.5 sm:py-2 sm:px-3.5 shadow-md shadow-slate-900/5 dark:shadow-emerald-950/20 backdrop-blur-md transition-all">
           
           {/* Row 1: Title & Status (Right) + Display Settings Trigger (Left) */}
           <div className="flex items-center justify-between w-full px-0.5">
             
             {/* Title & Status Badge */}
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="flex h-6.5 w-6.5 sm:h-7 sm:w-7 items-center justify-center rounded-lg sm:rounded-xl bg-amber-500/10 border border-amber-500/20 dark:bg-amber-500/20 dark:border-amber-400/40 shadow-2xs">
+              <span className="flex h-6.5 w-6.5 sm:h-7 sm:w-7 items-center justify-center rounded-lg sm:rounded-xl bg-amber-500/10 border border-amber-500/20 dark:bg-amber-400/10 dark:border-amber-400/20 shadow-2xs">
                 <BookOpen size={14} className="text-amber-600 dark:text-amber-300" />
               </span>
-              <h1 className="font-arabic text-xs sm:text-sm font-black text-slate-900 dark:text-amber-100 leading-tight">
+              <h1 className="font-arabic text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight">
                 وردك
               </h1>
               {isCompleted && (
-                <span className="rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-800 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-400/40 px-2 py-0.2 text-[10px] font-bold select-none">
+                <span className="rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-800 dark:bg-emerald-500/15 dark:text-[#5EEAD4] dark:border-emerald-500/30 px-2 py-0.2 text-[10px] font-bold select-none">
                   تم الإنجاز
                 </span>
               )}
@@ -405,29 +405,29 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
               
               {/* Calm Session Timer (Desktop / Tablet) */}
               <div 
-                className="hidden sm:flex items-center gap-1.5 h-7 px-2 rounded-lg border border-slate-200/90 bg-slate-50/80 dark:border-amber-500/35 dark:bg-black/80 text-xs text-slate-600 dark:text-amber-200/90 shadow-2xs select-none"
+                className="hidden sm:flex items-center gap-1.5 h-7 px-2 rounded-lg border border-slate-200/90 bg-slate-50/80 dark:border-white/10 dark:bg-white/5 text-xs text-slate-600 dark:text-zinc-300 shadow-2xs select-none"
                 title="مدة جلسة القراءة الحالية (انقر للبدء/الإيقاف)"
               >
                 <button
                   type="button"
                   onClick={() => setTimerRunning(!timerRunning)}
-                  className="text-slate-500 hover:text-slate-800 dark:text-amber-400/80 dark:hover:text-amber-300 transition cursor-pointer"
+                  className="text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white transition cursor-pointer"
                   title={timerRunning ? 'إيقاف المؤقت مؤقتاً' : 'تشغيل مؤقت القراءة'}
                 >
-                  {timerRunning ? <Pause size={11} className="text-emerald-700 dark:text-amber-400" /> : <Play size={11} />}
+                  {timerRunning ? <Pause size={11} className="text-emerald-700 dark:text-emerald-400" /> : <Play size={11} />}
                 </button>
-                <span className="font-numbers font-medium text-xs tabular-nums text-slate-700 dark:text-amber-200">
+                <span className="font-numbers font-medium text-xs tabular-nums text-slate-700 dark:text-zinc-300">
                   {formatClock(elapsedSeconds)}
                 </span>
               </div>
 
               {/* Calm Zoom Stepper (Desktop / Tablet) */}
-              <div className="hidden sm:flex items-center gap-0.5 h-7 px-1 rounded-lg border border-slate-200/90 bg-slate-50/80 dark:border-amber-500/35 dark:bg-black/80 text-xs shadow-2xs select-none">
+              <div className="hidden sm:flex items-center gap-0.5 h-7 px-1 rounded-lg border border-slate-200/90 bg-slate-50/80 dark:border-white/10 dark:bg-white/5 text-xs shadow-2xs select-none">
                 <button
                   type="button"
                   onClick={handleZoomOut}
                   disabled={zoomLevel <= 75}
-                  className="w-5 h-5 flex items-center justify-center rounded text-slate-500 hover:text-slate-800 dark:text-amber-400/80 dark:hover:text-amber-200 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+                  className="w-5 h-5 flex items-center justify-center rounded text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
                   title="تصغير (-)"
                   aria-label="تصغير حجم الصفحة"
                 >
@@ -436,7 +436,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                 <button
                   type="button"
                   onClick={handleResetZoom}
-                  className="px-1 font-numbers font-medium text-[11px] text-slate-700 dark:text-amber-200 hover:text-slate-900 dark:hover:text-amber-100 transition cursor-pointer"
+                  className="px-1 font-numbers font-medium text-[11px] text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
                   title="إعادة ضبط الحجم (100%)"
                 >
                   {zoomLevel}%
@@ -445,7 +445,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                   type="button"
                   onClick={handleZoomIn}
                   disabled={zoomLevel >= 500}
-                  className="w-5 h-5 flex items-center justify-center rounded text-slate-500 hover:text-slate-800 dark:text-amber-400/80 dark:hover:text-amber-200 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+                  className="w-5 h-5 flex items-center justify-center rounded text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
                   title="تكبير (+ حتى 500%)"
                   aria-label="تكبير حجم الصفحة"
                 >
@@ -460,25 +460,25 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                   onClick={() => setIsDisplayMenuOpen(prev => !prev)}
                   className={`flex items-center gap-1.5 h-7 sm:h-7.5 px-2.5 rounded-lg sm:rounded-xl border text-xs font-bold transition shadow-2xs cursor-pointer select-none ${
                     isDisplayMenuOpen
-                      ? 'border-emerald-500/50 bg-emerald-50 text-emerald-900 dark:border-amber-400 dark:bg-amber-950/50 dark:text-amber-200'
-                      : 'border-slate-200/90 bg-white text-slate-700 hover:bg-slate-50 dark:border-amber-500/35 dark:bg-black/80 dark:text-amber-200 dark:hover:bg-amber-950/30 dark:hover:border-amber-400/60'
+                      ? 'border-emerald-500/50 bg-emerald-50 text-emerald-900 dark:border-emerald-400/40 dark:bg-emerald-950/40 dark:text-emerald-200'
+                      : 'border-slate-200/90 bg-white text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 dark:hover:bg-white/10'
                   }`}
                   title="خيارات العرض والتكبير والمؤقت"
                   aria-expanded={isDisplayMenuOpen}
                 >
-                  <SlidersHorizontal size={13} className="text-slate-500 dark:text-amber-400/80" />
+                  <SlidersHorizontal size={13} className="text-slate-500 dark:text-zinc-400" />
                   <span className="hidden sm:inline">إعدادات العرض</span>
                   <span className="sm:hidden">العرض</span>
                 </button>
 
                 {/* Display Settings Popover Menu (Less frequently used options) */}
                 {isDisplayMenuOpen && (
-                  <div className="absolute left-0 top-full mt-2 w-72 sm:w-80 rounded-2xl border border-slate-200/90 bg-white/98 p-3.5 shadow-xl backdrop-blur-md dark:border-amber-500/40 dark:bg-[#080808]/98 dark:text-amber-100 dark:shadow-[0_12px_40px_-10px_rgba(212,175,55,0.2)] z-50 transition-all text-xs">
+                  <div className="absolute left-0 top-full mt-2 w-72 sm:w-80 rounded-2xl border border-slate-200/90 bg-white/98 p-3.5 shadow-xl backdrop-blur-md dark:border-white/10 dark:bg-[#0c1c18]/98 dark:text-white z-50 transition-all text-xs">
                     
                     {/* Header */}
                     <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-100 dark:border-white/10">
-                      <span className="font-bold text-slate-800 dark:text-amber-300 text-xs">إعدادات العرض والتكبير</span>
-                      <span className="text-[10px] text-slate-400 dark:text-amber-400/60">تخصيص القراءة</span>
+                      <span className="font-bold text-slate-800 dark:text-zinc-100 text-xs">إعدادات العرض والتكبير</span>
+                      <span className="text-[10px] text-slate-400 dark:text-zinc-500">تخصيص القراءة</span>
                     </div>
 
                     {/* Mobile Only: Zoom Stepper */}
@@ -650,7 +650,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
           </div>
 
           {/* Row 2: Primary Quran Navigation (Surah + Juz + Page on Right, Quick Page Flips & Today Button on Left) */}
-          <div className="flex items-center justify-between w-full pt-1 border-t border-slate-200/70 dark:border-amber-500/25 gap-2">
+          <div className="flex items-center justify-between w-full pt-1 border-t border-slate-200/70 dark:border-white/10 gap-2">
             
             {/* Right: Unified Navigation Group (Surah + Juz + Page clustered together) */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap">
@@ -659,16 +659,16 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                 <select
                   value={currentSurah.page}
                   onChange={(e) => goToPage(Number(e.target.value))}
-                  className="appearance-none h-7 sm:h-7.5 pl-6 pr-2.5 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-amber-500/35 dark:bg-black/80 text-xs font-bold text-slate-800 dark:text-amber-100 hover:border-slate-300 dark:hover:border-amber-400/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/20 dark:focus:ring-amber-500/30 cursor-pointer transition shadow-2xs"
+                  className="appearance-none h-7 sm:h-7.5 pl-6 pr-2.5 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs font-bold text-slate-800 dark:text-zinc-100 hover:border-slate-300 dark:hover:border-white/20 focus:outline-none focus:ring-1 focus:ring-emerald-500/20 cursor-pointer transition shadow-2xs"
                   aria-label="الانتقال إلى سورة"
                 >
                   {QURAN_SURAHS.map((s) => (
-                    <option key={s.number} value={s.page} className="bg-white dark:bg-[#080808] text-slate-900 dark:text-amber-100">
+                    <option key={s.number} value={s.page} className="bg-white dark:bg-[#071915] text-slate-900 dark:text-white">
                       {s.name}
                     </option>
                   ))}
                 </select>
-                <ChevronDown size={12} className="absolute left-1.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-amber-400/70 pointer-events-none" />
+                <ChevronDown size={12} className="absolute left-1.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 pointer-events-none" />
               </div>
 
               {/* Juz Dropdown */}
@@ -676,11 +676,11 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                 <select
                   value={currentJuz.page}
                   onChange={(e) => goToPage(Number(e.target.value))}
-                  className="appearance-none h-7 sm:h-7.5 pl-6 pr-2.5 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-amber-500/35 dark:bg-black/80 text-xs font-bold text-slate-800 dark:text-amber-100 hover:border-slate-300 dark:hover:border-amber-400/60 focus:outline-none focus:ring-1 focus:ring-emerald-500/20 dark:focus:ring-amber-500/30 cursor-pointer transition shadow-2xs"
+                  className="appearance-none h-7 sm:h-7.5 pl-6 pr-2.5 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs font-bold text-slate-800 dark:text-zinc-100 hover:border-slate-300 dark:hover:border-white/20 focus:outline-none focus:ring-1 focus:ring-emerald-500/20 cursor-pointer transition shadow-2xs"
                   aria-label="الانتقال إلى جزء"
                 >
                   {QURAN_JUZS.map((j) => (
-                    <option key={j.number} value={j.page} className="bg-white dark:bg-[#080808] text-slate-900 dark:text-amber-100">
+                    <option key={j.number} value={j.page} className="bg-white dark:bg-[#071915] text-slate-900 dark:text-white">
                       {j.name}
                     </option>
                   ))}
@@ -690,10 +690,10 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
 
               {/* Current Page Capsule (Interactive input pill with hover & focus ring) */}
               <div 
-                className="flex items-center gap-1 h-7 sm:h-7.5 px-2 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-amber-500/35 dark:bg-black/80 text-xs font-bold text-slate-800 dark:text-amber-100 hover:border-emerald-500/50 dark:hover:border-amber-400/60 focus-within:border-emerald-500 dark:focus-within:border-amber-400 dark:focus-within:ring-amber-500/30 transition shadow-2xs cursor-text group"
+                className="flex items-center gap-1 h-7 sm:h-7.5 px-2 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs font-bold text-slate-800 dark:text-zinc-100 hover:border-emerald-500/50 dark:hover:border-emerald-400/40 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500/20 transition shadow-2xs cursor-text group"
                 title="انقر لتعديل رقم الصفحة والانتقال مباشرة إليها"
               >
-                <span className="text-slate-400 dark:text-amber-400/70 text-[11px] group-hover:text-emerald-700 dark:group-hover:text-amber-300 transition-colors">صفحة</span>
+                <span className="text-slate-400 dark:text-zinc-400 text-[11px] group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">صفحة</span>
                 <input
                   type="number"
                   min={1}
@@ -703,7 +703,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                     const val = parseInt(e.target.value, 10);
                     if (!isNaN(val)) goToPage(val);
                   }}
-                  className="w-8 sm:w-9 text-center font-numbers font-black text-xs text-emerald-700 dark:text-amber-300 bg-transparent focus:outline-none border-b border-emerald-500/30 dark:border-amber-500/40 focus:border-emerald-500 dark:focus:border-amber-400"
+                  className="w-8 sm:w-9 text-center font-numbers font-black text-xs text-emerald-700 dark:text-emerald-300 bg-transparent focus:outline-none border-b border-emerald-500/30 focus:border-emerald-500"
                   aria-label="رقم صفحة المصحف"
                 />
               </div>
@@ -716,12 +716,12 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                 type="button"
                 onClick={prevPage}
                 disabled={currentPage <= 1}
-                className="flex items-center gap-0.5 sm:gap-1 h-7 sm:h-7.5 px-2 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-amber-500/35 dark:bg-black/80 text-xs font-bold text-slate-700 dark:text-amber-200 hover:bg-slate-50 dark:hover:bg-amber-950/30 hover:border-slate-300 dark:hover:border-amber-400/50 disabled:opacity-30 disabled:cursor-not-allowed transition shadow-2xs cursor-pointer select-none"
+                className="flex items-center gap-0.5 sm:gap-1 h-7 sm:h-7.5 px-2 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition shadow-2xs cursor-pointer select-none"
                 title="الانتقال إلى الصفحة السابقة"
                 aria-label="الصفحة السابقة"
               >
                 <span>السابقة</span>
-                <ChevronRight size={13} className="text-slate-400 dark:text-amber-400/70" />
+                <ChevronRight size={13} className="text-slate-400" />
               </button>
 
               {/* Next Page Button */}
@@ -729,11 +729,11 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                 type="button"
                 onClick={nextPage}
                 disabled={currentPage >= 604}
-                className="flex items-center gap-0.5 sm:gap-1 h-7 sm:h-7.5 px-2 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-amber-500/35 dark:bg-black/80 text-xs font-bold text-slate-700 dark:text-amber-200 hover:bg-slate-50 dark:hover:bg-amber-950/30 hover:border-slate-300 dark:hover:border-amber-400/50 disabled:opacity-30 disabled:cursor-not-allowed transition shadow-2xs cursor-pointer select-none"
+                className="flex items-center gap-0.5 sm:gap-1 h-7 sm:h-7.5 px-2 rounded-lg sm:rounded-xl border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition shadow-2xs cursor-pointer select-none"
                 title="الانتقال إلى الصفحة التالية"
                 aria-label="الصفحة التالية"
               >
-                <ChevronLeft size={13} className="text-slate-400 dark:text-amber-400/70" />
+                <ChevronLeft size={13} className="text-slate-400" />
                 <span>التالية</span>
               </button>
 
@@ -742,10 +742,10 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                 <button
                   type="button"
                   onClick={() => goToPage(defaultDailyPage)}
-                  className="flex items-center gap-1 h-7 sm:h-7.5 px-2 rounded-lg sm:rounded-xl border border-emerald-500/40 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-800 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300 dark:hover:bg-amber-500/25 text-xs font-bold transition shadow-2xs cursor-pointer"
+                  className="flex items-center gap-1 h-7 sm:h-7.5 px-2 rounded-lg sm:rounded-xl border border-emerald-500/40 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20 text-xs font-bold transition shadow-2xs cursor-pointer"
                   title={`الرجوع لصفحة الورد المخصصة لهذا اليوم (${defaultDailyPage})`}
                 >
-                  <Calendar size={12} className="text-emerald-600 dark:text-amber-400" />
+                  <Calendar size={12} className="text-emerald-600 dark:text-emerald-400" />
                   <span className="hidden sm:inline">صفحة اليوم</span>
                 </button>
               )}
@@ -798,16 +798,14 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
           ref={sheetRef}
           className="mushaf-sheet relative flex flex-col items-center justify-center rounded-xl sm:rounded-2xl transition-all select-none shadow-2xl"
           style={{
-            background: isNight
-              ? '#000000'
+            background: isNight ? '#000000'
               : 'linear-gradient(180deg, #fbf6e9 0%, #f7efdc 55%, #efe4c8 100%)',
             border: isNight
               ? '1.5px solid rgba(212, 175, 55, 0.70)'
               : '1px solid rgba(184, 145, 47, 0.40)',
             outline: isNight ? '1px solid rgba(212, 175, 55, 0.35)' : 'none',
             outlineOffset: isNight ? '-6px' : '0',
-            boxShadow: isNight
-              ? '0 0 40px -5px rgba(212, 175, 55, 0.22), 0 24px 60px -20px rgba(0, 0, 0, 0.98)'
+            boxShadow: isNight ? '0 0 40px -5px rgba(212, 175, 55, 0.22), 0 24px 60px -20px rgba(0, 0, 0, 0.98)'
               : '0 24px 60px -20px rgba(63, 43, 8, 0.28), 0 0 1px rgba(184, 145, 47, 0.4)',
             // Exact King Fahd Medina Mushaf scan aspect ratio (1024 / 1656)
             aspectRatio: '1024 / 1656',
@@ -845,9 +843,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
             style={{
               objectFit: 'contain',
               // Crisp bright white verses in dark mode with golden borders preserved
-              filter: isNight
-                ? 'invert(1) hue-rotate(180deg) contrast(1.25) brightness(1.02)'
-                : 'none',
+              filter: isNight ? 'invert(1) hue-rotate(180deg) contrast(1.25) brightness(1.02)' : 'none',
               touchAction: 'pan-y pinch-zoom',
               userSelect: 'none',
               WebkitUserDrag: 'none',
@@ -863,7 +859,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
 
       {/* 4. Page Footer Ribbon Info (Below the sheet, matches exact page width) */}
       <div 
-        className="mx-auto my-2 flex items-center justify-between rounded-xl border border-[#C8A951]/25 bg-white/90 dark:bg-black/85 dark:border-amber-500/35 px-3 sm:px-4 py-2 text-xs text-slate-700 dark:text-amber-100/90 shadow-xs transition-all duration-200"
+        className="mx-auto my-2 flex items-center justify-between rounded-xl border border-[#C8A951]/25 bg-white/90 dark:bg-[#061b17]/90 px-3 sm:px-4 py-2 text-xs text-slate-700 dark:text-zinc-300 shadow-xs transition-all duration-200"
         style={{
           width: activePageWidth ? `${activePageWidth}px` : '100%',
           maxWidth: '100%',
@@ -871,21 +867,21 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
       >
         <div className="flex items-center gap-2">
           <span className="font-bold text-amber-800 dark:text-amber-300">{currentSurah.name}</span>
-          <span className="text-slate-400 dark:text-amber-500/50">•</span>
-          <span className="dark:text-amber-200/80">{currentJuz.name}</span>
+          <span className="text-slate-400">•</span>
+          <span>{currentJuz.name}</span>
         </div>
 
-        <div className="flex items-center gap-1.5 font-numbers font-black text-amber-900 dark:text-amber-300">
-          <span className="dark:text-amber-400/80">صفحة</span>
+        <div className="flex items-center gap-1.5 font-numbers font-black text-amber-900 dark:text-amber-200">
+          <span>صفحة</span>
           <span className="text-sm font-extrabold">{currentPage}</span>
-          <span className="text-[11px] text-slate-400 dark:text-amber-500/60">من 604</span>
+          <span className="text-[11px] text-slate-400">من 604</span>
         </div>
 
         {/* Quick Mode Indicator / Toggle */}
         <button
           type="button"
           onClick={toggleViewMode}
-          className="flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-amber-800 dark:text-amber-300/80 dark:hover:text-amber-200 transition cursor-pointer"
+          className="flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-amber-800 dark:text-zinc-400 dark:hover:text-amber-200 transition cursor-pointer"
           title="تبديل وضع العرض"
         >
           {viewMode === 'fit-screen' ? (
@@ -916,8 +912,8 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
           onClick={handleToggleComplete}
           className={`w-full flex items-center justify-center gap-2.5 rounded-2xl py-3.5 px-6 font-black text-base transition-all duration-200 shadow-md cursor-pointer ${
             isCompleted
-              ? 'bg-emerald-500 text-white hover:bg-emerald-600 dark:bg-amber-500 dark:text-black dark:hover:bg-amber-400 ring-4 ring-emerald-500/20 dark:ring-amber-500/30'
-              : 'bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-gradient-to-r dark:from-amber-500 dark:via-amber-400 dark:to-amber-500 dark:text-black dark:hover:brightness-110 shadow-lg dark:shadow-amber-950/30'
+              ? 'bg-emerald-500 text-white hover:bg-emerald-600 dark:bg-teal-500 dark:text-slate-950 ring-4 ring-emerald-500/20'
+              : 'bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-[#22D3B6] dark:text-[#04251F] dark:hover:bg-[#14b8a6] hover:shadow-lg'
           }`}
         >
           <CheckCheck size={22} strokeWidth={2.5} />
@@ -926,29 +922,29 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
 
         {/* Completion Celebration Banner when completed */}
         {isCompleted && (
-          <div className="overflow-hidden rounded-2xl border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-50/90 via-white to-amber-50/60 p-5 text-center shadow-lg dark:border-amber-500/40 dark:from-[#0d0a04] dark:via-[#141006] dark:to-[#0a0803]">
-            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white dark:bg-amber-400 dark:text-black shadow-md">
+          <div className="overflow-hidden rounded-2xl border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-50/90 via-white to-amber-50/60 p-5 text-center shadow-lg dark:border-teal-400/40 dark:from-[#06221d] dark:via-[#082b24] dark:to-[#041a15]">
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white dark:bg-teal-400 dark:text-slate-950 shadow-md">
               <Sparkles size={24} />
             </div>
-            <h3 className="text-lg font-black text-emerald-950 dark:text-amber-200">
+            <h3 className="text-lg font-black text-emerald-950 dark:text-white">
               هنيئاً لك! كُتب لك أجر تلاوة كتاب الله اليوم
             </h3>
-            <p className="mt-1 text-xs sm:text-sm text-slate-700 dark:text-amber-100/90 font-arabic leading-relaxed">
+            <p className="mt-1 text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-arabic leading-relaxed">
               ﴿ وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا ﴾ · جعله الله نوراً لقلبك وشفيعاً لك يوم القيامة.
             </p>
             <div className="mt-3 flex items-center justify-center gap-3 text-xs">
-              <span className="rounded-xl border border-emerald-200 bg-white/90 dark:border-amber-500/30 dark:bg-black/60 px-3 py-1.5 font-bold text-slate-800 dark:text-amber-100">
-                ⏱️ مدة التلاوة: <strong className="font-numbers text-emerald-700 dark:text-amber-300">{formatClock(elapsedSeconds)}</strong>
+              <span className="rounded-xl border border-emerald-200 bg-white/90 dark:border-white/10 dark:bg-white/5 px-3 py-1.5 font-bold text-slate-800 dark:text-white">
+                ⏱️ مدة التلاوة: <strong className="font-numbers text-emerald-700 dark:text-[#5EEAD4]">{formatClock(elapsedSeconds)}</strong>
               </span>
-              <span className="rounded-xl border border-emerald-200 bg-white/90 dark:border-amber-500/30 dark:bg-black/60 px-3 py-1.5 font-bold text-slate-800 dark:text-amber-100">
-                📖 صفحة الورد: <strong className="font-numbers text-emerald-700 dark:text-amber-300">#{currentPage}</strong>
+              <span className="rounded-xl border border-emerald-200 bg-white/90 dark:border-white/10 dark:bg-white/5 px-3 py-1.5 font-bold text-slate-800 dark:text-white">
+                📖 صفحة الورد: <strong className="font-numbers text-emerald-700 dark:text-[#5EEAD4]">#{currentPage}</strong>
               </span>
             </div>
           </div>
         )}
 
         {/* Reading Tips & GoldenQuran Credit */}
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-white/80 dark:border-amber-500/25 dark:bg-black/60 px-4 py-2 text-xs text-slate-600 dark:text-amber-200/70">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-white/80 dark:border-white/10 dark:bg-[#071d18]/60 px-4 py-2 text-xs text-slate-600 dark:text-zinc-400">
           <span className="flex items-center gap-1.5">
             <span>💡 نصيحة: انقر نقراً مزدوجاً على الصفحة أو استخدم زري (ملاء الشاشة / ملاء العرض) للتحكم السريع في حجم الصفحة، مع أزرار (+) و (-) للتكبير حتى 500%</span>
           </span>
