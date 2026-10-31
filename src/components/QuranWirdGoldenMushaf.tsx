@@ -533,47 +533,90 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
         </div>
       </div>
 
-      {/* 2. Top Page Quick Nav Bar */}
-      <div className="flex items-center justify-between w-full max-w-4xl mx-auto px-2 mb-2 text-xs font-bold text-slate-700 dark:text-zinc-300">
-        {/* Previous page (In RTL, Next is left, Prev is right) */}
-        <button
-          type="button"
-          onClick={prevPage}
-          disabled={currentPage <= 1}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-[#07241e] text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs transition cursor-pointer"
-        >
-          <ChevronRight size={15} />
-          <span>السابقة ({currentPage > 1 ? currentPage - 1 : 1})</span>
-        </button>
+      {/* 2. Top Page Header & Navigation Bar */}
+      <div className="w-full max-w-4xl mx-auto mb-3 px-1 sm:px-2">
+        <div className="flex items-center justify-between gap-2 rounded-2xl border border-amber-500/25 bg-gradient-to-r from-amber-50/70 via-white/90 to-emerald-50/70 dark:border-amber-400/20 dark:from-[#081f1a]/95 dark:via-[#0b2721]/95 dark:to-[#081f1a]/95 p-1.5 sm:p-2.5 shadow-sm backdrop-blur-md transition-all">
+          
+          {/* Right Button: Previous Page */}
+          <button
+            type="button"
+            onClick={prevPage}
+            disabled={currentPage <= 1}
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border border-amber-500/20 bg-white/90 dark:border-white/10 dark:bg-white/5 text-slate-700 dark:text-zinc-200 hover:border-amber-500/40 hover:bg-amber-50/60 dark:hover:bg-amber-400/10 dark:hover:border-amber-400/30 disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer shrink-0 group"
+            title="الانتقال إلى الصفحة السابقة"
+          >
+            <ChevronRight size={18} className="text-amber-600 dark:text-amber-400 group-hover:translate-x-0.5 transition-transform" />
+            <div className="flex flex-col items-start leading-tight">
+              <span className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-zinc-200">السابقة</span>
+              <span className="text-[10px] font-numbers text-slate-400 dark:text-zinc-500">
+                {currentPage > 1 ? `صـ ${currentPage - 1}` : 'الأولى'}
+              </span>
+            </div>
+          </button>
 
-        {/* Direct page input */}
-        <div className="flex items-center gap-1.5 bg-white/80 dark:bg-[#07241e]/80 border border-slate-200 dark:border-white/10 px-3 py-1 rounded-xl shadow-2xs">
-          <span className="text-slate-500 dark:text-zinc-400">صفحة</span>
-          <input
-            type="number"
-            min={1}
-            max={604}
-            value={currentPage}
-            onChange={(e) => {
-              const val = parseInt(e.target.value, 10);
-              if (!isNaN(val)) goToPage(val);
-            }}
-            className="w-12 text-center font-numbers font-black text-sm text-emerald-800 dark:text-[#5EEAD4] bg-transparent border-b border-emerald-500/40 focus:outline-none"
-            aria-label="رقم الصفحة"
-          />
-          <span className="text-slate-500 dark:text-zinc-400">من 604</span>
+          {/* Central Highlight: Surah Name, Juz & Interactive Page Badge */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 py-0.5 px-2 text-center min-w-0">
+            {/* Surah Name Badge */}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="flex items-center justify-center h-6 w-6 rounded-lg bg-amber-500/15 text-amber-800 dark:bg-amber-400/15 dark:text-amber-300 font-numbers text-xs font-black">
+                {currentSurah.number}
+              </span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-[11px] font-bold text-slate-400 dark:text-zinc-500">سورة</span>
+                <h2 className="font-arabic text-base sm:text-lg font-black text-amber-900 dark:text-amber-300 tracking-wide">
+                  {currentSurah.name}
+                </h2>
+              </div>
+            </div>
+
+            {/* Separator Dot */}
+            <span className="hidden sm:inline-block text-amber-500/40 font-bold">•</span>
+
+            {/* Juz Name Badge */}
+            <div className="hidden md:flex items-center gap-1 text-xs font-bold text-emerald-800 dark:text-teal-300 shrink-0">
+              <span>{currentJuz.name}</span>
+            </div>
+
+            {/* Separator Dot */}
+            <span className="hidden md:inline-block text-amber-500/40 font-bold">•</span>
+
+            {/* Direct Page Input & Progress */}
+            <div className="flex items-center gap-1.5 bg-amber-50/80 dark:bg-white/5 border border-amber-500/30 dark:border-amber-400/20 px-2.5 py-1 rounded-xl shadow-inner shrink-0">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400">صفحة</span>
+              <input
+                type="number"
+                min={1}
+                max={604}
+                value={currentPage}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val)) goToPage(val);
+                }}
+                className="w-12 text-center font-numbers font-black text-sm sm:text-base text-amber-900 dark:text-amber-200 bg-transparent border-b border-amber-500/40 focus:outline-none selection:bg-amber-200"
+                aria-label="رقم صفحة المصحف"
+              />
+              <span className="text-[11px] font-bold text-slate-400 dark:text-zinc-500 font-numbers">من 604</span>
+            </div>
+          </div>
+
+          {/* Left Button: Next Page */}
+          <button
+            type="button"
+            onClick={nextPage}
+            disabled={currentPage >= 604}
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border border-amber-500/20 bg-white/90 dark:border-white/10 dark:bg-white/5 text-slate-700 dark:text-zinc-200 hover:border-amber-500/40 hover:bg-amber-50/60 dark:hover:bg-amber-400/10 dark:hover:border-amber-400/30 disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer shrink-0 group"
+            title="الانتقال إلى الصفحة التالية"
+          >
+            <div className="flex flex-col items-end leading-tight">
+              <span className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-zinc-200">التالية</span>
+              <span className="text-[10px] font-numbers text-slate-400 dark:text-zinc-500">
+                {currentPage < 604 ? `صـ ${currentPage + 1}` : 'الختام'}
+              </span>
+            </div>
+            <ChevronLeft size={18} className="text-amber-600 dark:text-amber-400 group-hover:-translate-x-0.5 transition-transform" />
+          </button>
+
         </div>
-
-        {/* Next page */}
-        <button
-          type="button"
-          onClick={nextPage}
-          disabled={currentPage >= 604}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-[#07241e] text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs transition cursor-pointer"
-        >
-          <span>التالية ({currentPage < 604 ? currentPage + 1 : 604})</span>
-          <ChevronLeft size={15} />
-        </button>
       </div>
 
       {/* 3. GoldenQuran Reading Stage (Never traps vertical scroll or crops the page) */}
