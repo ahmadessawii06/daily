@@ -1,7 +1,4 @@
 @theme inline {
-  --font-arabic: 'IBM Plex Sans Arabic', 'Alexandria', 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-sans: 'IBM Plex Sans Arabic', 'Alexandria', 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: 'IBM Plex Sans Arabic', 'Alexandria', 'Outfit', -apple-system, sans-serif;
   --spacing: 0.25rem;
   --spacing-control: 2.75rem;
   --spacing-control-compact: 2.25rem;

@@ -7,13 +7,6 @@
 @import "./design-tokens.css";
 
 @layer base {
-  button,
-  [role="button"],
-  select,
-  input,
-  textarea {
-    font-family: var(--font-sans);
-  }
   /* Keep interaction cues consistent without making decorative icons clickable. */
   button:not(:disabled):not([aria-disabled="true"]),
   [role="button"]:not([aria-disabled="true"]),
@@ -320,7 +313,6 @@
 }
 
 .worship-navigation {
-  font-family: 'IBM Plex Sans Arabic', var(--font-arabic);
   --worship-surface: linear-gradient(90deg, rgba(242, 247, 244, 0.64) 0%, rgba(248, 249, 245, 0.64) 100%);
   --worship-border: rgba(195, 220, 208, 0.45);
   --worship-text: #405c52;
@@ -379,7 +371,7 @@
   color: var(--worship-text);
   font-size: 0.8125rem;
   font-weight: 700;
-  font-family: 'IBM Plex Sans Arabic', var(--font-arabic);
+  font-family: inherit;
   line-height: 1.5;
   text-align: center;
   cursor: pointer;
@@ -1203,10 +1195,10 @@ html[data-color-theme="paper"] .bg-mesh {
 
 @layer base {
   :root {
-    --font-arabic: 'IBM Plex Sans Arabic', 'Alexandria', 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-arabic: 'Alexandria', 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-latin: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-sans: var(--font-arabic);
-    --font-display: 'IBM Plex Sans Arabic', 'Alexandria', 'Outfit', -apple-system, sans-serif;
+    --font-display: 'Alexandria', 'Outfit', -apple-system, sans-serif;
     --font-mono: 'Outfit', 'Alexandria', 'Plus Jakarta Sans', sans-serif;
     --font-numbers: 'Outfit', 'Alexandria', 'Plus Jakarta Sans', sans-serif;
     --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
