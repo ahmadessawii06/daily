@@ -3,12 +3,12 @@ import type { KeyboardEvent } from 'react';
 import { BookOpen, HandHeart, MoonStar, Sun, Sunrise } from 'lucide-react';
 import type { ReligiousSection } from './religiousContent';
 
-const tabs: Array<{ id: ReligiousSection; label: string; icon: typeof Sun }> = [
-  { id: 'quran', label: 'وردك', icon: BookOpen },
-  { id: 'morning', label: 'أذكار الصباح', icon: Sun },
-  { id: 'prayers', label: 'الصلوات والمهام', icon: Sunrise },
-  { id: 'evening', label: 'أذكار المساء', icon: MoonStar },
-  { id: 'duas', label: 'أدعيتك', icon: HandHeart },
+const tabs: Array<{ id: ReligiousSection; label: string; shortLabel: string; icon: typeof Sun }> = [
+  { id: 'quran', label: 'وردك', shortLabel: 'وردك', icon: BookOpen },
+  { id: 'morning', label: 'أذكار الصباح', shortLabel: 'الصباح', icon: Sun },
+  { id: 'prayers', label: 'الصلوات والمهام', shortLabel: 'الصلوات', icon: Sunrise },
+  { id: 'evening', label: 'أذكار المساء', shortLabel: 'المساء', icon: MoonStar },
+  { id: 'duas', label: 'أدعيتك', shortLabel: 'أدعيتك', icon: HandHeart },
 ];
 
 interface ReligiousTabsProps {
@@ -31,7 +31,7 @@ export function ReligiousTabs({
 
   const reveal = (button: HTMLButtonElement, smooth = false) => {
     const dock = navigation.current;
-    if (!dock) return;
+    if (!dock || dock.scrollWidth <= dock.clientWidth + 2) return;
     const bounds = dock.getBoundingClientRect();
     const item = button.getBoundingClientRect();
     const offset = item.left < bounds.left + 8
@@ -98,7 +98,10 @@ export function ReligiousTabs({
               <span className="worship-navigation-icon">
                 <Icon size={18} strokeWidth={1.9} aria-hidden="true" />
               </span>
-              <span className="worship-navigation-label">{tab.label}</span>
+              <span className="worship-navigation-label">
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.shortLabel}</span>
+              </span>
             </button>
           );
         })}

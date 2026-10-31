@@ -452,7 +452,7 @@
   }
 }
 
-/* Mobile adjustments (< 768px) */
+/* Mobile adjustments (< 768px) - Perfect 5-column grid fit with zero horizontal scroll or truncation */
 @media (max-width: 767px) {
   .main-header-dock-container {
     margin-bottom: -14px;
@@ -460,28 +460,30 @@
   }
   .worship-navigation {
     width: 100%;
-    padding: 4px;
+    padding: 3px;
     border-radius: 1rem;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    scroll-padding-inline: 8px;
-  }
-  .worship-navigation::-webkit-scrollbar {
-    display: none;
+    overflow: hidden;
   }
   .worship-navigation-items {
-    display: flex;
-    gap: 4px;
-    min-width: max-content;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2px;
+    width: 100%;
+    min-width: 0;
   }
   .worship-navigation-items button {
-    flex: 0 0 auto;
-    min-height: 44px;
-    gap: 6px;
-    padding: 0.45rem 0.85rem;
-    font-size: 0.775rem;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 40px;
+    gap: 3px;
+    padding: 0.35rem 0.15rem;
+    font-size: 0.725rem;
+    border-radius: 0.75rem;
+    justify-content: center;
+  }
+  .worship-navigation-icon svg {
+    width: 15px;
+    height: 15px;
   }
 }
 
