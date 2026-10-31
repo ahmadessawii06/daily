@@ -791,7 +791,7 @@ export default function App() {
               lang={lang}
               theme={theme}
               compact
-              worshipNavigation={<ReligiousTabs active={religiousSection} onChange={setReligiousSection} />}
+              worshipNavigation={<ReligiousTabs active={religiousSection} onChange={setReligiousSection} currentDate={currentDate} tasks={tasks} />}
             />
           </MainHeader> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
           {support && <DateNavigation currentDate={currentDate} onDateChange={setCurrentDate} lang={lang} />}

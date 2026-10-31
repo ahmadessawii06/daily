@@ -4,11 +4,14 @@ import { calculateStats } from './storage';
 import { userStorage } from './scopedStorage';
 import { AZKAR_SABAH } from '../data/azkarSabah';
 import { AZKAR_MASAA } from '../data/azkarMasaa';
+import { QURANIC_DUAS } from '../data/quranicDuas';
 
 export interface ReligiousProgressDetails {
   prayers: { total: number; done: number; ratio: number };
   morningAdhkar: { total: number; done: number; repetitionsCounted: number; repetitionsRequired: number; ratio: number };
   eveningAdhkar: { total: number; done: number; repetitionsCounted: number; repetitionsRequired: number; ratio: number };
+  quranWird: { completed: boolean; ratio: number };
+  duas: { completed: boolean; ratio: number };
   ordinaryTasks: { total: number; done: number };
 }
 
@@ -20,6 +23,8 @@ export interface UnifiedDailyStats extends DayStats {
 export interface ReligiousProgressInput {
   morningCounts?: Record<string, number>;
   eveningCounts?: Record<string, number>;
+  quranCompleted?: boolean;
+  duasCompleted?: boolean;
 }
 
 /**
@@ -67,6 +72,39 @@ export function isEveningAdhkarTask(title: string): boolean {
 }
 
 /**
+ * Detects if a task specifically represents Quran Wird (وردك) to avoid double-counting.
+ */
+export function isQuranWirdTask(title: string): boolean {
+  const norm = normalizeArabicText(title);
+  return (
+    norm.includes('ورد القران') ||
+    norm.includes('الورد القراني') ||
+    norm.includes('وردك') ||
+    norm.includes('قراءة القران') ||
+    norm.includes('quran wird') ||
+    norm === 'ورد القران' ||
+    norm === 'الورد القراني' ||
+    norm === 'وردك'
+  );
+}
+
+/**
+ * Detects if a task specifically represents Quranic Duas (أدعيتك) to avoid double-counting.
+ */
+export function isDuasTask(title: string): boolean {
+  const norm = normalizeArabicText(title);
+  return (
+    norm.includes('ادعيتك') ||
+    norm.includes('الادعية') ||
+    norm.includes('ادعية قرانية') ||
+    norm.includes('قراءة الادعية') ||
+    norm.includes('duas') ||
+    norm === 'ادعيتك' ||
+    norm === 'الادعية'
+  );
+}
+
+/**
  * Reads Morning Adhkar counts from userStorage for a given date.
  */
 export function getStoredMorningCounts(date?: string): Record<string, number> {
@@ -76,6 +114,16 @@ export function getStoredMorningCounts(date?: string): Record<string, number> {
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
+  }
+}
+
+export function isStoredMorningConfirmed(date?: string): boolean {
+  if (!date) return false;
+  try {
+    const session = JSON.parse(userStorage.getItem(`islambook_azkar_morning_session_${date}`) || '{}');
+    return Boolean(session.confirmed);
+  } catch {
+    return false;
   }
 }
 
@@ -89,6 +137,51 @@ export function getStoredEveningCounts(date?: string): Record<string, number> {
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
+  }
+}
+
+export function isStoredEveningConfirmed(date?: string): boolean {
+  if (!date) return false;
+  try {
+    const session = JSON.parse(userStorage.getItem(`islambook_azkar_evening_session_${date}`) || '{}');
+    return Boolean(session.confirmed);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Checks if Quran Wird is completed for a given date.
+ */
+export function getStoredQuranCompleted(date?: string): boolean {
+  if (!date) return false;
+  try {
+    if (userStorage.getItem(`islambook_quran_wird_completed_${date}`) === 'true') return true;
+    const session = JSON.parse(userStorage.getItem(`islambook_quran_wird_session_${date}`) || '{}');
+    return Boolean(session.completed);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Checks if Quranic Duas are completed for a given date.
+ */
+export function getStoredDuasCompleted(date?: string): { completed: boolean; ratio: number } {
+  if (!date) return { completed: false, ratio: 0 };
+  try {
+    const session = JSON.parse(userStorage.getItem(`islambook_quranic_duas_session_${date}`) || '{}');
+    if (session.confirmed) return { completed: true, ratio: 1 };
+    const counts = JSON.parse(userStorage.getItem(`islambook_quranic_duas_counts_${date}`) || '{}');
+    const totalRequired = QURANIC_DUAS.length;
+    let done = 0;
+    for (const d of QURANIC_DUAS) {
+      if ((counts[d.id] || 0) >= d.count) done++;
+    }
+    const ratio = totalRequired > 0 ? Math.min(1, done / totalRequired) : 0;
+    return { completed: ratio >= 1, ratio };
+  } catch {
+    return { completed: false, ratio: 0 };
   }
 }
 
@@ -132,9 +225,11 @@ export function calculateAdhkarRepetitionsRatio(
  * Unified Daily Progress Calculator:
  * Computes a single authoritative 0-100% daily completion percentage integrating:
  * 1. The 5 daily prayers (1 unit each = 5 units).
- * 2. Morning Adhkar (1 unit, partial based on completed repetitions/total required).
- * 3. Evening Adhkar (1 unit, partial based on completed repetitions/total required).
- * 4. Ordinary tasks (1 unit each), excluding prayers or adhkar tasks that already have dedicated widgets to avoid double-counting.
+ * 2. Morning Adhkar (1 unit, partial based on completed repetitions/total required or confirmation).
+ * 3. Evening Adhkar (1 unit, partial based on completed repetitions/total required or confirmation).
+ * 4. Quran Wird (1 unit, 100% when marked completed or page target reached).
+ * 5. Quranic Duas (1 unit, 100% when confirmed or all duas completed).
+ * 6. Ordinary tasks (1 unit each), excluding prayers or religious tasks that already have dedicated widgets to avoid double-counting.
  *
  * When date is omitted (legacy callers / basic tests), operates purely on the 5 prayers + tasks.
  */
@@ -151,16 +246,22 @@ export function calculateDailyProgress(
   const completedPrayers = prayerPartition.slots.filter(s => s.task && s.task.status === 'done').length;
   const missingPrayers = prayerPartition.slots.filter(s => !s.task).length;
 
-  // Filter out any other tasks that duplicate Morning Adhkar or Evening Adhkar
+  // Filter out any other tasks that duplicate Morning Adhkar, Evening Adhkar, Quran Wird, or Duas
   const nonDuplicateTasks: Task[] = [];
   let morningTaskStatus: Task['status'] | undefined;
   let eveningTaskStatus: Task['status'] | undefined;
+  let quranTaskStatus: Task['status'] | undefined;
+  let duasTaskStatus: Task['status'] | undefined;
 
   for (const task of prayerPartition.otherTasks) {
     if (isMorningAdhkarTask(task.title)) {
       if (!morningTaskStatus || task.status === 'done') morningTaskStatus = task.status;
     } else if (isEveningAdhkarTask(task.title)) {
       if (!eveningTaskStatus || task.status === 'done') eveningTaskStatus = task.status;
+    } else if (isQuranWirdTask(task.title)) {
+      if (!quranTaskStatus || task.status === 'done') quranTaskStatus = task.status;
+    } else if (isDuasTask(task.title)) {
+      if (!duasTaskStatus || task.status === 'done') duasTaskStatus = task.status;
     } else {
       nonDuplicateTasks.push(task);
     }
@@ -193,24 +294,47 @@ export function calculateDailyProgress(
     };
   }
 
-  // 2. Morning Adhkar Progress (based on repetitions ratio)
+  // 2. Morning Adhkar Progress
   const morningCounts = overrides?.morningCounts ?? getStoredMorningCounts(date);
   const morningDoneCount = calculateAdhkarCompletedCount(AZKAR_SABAH, morningCounts);
   const morningRep = calculateAdhkarRepetitionsRatio(AZKAR_SABAH, morningCounts);
   let morningRatio = morningRep.ratio;
-  if (morningTaskStatus === 'done') morningRatio = 1;
+  if (morningTaskStatus === 'done' || isStoredMorningConfirmed(date) || morningDoneCount === AZKAR_SABAH.length) {
+    morningRatio = 1;
+  }
 
-  // 3. Evening Adhkar Progress (based on repetitions ratio)
+  // 3. Evening Adhkar Progress
   const eveningCounts = overrides?.eveningCounts ?? getStoredEveningCounts(date);
   const eveningDoneCount = calculateAdhkarCompletedCount(AZKAR_MASAA, eveningCounts);
   const eveningRep = calculateAdhkarRepetitionsRatio(AZKAR_MASAA, eveningCounts);
   let eveningRatio = eveningRep.ratio;
-  if (eveningTaskStatus === 'done') eveningRatio = 1;
+  if (eveningTaskStatus === 'done' || isStoredEveningConfirmed(date) || eveningDoneCount === AZKAR_MASAA.length) {
+    eveningRatio = 1;
+  }
+
+  // 4. Quran Wird Progress (وردك)
+  let quranRatio = 0;
+  if (overrides?.quranCompleted !== undefined) {
+    quranRatio = overrides.quranCompleted ? 1 : 0;
+  } else if (quranTaskStatus === 'done' || getStoredQuranCompleted(date)) {
+    quranRatio = 1;
+  }
+
+  // 5. Quranic Duas Progress (أدعيتك)
+  let duasRatio = 0;
+  if (overrides?.duasCompleted !== undefined) {
+    duasRatio = overrides.duasCompleted ? 1 : 0;
+  } else if (duasTaskStatus === 'done') {
+    duasRatio = 1;
+  } else {
+    const duasState = getStoredDuasCompleted(date);
+    duasRatio = duasState.ratio;
+  }
 
   // Unified Units calculation:
-  // 5 Prayers (5 units) + Morning (1 unit) + Evening (1 unit) + Ordinary tasks (N units)
-  const totalUnits = 5 + 1 + 1 + nonDuplicateTasks.length;
-  const actualDoneUnits = completedPrayers + morningRatio + eveningRatio + ordinaryDone;
+  // 5 Prayers (5 units) + Morning (1 unit) + Evening (1 unit) + Quran Wird (1 unit) + Duas (1 unit) + Ordinary tasks (N units)
+  const totalUnits = 5 + 1 + 1 + 1 + 1 + nonDuplicateTasks.length;
+  const actualDoneUnits = completedPrayers + morningRatio + eveningRatio + quranRatio + duasRatio + ordinaryDone;
 
   // Strict 100% Guard:
   // Must NOT display 100% due to floating-point rounding if any unit is not fully 100% completed.
@@ -218,6 +342,8 @@ export function calculateDailyProgress(
     completedPrayers === 5 &&
     morningRatio >= 1 &&
     eveningRatio >= 1 &&
+    quranRatio >= 1 &&
+    duasRatio >= 1 &&
     ordinaryDone === nonDuplicateTasks.length;
 
   let rawPercentage = totalUnits > 0 ? (actualDoneUnits / totalUnits) * 100 : 0;
@@ -247,6 +373,8 @@ export function calculateDailyProgress(
       prayers: { total: 5, done: completedPrayers, ratio: completedPrayers / 5 },
       morningAdhkar: { total: AZKAR_SABAH.length, done: morningDoneCount, repetitionsCounted: morningRep.counted, repetitionsRequired: morningRep.required, ratio: morningRatio },
       eveningAdhkar: { total: AZKAR_MASAA.length, done: eveningDoneCount, repetitionsCounted: eveningRep.counted, repetitionsRequired: eveningRep.required, ratio: eveningRatio },
+      quranWird: { completed: quranRatio >= 1, ratio: quranRatio },
+      duas: { completed: duasRatio >= 1, ratio: duasRatio },
       ordinaryTasks: { total: nonDuplicateTasks.length, done: ordinaryDone },
     },
   };

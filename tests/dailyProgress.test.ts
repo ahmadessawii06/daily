@@ -51,15 +51,17 @@ test('stored prayer statuses and duplicate records are counted once each, retain
 // UNIFIED DAILY PROGRESS SYSTEM TESTS (PRAYERS + ADHKAR + TASKS)
 // ==========================================
 
-test('unified progress with date: empty day has 7 total units (5 prayers + morning + evening) at 0%', () => {
+test('unified progress with date: empty day has 9 total units (5 prayers + morning + evening + quran + duas) at 0%', () => {
   const stats = calculateDailyProgress([], '2026-10-29', {
     morningCounts: {},
     eveningCounts: {},
+    quranCompleted: false,
+    duasCompleted: false,
   });
 
-  assert.equal(stats.total, 7); // 5 prayers + 1 morning + 1 evening
+  assert.equal(stats.total, 9); // 5 prayers + 1 morning + 1 evening + 1 quran + 1 duas
   assert.equal(stats.done, 0);
-  assert.equal(stats.pending, 7);
+  assert.equal(stats.pending, 9);
   assert.equal(stats.completionPercentage, 0);
 });
 
@@ -77,19 +79,21 @@ test('double counting prevention: tasks titled "أذكار الصباح" or "أ�
   const tasksWithDuplicates: Task[] = [
     task('t1', 'أذكار الصباح', 'done'),
     task('t2', 'أذكار المساء', 'pending'),
-    task('t3', 'برمجة المشروع', 'pending'),
+    task('t3', 'وردك', 'done'),
+    task('t4', 'برمجة المشروع', 'pending'),
   ];
 
   const stats = calculateDailyProgress(tasksWithDuplicates, '2026-10-29', {
     morningCounts: {}, // Even if counts is empty, task status done sets morningRatio = 1
     eveningCounts: {},
+    duasCompleted: false,
   });
 
-  // Total units = 5 prayers + 1 morning + 1 evening + 1 ordinary task (برمجة المشروع) = 8 units.
-  assert.equal(stats.total, 8);
-  // Done: morning (1) = 1
-  assert.equal(stats.done, 1);
-  assert.equal(stats.completionPercentage, Math.round((1 / 8) * 100)); // 13%
+  // Total units = 5 prayers + 1 morning + 1 evening + 1 quran + 1 duas + 1 ordinary task (برمجة المشروع) = 10 units.
+  assert.equal(stats.total, 10);
+  // Done: morning (1) + quran (1) = 2
+  assert.equal(stats.done, 2);
+  assert.equal(stats.completionPercentage, Math.round((2 / 10) * 100)); // 20%
 });
 
 test('section isolation: completing a prayer does not complete adhkar, and completing adhkar does not complete prayers', () => {
@@ -125,7 +129,7 @@ test('strict 100% precision: never shows 100% if any requirement is incomplete e
   assert.ok(stats.completionPercentage <= 99);
 });
 
-test('100% completion: when all 5 prayers, morning adhkar, evening adhkar, and ordinary tasks are complete', () => {
+test('100% completion: when all 5 prayers, morning adhkar, evening adhkar, quran wird, duas, and ordinary tasks are complete', () => {
   const morningCounts: Record<string, number> = {};
   AZKAR_SABAH.forEach(item => { morningCounts[item.id] = item.count; });
 
@@ -141,11 +145,13 @@ test('100% completion: when all 5 prayers, morning adhkar, evening adhkar, and o
   const stats = calculateDailyProgress(allPrayersAndTasks, '2026-10-29', {
     morningCounts,
     eveningCounts,
+    quranCompleted: true,
+    duasCompleted: true,
   });
 
-  // Total units = 5 prayers + 1 morning + 1 evening + 2 ordinary tasks = 9 units.
-  assert.equal(stats.total, 9);
-  assert.equal(stats.done, 9);
+  // Total units = 5 prayers + 1 morning + 1 evening + 1 quran + 1 duas + 2 ordinary tasks = 11 units.
+  assert.equal(stats.total, 11);
+  assert.equal(stats.done, 11);
   assert.equal(stats.pending, 0);
   assert.equal(stats.completionPercentage, 100);
 });
