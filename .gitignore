@@ -6,8 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
-data/
+/data/
 .test-data/
+!src/data/
 .vercel-esm-test-*/
 .preview-browser/
 .preview-qa/

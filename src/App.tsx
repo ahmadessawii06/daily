@@ -66,6 +66,7 @@ import { ReligiousTabs } from './components/ReligiousTabs';
 import { AdhkarSection } from './components/AdhkarSection';
 import { MorningAdhkarIslamBook } from './components/MorningAdhkarIslamBook';
 import { EveningAdhkarIslamBook } from './components/EveningAdhkarIslamBook';
+import { QuranicDuasIslamBook } from './components/QuranicDuasIslamBook';
 import { QuranWirdSection } from './components/QuranWirdSection';
 import { DuasSection } from './components/DuasSection';
 import { ComingSoonFeature } from './components/ComingSoonFeature';
@@ -818,21 +819,7 @@ export default function App() {
                   icon={BookOpen}
                 />
               )}
-              {religiousSection === 'duas' && (
-                <ComingSoonFeature
-                  title="موسوعة الأدعية والأذكار الجامعة"
-                  badge="ميزة قيد التطوير"
-                  subtitle="أدعية القرآن والسنة النبوية الصحيحة مصنفة ومحققة"
-                  description="نعمل على إعداد مكتبة أدعية جامعة ومفهرسة تشمل أدعية الرزق، تفريج الهم، الوالدين، الاستخارة، وأدعية الأنبياء، مع إمكانية البحث والنسخ والمشاركة الأنيقة."
-                  features={[
-                    'أدعية مأثورة ومحققة بالسند الموثق',
-                    'تصنيف موضوعي سريع للوصول السهل',
-                    'قائمة للأدعية المفضلة وحفظ الملاحظات',
-                    'مشاركة الأدعية ببطاقات وتصاميم راقية'
-                  ]}
-                  icon={HandHeart}
-                />
-              )}
+              {religiousSection === 'duas' && <QuranicDuasIslamBook date={currentDate} />}
             </div>}
             {religiousSection === 'prayers' && <>
             <div className="flex flex-wrap items-center justify-between gap-3"><div id="onboarding-view-switcher" role="group" aria-label={lang === 'ar' ? 'طريقة عرض المهام' : 'Planning view'} className="inline-flex max-w-full gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 dark:border-white/[0.08] dark:bg-white/[0.03]">
