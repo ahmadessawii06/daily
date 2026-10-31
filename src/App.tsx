@@ -805,7 +805,7 @@ export default function App() {
             {religiousSection !== 'prayers' && <div className="religious-content-switch" key={religiousSection}>
               {religiousSection === 'morning' && <MorningAdhkarIslamBook date={currentDate} />}
               {religiousSection === 'evening' && <EveningAdhkarIslamBook date={currentDate} />}
-              {religiousSection === 'quran' && <QuranWirdGoldenMushaf date={currentDate} />}
+              {religiousSection === 'quran' && <QuranWirdGoldenMushaf date={currentDate} theme={theme} />}
               {religiousSection === 'duas' && <QuranicDuasIslamBook date={currentDate} />}
             </div>}
             {religiousSection === 'prayers' && <>

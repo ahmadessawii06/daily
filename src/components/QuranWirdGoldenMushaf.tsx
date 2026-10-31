@@ -12,8 +12,8 @@ import {
   Sun, 
   ExternalLink, 
   Calendar, 
-  ZoomIn, 
-  ZoomOut, 
+  Plus, 
+  Minus, 
   Timer, 
   Play, 
   Pause,
@@ -28,17 +28,20 @@ import {
   getGoldenQuranPageUrl 
 } from '../data/quranNavigation';
 import { userStorage } from '../utils/scopedStorage';
+import type { Theme } from '../types';
 
 interface QuranWirdProps {
   date: string;
+  theme?: Theme;
 }
 
-export function QuranWirdGoldenMushaf({ date }: QuranWirdProps) {
+export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
   // Storage keys
   const COMPLETED_KEY = `islambook_quran_wird_completed_${date}`;
   const PAGE_KEY = `islambook_quran_wird_page_${date}`;
   const SESSION_KEY = `islambook_quran_wird_session_${date}`;
-  const SETTINGS_KEY = 'islambook_quran_reader_settings';
+  const ZOOM_KEY = 'islambook_quran_zoom_level';
+  const NIGHT_OVERRIDE_KEY = 'islambook_quran_night_override';
 
   // Default daily page for this date
   const defaultDailyPage = getDailyWirdPageForDate(date);
@@ -62,15 +65,33 @@ export function QuranWirdGoldenMushaf({ date }: QuranWirdProps) {
     return userStorage.getItem(COMPLETED_KEY) === 'true';
   });
 
-  // Reader Settings (Night mode, zoom)
-  const [isNightMode, setIsNightMode] = useState<boolean>(() => {
+  // Dark / Night theme handling:
+  // 1. Detects app's current theme
+  const isAppDark = theme === 'dark' || (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
+  
+  // 2. Allows manual override per reader, or automatically adheres to app theme
+  const [nightModeOverride, setNightModeOverride] = useState<boolean | null>(() => {
     try {
-      const saved = JSON.parse(userStorage.getItem(SETTINGS_KEY) || '{}');
-      return saved.isNightMode || false;
-    } catch { return false; }
+      const saved = userStorage.getItem(NIGHT_OVERRIDE_KEY);
+      return saved !== null ? JSON.parse(saved) : null;
+    } catch { return null; }
   });
 
-  const [zoomLevel, setZoomLevel] = useState<number>(100);
+  // Effective night mode
+  const isNight = nightModeOverride !== null ? nightModeOverride : isAppDark;
+
+  // Zoom level state (percentage: 65% to 220%)
+  const [zoomLevel, setZoomLevel] = useState<number>(() => {
+    try {
+      const saved = userStorage.getItem(ZOOM_KEY);
+      if (saved) {
+        const parsed = parseInt(saved, 10);
+        if (parsed >= 65 && parsed <= 220) return parsed;
+      }
+      return 100;
+    } catch { return 100; }
+  });
+
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoadingImage, setIsLoadingImage] = useState(true);
 
@@ -95,11 +116,6 @@ export function QuranWirdGoldenMushaf({ date }: QuranWirdProps) {
   useEffect(() => {
     userStorage.setItem(PAGE_KEY, String(currentPage));
   }, [currentPage, PAGE_KEY]);
-
-  // Persist reader settings
-  useEffect(() => {
-    userStorage.setItem(SETTINGS_KEY, JSON.stringify({ isNightMode }));
-  }, [isNightMode]);
 
   // Persist completion state & notify app
   useEffect(() => {
@@ -144,21 +160,57 @@ export function QuranWirdGoldenMushaf({ date }: QuranWirdProps) {
     }
   }, [timerRunning, isCompleted]);
 
-  // Next page in Medina Mushaf (in RTL Quran: Next page is to the left, which is page + 1)
+  // Next page in Medina Mushaf (in RTL Quran: Next page is page + 1)
   const nextPage = () => goToPage(currentPage + 1);
   const prevPage = () => goToPage(currentPage - 1);
 
   // Pick random page
   const rollRandomPage = () => {
     let randomP = Math.floor(Math.random() * 604) + 1;
-    // ensure different page
     if (randomP === currentPage) {
       randomP = (randomP % 604) + 1;
     }
     goToPage(randomP);
   };
 
-  // Keyboard navigation
+  // Zoom In / Out handlers
+  const handleZoomIn = () => {
+    setZoomLevel(prev => {
+      const next = Math.min(220, prev + 15);
+      userStorage.setItem(ZOOM_KEY, String(next));
+      return next;
+    });
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => {
+      const next = Math.max(65, prev - 15);
+      userStorage.setItem(ZOOM_KEY, String(next));
+      return next;
+    });
+  };
+
+  const handleResetZoom = () => {
+    setZoomLevel(100);
+    userStorage.setItem(ZOOM_KEY, '100');
+  };
+
+  const handleToggleZoomPreset = () => {
+    setZoomLevel(prev => {
+      const next = prev === 100 ? 135 : prev === 135 ? 175 : 100;
+      userStorage.setItem(ZOOM_KEY, String(next));
+      return next;
+    });
+  };
+
+  // Night mode toggle
+  const handleToggleNightMode = () => {
+    const next = !isNight;
+    setNightModeOverride(next);
+    userStorage.setItem(NIGHT_OVERRIDE_KEY, JSON.stringify(next));
+  };
+
+  // Keyboard navigation & zoom shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if user is typing in an input
@@ -166,13 +218,17 @@ export function QuranWirdGoldenMushaf({ date }: QuranWirdProps) {
         return;
       }
       if (e.key === 'ArrowLeft') {
-        // In Arabic RTL reading, Left arrow advances to next page
         nextPage();
       } else if (e.key === 'ArrowRight') {
-        // Right arrow goes back to previous page
         prevPage();
       } else if (e.key === 'f' || e.key === 'F') {
         toggleFullscreen();
+      } else if (e.key === '+' || e.key === '=') {
+        handleZoomIn();
+      } else if (e.key === '-' || e.key === '_') {
+        handleZoomOut();
+      } else if (e.key === '0') {
+        handleResetZoom();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -206,13 +262,10 @@ export function QuranWirdGoldenMushaf({ date }: QuranWirdProps) {
     if (touchStartXRef.current === null) return;
     const touchEndX = e.changedTouches[0].clientX;
     const diff = touchEndX - touchStartXRef.current;
-    // If swipe distance > 50px
     if (Math.abs(diff) > 50) {
       if (diff > 0) {
-        // Swiped right -> in RTL, go to previous page
         prevPage();
       } else {
-        // Swiped left -> in RTL, go to next page
         nextPage();
       }
     }
@@ -227,6 +280,9 @@ export function QuranWirdGoldenMushaf({ date }: QuranWirdProps) {
       setTimerRunning(false);
     }
   };
+
+  // Container width dynamically scaled with zoom
+  const containerMaxWidth = Math.round(672 * (zoomLevel / 100));
 
   return (
     <div 
@@ -322,7 +378,7 @@ export function QuranWirdGoldenMushaf({ date }: QuranWirdProps) {
             )}
           </div>
 
-          {/* Tools Menu: Night mode, Stopwatch, Fullscreen, GoldenQuran link */}
+          {/* Tools Menu: Zoom Controls, Night Mode, Stopwatch, Fullscreen, GoldenQuran link */}
           <div className="flex w-full sm:w-auto items-center justify-between sm:justify-end gap-1.5 shrink-0">
             {/* Stopwatch Badge */}
             <div className="flex items-center gap-1 text-xs text-slate-700 bg-slate-100/90 border border-slate-200 dark:text-teal-200 dark:bg-white/5 dark:border-white/10 px-2 py-1 rounded-xl">
@@ -337,37 +393,60 @@ export function QuranWirdGoldenMushaf({ date }: QuranWirdProps) {
               <span className="font-numbers font-bold tabular-nums text-emerald-800 dark:text-[#5EEAD4]">{formatClock(elapsedSeconds)}</span>
             </div>
 
-            {/* Night mode toggle */}
+            {/* Zoom Stepper Controls: [-] [100%] [+] */}
+            <div className="flex items-center gap-0.5 rounded-xl border border-slate-200 bg-slate-50/90 dark:border-white/10 dark:bg-white/5 px-1 py-0.5 text-xs shadow-2xs">
+              <button
+                type="button"
+                onClick={handleZoomOut}
+                disabled={zoomLevel <= 65}
+                className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white dark:hover:bg-white/10 text-slate-700 dark:text-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                title="تصغير (-)"
+                aria-label="تصغير حجم الصفحة"
+              >
+                <Minus size={13} />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResetZoom}
+                className="px-1.5 py-0.5 font-numbers text-[11px] font-black text-slate-700 dark:text-zinc-200 hover:text-emerald-700 dark:hover:text-[#5EEAD4] transition"
+                title="إعادة ضبط الحجم الافتراضي (100%)"
+              >
+                {zoomLevel}%
+              </button>
+
+              <button
+                type="button"
+                onClick={handleZoomIn}
+                disabled={zoomLevel >= 220}
+                className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white dark:hover:bg-white/10 text-slate-700 dark:text-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                title="تكبير (+)"
+                aria-label="تكبير حجم الصفحة"
+              >
+                <Plus size={13} />
+              </button>
+            </div>
+
+            {/* Night mode toggle (Dark Theme) */}
             <button
               type="button"
-              onClick={() => setIsNightMode(!isNightMode)}
-              className={`flex h-8 w-8 items-center justify-center rounded-xl border transition shadow-2xs ${
-                isNightMode 
-                  ? 'border-amber-400/40 bg-amber-400/20 text-amber-300' 
+              onClick={handleToggleNightMode}
+              className={`flex h-8 w-8 items-center justify-center rounded-xl border transition shadow-2xs cursor-pointer ${
+                isNight 
+                  ? 'border-amber-400/40 bg-amber-400/20 text-amber-300 hover:bg-amber-400/30' 
                   : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200'
               }`}
-              title={isNightMode ? 'العودة للورق العاجي الطبيعي' : 'تفعيل القراءة الليلية الهادئة'}
-              aria-label="تبديل وضع القراءة"
+              title={isNight ? 'الوضع الليلي مفعّل (انقر للتحويل للوضع العاجي)' : 'الوضع النهاري مفعّل (انقر للتحويل للوضع الليلي الداكن)'}
+              aria-label="تبديل الوضع الليلي والنهاري"
             >
-              {isNightMode ? <Sun size={15} /> : <Moon size={15} />}
-            </button>
-
-            {/* Zoom In / Out */}
-            <button
-              type="button"
-              onClick={() => setZoomLevel(prev => (prev >= 140 ? 100 : prev + 20))}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 transition shadow-2xs"
-              title={`تكبير وتصغير (${zoomLevel}%)`}
-              aria-label="تكبير الصفحة"
-            >
-              {zoomLevel > 100 ? <ZoomOut size={15} /> : <ZoomIn size={15} />}
+              {isNight ? <Moon size={15} className="text-amber-300" /> : <Sun size={15} className="text-amber-500" />}
             </button>
 
             {/* Fullscreen toggle */}
             <button
               type="button"
               onClick={toggleFullscreen}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 transition shadow-2xs"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 transition shadow-2xs cursor-pointer"
               title={isFullscreen ? 'الخروج من ملء الشاشة' : 'عرض ملء الشاشة'}
               aria-label="ملء الشاشة"
             >
@@ -398,7 +477,7 @@ export function QuranWirdGoldenMushaf({ date }: QuranWirdProps) {
             type="button"
             onClick={prevPage}
             disabled={currentPage <= 1}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-[#07241e] text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs transition"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-[#07241e] text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs transition cursor-pointer"
           >
             <ChevronRight size={15} />
             <span>السابقة ({currentPage > 1 ? currentPage - 1 : 1})</span>
@@ -427,79 +506,85 @@ export function QuranWirdGoldenMushaf({ date }: QuranWirdProps) {
             type="button"
             onClick={nextPage}
             disabled={currentPage >= 604}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-[#07241e] text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs transition"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-[#07241e] text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs transition cursor-pointer"
           >
             <span>التالية ({currentPage < 604 ? currentPage + 1 : 604})</span>
             <ChevronLeft size={15} />
           </button>
         </div>
 
-        {/* Mushaf Paper Surface */}
-        <div 
-          className="relative w-full max-w-2xl overflow-hidden rounded-2xl sm:rounded-3xl border-2 sm:border-4 border-[#C8A951]/40 dark:border-[#C8A951]/25 shadow-2xl transition-all duration-300"
-          style={{
-            backgroundColor: isNightMode ? '#0b1614' : '#FDFBF7',
-            transform: zoomLevel > 100 ? `scale(${zoomLevel / 100})` : 'none',
-            transformOrigin: 'top center'
-          }}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          {/* Subtle Islamic Golden Ornamental Border Frame */}
-          <div className="absolute inset-1 sm:inset-2.5 rounded-xl sm:rounded-2xl border border-[#C8A951]/30 dark:border-[#C8A951]/20 pointer-events-none z-10" />
-          <div className="absolute inset-1.5 sm:inset-3 rounded-lg sm:rounded-xl border border-[#C8A951]/15 dark:border-[#C8A951]/10 pointer-events-none z-10" />
+        {/* Outer Scroll Container for Zooming & Panning */}
+        <div className="w-full overflow-x-auto flex flex-col items-center py-2 px-1">
+          {/* Mushaf Paper Surface */}
+          <div 
+            className="relative overflow-hidden rounded-2xl sm:rounded-3xl border-2 sm:border-4 shadow-2xl transition-all duration-200"
+            style={{
+              maxWidth: `${containerMaxWidth}px`,
+              width: '100%',
+              backgroundColor: isNight ? '#0b1614' : '#FDFBF7',
+              borderColor: isNight ? 'rgba(200, 169, 81, 0.35)' : 'rgba(200, 169, 81, 0.45)',
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            {/* Subtle Islamic Golden Ornamental Border Frame */}
+            <div className="absolute inset-1 sm:inset-2.5 rounded-xl sm:rounded-2xl border border-[#C8A951]/30 dark:border-[#C8A951]/20 pointer-events-none z-10" />
+            <div className="absolute inset-1.5 sm:inset-3 rounded-lg sm:rounded-xl border border-[#C8A951]/15 dark:border-[#C8A951]/10 pointer-events-none z-10" />
 
-          {/* Loading Spinner / Placeholder */}
-          {isLoadingImage && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/80 dark:bg-[#061e19]/90 z-20 backdrop-blur-xs">
-              <div className="h-10 w-10 animate-spin rounded-full border-3 border-emerald-500 border-t-transparent dark:border-[#5EEAD4] dark:border-t-transparent" />
-              <p className="mt-3 text-xs font-bold text-slate-600 dark:text-zinc-300">
-                جارٍ تحميل صفحة المصحف الشريف #{currentPage}...
-              </p>
-            </div>
-          )}
+            {/* Loading Spinner / Placeholder */}
+            {isLoadingImage && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/80 dark:bg-[#061e19]/90 z-20 backdrop-blur-xs min-h-[350px]">
+                <div className="h-10 w-10 animate-spin rounded-full border-3 border-emerald-500 border-t-transparent dark:border-[#5EEAD4] dark:border-t-transparent" />
+                <p className="mt-3 text-xs font-bold text-slate-600 dark:text-zinc-300">
+                  جارٍ تحميل صفحة المصحف الشريف #{currentPage}...
+                </p>
+              </div>
+            )}
 
-          {/* High-Res Medina Mushaf Page Scan from GoldenQuran CDN */}
-          <div className="relative w-full flex items-center justify-center p-2 sm:p-4 md:p-6 select-none">
-            <img
-              key={currentPage}
-              src={getGoldenQuranPageUrl(currentPage)}
-              alt={`صفحة المصحف الشريف ${currentPage}`}
-              className={`w-full h-auto object-contain transition-all duration-200 ${
-                isNightMode 
-                  ? 'brightness-[0.92] contrast-[1.05] invert-[0.92] hue-rotate-180 drop-shadow-md' 
-                  : 'drop-shadow-xs'
-              }`}
-              style={{ maxHeight: isFullscreen ? '85vh' : '80vh' }}
-              onLoad={() => setIsLoadingImage(false)}
-              onError={() => setIsLoadingImage(false)}
-              loading="eager"
-            />
-          </div>
-
-          {/* Page Footer Navigation Ribbon */}
-          <div className="relative z-20 flex items-center justify-between border-t border-[#C8A951]/20 bg-[#f9f6ed]/90 dark:bg-[#061b17]/90 px-4 py-2.5 text-xs text-slate-700 dark:text-zinc-300">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-amber-800 dark:text-amber-300">{currentSurah.name}</span>
-              <span className="text-slate-400">•</span>
-              <span>{currentJuz.name}</span>
+            {/* High-Res Medina Mushaf Page Scan from GoldenQuran CDN */}
+            <div className="relative w-full flex items-center justify-center p-2 sm:p-4 md:p-6 select-none">
+              <img
+                key={currentPage}
+                src={getGoldenQuranPageUrl(currentPage)}
+                alt={`صفحة المصحف الشريف ${currentPage}`}
+                className="w-full h-auto object-contain transition-all duration-200 drop-shadow-sm select-none"
+                style={{
+                  filter: isNight
+                    ? 'invert(0.93) hue-rotate(180deg) brightness(0.95) contrast(1.12)'
+                    : 'none',
+                  maxHeight: isFullscreen ? '90vh' : `${Math.round(85 * (zoomLevel / 100))}vh`,
+                }}
+                onDoubleClick={handleToggleZoomPreset}
+                onLoad={() => setIsLoadingImage(false)}
+                onError={() => setIsLoadingImage(false)}
+                loading="eager"
+              />
             </div>
 
-            <div className="flex items-center gap-1.5 font-numbers font-black text-amber-900 dark:text-amber-200">
-              <span>صفحة</span>
-              <span className="text-sm font-extrabold">{currentPage}</span>
-            </div>
+            {/* Page Footer Navigation Ribbon */}
+            <div className="relative z-20 flex items-center justify-between border-t border-[#C8A951]/20 bg-[#f9f6ed]/90 dark:bg-[#061b17]/90 px-4 py-2.5 text-xs text-slate-700 dark:text-zinc-300">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-amber-800 dark:text-amber-300">{currentSurah.name}</span>
+                <span className="text-slate-400">•</span>
+                <span>{currentJuz.name}</span>
+              </div>
 
-            {/* Quick Random Page button on page footer */}
-            <button
-              type="button"
-              onClick={rollRandomPage}
-              className="flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-amber-800 dark:text-zinc-400 dark:hover:text-amber-200 transition cursor-pointer"
-              title="صفحة عشوائية أخرى"
-            >
-              <Shuffle size={12} />
-              <span>عشوائية</span>
-            </button>
+              <div className="flex items-center gap-1.5 font-numbers font-black text-amber-900 dark:text-amber-200">
+                <span>صفحة</span>
+                <span className="text-sm font-extrabold">{currentPage}</span>
+              </div>
+
+              {/* Quick Random Page button on page footer */}
+              <button
+                type="button"
+                onClick={rollRandomPage}
+                className="flex items-center gap-1 text-[11px] font-bold text-slate-600 hover:text-amber-800 dark:text-zinc-400 dark:hover:text-amber-200 transition cursor-pointer"
+                title="صفحة عشوائية أخرى"
+              >
+                <Shuffle size={12} />
+                <span>عشوائية</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -545,7 +630,7 @@ export function QuranWirdGoldenMushaf({ date }: QuranWirdProps) {
           {/* Reading Tips & GoldenQuran Credit */}
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-white/80 dark:border-white/10 dark:bg-[#071d18]/60 px-4 py-2 text-xs text-slate-600 dark:text-zinc-400">
             <span className="flex items-center gap-1.5">
-              <span>💡 يمكنك تقليب الصفحات بمفاتيح الأسهم أو بالسحب يميناً ويساراً</span>
+              <span>💡 يمكنك استخدام أزرار (+) و (-) للتحكم بالحجم، أو النقر المزدوج على الصفحة</span>
             </span>
             <a
               href="https://goldenquran.org/"

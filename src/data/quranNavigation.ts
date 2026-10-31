@@ -203,3 +203,4 @@ export function getGoldenQuranPageUrl(page: number): string {
   const padded = String(Math.max(1, Math.min(604, page))).padStart(3, '0');
   return `https://cdn.goldenquran.org/images/width_1260/page${padded}.png`;
 }
+
