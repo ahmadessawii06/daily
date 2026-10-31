@@ -391,7 +391,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                 <BookOpen size={14} className="text-amber-600 dark:text-amber-300" />
               </span>
               <h1 className="font-arabic text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight">
-                الورد القرآني
+                وردك
               </h1>
               {isCompleted && (
                 <span className="rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-800 dark:bg-emerald-500/15 dark:text-[#5EEAD4] dark:border-emerald-500/30 px-2 py-0.2 text-[10px] font-bold select-none">

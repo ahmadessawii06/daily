@@ -4,11 +4,11 @@ import { BookOpen, HandHeart, MoonStar, Sun, Sunrise } from 'lucide-react';
 import type { ReligiousSection } from './religiousContent';
 
 const tabs: Array<{ id: ReligiousSection; label: string; icon: typeof Sun }> = [
-  { id: 'quran', label: 'الورد القرآني', icon: BookOpen },
+  { id: 'quran', label: 'وردك', icon: BookOpen },
   { id: 'morning', label: 'أذكار الصباح', icon: Sun },
   { id: 'prayers', label: 'الصلوات والمهام', icon: Sunrise },
   { id: 'evening', label: 'أذكار المساء', icon: MoonStar },
-  { id: 'duas', label: 'الأدعية', icon: HandHeart },
+  { id: 'duas', label: 'أدعيتك', icon: HandHeart },
 ];
 
 interface ReligiousTabsProps {
