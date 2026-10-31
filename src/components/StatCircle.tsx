@@ -137,14 +137,15 @@ export const StatCircle: React.FC<StatCircleProps> = ({
   }`;
   return onClick ? (
     <button data-progress-tone={color} data-progress-active={isActive} type="button" onClick={onClick} aria-label={title || `${label}: ${value}`} aria-pressed={isActive}
-      className={`${classes} relative cursor-pointer hover:-translate-y-0.5 active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:rounded-full bg-transparent border-0 p-0`}>
+      className={`${classes} relative hover:z-30 cursor-pointer hover:-translate-y-0.5 active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:rounded-full bg-transparent border-0 p-0`}>
       {content}
       {title && (
         <div
           role="tooltip"
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 ease-out whitespace-nowrap"
+          className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 ease-out whitespace-nowrap"
         >
+          <div className="mx-auto w-0 h-0 border-x-4 border-x-transparent border-b-4 border-b-white/95 dark:border-b-[#06201a]/95 -mb-[1px]" />
           <div dir="auto" className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold font-['Alexandria'] backdrop-blur-md shadow-[0_8px_20px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.45)] bg-white/95 text-slate-800 border border-slate-200/90 dark:bg-[#06201a]/95 dark:text-emerald-300 dark:border-emerald-400/30">
             <span>{title}</span>
           </div>

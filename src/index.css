@@ -654,12 +654,33 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
   width: 100%;
 }
 
+@media (min-width: 640px) and (max-width: 899px) {
+  .header-progress-content [data-progress-layout="compact"] {
+    padding: .75rem 1rem;
+    gap: .75rem;
+  }
+  .header-progress-content [data-progress-main] svg {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+  .header-progress-content [data-progress-main] .font-numbers > span:first-child {
+    font-size: 1.75rem;
+  }
+  .header-progress-content [data-progress-tone] .progress-body {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+  .header-progress-content [data-progress-tone] .progress-value {
+    font-size: 1.25rem;
+  }
+}
+
 @media (min-width: 900px) {
   .header-progress-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: .625rem;
+    gap: .75rem;
     width: 100%;
   }
   .header-progress-content [data-progress-verse] {
@@ -677,17 +698,31 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
     width: 100%;
     max-width: 56rem;
     margin: 0 auto;
-    gap: .375rem;
-    padding: .5rem;
+    gap: 1.25rem;
+    padding: .875rem 1.75rem;
   }
   .header-progress-content .main-header-dock-container {
     width: 100%;
     max-width: 56rem;
     margin: 0 auto;
   }
-  .header-progress-content [data-progress-main] svg { width: 3.5rem; height: 3.5rem; }
-  .header-progress-content [data-progress-main] .font-numbers > span:first-child { font-size: 1.5rem; }
-  .header-progress-content [data-progress-tone] .progress-body { width: 2.5rem; height: 2.5rem; }
+  .header-progress-content [data-progress-main] svg {
+    width: 5.25rem;
+    height: 5.25rem;
+  }
+  .header-progress-content [data-progress-main] .font-numbers > span:first-child {
+    font-size: 2rem;
+  }
+  .header-progress-content [data-progress-tone] .progress-body {
+    width: 3.875rem;
+    height: 3.875rem;
+  }
+  .header-progress-content [data-progress-tone] .progress-value {
+    font-size: 1.4rem;
+  }
+  .header-progress-content [data-progress-tone] .progress-sublabel {
+    font-size: .8rem;
+  }
 }
 
 @media (min-width: 1280px) {
