@@ -8,8 +8,6 @@ import {
   ChevronRight, 
   Maximize2, 
   Minimize2, 
-  Moon, 
-  Sun, 
   ExternalLink, 
   Calendar, 
   Plus, 
@@ -48,7 +46,13 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
   const SESSION_KEY = `islambook_quran_wird_session_${date}`;
   const ZOOM_KEY = 'islambook_quran_zoom_level';
   const VIEW_MODE_KEY = 'islambook_quran_view_mode';
-  const NIGHT_OVERRIDE_KEY = 'islambook_quran_night_override';
+
+  // Clear any legacy reader-specific night mode override so it stays 100% in sync with MainHeader
+  useEffect(() => {
+    try {
+      userStorage.removeItem('islambook_quran_night_override');
+    } catch {}
+  }, []);
 
   // Default daily page for this date
   const defaultDailyPage = getDailyWirdPageForDate(date);
@@ -83,20 +87,8 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
     }
   });
 
-  // Dark / Night theme handling:
-  // 1. Detects app's current theme
-  const isAppDark = theme === 'dark' || (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
-  
-  // 2. Allows manual override per reader, or automatically adheres to app theme
-  const [nightModeOverride, setNightModeOverride] = useState<boolean | null>(() => {
-    try {
-      const saved = userStorage.getItem(NIGHT_OVERRIDE_KEY);
-      return saved !== null ? JSON.parse(saved) : null;
-    } catch { return null; }
-  });
-
-  // Effective night mode
-  const isNight = nightModeOverride !== null ? nightModeOverride : isAppDark;
+  // Dark / Night theme strictly follows the app's theme from MainHeader settings
+  const isNight = theme === 'dark' || (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
 
   // Zoom level state (percentage: 75% to 500%)
   const [zoomLevel, setZoomLevel] = useState<number>(() => {
@@ -228,13 +220,6 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
     const clamped = Math.max(75, Math.min(500, level));
     setZoomLevel(clamped);
     userStorage.setItem(ZOOM_KEY, String(clamped));
-  };
-
-  // Night mode toggle
-  const handleToggleNightMode = () => {
-    const next = !isNight;
-    setNightModeOverride(next);
-    userStorage.setItem(NIGHT_OVERRIDE_KEY, JSON.stringify(next));
   };
 
   // Keyboard navigation & zoom shortcuts
@@ -521,21 +506,6 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                 </button>
               ))}
             </div>
-
-            {/* Night mode toggle (Dark Theme) */}
-            <button
-              type="button"
-              onClick={handleToggleNightMode}
-              className={`flex h-8 w-8 items-center justify-center rounded-xl border transition shadow-2xs cursor-pointer ${
-                isNight 
-                  ? 'border-amber-400/40 bg-amber-400/20 text-amber-300 hover:bg-amber-400/30' 
-                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200'
-              }`}
-              title={isNight ? 'الوضع الليلي مفعّل (انقر للتحويل للوضع العاجي)' : 'الوضع النهاري مفعّل (انقر للتحويل للوضع الليلي الداكن)'}
-              aria-label="تبديل الوضع الليلي والنهاري"
-            >
-              {isNight ? <Moon size={15} className="text-amber-300" /> : <Sun size={15} className="text-amber-500" />}
-            </button>
 
             {/* Fullscreen toggle */}
             <button
