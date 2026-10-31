@@ -80,13 +80,13 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
   // Effective night mode
   const isNight = nightModeOverride !== null ? nightModeOverride : isAppDark;
 
-  // Zoom level state (percentage: 65% to 220%)
+  // Zoom level state (percentage: 50% to 500%)
   const [zoomLevel, setZoomLevel] = useState<number>(() => {
     try {
       const saved = userStorage.getItem(ZOOM_KEY);
       if (saved) {
         const parsed = parseInt(saved, 10);
-        if (parsed >= 65 && parsed <= 220) return parsed;
+        if (parsed >= 50 && parsed <= 500) return parsed;
       }
       return 100;
     } catch { return 100; }
@@ -173,10 +173,11 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
     goToPage(randomP);
   };
 
-  // Zoom In / Out handlers
+  // Zoom In / Out handlers (Dynamic step scaling up to 500%)
   const handleZoomIn = () => {
     setZoomLevel(prev => {
-      const next = Math.min(220, prev + 15);
+      const step = prev >= 300 ? 50 : prev >= 150 ? 25 : 15;
+      const next = Math.min(500, prev + step);
       userStorage.setItem(ZOOM_KEY, String(next));
       return next;
     });
@@ -184,7 +185,8 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
 
   const handleZoomOut = () => {
     setZoomLevel(prev => {
-      const next = Math.max(65, prev - 15);
+      const step = prev > 300 ? 50 : prev > 150 ? 25 : 15;
+      const next = Math.max(50, prev - step);
       userStorage.setItem(ZOOM_KEY, String(next));
       return next;
     });
@@ -195,9 +197,15 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
     userStorage.setItem(ZOOM_KEY, '100');
   };
 
+  const handleSetZoomLevel = (level: number) => {
+    const clamped = Math.max(50, Math.min(500, level));
+    setZoomLevel(clamped);
+    userStorage.setItem(ZOOM_KEY, String(clamped));
+  };
+
   const handleToggleZoomPreset = () => {
     setZoomLevel(prev => {
-      const next = prev === 100 ? 135 : prev === 135 ? 175 : 100;
+      const next = prev < 150 ? 200 : prev < 350 ? 500 : 100;
       userStorage.setItem(ZOOM_KEY, String(next));
       return next;
     });
@@ -281,7 +289,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
     }
   };
 
-  // Container width dynamically scaled with zoom
+  // Container width dynamically scaled with zoom up to 500%
   const containerMaxWidth = Math.round(672 * (zoomLevel / 100));
 
   return (
@@ -385,7 +393,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
               <button
                 type="button"
                 onClick={() => setTimerRunning(!timerRunning)}
-                className="hover:opacity-75 transition"
+                className="hover:opacity-75 transition cursor-pointer"
                 title={timerRunning ? 'إيقاف المؤقت' : 'تشغيل المؤقت'}
               >
                 {timerRunning ? <Pause size={12} className="text-emerald-600" /> : <Play size={12} className="text-slate-500" />}
@@ -393,13 +401,13 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
               <span className="font-numbers font-bold tabular-nums text-emerald-800 dark:text-[#5EEAD4]">{formatClock(elapsedSeconds)}</span>
             </div>
 
-            {/* Zoom Stepper Controls: [-] [100%] [+] */}
+            {/* Zoom Stepper Controls: [-] [100%] [+] up to 500% */}
             <div className="flex items-center gap-0.5 rounded-xl border border-slate-200 bg-slate-50/90 dark:border-white/10 dark:bg-white/5 px-1 py-0.5 text-xs shadow-2xs">
               <button
                 type="button"
                 onClick={handleZoomOut}
-                disabled={zoomLevel <= 65}
-                className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white dark:hover:bg-white/10 text-slate-700 dark:text-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                disabled={zoomLevel <= 50}
+                className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white dark:hover:bg-white/10 text-slate-700 dark:text-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
                 title="تصغير (-)"
                 aria-label="تصغير حجم الصفحة"
               >
@@ -409,7 +417,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
               <button
                 type="button"
                 onClick={handleResetZoom}
-                className="px-1.5 py-0.5 font-numbers text-[11px] font-black text-slate-700 dark:text-zinc-200 hover:text-emerald-700 dark:hover:text-[#5EEAD4] transition"
+                className="px-1.5 py-0.5 font-numbers text-[11px] font-black text-slate-700 dark:text-zinc-200 hover:text-emerald-700 dark:hover:text-[#5EEAD4] transition cursor-pointer"
                 title="إعادة ضبط الحجم الافتراضي (100%)"
               >
                 {zoomLevel}%
@@ -418,13 +426,36 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
               <button
                 type="button"
                 onClick={handleZoomIn}
-                disabled={zoomLevel >= 220}
-                className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white dark:hover:bg-white/10 text-slate-700 dark:text-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
-                title="تكبير (+)"
-                aria-label="تكبير حجم الصفحة"
+                disabled={zoomLevel >= 500}
+                className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-white dark:hover:bg-white/10 text-slate-700 dark:text-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+                title="تكبير (+ حتى 500%)"
+                aria-label="تكبير حجم الصفحة حتى 500%"
               >
                 <Plus size={13} />
               </button>
+            </div>
+
+            {/* Quick Preset Buttons (100%, 200%, 500%) */}
+            <div className="hidden md:flex items-center gap-1">
+              {[
+                { label: '100%', val: 100 },
+                { label: '200%', val: 200 },
+                { label: '500%', val: 500 }
+              ].map(preset => (
+                <button
+                  key={preset.val}
+                  type="button"
+                  onClick={() => handleSetZoomLevel(preset.val)}
+                  className={`h-7 px-2 rounded-lg text-[10px] font-bold border transition cursor-pointer ${
+                    zoomLevel === preset.val
+                      ? 'border-emerald-500 bg-emerald-50 text-emerald-800 dark:bg-teal-500/20 dark:text-[#5EEAD4]'
+                      : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/5'
+                  }`}
+                  title={`تكبير ${preset.label}`}
+                >
+                  {preset.label}
+                </button>
+              ))}
             </div>
 
             {/* Night mode toggle (Dark Theme) */}
@@ -514,13 +545,14 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
         </div>
 
         {/* Outer Scroll Container for Zooming & Panning */}
-        <div className="w-full overflow-x-auto flex flex-col items-center py-2 px-1">
+        <div className="w-full overflow-x-auto overflow-y-visible flex flex-col items-center py-2 px-1 scrollbar-thin">
           {/* Mushaf Paper Surface */}
           <div 
-            className="relative overflow-hidden rounded-2xl sm:rounded-3xl border-2 sm:border-4 shadow-2xl transition-all duration-200"
+            className="relative overflow-hidden rounded-2xl sm:rounded-3xl border-2 sm:border-4 shadow-2xl transition-all duration-200 shrink-0"
             style={{
-              maxWidth: `${containerMaxWidth}px`,
-              width: '100%',
+              width: zoomLevel <= 100 ? '100%' : `${containerMaxWidth}px`,
+              maxWidth: zoomLevel <= 100 ? `${containerMaxWidth}px` : 'none',
+              minWidth: zoomLevel <= 100 ? undefined : `${containerMaxWidth}px`,
               backgroundColor: isNight ? '#0b1614' : '#FDFBF7',
               borderColor: isNight ? 'rgba(200, 169, 81, 0.35)' : 'rgba(200, 169, 81, 0.45)',
             }}
@@ -552,7 +584,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                   filter: isNight
                     ? 'invert(0.93) hue-rotate(180deg) brightness(0.95) contrast(1.12)'
                     : 'none',
-                  maxHeight: isFullscreen ? '90vh' : `${Math.round(85 * (zoomLevel / 100))}vh`,
+                  maxHeight: isFullscreen && zoomLevel <= 100 ? '90vh' : zoomLevel > 100 ? 'none' : '85vh',
                 }}
                 onDoubleClick={handleToggleZoomPreset}
                 onLoad={() => setIsLoadingImage(false)}
@@ -630,7 +662,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
           {/* Reading Tips & GoldenQuran Credit */}
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-white/80 dark:border-white/10 dark:bg-[#071d18]/60 px-4 py-2 text-xs text-slate-600 dark:text-zinc-400">
             <span className="flex items-center gap-1.5">
-              <span>💡 يمكنك استخدام أزرار (+) و (-) للتحكم بالحجم، أو النقر المزدوج على الصفحة</span>
+              <span>💡 يمكنك استخدام أزرار (+) و (-) للتحكم بالتكبير حتى 500%، أو النقر المزدوج على الصفحة للتكبير السريع</span>
             </span>
             <a
               href="https://goldenquran.org/"
