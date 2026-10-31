@@ -3,6 +3,7 @@ import {
   BookOpen, 
   RotateCcw, 
   CheckCheck, 
+  Shuffle,
   ChevronLeft, 
   ChevronRight, 
   Maximize2, 
@@ -208,6 +209,15 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
   const nextPage = () => goToPage(currentPage + 1);
   const prevPage = () => goToPage(currentPage - 1);
 
+  // Pick random page
+  const rollRandomPage = () => {
+    let randomP = Math.floor(Math.random() * 604) + 1;
+    if (randomP === currentPage) {
+      randomP = (randomP % 604) + 1;
+    }
+    goToPage(randomP);
+  };
+
   // Zoom In / Out handlers (Dynamic step scaling up to 500%)
   const handleZoomIn = () => {
     setZoomLevel(prev => {
@@ -347,20 +357,33 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3.5 rounded-2xl border border-emerald-600/20 bg-white/95 text-slate-900 dark:border-teal-400/25 dark:bg-[#06221d]/95 dark:text-white px-3 py-2 sm:px-4 sm:py-2.5 shadow-lg shadow-slate-900/5 dark:shadow-emerald-950/20 backdrop-blur-md transition-all">
           
           {/* Right side: Title & Current Page Meta */}
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 border border-amber-500/25 dark:bg-amber-400/10 dark:border-amber-400/20 shadow-2xs">
-              <BookOpen size={18} className="text-amber-600 dark:text-amber-300" />
-            </span>
-            <div className="flex items-center gap-1.5">
-              <h1 className="font-arabic text-sm sm:text-base font-black text-slate-950 dark:text-white leading-tight">
-                الورد القرآني
-              </h1>
-              {isCompleted && (
-                <span className="rounded-full bg-emerald-100 text-emerald-800 dark:bg-teal-500/20 dark:text-[#5EEAD4] px-2 py-0.2 text-[10px] font-bold">
-                  تم الإنجاز ✓
-                </span>
-              )}
+          <div className="flex w-full sm:w-auto items-center justify-between sm:justify-start gap-2.5 shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 border border-amber-500/25 dark:bg-amber-400/10 dark:border-amber-400/20 shadow-2xs">
+                <BookOpen size={18} className="text-amber-600 dark:text-amber-300" />
+              </span>
+              <div className="flex items-center gap-1.5">
+                <h1 className="font-arabic text-sm sm:text-base font-black text-slate-950 dark:text-white leading-tight">
+                  الورد القرآني
+                </h1>
+                {isCompleted && (
+                  <span className="rounded-full bg-emerald-100 text-emerald-800 dark:bg-teal-500/20 dark:text-[#5EEAD4] px-2 py-0.2 text-[10px] font-bold">
+                    تم الإنجاز ✓
+                  </span>
+                )}
+              </div>
             </div>
+
+            {/* Quick Randomize Page Button */}
+            <button
+              type="button"
+              onClick={rollRandomPage}
+              className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-50/90 hover:bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-amber-200 dark:hover:bg-amber-400/25 transition shadow-2xs cursor-pointer"
+              title="اختيار صفحة عشوائية جديدة من المصحف الشريف"
+            >
+              <Shuffle size={13} className="text-amber-700 dark:text-amber-300" />
+              <span>صفحة عشوائية 🎲</span>
+            </button>
           </div>
 
           {/* Central Controls: Surah & Juz jump + Daily button */}
