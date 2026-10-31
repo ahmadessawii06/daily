@@ -123,7 +123,6 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
 
   const [timerRunning, setTimerRunning] = useState<boolean>(false);
   const readerContainerRef = useRef<HTMLDivElement>(null);
-  const touchStartXRef = useRef<number | null>(null);
 
   // Surah & Juz meta
   const currentSurah = getSurahForPage(currentPage);
@@ -283,23 +282,33 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
-  // Touch Swipe gestures
+  // Touch Swipe gestures (strictly checks for horizontal movement and ignores vertical scrolling)
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartXRef.current === null) return;
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
     const touchEndX = e.changedTouches[0].clientX;
-    const diff = touchEndX - touchStartXRef.current;
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) {
+    const touchEndY = e.changedTouches[0].clientY;
+    const diffX = touchEndX - touchStartXRef.current;
+    const diffY = touchEndY - touchStartYRef.current;
+
+    // Only recognize as a page turn if horizontal motion is deliberate and dominates vertical scroll
+    // Minimum 75px horizontal distance AND at least 2.5x the vertical distance
+    if (Math.abs(diffX) > 75 && Math.abs(diffX) > Math.abs(diffY) * 2.5) {
+      if (diffX > 0) {
         prevPage();
       } else {
         nextPage();
       }
     }
     touchStartXRef.current = null;
+    touchStartYRef.current = null;
   };
 
   // Mark completed
@@ -597,9 +606,15 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
         </button>
       </div>
 
-      {/* 3. GoldenQuran Reading Stage (Never crops any part of the page) */}
+      {/* 3. GoldenQuran Reading Stage (Never traps vertical scroll or crops the page) */}
       <div 
-        className="mushaf-stage relative w-full flex items-center justify-center mx-auto my-2 overflow-x-auto overflow-y-visible"
+        className={`mushaf-stage relative w-full flex items-center justify-center mx-auto my-2 ${
+          viewMode === 'fit-width' && zoomLevel > 100 ? 'overflow-x-auto' : 'overflow-visible'
+        }`}
+        style={{
+          touchAction: 'pan-y pinch-zoom',
+          overscrollBehaviorY: 'auto',
+        }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -608,7 +623,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
           type="button"
           onClick={nextPage}
           disabled={currentPage >= 604}
-          className="hidden md:flex items-center justify-center absolute left-1 top-12 bottom-12 w-10 z-30 opacity-0 hover:opacity-100 transition-opacity bg-black/15 hover:bg-amber-500/20 text-amber-300 rounded-xl cursor-pointer disabled:hidden"
+          className="hidden md:flex items-center justify-center absolute left-1 top-12 bottom-12 w-10 z-30 opacity-0 hover:opacity-100 transition-opacity bg-black/15 hover:bg-amber-500/20 text-amber-300 rounded-xl cursor-pointer disabled:hidden pointer-events-auto"
           title="الصفحة التالية (يسار)"
           aria-label="الصفحة التالية"
         >
@@ -619,7 +634,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
           type="button"
           onClick={prevPage}
           disabled={currentPage <= 1}
-          className="hidden md:flex items-center justify-center absolute right-1 top-12 bottom-12 w-10 z-30 opacity-0 hover:opacity-100 transition-opacity bg-black/15 hover:bg-amber-500/20 text-amber-300 rounded-xl cursor-pointer disabled:hidden"
+          className="hidden md:flex items-center justify-center absolute right-1 top-12 bottom-12 w-10 z-30 opacity-0 hover:opacity-100 transition-opacity bg-black/15 hover:bg-amber-500/20 text-amber-300 rounded-xl cursor-pointer disabled:hidden pointer-events-auto"
           title="الصفحة السابقة (يمين)"
           aria-label="الصفحة السابقة"
         >
@@ -652,6 +667,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
             maxWidth: viewMode === 'fit-width' 
               ? `${scaledWidth}px` 
               : '100%',
+            touchAction: 'pan-y pinch-zoom',
           }}
         >
           {/* Loading Spinner / Placeholder */}
@@ -669,6 +685,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
             key={currentPage}
             src={getGoldenQuranPageUrl(currentPage)}
             alt={`صفحة المصحف الشريف ${currentPage}`}
+            draggable={false}
             className="mushaf-scan w-full h-full block select-none pointer-events-auto transition-transform duration-150"
             style={{
               objectFit: 'contain',
@@ -676,7 +693,10 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
               filter: isNight
                 ? 'invert(.9) hue-rotate(180deg) sepia(.2) saturate(1.5) brightness(.95)'
                 : 'none',
-            }}
+              touchAction: 'pan-y pinch-zoom',
+              userSelect: 'none',
+              WebkitUserDrag: 'none',
+            } as React.CSSProperties}
             onDoubleClick={toggleViewMode}
             onLoad={() => setIsLoadingImage(false)}
             onError={() => setIsLoadingImage(false)}
