@@ -67,6 +67,7 @@ import { AdhkarSection } from './components/AdhkarSection';
 import { MorningAdhkarIslamBook } from './components/MorningAdhkarIslamBook';
 import { EveningAdhkarIslamBook } from './components/EveningAdhkarIslamBook';
 import { QuranicDuasIslamBook } from './components/QuranicDuasIslamBook';
+import { QuranWirdGoldenMushaf } from './components/QuranWirdGoldenMushaf';
 import { QuranWirdSection } from './components/QuranWirdSection';
 import { DuasSection } from './components/DuasSection';
 import { ComingSoonFeature } from './components/ComingSoonFeature';
@@ -804,21 +805,7 @@ export default function App() {
             {religiousSection !== 'prayers' && <div className="religious-content-switch" key={religiousSection}>
               {religiousSection === 'morning' && <MorningAdhkarIslamBook date={currentDate} />}
               {religiousSection === 'evening' && <EveningAdhkarIslamBook date={currentDate} />}
-              {religiousSection === 'quran' && (
-                <ComingSoonFeature
-                  title="الورد القرآني الميسّر"
-                  badge="ميزة قيد التطوير"
-                  subtitle="قراءة، تدبر، وحفظ الورد اليومي برسم المصحف الشريف"
-                  description="يجري العمل على بناء تجربة قراءة وتدبر فاخرة برسم مصحف المدينة المنورة، مع عداد صفحات ذكي، حفظ تلقائي للموضع، وإحصائيات إنجاز متقدمة ترتبط بيومك بانسيابية."
-                  features={[
-                    'عرض صفحات المصحف الشريف بدقة عالية',
-                    'تثبيت مواضع الحفظ والتلاوة اليومية',
-                    'تحديد هدف الصفحات اليومي وتتبعه بدقة',
-                    'خط مصحف مجمع الملك فهد الأصيل'
-                  ]}
-                  icon={BookOpen}
-                />
-              )}
+              {religiousSection === 'quran' && <QuranWirdGoldenMushaf date={currentDate} />}
               {religiousSection === 'duas' && <QuranicDuasIslamBook date={currentDate} />}
             </div>}
             {religiousSection === 'prayers' && <>

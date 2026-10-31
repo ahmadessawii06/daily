@@ -834,3 +834,4 @@ export function QuranicDuasIslamBook({ date }: QuranicDuasProps) {
     </div>
   );
 }
+
