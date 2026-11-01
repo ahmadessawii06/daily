@@ -685,9 +685,6 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
 [data-progress-layout="compact"] [data-progress-tone] > div:last-child > span {
   line-height: 1.4;
 }
-[data-progress-verse] {
-  margin-bottom: 0px;
-}
 
 /* Main header top bar alignment: perfectly centers the toolbar above the progress card */
 .main-header-top-bar {
@@ -744,16 +741,6 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
     gap: .75rem;
     width: 100%;
   }
-  .header-progress-content [data-progress-verse] {
-    display: flex;
-    min-width: 0;
-    width: 100%;
-    max-width: 56rem;
-    flex-direction: column;
-    justify-content: center;
-    margin: 0 auto;
-    padding: 0;
-  }
   .header-progress-content [data-progress-layout="compact"] {
     min-width: 0;
     width: 100%;
@@ -798,8 +785,6 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
   .main-header-secondary-bar > .main-header-secondary-date { grid-column: 3; grid-row: 1; align-self: start; }
   .main-header-secondary-bar > :is(.main-header-clock, .main-header-secondary-date) { width: 100%; min-width: 0; align-self: start; }
   .main-header-secondary-bar > :is(.main-header-clock, .main-header-secondary-date) > nav { width: 100%; max-width: 100%; }
-  .header-progress-content [data-progress-verse] .quran-verse-text { line-height: 1.9; white-space: normal; }
-  .header-progress-content [data-progress-verse] > p:last-child { font-size: .75rem; margin-top: .375rem; }
 }
 
 [data-main-header] {
@@ -1620,20 +1605,8 @@ html.light [data-prayer-verse] {
   backdrop-filter: blur(12px);
 }
 
-html.light [data-progress-verse] {
-  border-color: rgba(197, 160, 89, 0.38);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(254, 252, 246, 0.82) 50%, rgba(250, 245, 234, 0.88) 100%);
-  color: #12382e;
-  box-shadow: 0 6px 24px -4px rgba(22, 56, 44, 0.08), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 1px 0 rgba(197, 160, 89, 0.15);
-  backdrop-filter: blur(16px);
-}
-
 html.light [data-prayer-verse] .quran-verse-text {
   color: #23544e;
-}
-
-html.light [data-progress-verse] .quran-verse-text {
-  color: #12382e;
 }
 
 html.dark [data-prayer-verse] {
@@ -1644,16 +1617,7 @@ html.dark [data-prayer-verse] {
   backdrop-filter: blur(8px);
 }
 
-html.dark [data-progress-verse] {
-  border-color: rgba(212, 175, 95, 0.32);
-  background: linear-gradient(135deg, rgba(7, 26, 21, 0.88) 0%, rgba(5, 20, 16, 0.82) 50%, rgba(9, 30, 24, 0.88) 100%);
-  color: #FBF2DD;
-  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 1px 0 rgba(212, 175, 95, 0.18);
-  backdrop-filter: blur(16px);
-}
-
-html.dark [data-prayer-verse] .quran-verse-text,
-html.dark [data-progress-verse] .quran-verse-text {
+html.dark [data-prayer-verse] .quran-verse-text {
   color: #F8EBCD;
 }
 
