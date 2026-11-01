@@ -313,17 +313,15 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                 {lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn}
               </p>
 
-              {/* 3. Integrated Surah & Ayah Attribution Badge */}
-              <div className="mt-2 sm:mt-2.5 flex items-center justify-center gap-2 select-none">
-                <span aria-hidden="true" className="h-px w-8 sm:w-16 bg-gradient-to-r from-transparent to-[#c5a059]/45 dark:to-[#E8D39C]/45" />
-                <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-[11px] sm:text-xs font-semibold text-[#7a591a] dark:text-[#E8D39C] bg-[#c5a059]/12 dark:bg-[#c5a059]/15 border border-[#c5a059]/25 dark:border-[#c5a059]/30 shadow-2xs font-['Alexandria']">
-                  <span>
-                    {lang === 'ar'
-                      ? `سورة ${dailyVerse.surahAr} • ${dailyVerse.ayahNumberAr.includes('–') ? 'الآيات' : 'الآية'} ${dailyVerse.ayahNumberAr}`
-                      : `Surah ${dailyVerse.surahEn} • ${dailyVerse.ayahNumberEn.includes('–') ? 'Verses' : 'Verse'} ${dailyVerse.ayahNumberEn}`}
-                  </span>
+              {/* 3. Integrated Surah & Ayah Attribution (Clean without circle/pill) */}
+              <div className="mt-2 sm:mt-2.5 flex items-center justify-center gap-2.5 text-xs sm:text-[13px] font-semibold text-[#c59b4c] dark:text-[#E8D39C] select-none font-['Alexandria']">
+                <span aria-hidden="true" className="h-[1.5px] w-6 sm:w-10 bg-[#c59b4c]/60 dark:bg-[#E8D39C]/50 rounded-full" />
+                <span>
+                  {lang === 'ar'
+                    ? `سورة ${dailyVerse.surahAr} • ${dailyVerse.ayahNumberAr.includes('–') ? 'الآيات' : 'الآية'} ${dailyVerse.ayahNumberAr}`
+                    : `Surah ${dailyVerse.surahEn} • ${dailyVerse.ayahNumberEn.includes('–') ? 'Verses' : 'Verse'} ${dailyVerse.ayahNumberEn}`}
                 </span>
-                <span aria-hidden="true" className="h-px w-8 sm:w-16 bg-gradient-to-l from-transparent to-[#c5a059]/45 dark:to-[#E8D39C]/45" />
+                <span aria-hidden="true" className="h-[1.5px] w-6 sm:w-10 bg-[#c59b4c]/60 dark:bg-[#E8D39C]/50 rounded-full" />
               </div>
             </div>
           </article>
