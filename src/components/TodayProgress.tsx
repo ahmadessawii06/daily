@@ -161,7 +161,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
   };
 
   const progressCard = (
-    <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-4xl grid-cols-5 items-center gap-2 sm:gap-4 rounded-2xl border border-white/85 bg-gradient-to-b from-white/88 via-[#fcfbfa]/82 to-[#f8f6f2]/88 px-4 sm:px-6 py-2.5 sm:py-3 shadow-[0_4px_20px_-4px_rgba(18,50,38,0.06),inset_0_1px_1.5px_rgba(255,255,255,0.95)] backdrop-blur-md dark:border-white/12 dark:bg-gradient-to-b dark:from-[#07241d]/85 dark:via-[#051c17]/80 dark:to-[#07241d]/85 dark:shadow-[0_8px_28px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.08)]' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
+    <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'grid w-full max-w-4xl grid-cols-5 items-center gap-2 sm:gap-4 rounded-2xl border border-white/85 bg-gradient-to-b from-white/88 via-[#fcfbfa]/82 to-[#f8f6f2]/88 px-4 sm:px-6 py-2.5 sm:py-3 shadow-[0_4px_20px_-4px_rgba(18,50,38,0.06),inset_0_1px_1.5px_rgba(255,255,255,0.95)] backdrop-blur-md dark:border-white/12 dark:bg-gradient-to-b dark:from-[#07241d]/85 dark:via-[#051c17]/80 dark:to-[#07241d]/85 dark:shadow-[0_8px_28px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.08)]' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
             
             {/* Main Circular Progress Gauge */}
             <div data-progress-main className={`${compact ? 'col-start-3 row-start-1 w-auto justify-self-center' : 'w-full justify-center gap-3 sm:gap-4 md:w-auto md:flex-1 md:justify-start'} flex min-w-0 shrink-0 items-center`}>
@@ -356,7 +356,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
         />
         <div className="absolute inset-0 bg-white/65 dark:bg-[#07120f]/75 transition-colors duration-500" />
       </div>
-      <div className={`relative z-10 flex flex-col ${compact ? 'header-progress-content gap-2' : 'gap-3'}`}>
+      <div data-progress-root={compact ? 'compact' : undefined} className={`relative z-10 flex flex-col ${compact ? 'gap-2' : 'gap-3'}`}>
         
         {/* Top Row: Title, Subtitle, and Motivational Hint Badge */}
         <div className={`${compact ? 'hidden' : 'flex flex-col sm:flex-row sm:items-center'} justify-between gap-2 ${compact ? '' : 'border-b border-slate-100 pb-2 dark:border-white/[0.05]'}`}>
@@ -423,14 +423,14 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
         {compact ? (
           <div className="w-full">
             {/* Desktop 3-Column Layout: [Hadith] [Statistics] [Ayah] in RTL */}
-            <div className="w-full grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(auto,56rem)_minmax(0,1fr)] items-stretch gap-2.5 sm:gap-3">
+            <div className="w-full grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] items-stretch gap-2.5 sm:gap-3">
               {/* Right Column in RTL: Ayah Preview */}
               <div className="hidden xl:flex min-w-0 h-full">
                 <DailyInspirationPreview type="ayah" currentDate={currentDate} lang={lang} />
               </div>
 
               {/* Center Column: Statistics Card */}
-              <div className="w-full min-w-0 flex justify-center">
+              <div className="w-full min-w-0 flex justify-center overflow-hidden">
                 {progressCard}
               </div>
 
