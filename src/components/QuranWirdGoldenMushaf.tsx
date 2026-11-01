@@ -543,11 +543,11 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                     ? 'bg-white text-emerald-800 dark:bg-white/15 dark:text-emerald-300 shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900 dark:text-zinc-300 dark:hover:text-white'
                 }`}
-                title="ملء الشاشة: عرض الصفحة كاملة متناسقة مع ارتفاع الشاشة دون أي قص (اختصار W)"
+                title="ملء الصفحة: عرض الصفحة كاملة متناسقة مع ارتفاع الشاشة دون أي قص (اختصار W)"
               >
                 <StretchHorizontal size={12} />
-                <span className="hidden sm:inline">ملء الشاشة</span>
-                <span className="sm:hidden">الشاشة</span>
+                <span className="hidden sm:inline">ملء الصفحة</span>
+                <span className="sm:hidden">الصفحة</span>
               </button>
 
               <button
@@ -602,11 +602,11 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
                 type="button"
                 onClick={toggleFullscreen}
                 className="flex items-center gap-1.5 h-7 sm:h-7.5 px-2 sm:px-2.5 rounded-lg border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-white/10 transition shadow-2xs cursor-pointer select-none"
-                title={isFullscreen ? 'الخروج من ملء الشاشة (اختصار F)' : 'عرض بملء الشاشة (اختصار F)'}
-                aria-label="ملء الشاشة"
+                title={isFullscreen ? 'الخروج من الشاشة الكاملة (اختصار F)' : 'شاشة كاملة (اختصار F)'}
+                aria-label="شاشة كاملة"
               >
                 {isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
-                <span className="hidden md:inline">{isFullscreen ? 'إنهاء الملء' : 'ملء الشاشة'}</span>
+                <span className="hidden md:inline">{isFullscreen ? 'إنهاء الشاشة الكاملة' : 'شاشة كاملة'}</span>
                 <kbd className="hidden lg:inline text-[9px] font-mono px-1 py-0.2 rounded bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-zinc-400">
                   F
                 </kbd>
