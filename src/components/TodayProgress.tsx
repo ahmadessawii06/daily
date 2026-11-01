@@ -423,25 +423,25 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
         {compact ? (
           <div className="w-full">
             {/* Desktop 3-Column Layout: [Hadith] [Statistics] [Ayah] in RTL */}
-            <div className="w-full grid grid-cols-1 min-[1100px]:grid-cols-[1fr_auto_1fr] items-stretch gap-2.5 sm:gap-3">
+            <div className="w-full grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(auto,56rem)_minmax(0,1fr)] items-stretch gap-2.5 sm:gap-3">
               {/* Right Column in RTL: Ayah Preview */}
-              <div className={`hidden min-[1100px]:flex min-w-0 w-full h-full ${lang === 'ar' ? 'order-1' : 'order-3'}`}>
-                <DailyInspirationPreview type="ayah" currentDate={currentDate} lang={lang} className="w-full h-full" />
+              <div className="hidden xl:flex min-w-0 h-full">
+                <DailyInspirationPreview type="ayah" currentDate={currentDate} lang={lang} />
               </div>
 
               {/* Center Column: Statistics Card */}
-              <div className="order-2 w-full min-w-0 flex justify-center">
+              <div className="w-full min-w-0 flex justify-center">
                 {progressCard}
               </div>
 
               {/* Left Column in RTL: Hadith Preview */}
-              <div className={`hidden min-[1100px]:flex min-w-0 w-full h-full ${lang === 'ar' ? 'order-3' : 'order-1'}`}>
-                <DailyInspirationPreview type="hadith" currentDate={currentDate} lang={lang} className="w-full h-full" />
+              <div className="hidden xl:flex min-w-0 h-full">
+                <DailyInspirationPreview type="hadith" currentDate={currentDate} lang={lang} />
               </div>
             </div>
 
             {/* Mobile & Tablet Row: 2-column inspiration cards below statistics */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 w-full max-w-4xl mx-auto mt-2 min-[1100px]:hidden">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 w-full max-w-4xl mx-auto mt-2 xl:hidden">
               <DailyInspirationPreview type="ayah" currentDate={currentDate} lang={lang} />
               <DailyInspirationPreview type="hadith" currentDate={currentDate} lang={lang} />
             </div>

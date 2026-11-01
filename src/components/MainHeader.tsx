@@ -214,17 +214,13 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
         <div className="main-header-clock">
           {onDateChange && <HijriDateNavigation currentDate={currentDate} onDateChange={onDateChange} lang={lang} />}
         </div>
-        {worshipNavigation && (
-          <div className="main-header-dock-container" dir={ar ? 'rtl' : 'ltr'}>
-            {worshipNavigation}
-          </div>
-        )}
         <div className="main-header-secondary-date" dir={ar ? 'rtl' : 'ltr'}>
           {dateNavigation}
         </div>
         {children && <div data-main-header-summary dir={ar ? 'rtl' : 'ltr'}>
           {children}
         </div>}
+        
       </div>
       </div>
     </header>
