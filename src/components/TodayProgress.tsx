@@ -2,7 +2,6 @@ import React from 'react';
 import { Target, Trophy, Sparkles, CheckCircle2, Clock, XCircle, ListTodo } from 'lucide-react';
 import { DayStats, Language, StatusFilter, Theme } from '../types';
 import { StatCircle } from './StatCircle';
-import { getDailyVerse } from '../data/dailyVerses';
 
 const progressBackgrounds: Record<Theme, string> = {
   dark: new URL('../assets/images/home/daily-progress-abstract-dark.webp', import.meta.url).href,
@@ -30,8 +29,6 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
   currentDate,
   worshipNavigation,
 }) => {
-  const dailyVerse = React.useMemo(() => getDailyVerse(currentDate), [currentDate]);
-
   // تتبع ما إذا كان فلتر 'all' (مطلوبة) مفعلاً بصرياً أم تم إلغاؤه بنقرة ثانية
   const [isAllSelected, setIsAllSelected] = React.useState(false);
 
@@ -252,100 +249,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
           </div>
         )}
 
-        {/* 2. Motivational Quran Verse (placed in the middle) */}
-        {compact && (() => {
-          const rawTextAr = dailyVerse.textAr.trim();
-          const cleanTextAr = rawTextAr.replace(/^﴿/, '').replace(/﴾$/, '').trim();
-          const textLen = (lang === 'ar' ? cleanTextAr : dailyVerse.textEn).length;
-          const typographyScale = textLen > 90
-            ? 'text-[19px] sm:text-[22px] md:text-[25px] leading-[2.15] sm:leading-[2.25]'
-            : textLen > 50
-              ? 'text-[22px] sm:text-[26px] md:text-[29px] leading-[2.15] sm:leading-[2.3]'
-              : 'text-[25px] sm:text-[30px] md:text-[34px] leading-[2.2] sm:leading-[2.35]';
 
-          return (
-            <article
-              data-progress-verse
-              lang={lang === 'ar' ? 'ar' : 'en'}
-              dir={lang === 'ar' ? 'rtl' : 'ltr'}
-              aria-label={lang === 'ar' ? 'آية اليوم الكريمة' : 'Verse of the Day'}
-              className="group relative mx-auto w-full min-w-0 max-w-4xl overflow-hidden rounded-2xl border border-[#c5a059]/35 bg-gradient-to-b from-[#fffefc]/95 via-[#fcf8ef]/90 to-[#f9f4e6]/95 px-5 py-4 sm:px-10 sm:py-5 md:py-6 text-center shadow-[0_8px_32px_-4px_rgba(22,56,44,0.08),inset_0_1px_2px_0_rgba(255,255,255,0.95),inset_0_-1px_1px_0_rgba(197,160,89,0.15)] backdrop-blur-md transition-all duration-300 dark:border-[#c5a059]/25 dark:bg-gradient-to-b dark:from-[#08221b]/92 dark:via-[#061c16]/88 dark:to-[#08221b]/92 dark:shadow-[0_12px_40px_-6px_rgba(0,0,0,0.55),inset_0_1px_1px_0_rgba(255,255,255,0.1),inset_0_-1px_1px_0_rgba(212,175,95,0.15)]"
-            >
-              {/* Sacred Geometric Girih Watermark: adds authentic manuscript aura without visual clutter */}
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 200 200"
-                className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-72 w-72 text-[#c5a059]/[0.045] dark:text-[#E8D39C]/[0.035] select-none transform-gpu"
-                fill="none"
-                stroke="currentColor"
-              >
-                <circle cx="100" cy="100" r="92" strokeWidth="0.8" strokeDasharray="3 3" />
-                <circle cx="100" cy="100" r="74" strokeWidth="0.8" />
-                <rect x="48" y="48" width="104" height="104" strokeWidth="0.8" />
-                <rect x="48" y="48" width="104" height="104" strokeWidth="0.8" transform="rotate(45 100 100)" />
-                <circle cx="100" cy="100" r="30" strokeWidth="0.8" />
-                <circle cx="100" cy="100" r="12" strokeWidth="0.8" />
-              </svg>
-
-              {/* Luminous top halo glow */}
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(ellipse_at_top,rgba(212,175,95,0.15)_0%,transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(212,175,95,0.12)_0%,transparent_70%)] select-none"
-              />
-
-              <div className="relative z-10 flex flex-col items-center justify-center">
-                {/* 1. Illuminated Top Rosette Crest */}
-                <div className="flex items-center justify-center gap-3 mb-2 sm:mb-3 select-none">
-                  <span aria-hidden="true" className="h-px w-8 sm:w-16 md:w-24 bg-gradient-to-r from-transparent via-[#c5a059]/35 to-[#c5a059]/75 dark:via-[#E8D39C]/35 dark:to-[#E8D39C]/75" />
-                  <div className="inline-flex items-center gap-2 px-1">
-                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="size-4 text-[#c5a059] dark:text-[#E8D39C] shrink-0">
-                      <path d="M12 2L14.5 7.5L20 8.5L16 13L17 19L12 16L7 19L8 13L4 8.5L9.5 7.5L12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                      <circle cx="12" cy="11.5" r="2" fill="currentColor" />
-                    </svg>
-                    <span className="text-[11px] sm:text-xs font-bold font-['Alexandria'] text-[#8b6d2a] dark:text-[#E8D39C] tracking-widest uppercase">
-                      {lang === 'ar' ? 'آيَـةُ الـيَـوْم' : 'Verse of the Day'}
-                    </span>
-                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="size-4 text-[#c5a059] dark:text-[#E8D39C] shrink-0">
-                      <path d="M12 2L14.5 7.5L20 8.5L16 13L17 19L12 16L7 19L8 13L4 8.5L9.5 7.5L12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                      <circle cx="12" cy="11.5" r="2" fill="currentColor" />
-                    </svg>
-                  </div>
-                  <span aria-hidden="true" className="h-px w-8 sm:w-16 md:w-24 bg-gradient-to-l from-transparent via-[#c5a059]/35 to-[#c5a059]/75 dark:via-[#E8D39C]/35 dark:to-[#E8D39C]/75" />
-                </div>
-
-                {/* 2. Monumental Quran Calligraphy with Gilded Manuscript Brackets */}
-                <p
-                  className={`quran-verse-text font-arabic text-[#0e3328] dark:text-[#FBF3DF] transition-all ${typographyScale} tracking-normal font-normal selection:bg-amber-100 selection:text-emerald-950 max-w-3xl mx-auto my-1 sm:my-1.5`}
-                >
-                  {lang === 'ar' ? (
-                    <span className="inline">
-                      <span aria-hidden="true" className="text-[#c5a059] dark:text-[#E8D39C] font-arabic select-none text-[1.12em] me-1 inline-block align-baseline opacity-95">
-                        ﴿
-                      </span>
-                      <span>{cleanTextAr}</span>
-                      <span aria-hidden="true" className="text-[#c5a059] dark:text-[#E8D39C] font-arabic select-none text-[1.12em] ms-1 inline-block align-baseline opacity-95">
-                        ﴾
-                      </span>
-                    </span>
-                  ) : (
-                    <span>{dailyVerse.textEn}</span>
-                  )}
-                </p>
-
-                {/* 3. Noble Quranic Attribution (Clean dashes without pill/circle) */}
-                <div className="mt-2.5 sm:mt-3 flex items-center justify-center gap-2.5 text-xs sm:text-[13px] font-semibold text-[#c59b4c] dark:text-[#E8D39C] select-none font-['Alexandria']">
-                  <span aria-hidden="true" className="h-[1.5px] w-6 sm:w-10 bg-[#c59b4c]/70 dark:bg-[#E8D39C]/60 rounded-full" />
-                  <span>
-                    {lang === 'ar'
-                      ? `سورة ${dailyVerse.surahAr} • ${dailyVerse.ayahNumberAr.includes('–') ? 'الآيات' : 'الآية'} ${dailyVerse.ayahNumberAr}`
-                      : `Surah ${dailyVerse.surahEn} • ${dailyVerse.ayahNumberEn.includes('–') ? 'Verses' : 'Verse'} ${dailyVerse.ayahNumberEn}`}
-                  </span>
-                  <span aria-hidden="true" className="h-[1.5px] w-6 sm:w-10 bg-[#c59b4c]/70 dark:bg-[#E8D39C]/60 rounded-full" />
-                </div>
-              </div>
-            </article>
-          );
-        })()}
 
         {/* Main Section: Circular Progress Gauge + 4 Circular Metric Gauges (دوائر تفاعلية بدلاً من البطاقات) */}
         <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-4xl grid-cols-5 items-center gap-2 sm:gap-4 rounded-2xl border border-white/85 bg-gradient-to-b from-white/88 via-[#fcfbfa]/82 to-[#f8f6f2]/88 px-4 sm:px-6 py-2.5 sm:py-3 shadow-[0_4px_20px_-4px_rgba(18,50,38,0.06),inset_0_1px_1.5px_rgba(255,255,255,0.95)] backdrop-blur-md dark:border-white/12 dark:bg-gradient-to-b dark:from-[#07241d]/85 dark:via-[#051c17]/80 dark:to-[#07241d]/85 dark:shadow-[0_8px_28px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.08)]' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
