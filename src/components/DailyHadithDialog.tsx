@@ -154,4 +154,3 @@ export const DailyHadithDialog: React.FC<DailyHadithDialogProps> = ({
     </div>
   );
 };
-
