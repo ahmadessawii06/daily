@@ -12,8 +12,6 @@ import {
   Minimize2, 
   ExternalLink, 
   Calendar, 
-  Plus, 
-  Minus, 
   Timer, 
   Play, 
   Pause,
@@ -180,6 +178,27 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
     }
     return () => clearInterval(interval);
   }, [timerRunning]);
+
+  // Auto-start session timer when user starts scrolling the page
+  useEffect(() => {
+    if (timerRunning || isCompleted) return;
+
+    const handleScrollActivity = () => {
+      setTimerRunning(true);
+    };
+
+    window.addEventListener('scroll', handleScrollActivity, { passive: true });
+    document.addEventListener('scroll', handleScrollActivity, { passive: true, capture: true });
+    window.addEventListener('wheel', handleScrollActivity, { passive: true });
+    window.addEventListener('touchmove', handleScrollActivity, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScrollActivity);
+      document.removeEventListener('scroll', handleScrollActivity, { capture: true });
+      window.removeEventListener('wheel', handleScrollActivity);
+      window.removeEventListener('touchmove', handleScrollActivity);
+    };
+  }, [timerRunning, isCompleted]);
 
   // Save session info
   useEffect(() => {
@@ -549,44 +568,13 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
 
             <div className="hidden sm:block h-4.5 w-px bg-slate-200/90 dark:bg-white/10 shrink-0" />
 
-            {/* Zoom Stepper Control: [-] [100%] [+] */}
-            <div className="flex items-center gap-0.5 h-7 sm:h-7.5 px-1 rounded-lg border border-slate-200/90 bg-white dark:border-white/10 dark:bg-white/5 text-xs shadow-2xs select-none shrink-0">
-              <button
-                type="button"
-                onClick={handleZoomOut}
-                disabled={zoomLevel <= 75}
-                className="w-5 h-5 flex items-center justify-center rounded text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
-                title="تصغير (اختصار -)"
-                aria-label="تصغير حجم الصفحة"
-              >
-                <Minus size={11} />
-              </button>
-              <button
-                type="button"
-                onClick={handleResetZoom}
-                className="px-1.5 font-numbers font-medium text-[11px] text-slate-700 dark:text-zinc-200 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
-                title="إعادة ضبط الحجم (100% - اختصار 0)"
-              >
-                {zoomLevel}%
-              </button>
-              <button
-                type="button"
-                onClick={handleZoomIn}
-                disabled={zoomLevel >= 500}
-                className="w-5 h-5 flex items-center justify-center rounded text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
-                title="تكبير (اختصار +)"
-                aria-label="تكبير حجم الصفحة"
-              >
-                <Plus size={11} />
-              </button>
-            </div>
-
-            {/* Quick Zoom Presets: [100% | 150% | 200%] */}
+            {/* Quick Zoom Presets: [100% | 150% | 200% | 300%] */}
             <div className="flex items-center gap-1 shrink-0">
               {[
                 { label: '100%', val: 100 },
                 { label: '150%', val: 150 },
                 { label: '200%', val: 200 },
+                { label: '300%', val: 300 },
               ].map(preset => (
                 <button
                   key={preset.val}
