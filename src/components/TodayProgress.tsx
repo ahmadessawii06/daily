@@ -259,69 +259,69 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
             lang={lang === 'ar' ? 'ar' : 'en'}
             dir={lang === 'ar' ? 'rtl' : 'ltr'}
             aria-label={lang === 'ar' ? 'آية اليوم الكريمة' : 'Verse of the Day'}
-            className="group relative mx-auto w-full min-w-0 max-w-4xl overflow-hidden rounded-2xl border border-[#c5a059]/35 bg-gradient-to-b from-[#fffefc]/92 via-[#fcf9f2]/88 to-[#f8f3e6]/92 p-3 sm:p-4 text-center shadow-[0_4px_24px_-4px_rgba(22,56,44,0.08),inset_0_1px_1.5px_0_rgba(255,255,255,0.95),inset_0_-1px_1px_0_rgba(197,160,89,0.15)] backdrop-blur-md transition-all duration-300 dark:border-[#c5a059]/25 dark:bg-gradient-to-b dark:from-[#08221b]/90 dark:via-[#061c16]/85 dark:to-[#08221b]/90 dark:shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5),inset_0_1px_1px_0_rgba(255,255,255,0.1),inset_0_-1px_1px_0_rgba(212,175,95,0.15)]"
+            className="group relative mx-auto w-full min-w-0 max-w-4xl overflow-hidden rounded-2xl border border-[#c5a059]/35 bg-gradient-to-b from-[#fffefc]/94 via-[#fcf9f2]/90 to-[#f8f3e6]/94 p-2 sm:p-2.5 text-center shadow-[0_4px_24px_-4px_rgba(22,56,44,0.08),inset_0_1px_1.5px_0_rgba(255,255,255,0.95),inset_0_-1px_1px_0_rgba(197,160,89,0.15)] backdrop-blur-md transition-all duration-300 dark:border-[#c5a059]/25 dark:bg-gradient-to-b dark:from-[#08221b]/92 dark:via-[#061c16]/88 dark:to-[#08221b]/92 dark:shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5),inset_0_1px_1px_0_rgba(255,255,255,0.1),inset_0_-1px_1px_0_rgba(212,175,95,0.15)]"
           >
-            {/* Inner Ornamental Frame with delicate Islamic corner motifs */}
-            <div className="relative rounded-xl border border-[#c5a059]/25 dark:border-[#c5a059]/20 px-3 py-2.5 sm:px-6 sm:py-3.5 transition-colors">
-              {/* 4 Corner Geometric Motifs (Refined Islamic corner brackets) */}
-              <span aria-hidden="true" className="pointer-events-none absolute -top-1.5 -start-1.5 size-3 text-[#c5a059]/70 dark:text-[#E8D39C]/70">
+            {/* Inner Architectural Frame centered organically with optimal reading proportions */}
+            <div className="relative mx-auto w-full max-w-3xl rounded-xl border border-[#c5a059]/30 dark:border-[#c5a059]/25 px-4 py-3 sm:px-8 sm:py-4 transition-colors">
+              {/* 4 Corner Geometric Motifs (Classic Islamic illumination brackets) */}
+              <span aria-hidden="true" className="pointer-events-none absolute top-1.5 start-1.5 size-3 text-[#c5a059]/70 dark:text-[#E8D39C]/70">
                 <svg viewBox="0 0 12 12" fill="none" className="size-full">
                   <path d="M1 11V1H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   <circle cx="1" cy="1" r="1" fill="currentColor" />
                 </svg>
               </span>
-              <span aria-hidden="true" className="pointer-events-none absolute -top-1.5 -end-1.5 size-3 text-[#c5a059]/70 dark:text-[#E8D39C]/70">
+              <span aria-hidden="true" className="pointer-events-none absolute top-1.5 end-1.5 size-3 text-[#c5a059]/70 dark:text-[#E8D39C]/70">
                 <svg viewBox="0 0 12 12" fill="none" className="size-full">
                   <path d="M11 11V1H1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   <circle cx="11" cy="1" r="1" fill="currentColor" />
                 </svg>
               </span>
-              <span aria-hidden="true" className="pointer-events-none absolute -bottom-1.5 -start-1.5 size-3 text-[#c5a059]/70 dark:text-[#E8D39C]/70">
+              <span aria-hidden="true" className="pointer-events-none absolute bottom-1.5 start-1.5 size-3 text-[#c5a059]/70 dark:text-[#E8D39C]/70">
                 <svg viewBox="0 0 12 12" fill="none" className="size-full">
                   <path d="M1 1V11H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   <circle cx="1" cy="1" r="1" fill="currentColor" />
                 </svg>
               </span>
-              <span aria-hidden="true" className="pointer-events-none absolute -bottom-1.5 -end-1.5 size-3 text-[#c5a059]/70 dark:text-[#E8D39C]/70">
+              <span aria-hidden="true" className="pointer-events-none absolute bottom-1.5 end-1.5 size-3 text-[#c5a059]/70 dark:text-[#E8D39C]/70">
                 <svg viewBox="0 0 12 12" fill="none" className="size-full">
                   <path d="M11 1V11H1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   <circle cx="11" cy="1" r="1" fill="currentColor" />
                 </svg>
               </span>
 
-              {/* 1. Header / Crown Crest: «آية اليوم» */}
-              <div className="flex items-center justify-center gap-2 mb-1.5 sm:mb-2 select-none">
-                <span aria-hidden="true" className="h-px w-6 sm:w-12 bg-gradient-to-r from-transparent to-[#c5a059]/50 dark:to-[#E8D39C]/50" />
-                <span aria-hidden="true" className="size-1 rounded-full bg-[#c5a059]/70 dark:bg-[#E8D39C]/70" />
-                <span className="text-[10px] sm:text-[11px] font-bold font-['Alexandria'] text-[#8b6d2a] dark:text-[#E8D39C] tracking-widest uppercase">
+              {/* 1. Header Frieze: «آية اليوم» flanked by architectural rule dividers */}
+              <div className="flex items-center justify-center gap-2 mb-2 sm:mb-2.5 select-none">
+                <span aria-hidden="true" className="h-px flex-1 max-w-[80px] sm:max-w-[140px] bg-gradient-to-r from-transparent via-[#c5a059]/40 to-[#c5a059]/75 dark:via-[#E8D39C]/40 dark:to-[#E8D39C]/75" />
+                <span aria-hidden="true" className="size-1.5 rotate-45 border border-[#c5a059]/80 bg-[#c5a059]/40 dark:border-[#E8D39C]/80 dark:bg-[#E8D39C]/40 shrink-0" />
+                <span className="text-[10.5px] sm:text-[11.5px] font-bold font-['Alexandria'] text-[#8b6d2a] dark:text-[#E8D39C] tracking-widest px-1 uppercase shrink-0">
                   {lang === 'ar' ? 'آيــة الـيــوم' : 'Verse of the Day'}
                 </span>
-                <span aria-hidden="true" className="size-1 rounded-full bg-[#c5a059]/70 dark:bg-[#E8D39C]/70" />
-                <span aria-hidden="true" className="h-px w-6 sm:w-12 bg-gradient-to-l from-transparent to-[#c5a059]/50 dark:to-[#E8D39C]/50" />
+                <span aria-hidden="true" className="size-1.5 rotate-45 border border-[#c5a059]/80 bg-[#c5a059]/40 dark:border-[#E8D39C]/80 dark:bg-[#E8D39C]/40 shrink-0" />
+                <span aria-hidden="true" className="h-px flex-1 max-w-[80px] sm:max-w-[140px] bg-gradient-to-l from-transparent via-[#c5a059]/40 to-[#c5a059]/75 dark:via-[#E8D39C]/40 dark:to-[#E8D39C]/75" />
               </div>
 
-              {/* 2. The Noble Ayah Text */}
+              {/* 2. Majestic Quran Calligraphy (Amiri Quran with prominent visual weight) */}
               <p
                 className={`quran-verse-text font-arabic text-[#10362c] dark:text-[#FBF2DD] transition-all ${
-                  (lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn).length > 80
-                    ? 'text-[17px] sm:text-[19px] md:text-[21px] leading-[2.1] sm:leading-[2.2]'
-                    : (lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn).length > 50
-                      ? 'text-[19px] sm:text-[21px] md:text-[23px] leading-[2.15] sm:leading-[2.25]'
-                      : 'text-[21px] sm:text-[23px] md:text-[25px] leading-[2.2] sm:leading-[2.3]'
-                } tracking-wide font-normal selection:bg-amber-100 selection:text-emerald-950`}
+                  (lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn).length > 90
+                    ? 'text-[18px] sm:text-[21px] md:text-[23px] leading-[2.1] sm:leading-[2.2]'
+                    : (lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn).length > 55
+                      ? 'text-[21px] sm:text-[24px] md:text-[27px] leading-[2.1] sm:leading-[2.2]'
+                      : 'text-[24px] sm:text-[28px] md:text-[32px] leading-[2.1] sm:leading-[2.25]'
+                } tracking-normal font-normal selection:bg-amber-100 selection:text-emerald-950 my-1`}
               >
                 {lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn}
               </p>
 
-              {/* 3. Integrated Surah & Ayah Attribution (Clean without circle/pill) */}
-              <div className="mt-2 sm:mt-2.5 flex items-center justify-center gap-2.5 text-xs sm:text-[13px] font-semibold text-[#c59b4c] dark:text-[#E8D39C] select-none font-['Alexandria']">
-                <span aria-hidden="true" className="h-[1.5px] w-6 sm:w-10 bg-[#c59b4c]/60 dark:bg-[#E8D39C]/50 rounded-full" />
+              {/* 3. Integrated Surah Attribution: clean golden typography between horizontal rules */}
+              <div className="mt-2.5 sm:mt-3 flex items-center justify-center gap-2.5 text-xs sm:text-[13px] font-semibold text-[#c59b4c] dark:text-[#E8D39C] select-none font-['Alexandria']">
+                <span aria-hidden="true" className="h-[1.5px] w-7 sm:w-14 bg-[#c59b4c]/70 dark:bg-[#E8D39C]/60 rounded-full" />
                 <span>
                   {lang === 'ar'
                     ? `سورة ${dailyVerse.surahAr} • ${dailyVerse.ayahNumberAr.includes('–') ? 'الآيات' : 'الآية'} ${dailyVerse.ayahNumberAr}`
                     : `Surah ${dailyVerse.surahEn} • ${dailyVerse.ayahNumberEn.includes('–') ? 'Verses' : 'Verse'} ${dailyVerse.ayahNumberEn}`}
                 </span>
-                <span aria-hidden="true" className="h-[1.5px] w-6 sm:w-10 bg-[#c59b4c]/60 dark:bg-[#E8D39C]/50 rounded-full" />
+                <span aria-hidden="true" className="h-[1.5px] w-7 sm:w-14 bg-[#c59b4c]/70 dark:bg-[#E8D39C]/60 rounded-full" />
               </div>
             </div>
           </article>
