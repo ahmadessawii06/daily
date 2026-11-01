@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { BookOpen, HandHeart, MoonStar, Sun, Sunrise } from 'lucide-react';
 import type { ReligiousSection } from './religiousContent';
 import type { Task } from '../types';
 import {
@@ -22,12 +21,12 @@ import { partitionPrayerTasks } from '../utils/prayerTasks';
 import { getDayRecord } from '../utils/storage';
 import { getTodayDateString } from '../utils/date';
 
-const tabs: Array<{ id: ReligiousSection; label: string; shortLabel: string; icon: typeof Sun }> = [
-  { id: 'quran', label: 'وردك', shortLabel: 'وردك', icon: BookOpen },
-  { id: 'morning', label: 'أذكار الصباح', shortLabel: 'الصباح', icon: Sun },
-  { id: 'prayers', label: 'الصلوات والمهام', shortLabel: 'الصلوات', icon: Sunrise },
-  { id: 'evening', label: 'أذكار المساء', shortLabel: 'المساء', icon: MoonStar },
-  { id: 'duas', label: 'أدعيتك', shortLabel: 'أدعيتك', icon: HandHeart },
+const tabs: Array<{ id: ReligiousSection; label: string; shortLabel: string }> = [
+  { id: 'quran', label: 'وردك', shortLabel: 'وردك' },
+  { id: 'morning', label: 'أذكار الصباح', shortLabel: 'الصباح' },
+  { id: 'prayers', label: 'الصلوات والمهام', shortLabel: 'الصلوات' },
+  { id: 'evening', label: 'أذكار المساء', shortLabel: 'المساء' },
+  { id: 'duas', label: 'أدعيتك', shortLabel: 'أدعيتك' },
 ];
 
 function getSectionStatus(section: ReligiousSection, date: string, tasksList?: Task[]): { isDone: boolean } {
@@ -163,7 +162,6 @@ export function ReligiousTabs({
         style={visibleTabs.length === 5 ? undefined : { gridTemplateColumns: `repeat(${visibleTabs.length}, minmax(0, 1fr))` }}
       >
         {visibleTabs.map(tab => {
-          const Icon = tab.icon;
           const isActive = active === tab.id;
           const status = getSectionStatus(tab.id, effectiveDate, tasks);
           return (
@@ -174,9 +172,6 @@ export function ReligiousTabs({
               onClick={() => onChange(tab.id)}
               className={isActive ? 'is-active' : ''}
             >
-              <span className="worship-navigation-icon">
-                <Icon size={18} strokeWidth={1.9} aria-hidden="true" />
-              </span>
               <span className="worship-navigation-label flex items-center justify-center gap-1.5">
                 <span className="hidden sm:inline">{tab.label}</span>
                 <span className="sm:hidden">{tab.shortLabel}</span>
