@@ -420,7 +420,7 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
 
 
         {/* Main Section: Circular Progress Gauge + 4 Circular Metric Gauges with side Ayah & Hadith cards */}
-        {compact ? (
+        {!compact ? (
           <div className="w-full">
             {/* Desktop 3-Column Layout: [Hadith] [Statistics] [Ayah] in RTL */}
             <div className="w-full grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] items-stretch gap-2.5 sm:gap-3">
