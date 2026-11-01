@@ -245,7 +245,14 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
 
         </div>
 
-                {/* 1. Motivational Quran Verse (placed at top in the center) */}
+                {/* 1. Worship Navigation Tabs (placed at top above Ayah) */}
+        {worshipNavigation && (
+          <div className="main-header-dock-container mx-auto w-full max-w-4xl flex justify-center">
+            {worshipNavigation}
+          </div>
+        )}
+
+        {/* 2. Motivational Quran Verse (placed in the middle) */}
         {compact && (
           <div
             data-progress-verse
@@ -263,13 +270,6 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
               </span>
               <span aria-hidden="true" className="h-px w-5 bg-[#8b6d2a]/45 dark:bg-[#E8D39C]/45" />
             </p>
-          </div>
-        )}
-
-        {/* 2. Worship Navigation Tabs (centered in the middle between Ayah and Progress) */}
-        {worshipNavigation && (
-          <div className="main-header-dock-container mx-auto w-full max-w-4xl flex justify-center">
-            {worshipNavigation}
           </div>
         )}
 
