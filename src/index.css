@@ -485,73 +485,6 @@
   border-color: transparent !important;
 }
 
-/* Accent Glow Line indicating completion status (Green = Done, Orange = Pending) */
-.worship-navigation-items button::after {
-  content: '';
-  position: absolute;
-  bottom: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 26px;
-  height: 3px;
-  border-radius: 9999px;
-  transition: width 0.25s ease, opacity 0.25s ease, box-shadow 0.25s ease;
-  pointer-events: none;
-}
-
-.worship-navigation-items button:hover::after {
-  width: 34px;
-}
-
-/* Completed (مكتمل) - Glowing Emerald Green line */
-.worship-navigation-items button.is-completed::after {
-  background: #10b981;
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.65), 0 1px 2px rgba(16, 185, 129, 0.4);
-}
-
-.dark .worship-navigation-items button.is-completed::after {
-  background: #34d399;
-  box-shadow: 0 0 10px rgba(52, 211, 153, 0.75), 0 1px 2px rgba(52, 211, 153, 0.5);
-}
-
-/* Pending / In progress (غير منجز / متبقي) - Glowing Amber Orange line */
-.worship-navigation-items button.is-pending::after {
-  background: #f59e0b;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.65), 0 1px 2px rgba(245, 158, 11, 0.4);
-}
-
-.dark .worship-navigation-items button.is-pending::after {
-  background: #fbbf24;
-  box-shadow: 0 0 10px rgba(251, 191, 36, 0.75), 0 1px 2px rgba(251, 191, 36, 0.5);
-}
-
-/* Active tab variations for the glow line */
-.worship-navigation-items button.is-active.is-completed::after {
-  background: #a7f3d0;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.9), 0 0 14px rgba(52, 211, 153, 0.85);
-  width: 32px;
-}
-
-.dark .worship-navigation-items button.is-active.is-completed::after {
-  background: #ffffff;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.95), 0 0 16px rgba(110, 231, 183, 0.9);
-  width: 32px;
-}
-
-.worship-navigation-items button.is-active.is-pending::after {
-  background: #fde047;
-  box-shadow: 0 0 10px rgba(253, 224, 71, 0.9), 0 0 14px rgba(245, 158, 11, 0.85);
-  width: 32px;
-}
-
-.dark .worship-navigation-items button.is-active.is-pending::after {
-  background: #fef08a;
-  box-shadow: 0 0 10px rgba(254, 240, 138, 0.95), 0 0 16px rgba(251, 191, 36, 0.9);
-  width: 32px;
-}
-
-/* Active states are fully handled above with no borders */
-
 .worship-navigation-icon {
   display: flex;
   align-items: center;
@@ -568,11 +501,75 @@
   transform: scale(1.08);
 }
 
+/* Accent Glow Line matching word length */
 .worship-navigation-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
   white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  padding-bottom: 5px;
+}
+
+.worship-navigation-label::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 2.5px;
+  border-radius: 9999px;
+  transition: opacity 0.25s ease, box-shadow 0.25s ease, filter 0.2s ease;
+  pointer-events: none;
+}
+
+/* Completed (مكتمل) - Glowing Emerald Green line */
+.worship-navigation-items button.is-completed .worship-navigation-label::after {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.65), 0 1px 2px rgba(16, 185, 129, 0.4);
+}
+
+.dark .worship-navigation-items button.is-completed .worship-navigation-label::after {
+  background: #34d399;
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.75), 0 1px 2px rgba(52, 211, 153, 0.5);
+}
+
+/* Pending / In progress (غير منجز / متبقي) - Glowing Amber Orange line */
+.worship-navigation-items button.is-pending .worship-navigation-label::after {
+  background: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.65), 0 1px 2px rgba(245, 158, 11, 0.4);
+}
+
+.dark .worship-navigation-items button.is-pending .worship-navigation-label::after {
+  background: #fbbf24;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.75), 0 1px 2px rgba(251, 191, 36, 0.5);
+}
+
+/* Active tab variations for the glow line */
+.worship-navigation-items button.is-active.is-completed .worship-navigation-label::after {
+  background: #a7f3d0;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.9), 0 0 14px rgba(52, 211, 153, 0.85);
+}
+
+.dark .worship-navigation-items button.is-active.is-completed .worship-navigation-label::after {
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.95), 0 0 16px rgba(110, 231, 183, 0.9);
+}
+
+.worship-navigation-items button.is-active.is-pending .worship-navigation-label::after {
+  background: #fde047;
+  box-shadow: 0 0 10px rgba(253, 224, 71, 0.9), 0 0 14px rgba(245, 158, 11, 0.85);
+}
+
+.dark .worship-navigation-items button.is-active.is-pending .worship-navigation-label::after {
+  background: #fef08a;
+  box-shadow: 0 0 10px rgba(254, 240, 138, 0.95), 0 0 16px rgba(251, 191, 36, 0.9);
+}
+
+.worship-navigation-items button:hover .worship-navigation-label::after {
+  filter: brightness(1.2);
 }
 
 /* Tablet & iPad adjustments (768px - 1024px) */
@@ -623,14 +620,11 @@
     border-radius: 0.75rem;
     justify-content: center;
   }
-  .worship-navigation-items button::after {
-    bottom: 2.5px;
-    width: 18px;
-    height: 2.5px;
+  .worship-navigation-label {
+    padding-bottom: 3.5px;
   }
-  .worship-navigation-items button:hover::after,
-  .worship-navigation-items button.is-active::after {
-    width: 24px;
+  .worship-navigation-label::after {
+    height: 2px;
   }
   .worship-navigation-icon svg {
     width: 15px;
