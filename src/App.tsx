@@ -783,6 +783,7 @@ export default function App() {
             onToggleTheme={() => { const next = theme === 'dark' ? 'light' : 'dark'; setStoredTheme(next); setTheme(next); }}
             dayMemories={<DayMemories key={`${currentUser.id}-${currentDate}`} date={currentDate} lang={lang} onSaved={refreshArchive} />}
             quickNotes={<QuickNotes lang={lang} />}
+            worshipNavigation={<ReligiousTabs active={religiousSection} onChange={setReligiousSection} currentDate={currentDate} tasks={tasks} />}
           >
             <TodayProgress
               stats={stats}
@@ -792,7 +793,6 @@ export default function App() {
               lang={lang}
               theme={theme}
               compact
-              worshipNavigation={<ReligiousTabs active={religiousSection} onChange={setReligiousSection} currentDate={currentDate} tasks={tasks} />}
             />
           </MainHeader> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
 

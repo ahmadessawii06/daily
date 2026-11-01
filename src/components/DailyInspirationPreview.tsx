@@ -105,7 +105,7 @@ export const DailyInspirationPreview: React.FC<DailyInspirationPreviewProps> = (
         </div>
 
         {/* Middle: Short text preview with line-clamp-2 */}
-        <div className="my-auto py-0.5">
+        <div className="my-auto py-0.5 w-full">
           <p
             className={`font-arabic text-xs sm:text-[13px] leading-[1.8] line-clamp-2 text-start font-normal ${colorStyles.bodyText}`}
             style={{ fontFamily: colorStyles.fontFamily }}
@@ -115,11 +115,11 @@ export const DailyInspirationPreview: React.FC<DailyInspirationPreviewProps> = (
         </div>
 
         {/* Bottom: Subtle attribution matching standard editorial colophon */}
-        <div className="mt-1 pt-1.5 border-t border-black/[0.04] dark:border-white/[0.06] flex items-center justify-center gap-1.5 text-[10.5px] sm:text-[11px] font-medium font-['Alexandria'] select-none">
+        <div className="mt-1 pt-1.5 border-t border-black/[0.04] dark:border-white/[0.06] flex items-center justify-center gap-1.5 text-[10.5px] sm:text-[11px] font-medium font-['Alexandria'] select-none w-full">
           <span aria-hidden="true" className={isAyah ? 'text-[#B69A5A]/60 dark:text-[#D6B772]/60' : 'text-[#4A8971]/60 dark:text-[#5EEAD4]/60'}>
             —
           </span>
-          <span className={`truncate max-w-[220px] sm:max-w-[260px] ${isAyah ? 'text-[#8C6928] dark:text-[#D6B772]' : 'text-[#214D40] dark:text-[#5EEAD4]'}`}>
+          <span className={`truncate max-w-full ${isAyah ? 'text-[#8C6928] dark:text-[#D6B772]' : 'text-[#214D40] dark:text-[#5EEAD4]'}`}>
             {attributionText}
           </span>
           <span aria-hidden="true" className={isAyah ? 'text-[#B69A5A]/60 dark:text-[#D6B772]/60' : 'text-[#4A8971]/60 dark:text-[#5EEAD4]/60'}>
