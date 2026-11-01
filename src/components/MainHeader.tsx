@@ -58,31 +58,22 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
     const interval = window.setInterval(() => setClock(getLiveClock(lang)), 1000);
     return () => window.clearInterval(interval);
   }, [lang]);
-  const hover = 'transition-[transform,background-color,border-color,color,box-shadow] duration-200 ease-out enabled:hover:border-emerald-400/60 enabled:hover:bg-emerald-50 enabled:hover:text-emerald-700 enabled:hover:shadow-[0_6px_20px_-6px_rgba(16,185,129,0.4)] motion-safe:enabled:hover:-translate-y-0.5 motion-safe:enabled:active:translate-y-0 motion-safe:enabled:active:scale-95 motion-reduce:transition-none dark:enabled:hover:border-emerald-400/40 dark:enabled:hover:bg-emerald-400/10 dark:enabled:hover:text-emerald-300';
-  const controlBase = 'group flex h-control min-w-control cursor-pointer shrink-0 items-center justify-center rounded-2xl border border-white/25 bg-white/40 px-2 text-xs font-semibold text-slate-600 shadow-none hover:bg-white/70 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-wait disabled:opacity-50 dark:border-white/[0.14] dark:bg-white/[0.04] dark:text-zinc-300 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_2px_8px_rgba(0,0,0,0.16)] transition-[transform,background-color,border-color,color,box-shadow] duration-200 ease-out motion-safe:enabled:hover:-translate-y-0.5 motion-safe:enabled:active:translate-y-0 motion-safe:enabled:active:scale-95 motion-reduce:transition-none';
-  const control = `${controlBase} focus-visible:outline-emerald-500 ${hover}`;
-  const logoutControl = `${controlBase} focus-visible:outline-red-500 enabled:hover:border-red-400/60 enabled:hover:bg-red-50 enabled:hover:text-red-600 enabled:hover:shadow-[0_6px_20px_-6px_rgba(239,68,68,0.45)] dark:enabled:hover:border-red-500/40 dark:enabled:hover:bg-red-500/10 dark:enabled:hover:text-red-400`;
+  const controlBase = 'group flex h-8 w-8 sm:h-8.5 sm:w-8.5 cursor-pointer shrink-0 items-center justify-center rounded-lg border border-transparent text-slate-600 hover:text-emerald-700 hover:bg-white/80 dark:text-zinc-300 dark:hover:text-emerald-300 dark:hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-emerald-500 disabled:cursor-wait disabled:opacity-50 transition-all duration-150 motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-95';
+  const control = `${controlBase}`;
+  const logoutControl = `${controlBase} hover:!text-red-600 hover:!bg-red-50/80 dark:hover:!text-red-400 dark:hover:!bg-red-500/10 focus-visible:!outline-red-500`;
   const iconMotion = 'motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out';
   const themeLabel = theme === 'dark' ? (ar ? 'تفعيل الوضع الفاتح' : 'Switch to light mode') : (ar ? 'تفعيل الوضع الداكن' : 'Switch to dark mode');
-  const headerOverlay = theme === 'light'
-    ? 'bg-gradient-to-r from-white/18 via-transparent to-white/12'
-    : 'bg-gradient-to-r from-[#041c18]/90 via-[#06221d]/75 to-[#041c18]/90';
-  const headerVerticalOverlay = theme === 'light'
-    ? 'bg-gradient-to-b from-white/10 via-transparent to-white/15'
-    : 'bg-gradient-to-b from-[#020908]/30 via-[#020908]/25 to-[#020908]/80';
-  const headerContrastOverlay = theme === 'light'
-    ? 'bg-gradient-to-b from-slate-950/[0.03] via-transparent to-slate-950/[0.1]'
-    : 'bg-gradient-to-b from-black/5 via-transparent to-black/15';
+
   return (
-    <header data-main-header className="relative isolate flex flex-col gap-1.5 overflow-visible rounded-2xl border border-slate-200/80 bg-white/80 px-3 py-2 shadow-lg shadow-slate-900/10 backdrop-blur-md sm:px-5 sm:py-2.5 dark:border-emerald-400/20 dark:bg-[#071714] dark:shadow-emerald-950/20">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-2xl">
+    <header data-main-header className="relative isolate flex flex-col gap-2 overflow-visible rounded-3xl border border-white/60 bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur-md sm:px-5 sm:py-3 dark:border-white/10 dark:bg-[#071714]/90 dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-3xl">
         <img
           src={headerBackgrounds.light}
           alt=""
           fetchPriority="high"
           decoding="async"
-          className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-500 ease-in-out ${
-            theme === 'light' ? 'opacity-100' : 'opacity-0'
+          className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-500 ease-in-out filter saturate-[0.82] contrast-[0.96] ${
+            theme === 'light' ? 'opacity-95' : 'opacity-0'
           }`}
         />
         <img
@@ -90,13 +81,21 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
           alt=""
           fetchPriority="high"
           decoding="async"
-          className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-500 ease-in-out ${
-            theme === 'dark' ? 'opacity-100' : 'opacity-0'
+          className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-500 ease-in-out filter saturate-[0.85] contrast-[0.95] brightness-[0.85] ${
+            theme === 'dark' ? 'opacity-95' : 'opacity-0'
           }`}
         />
-        <div className={`absolute inset-0 ${headerOverlay} transition-colors duration-500`} />
-        <div className={`absolute inset-0 ${headerVerticalOverlay} transition-colors duration-500`} />
-        <div className={`absolute inset-0 ${headerContrastOverlay} transition-colors duration-500`} />
+        {/* Soft atmospheric gradient & calm radial vignette behind content */}
+        <div className={`absolute inset-0 transition-colors duration-500 ${
+          theme === 'light'
+            ? 'bg-gradient-to-b from-white/40 via-white/25 to-white/45'
+            : 'bg-gradient-to-b from-[#02110e]/75 via-[#031814]/60 to-[#02110e]/85'
+        }`} />
+        <div className={`absolute inset-0 transition-colors duration-500 ${
+          theme === 'light'
+            ? 'bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.6)_0%,rgba(245,250,248,0.3)_65%,transparent_100%)]'
+            : 'bg-[radial-gradient(ellipse_at_center,rgba(5,28,24,0.65)_0%,rgba(3,17,14,0.35)_65%,transparent_100%)]'
+        }`} />
       </div>
       <div className="relative z-10 flex flex-col gap-1.5">
       <div className="main-header-top-bar">
@@ -107,36 +106,89 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
           </div>
           <SyncIndicator lang={lang} userId={currentUser?.id} compact />
         </div>
-        <div role="group" aria-label={ar ? 'أدوات اليوم' : 'Day tools'} dir="ltr" className="main-header-tools rounded-2xl border border-white/20 bg-white/10 p-1.5 shadow-none backdrop-blur-sm dark:border-white/[0.12] dark:bg-white/[0.04]">
-          <Tooltip text={ar ? 'تسجيل الخروج' : 'Sign out'}><button id="header-logout-btn" type="button" onClick={onLogout} aria-label={ar ? 'تسجيل الخروج' : 'Sign out'} className={logoutControl}><LogOut aria-hidden="true" size={20} strokeWidth={2} className={`${iconMotion} text-slate-600 group-hover:text-red-600 group-focus-visible:text-red-600 dark:text-zinc-300 dark:group-hover:text-red-400 dark:group-focus-visible:text-red-400 motion-safe:group-hover:scale-110 motion-safe:group-focus-visible:scale-110`} /></button></Tooltip>
-          <Tooltip text={ar ? 'إضافة مهمة جديدة' : 'Add new task'}><button id="header-add-task-btn" type="button" onClick={onOpenAddTask} aria-label={ar ? 'إضافة مهمة جديدة واختيار مكانها' : 'Add a task and choose where it goes'} className={`${control} text-slate-600 enabled:hover:border-emerald-400 enabled:hover:bg-emerald-50 enabled:hover:text-emerald-700 dark:enabled:hover:border-emerald-400/40 dark:enabled:hover:bg-emerald-400/10 dark:enabled:hover:text-emerald-300`}><Plus aria-hidden="true" size={20} strokeWidth={2} className={`${iconMotion} motion-safe:group-hover:rotate-90 motion-safe:group-focus-visible:rotate-90`} /></button></Tooltip>
-          <div className="contents">
-          {onToggleCardColumns && <Tooltip text={ar ? `تغيير الأعمدة (${cardColumns} حالياً)` : `Change columns (${cardColumns})`}><button id="header-columns-btn" type="button" onClick={onToggleCardColumns} aria-label={ar ? `${cardColumns} بطاقات بالصف، التبديل إلى ${cardColumns === 4 ? 2 : cardColumns === 2 ? 3 : 4}` : `${cardColumns} cards per row, switch to ${cardColumns === 4 ? 2 : cardColumns === 2 ? 3 : 4}`} className={control}>{cardColumns === 4 ? <Columns4 aria-hidden="true" size={18} strokeWidth={1.8} /> : cardColumns === 3 ? <Columns3 aria-hidden="true" size={18} strokeWidth={1.8} /> : <Columns2 aria-hidden="true" size={18} strokeWidth={1.8} />}</button></Tooltip>}
-          <div id="onboarding-insights-tools" className="contents">
-            <Tooltip text={ar ? 'الإحصائيات والتقرير' : 'Statistics & report'}><button id="header-stats-btn" type="button" onClick={onOpenStats} aria-label={ar ? 'الإحصائيات والتقرير الأسبوعي' : 'Statistics & weekly report'} className={control}><ChartColumnIncreasing aria-hidden="true" size={20} strokeWidth={2} className={`${iconMotion} origin-bottom motion-safe:group-hover:scale-y-125 motion-safe:group-focus-visible:scale-y-125`} /></button></Tooltip>
-            <Tooltip text={ar ? 'الأرشيف وسجل الأيام' : 'Archive & history'}><button id="header-archive-btn" type="button" onClick={onOpenArchive} aria-label={ar ? 'الأرشيف وسجل الأيام' : 'Archive & history'} className={control}><Archive aria-hidden="true" size={18} strokeWidth={1.8} className={`${iconMotion} motion-safe:group-hover:translate-y-0.5 motion-safe:group-focus-visible:translate-y-0.5`} /></button></Tooltip>
-          </div>
-          <Tooltip text={ar ? 'تصدير كصورة' : 'Export as image'}><button id="header-export-btn" type="button" onClick={onExport} disabled={exporting} aria-busy={exporting} aria-label={ar ? 'تصدير صورة اليوم' : 'Export today as an image'} className={control}>{exporting ? <Loader2 aria-hidden="true" size={20} strokeWidth={2} className="animate-spin motion-reduce:animate-none" /> : <Share2 aria-hidden="true" size={20} strokeWidth={2} className={`${iconMotion} motion-safe:group-hover:scale-125 motion-safe:group-focus-visible:scale-125`} />}</button></Tooltip>
-          </div>
-          {dayMemories && <div className="contents" dir="ltr">{dayMemories}</div>}
-          {quickNotes && <div className="contents" dir="ltr">{quickNotes}</div>}
-          <div className="contents">
-          <ColorThemePicker lang={lang} className={control} />
-          <Tooltip text={ar ? 'English' : 'العربية'}>
-            <button id="header-lang-btn" type="button" onClick={onToggleLang} aria-label={ar ? 'Switch to English' : 'التبديل إلى العربية'} lang={ar ? 'en' : 'ar'} className={control}>
-            {ar ? (
-              <ArabicLanguageIcon aria-hidden="true" size={20} className={`${iconMotion} motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:scale-110 motion-safe:group-focus-visible:scale-110`} />
-            ) : (
-              <EnglishLanguageIcon aria-hidden="true" size={20} className={`${iconMotion} motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:scale-110 motion-safe:group-focus-visible:scale-110`} />
+        <div
+          role="group"
+          aria-label={ar ? 'أدوات اليوم' : 'Day tools'}
+          dir="ltr"
+          className="main-header-tools inline-flex items-center gap-0.5 rounded-xl border border-white/50 bg-white/60 p-1 shadow-xs backdrop-blur-md dark:border-white/10 dark:bg-black/30"
+        >
+          {/* Cluster 1: Logout */}
+          <Tooltip text={ar ? 'تسجيل الخروج' : 'Sign out'}>
+            <button id="header-logout-btn" type="button" onClick={onLogout} aria-label={ar ? 'تسجيل الخروج' : 'Sign out'} className={logoutControl}>
+              <LogOut aria-hidden="true" size={17} strokeWidth={2} className={`${iconMotion} text-slate-600 group-hover:text-red-600 dark:text-zinc-300 dark:group-hover:text-red-400`} />
+            </button>
+          </Tooltip>
+
+          <span aria-hidden="true" className="h-4 w-px bg-slate-300/60 dark:bg-white/10 shrink-0 mx-0.5" />
+
+          {/* Cluster 2: Tasks & Insights */}
+          <div className="flex items-center gap-0.5">
+            <Tooltip text={ar ? 'إضافة مهمة جديدة' : 'Add new task'}>
+              <button id="header-add-task-btn" type="button" onClick={onOpenAddTask} aria-label={ar ? 'إضافة مهمة جديدة واختيار مكانها' : 'Add a task and choose where it goes'} className={`${control} text-emerald-700 dark:text-emerald-400 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/15`}>
+                <Plus aria-hidden="true" size={18} strokeWidth={2.4} className={`${iconMotion} motion-safe:group-hover:rotate-90`} />
+              </button>
+            </Tooltip>
+            {onToggleCardColumns && (
+              <Tooltip text={ar ? `تغيير الأعمدة (${cardColumns} حالياً)` : `Change columns (${cardColumns})`}>
+                <button id="header-columns-btn" type="button" onClick={onToggleCardColumns} aria-label={ar ? `${cardColumns} بطاقات بالصف، التبديل إلى ${cardColumns === 4 ? 2 : cardColumns === 2 ? 3 : 4}` : `${cardColumns} cards per row, switch to ${cardColumns === 4 ? 2 : cardColumns === 2 ? 3 : 4}`} className={control}>
+                  {cardColumns === 4 ? <Columns4 aria-hidden="true" size={16} strokeWidth={1.8} /> : cardColumns === 3 ? <Columns3 aria-hidden="true" size={16} strokeWidth={1.8} /> : <Columns2 aria-hidden="true" size={16} strokeWidth={1.8} />}
+                </button>
+              </Tooltip>
             )}
-            </button>
-          </Tooltip>
-          <Tooltip text={themeLabel}><button id="header-theme-btn" type="button" onClick={onToggleTheme} aria-label={themeLabel} className={control}>{theme === 'dark' ? <Sun aria-hidden="true" size={20} strokeWidth={2} className={`${iconMotion} motion-safe:group-hover:rotate-90 motion-safe:group-focus-visible:rotate-90`} /> : <MoonStar aria-hidden="true" size={20} strokeWidth={2} className={`${iconMotion} motion-safe:group-hover:-rotate-25 motion-safe:group-focus-visible:-rotate-25`} />}</button></Tooltip>
-          <Tooltip text={ar ? 'الإعدادات' : 'Settings'}>
-            <button id="header-settings-btn" type="button" onClick={onOpenSettings} aria-label={ar ? 'الإعدادات' : 'Settings'} className={control}>
-            <Settings aria-hidden="true" size={20} strokeWidth={2} className="motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:rotate-45 motion-safe:group-focus-visible:rotate-45" />
-            </button>
-          </Tooltip>
+            <div id="onboarding-insights-tools" className="contents">
+              <Tooltip text={ar ? 'الإحصائيات والتقرير' : 'Statistics & report'}>
+                <button id="header-stats-btn" type="button" onClick={onOpenStats} aria-label={ar ? 'الإحصائيات والتقرير الأسبوعي' : 'Statistics & weekly report'} className={control}>
+                  <ChartColumnIncreasing aria-hidden="true" size={17} strokeWidth={2} className={`${iconMotion} origin-bottom motion-safe:group-hover:scale-y-115`} />
+                </button>
+              </Tooltip>
+              <Tooltip text={ar ? 'الأرشيف وسجل الأيام' : 'Archive & history'}>
+                <button id="header-archive-btn" type="button" onClick={onOpenArchive} aria-label={ar ? 'الأرشيف وسجل الأيام' : 'Archive & history'} className={control}>
+                  <Archive aria-hidden="true" size={16} strokeWidth={1.8} className={`${iconMotion} motion-safe:group-hover:translate-y-0.5`} />
+                </button>
+              </Tooltip>
+            </div>
+            <Tooltip text={ar ? 'تصدير كصورة' : 'Export as image'}>
+              <button id="header-export-btn" type="button" onClick={onExport} disabled={exporting} aria-busy={exporting} aria-label={ar ? 'تصدير صورة اليوم' : 'Export today as an image'} className={control}>
+                {exporting ? <Loader2 aria-hidden="true" size={16} strokeWidth={2} className="animate-spin" /> : <Share2 aria-hidden="true" size={16} strokeWidth={1.9} className={`${iconMotion} motion-safe:group-hover:scale-115`} />}
+              </button>
+            </Tooltip>
+          </div>
+
+          {(dayMemories || quickNotes) && (
+            <>
+              <span aria-hidden="true" className="h-4 w-px bg-slate-300/60 dark:bg-white/10 shrink-0 mx-0.5" />
+              {/* Cluster 3: Memories & Notes */}
+              <div className="flex items-center gap-0.5">
+                {dayMemories && <div className="contents" dir="ltr">{dayMemories}</div>}
+                {quickNotes && <div className="contents" dir="ltr">{quickNotes}</div>}
+              </div>
+            </>
+          )}
+
+          <span aria-hidden="true" className="h-4 w-px bg-slate-300/60 dark:bg-white/10 shrink-0 mx-0.5" />
+
+          {/* Cluster 4: Preferences & Settings */}
+          <div className="flex items-center gap-0.5">
+            <ColorThemePicker lang={lang} className={control} />
+            <Tooltip text={ar ? 'English' : 'العربية'}>
+              <button id="header-lang-btn" type="button" onClick={onToggleLang} aria-label={ar ? 'Switch to English' : 'التبديل إلى العربية'} lang={ar ? 'en' : 'ar'} className={control}>
+                {ar ? (
+                  <ArabicLanguageIcon aria-hidden="true" size={17} className={`${iconMotion} motion-safe:group-hover:scale-110`} />
+                ) : (
+                  <EnglishLanguageIcon aria-hidden="true" size={17} className={`${iconMotion} motion-safe:group-hover:scale-110`} />
+                )}
+              </button>
+            </Tooltip>
+            <Tooltip text={themeLabel}>
+              <button id="header-theme-btn" type="button" onClick={onToggleTheme} aria-label={themeLabel} className={control}>
+                {theme === 'dark' ? <Sun aria-hidden="true" size={17} strokeWidth={2} className={`${iconMotion} motion-safe:group-hover:rotate-90`} /> : <MoonStar aria-hidden="true" size={17} strokeWidth={2} className={`${iconMotion} motion-safe:group-hover:-rotate-25`} />}
+              </button>
+            </Tooltip>
+            <Tooltip text={ar ? 'الإعدادات' : 'Settings'}>
+              <button id="header-settings-btn" type="button" onClick={onOpenSettings} aria-label={ar ? 'الإعدادات' : 'Settings'} className={control}>
+                <Settings aria-hidden="true" size={17} strokeWidth={2} className="motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:rotate-45" />
+              </button>
+            </Tooltip>
           </div>
         </div>
         <div className="main-header-actions flex min-w-0 items-center gap-2 justify-self-end">

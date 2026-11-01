@@ -31,40 +31,40 @@ export const StatCircle: React.FC<StatCircleProps> = ({
 
   const colorConfig = {
     emerald: {
-      stroke: '#10e588',
-      bgGlow: 'bg-gradient-to-br from-emerald-300/30 via-emerald-400/12 to-transparent dark:from-emerald-300/25 dark:via-emerald-400/15 dark:to-transparent shadow-[0_8px_18px_rgba(16,185,129,0.12)]',
-      text: 'text-emerald-700 dark:text-emerald-300',
-      valueText: 'text-emerald-600 dark:text-emerald-400',
-      subLabelText: 'text-emerald-800 dark:text-emerald-300 font-extrabold',
-      activeRing: 'ring-2 ring-[#10e588] ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
-      track: 'text-emerald-400/20',
+      stroke: '#059669',
+      bgGlow: 'bg-emerald-500/[0.08] dark:bg-emerald-400/[0.1] border border-emerald-500/20 dark:border-emerald-400/20',
+      text: 'text-emerald-800 dark:text-emerald-300',
+      valueText: 'text-emerald-700 dark:text-emerald-300',
+      subLabelText: 'text-emerald-700/80 dark:text-emerald-400/80 font-bold',
+      activeRing: 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-white dark:ring-offset-[#06201a]',
+      track: 'text-emerald-500/15 dark:text-emerald-400/15',
     },
     amber: {
-      stroke: '#f59e0b',
-      bgGlow: 'bg-gradient-to-br from-amber-300/28 via-amber-500/12 to-transparent dark:from-amber-300/22 dark:via-amber-500/15 dark:to-transparent shadow-[0_8px_18px_rgba(245,158,11,0.12)]',
-      text: 'text-amber-700 dark:text-amber-300',
-      valueText: 'text-amber-600 dark:text-amber-400',
-      subLabelText: 'text-amber-800 dark:text-amber-300 font-extrabold',
-      activeRing: 'ring-2 ring-amber-500 ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
-      track: 'text-amber-500/15',
+      stroke: '#d97706',
+      bgGlow: 'bg-amber-500/[0.08] dark:bg-amber-400/[0.1] border border-amber-500/20 dark:border-amber-400/20',
+      text: 'text-amber-800 dark:text-amber-300',
+      valueText: 'text-amber-700 dark:text-amber-300',
+      subLabelText: 'text-amber-700/80 dark:text-amber-400/80 font-bold',
+      activeRing: 'ring-2 ring-amber-500 ring-offset-2 ring-offset-white dark:ring-offset-[#06201a]',
+      track: 'text-amber-500/15 dark:text-amber-400/15',
     },
     rose: {
-      stroke: '#ff6b81',
-      bgGlow: 'bg-gradient-to-br from-rose-300/28 via-rose-400/12 to-transparent dark:from-rose-300/24 dark:via-rose-400/15 dark:to-transparent shadow-[0_8px_18px_rgba(244,63,94,0.12)]',
-      text: 'text-rose-700 dark:text-rose-300',
-      valueText: 'text-rose-600 dark:text-rose-400',
-      subLabelText: 'text-rose-800 dark:text-rose-300 font-extrabold',
-      activeRing: 'ring-2 ring-[#ff6b81] ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
-      track: 'text-rose-400/20',
+      stroke: '#e11d48',
+      bgGlow: 'bg-rose-500/[0.08] dark:bg-rose-400/[0.1] border border-rose-500/20 dark:border-rose-400/20',
+      text: 'text-rose-800 dark:text-rose-300',
+      valueText: 'text-rose-700 dark:text-rose-300',
+      subLabelText: 'text-rose-700/80 dark:text-rose-400/80 font-bold',
+      activeRing: 'ring-2 ring-rose-500 ring-offset-2 ring-offset-white dark:ring-offset-[#06201a]',
+      track: 'text-rose-500/15 dark:text-rose-400/15',
     },
     indigo: {
-      stroke: '#6366f1',
-      bgGlow: 'bg-gradient-to-br from-indigo-300/26 via-indigo-500/12 to-transparent dark:from-indigo-300/22 dark:via-indigo-500/15 dark:to-transparent shadow-[0_8px_18px_rgba(99,102,241,0.12)]',
-      text: 'text-indigo-700 dark:text-indigo-300',
-      valueText: 'text-indigo-600 dark:text-indigo-400',
-      subLabelText: 'text-indigo-800 dark:text-indigo-300 font-extrabold',
-      activeRing: 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-white dark:ring-offset-[#11131a]',
-      track: 'text-indigo-500/15',
+      stroke: '#4f46e5',
+      bgGlow: 'bg-indigo-500/[0.08] dark:bg-indigo-400/[0.1] border border-indigo-500/20 dark:border-indigo-400/20',
+      text: 'text-indigo-800 dark:text-indigo-300',
+      valueText: 'text-indigo-700 dark:text-indigo-300',
+      subLabelText: 'text-indigo-700/80 dark:text-indigo-400/80 font-bold',
+      activeRing: 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-white dark:ring-offset-[#06201a]',
+      track: 'text-indigo-500/15 dark:text-indigo-400/15',
     },
   }[color];
 
@@ -72,9 +72,9 @@ export const StatCircle: React.FC<StatCircleProps> = ({
     <>
       {/* Circle Body */}
       <div
-        className={`progress-body relative ${compact ? 'w-12 h-12' : 'w-14 h-14 sm:w-16 sm:h-16'} rounded-full flex items-center justify-center transition-all duration-200 motion-reduce:transition-none shadow-2xs ${
+        className={`progress-body relative ${compact ? 'w-12 h-12 sm:w-13 sm:h-13' : 'w-14 h-14 sm:w-16 sm:h-16'} rounded-full flex items-center justify-center transition-all duration-200 motion-reduce:transition-none shadow-2xs ${
           colorConfig.bgGlow
-        } ${isActive ? colorConfig.activeRing : 'ring-1 ring-white/20 group-hover:ring-2 group-hover:ring-current/60 group-hover:scale-105 group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)] group-hover:brightness-110'} `}
+        } ${isActive ? colorConfig.activeRing : 'hover:scale-105 hover:border-current/40'} `}
       >
         <svg
           viewBox="0 0 54 54"
@@ -87,8 +87,8 @@ export const StatCircle: React.FC<StatCircleProps> = ({
             r={radius}
             fill="none"
             stroke="currentColor"
-            strokeWidth="3.5"
-            className={`progress-track ${colorConfig.track} dark:text-zinc-300/75`}
+            strokeWidth="2.8"
+            className={`progress-track ${colorConfig.track}`}
           />
           {/* Active progress arc */}
           {percentage > 0 && (
@@ -98,7 +98,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
               r={radius}
               fill="none"
               stroke={`var(--progress-color, ${colorConfig.stroke})`}
-              strokeWidth="3.5"
+              strokeWidth="2.8"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
@@ -109,7 +109,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
 
         {/* Number inside Circle */}
         <span
-          className={`progress-value font-numbers text-lg font-black leading-none tracking-tight sm:text-xl ${colorConfig.valueText}`}
+          className={`progress-value font-numbers text-base font-black leading-none tracking-tight sm:text-lg ${colorConfig.valueText}`}
         >
           {value}
         </span>
@@ -118,26 +118,35 @@ export const StatCircle: React.FC<StatCircleProps> = ({
       {/* Label & Details underneath Circle */}
       <div className="flex max-w-full flex-col items-center mt-1.5 leading-tight text-center">
         <span
-            className={`${compact ? 'text-[11px] leading-snug' : 'text-xs'} font-bold font-['Alexandria'] ${
-            isActive ? colorConfig.text : compact ? 'text-slate-900 dark:text-white font-extrabold' : 'text-slate-800 dark:text-zinc-200'
+          className={`${compact ? 'text-[11px] leading-snug' : 'text-xs'} font-bold font-['Alexandria'] ${
+            isActive ? colorConfig.text : compact ? 'text-slate-800 dark:text-zinc-200 font-bold' : 'text-slate-800 dark:text-zinc-200'
           }`}
         >
           {label}
         </span>
         {subLabel && (
-          <span className={`progress-sublabel mt-1 text-[11px] font-numbers font-bold leading-none ${colorConfig.subLabelText}`}>
+          <span className={`progress-sublabel mt-0.5 text-[10px] sm:text-[11px] font-numbers font-semibold leading-none ${colorConfig.subLabelText}`}>
             {subLabel}
           </span>
         )}
       </div>
     </>
   );
+
   const classes = `group flex min-w-0 flex-col items-center select-none transition-all duration-200 motion-reduce:transition-none ${className} ${
     isActive ? 'scale-105' : ''
   }`;
+
   return onClick ? (
-    <button data-progress-tone={color} data-progress-active={isActive} type="button" onClick={onClick} aria-label={title || `${label}: ${value}`} aria-pressed={isActive}
-      className={`${classes} relative hover:z-30 cursor-pointer hover:-translate-y-0.5 active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:rounded-full bg-transparent border-0 p-0`}>
+    <button
+      data-progress-tone={color}
+      data-progress-active={isActive}
+      type="button"
+      onClick={onClick}
+      aria-label={title || `${label}: ${value}`}
+      aria-pressed={isActive}
+      className={`${classes} relative hover:z-30 cursor-pointer hover:-translate-y-0.5 active:scale-95 motion-reduce:transform-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:rounded-full bg-transparent border-0 p-0`}
+    >
       {content}
       {title && (
         <div
@@ -152,6 +161,9 @@ export const StatCircle: React.FC<StatCircleProps> = ({
         </div>
       )}
     </button>
-  ) : <div data-progress-tone={color} data-progress-active={isActive} aria-label={`${label}: ${value}`} className={classes}>{content}</div>;
+  ) : (
+    <div data-progress-tone={color} data-progress-active={isActive} aria-label={`${label}: ${value}`} className={classes}>
+      {content}
+    </div>
+  );
 };
-

@@ -313,22 +313,22 @@
 }
 
 .worship-navigation {
-  --worship-surface: linear-gradient(90deg, rgba(242, 247, 244, 0.64) 0%, rgba(248, 249, 245, 0.64) 100%);
-  --worship-border: rgba(195, 220, 208, 0.45);
-  --worship-text: #405c52;
-  --worship-hover-bg: rgba(255, 255, 255, 0.45);
-  --worship-hover-text: #1a4234;
-  --worship-active-bg: rgba(230, 245, 238, 0.88);
+  --worship-surface: linear-gradient(90deg, rgba(245, 248, 246, 0.75) 0%, rgba(250, 250, 247, 0.75) 100%);
+  --worship-border: rgba(255, 255, 255, 0.65);
+  --worship-text: #2d483e;
+  --worship-hover-bg: rgba(255, 255, 255, 0.65);
+  --worship-hover-text: #064e3b;
+  --worship-active-bg: rgba(255, 255, 255, 0.95);
   --worship-active-text: #065f46;
-  --worship-active-border: rgba(16, 185, 129, 0.2);
-  --worship-shadow: 0 4px 16px -4px rgba(18, 56, 38, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --worship-active-border: rgba(16, 185, 129, 0.25);
+  --worship-shadow: 0 2px 8px -2px rgba(18, 56, 38, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 
   width: 100%;
   max-width: 100%;
   margin-inline: 0;
   padding: 4px;
   border: 1px solid var(--worship-border);
-  border-radius: 1.125rem;
+  border-radius: 1rem;
   background: var(--worship-surface);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
@@ -337,15 +337,15 @@
 }
 
 .dark .worship-navigation {
-  --worship-surface: linear-gradient(90deg, rgba(10, 26, 21, 0.72) 0%, rgba(13, 30, 24, 0.72) 100%);
-  --worship-border: rgba(52, 211, 153, 0.16);
+  --worship-surface: linear-gradient(90deg, rgba(6, 26, 21, 0.8) 0%, rgba(8, 30, 24, 0.8) 100%);
+  --worship-border: rgba(255, 255, 255, 0.1);
   --worship-text: #b1d5c2;
-  --worship-hover-bg: rgba(255, 255, 255, 0.06);
+  --worship-hover-bg: rgba(255, 255, 255, 0.08);
   --worship-hover-text: #e0f5ea;
-  --worship-active-bg: rgba(16, 185, 129, 0.18);
-  --worship-active-text: #6ee7b7;
-  --worship-active-border: rgba(52, 211, 153, 0.22);
-  --worship-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --worship-active-bg: rgba(16, 185, 129, 0.22);
+  --worship-active-text: #5eead4;
+  --worship-active-border: rgba(52, 211, 153, 0.28);
+  --worship-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .worship-navigation-items {
@@ -625,7 +625,7 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
   line-height: 1.4;
 }
 [data-progress-verse] {
-  margin-bottom: 12px;
+  margin-bottom: 0px;
 }
 
 /* Main header top bar alignment: perfectly centers the toolbar above the progress card */
@@ -1376,9 +1376,9 @@ html[data-color-theme="paper"] .bg-mesh {
   height: 100%;
   object-fit: cover;
   object-position: center 58%;
-  opacity: .25;
-  filter: blur(2px) saturate(.62);
-  transform: scale(1.03);
+  opacity: .22;
+  filter: blur(1.5px) saturate(.75) contrast(.95);
+  transform: scale(1.02);
 }
 
 .planner-backdrop-overlay {
@@ -1386,21 +1386,21 @@ html[data-color-theme="paper"] .bg-mesh {
   inset: 0;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--mood-bg, #f8fafc) 76%, transparent),
-    color-mix(in srgb, var(--mood-bg, #f8fafc) 86%, transparent)
+    color-mix(in srgb, var(--mood-bg, #f8fafc) 78%, transparent),
+    color-mix(in srgb, var(--mood-bg, #f8fafc) 88%, transparent)
   );
 }
 
 .dark .planner-backdrop-image {
-  opacity: .3;
-  filter: blur(2px) saturate(.58) brightness(.72);
+  opacity: .28;
+  filter: blur(1.5px) saturate(.7) brightness(.75) contrast(.95);
 }
 
 .dark .planner-backdrop-overlay {
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--mood-night, #07080b) 72%, transparent),
-    color-mix(in srgb, var(--mood-night, #07080b) 84%, transparent)
+    color-mix(in srgb, var(--mood-night, #07080b) 75%, transparent),
+    color-mix(in srgb, var(--mood-night, #07080b) 86%, transparent)
   );
 }
 
@@ -1553,24 +1553,35 @@ html.light [data-prayer-slot] [data-task-status] {
 
 html.light [data-prayer-verse],
 html.light [data-progress-verse] {
-  border-color: rgba(190, 155, 85, 0.22);
-  background-color: rgba(250, 248, 242, 0.42);
-  color: #2b554e;
-  box-shadow: none;
+  border-color: rgba(190, 155, 85, 0.28);
+  background-color: rgba(255, 255, 255, 0.82);
+  color: #1a4037;
+  box-shadow: 0 2px 10px -2px rgba(18, 56, 38, 0.05);
+  backdrop-filter: blur(12px);
 }
 
-html.light [data-prayer-verse] .quran-verse-text,
-html.light [data-progress-verse] .quran-verse-text {
+html.light [data-prayer-verse] .quran-verse-text {
   color: #23544e;
 }
 
-html.dark [data-prayer-verse],
-html.dark [data-progress-verse] {
+html.light [data-progress-verse] .quran-verse-text {
+  color: #163830;
+}
+
+html.dark [data-prayer-verse] {
   border-color: rgba(190, 155, 85, 0.28);
   background-color: rgba(5, 20, 18, 0.75);
   color: #F8EBCD;
   box-shadow: 0 4px 20px -8px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(8px);
+}
+
+html.dark [data-progress-verse] {
+  border-color: rgba(190, 155, 85, 0.32);
+  background-color: rgba(5, 22, 19, 0.88);
+  color: #F8EBCD;
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(14px);
 }
 
 html.dark [data-prayer-verse] .quran-verse-text,

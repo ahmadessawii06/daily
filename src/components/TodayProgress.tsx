@@ -258,31 +258,33 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
             data-progress-verse
             lang="ar"
             dir="rtl"
-            className="mx-auto w-full min-w-0 max-w-4xl rounded-[14px] border border-[rgba(190,155,85,0.24)] bg-[rgba(5,20,18,0.72)] px-3 py-2 text-center text-[#F8EBCD] sm:px-4"
+            className="mx-auto w-full min-w-0 max-w-4xl rounded-2xl border border-amber-600/25 bg-white/80 px-4 py-2.5 text-center shadow-xs backdrop-blur-md transition-all dark:border-amber-400/25 dark:bg-[#051a15]/85 sm:px-6"
           >
-            <p className="quran-verse-text">{lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn}</p>
-            <p className="mt-2 flex items-center justify-center gap-2 text-[15px] font-semibold leading-5 text-[#71551f] dark:text-[#E8D39C]">
-              <span aria-hidden="true" className="h-px w-5 bg-[#8b6d2a]/45 dark:bg-[#E8D39C]/45" />
+            <p className="quran-verse-text font-arabic leading-relaxed text-slate-850 dark:text-[#F8EBCD] text-[15px] sm:text-[17px]">
+              {lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn}
+            </p>
+            <p className="mt-1.5 flex items-center justify-center gap-2 text-xs sm:text-[13px] font-semibold text-[#8b6d2a] dark:text-[#E8D39C]">
+              <span aria-hidden="true" className="h-px w-6 bg-[#8b6d2a]/35 dark:bg-[#E8D39C]/35" />
               <span>
                 {lang === 'ar'
                   ? `سورة ${dailyVerse.surahAr} • ${dailyVerse.ayahNumberAr.includes('–') ? 'الآيات' : 'الآية'} ${dailyVerse.ayahNumberAr}`
                   : `Surah ${dailyVerse.surahEn} • ${dailyVerse.ayahNumberEn.includes('–') ? 'Verses' : 'Verse'} ${dailyVerse.ayahNumberEn}`}
               </span>
-              <span aria-hidden="true" className="h-px w-5 bg-[#8b6d2a]/45 dark:bg-[#E8D39C]/45" />
+              <span aria-hidden="true" className="h-px w-6 bg-[#8b6d2a]/35 dark:bg-[#E8D39C]/35" />
             </p>
           </div>
         )}
 
         {/* Main Section: Circular Progress Gauge + 4 Circular Metric Gauges (دوائر تفاعلية بدلاً من البطاقات) */}
-        <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-4xl grid-cols-5 items-center gap-2 sm:gap-4 rounded-2xl border border-white/40 bg-white/60 px-4 sm:px-6 py-2 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.07)] backdrop-blur-md dark:border-white/[0.16] dark:bg-[#06221d]/90 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_10px_32px_rgba(0,0,0,0.4)] dark:backdrop-blur-md' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
+        <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-4xl grid-cols-5 items-center gap-2 sm:gap-4 rounded-2xl border border-white/60 bg-white/70 px-4 sm:px-6 py-2.5 shadow-xs backdrop-blur-md dark:border-white/10 dark:bg-[#06201a]/80 dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)]' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
           
           {/* Main Circular Progress Gauge */}
           <div data-progress-main className={`${compact ? 'col-start-3 row-start-1 w-auto justify-self-center' : 'w-full justify-center gap-3 sm:gap-4 md:w-auto md:flex-1 md:justify-start'} flex min-w-0 shrink-0 items-center`}>
             <div className="flex flex-col items-center select-none">
-              <div className={`progress-circle-wrap ${compact ? 'rounded-full bg-white/25 p-1 shadow-[0_8px_20px_rgba(16,185,129,0.14)] ring-1 ring-emerald-400/20 dark:bg-white/[0.03] dark:shadow-[0_8px_20px_rgba(0,0,0,0.28)] dark:ring-emerald-300/15' : ''} relative flex shrink-0 items-center justify-center`}>
+              <div className={`progress-circle-wrap ${compact ? 'rounded-full bg-white/50 p-1 ring-1 ring-emerald-500/20 dark:bg-white/[0.04] dark:ring-emerald-400/20 shadow-xs' : ''} relative flex shrink-0 items-center justify-center`}>
                 <svg
                   viewBox="0 0 100 100"
-                  className={`${compact ? 'h-16 w-16 sm:h-20 sm:w-20' : 'h-24 w-24 sm:h-28 sm:w-28'} -rotate-90 shrink-0 transform-gpu`}
+                  className={`${compact ? 'h-15 w-15 sm:h-17 sm:w-17' : 'h-24 w-24 sm:h-28 sm:w-28'} -rotate-90 shrink-0 transform-gpu`}
                   aria-label={`Progress: ${percentage}%`}
                 >
                   {/* Background track (neutral dark/light) */}
@@ -292,23 +294,23 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                     r={radius}
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth={compact ? '8' : '7'}
-                    className="text-emerald-900/20 dark:text-emerald-100/30"
+                    strokeWidth={compact ? '6' : '7'}
+                    className="text-slate-200/80 dark:text-white/10"
                   />
 
-                  {/* Active progress arc (pure green) */}
+                  {/* Active progress arc (calm emerald) */}
                   {percentage > 0 && (
                     <circle
                       cx="50"
                       cy="50"
                       r={radius}
                       fill="none"
-                      stroke="var(--theme-progress-main, #10e588)"
-                      strokeWidth={compact ? '8' : '7'}
+                      stroke="var(--theme-progress-main, #059669)"
+                      strokeWidth={compact ? '6' : '7'}
                       strokeDasharray={circumference}
                       strokeDashoffset={strokeDashoffset}
                       strokeLinecap="round"
-                      className="drop-shadow-[0_0_5px_rgba(16,229,136,0.28)] transition-[stroke-dashoffset] duration-700 ease-out motion-reduce:transition-none"
+                      className="transition-[stroke-dashoffset] duration-700 ease-out motion-reduce:transition-none"
                     />
                   )}
                 </svg>
@@ -317,12 +319,12 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
                   {isAllComplete ? (
                     <div className="flex flex-col items-center justify-center leading-none">
-                      <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#10e588] mb-1 animate-pulse" />
+                      <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 dark:text-emerald-400 mb-0.5" />
                       <div className="flex items-baseline justify-center font-numbers">
-                        <span className={`${compact ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'} font-black tracking-tight text-emerald-600 dark:text-[#10e588]`}>
+                        <span className={`${compact ? 'text-xl sm:text-2xl' : 'text-xl sm:text-2xl'} font-black tracking-tight text-emerald-700 dark:text-emerald-300`}>
                           100
                         </span>
-                        <span className="text-[11px] sm:text-xs font-bold text-[#10e588] ms-0.5">
+                        <span className="text-[10px] sm:text-xs font-bold text-emerald-600 dark:text-emerald-400 ms-0.5">
                           %
                         </span>
                       </div>
@@ -330,10 +332,10 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                   ) : (
                     <div className="flex flex-col items-center justify-center leading-none">
                       <div className="flex items-baseline justify-center font-numbers">
-                        <span className="text-2xl font-black tracking-tight text-emerald-600 dark:text-[#10e588] sm:text-3xl">
+                        <span className="text-xl font-black tracking-tight text-emerald-700 dark:text-emerald-300 sm:text-2xl">
                           {percentage}
                         </span>
-                        <span className={`${compact ? 'text-[10px]' : 'text-xs sm:text-sm'} font-bold text-[#10e588] ms-0.5`}>
+                        <span className={`${compact ? 'text-[10px]' : 'text-xs sm:text-sm'} font-bold text-emerald-600 dark:text-emerald-400 ms-0.5`}>
                           %
                         </span>
                       </div>
@@ -342,10 +344,10 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
                 </div>
               </div>
 
-              {/* Label under Circle (إنجاز اليوم فقط وبدون النسبة تحتها) */}
+              {/* Label under Circle */}
               {compact && (
-                <div className="flex max-w-full flex-col items-center mt-1.5 leading-tight text-center">
-                  <span className="text-[11px] font-bold font-['Alexandria'] leading-snug text-slate-800 dark:text-white/[0.9]">
+                <div className="flex max-w-full flex-col items-center mt-1 leading-tight text-center">
+                  <span className="text-[11px] font-bold font-['Alexandria'] leading-snug text-slate-800 dark:text-zinc-200">
                     {lang === 'ar' ? 'إنجاز اليوم' : "Today's Progress"}
                   </span>
                 </div>
