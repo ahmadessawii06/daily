@@ -254,27 +254,79 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
 
         {/* 2. Motivational Quran Verse (placed in the middle) */}
         {compact && (
-          <div
+          <article
             data-progress-verse
-            lang="ar"
-            dir="rtl"
-            className="mx-auto w-full min-w-0 max-w-4xl rounded-2xl border border-amber-600/30 bg-gradient-to-b from-white/90 via-[#fdfbf7]/85 to-[#f8f4ea]/90 px-4 py-2.5 sm:py-3 text-center shadow-[0_4px_20px_-4px_rgba(22,56,44,0.07),inset_0_1px_1.5px_0_rgba(255,255,255,0.95),inset_0_-1px_1px_0_rgba(197,160,89,0.12)] backdrop-blur-md transition-all dark:border-amber-400/25 dark:bg-gradient-to-b dark:from-[#08221b]/88 dark:via-[#061b16]/82 dark:to-[#08221b]/88 dark:shadow-[0_6px_28px_-4px_rgba(0,0,0,0.5),inset_0_1px_1px_0_rgba(255,255,255,0.1),inset_0_-1px_1px_0_rgba(212,175,95,0.15)] sm:px-6"
+            lang={lang === 'ar' ? 'ar' : 'en'}
+            dir={lang === 'ar' ? 'rtl' : 'ltr'}
+            aria-label={lang === 'ar' ? 'آية اليوم الكريمة' : 'Verse of the Day'}
+            className="group relative mx-auto w-full min-w-0 max-w-4xl overflow-hidden rounded-2xl border border-[#c5a059]/35 bg-gradient-to-b from-[#fffefc]/92 via-[#fcf9f2]/88 to-[#f8f3e6]/92 p-3 sm:p-4 text-center shadow-[0_4px_24px_-4px_rgba(22,56,44,0.08),inset_0_1px_1.5px_0_rgba(255,255,255,0.95),inset_0_-1px_1px_0_rgba(197,160,89,0.15)] backdrop-blur-md transition-all duration-300 dark:border-[#c5a059]/25 dark:bg-gradient-to-b dark:from-[#08221b]/90 dark:via-[#061c16]/85 dark:to-[#08221b]/90 dark:shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5),inset_0_1px_1px_0_rgba(255,255,255,0.1),inset_0_-1px_1px_0_rgba(212,175,95,0.15)]"
           >
-            <p className={`quran-verse-text font-arabic leading-[1.85] sm:leading-[1.95] text-[#12382e] dark:text-[#FBF2DD] ${(lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn).length > 70 ? 'text-[16px] sm:text-[18px] md:text-[20px]' : 'text-[18px] sm:text-[20px] md:text-[22px]'} tracking-wide font-normal`}>
-              {lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn}
-            </p>
-            <div className="mt-1.5 flex items-center justify-center gap-2">
-              <span aria-hidden="true" className="h-px w-7 bg-gradient-to-r from-transparent to-[#c5a059]/50 dark:to-[#E8D39C]/50" />
-              <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs sm:text-[12.5px] font-semibold tracking-wide text-[#7a591a] dark:text-[#E8D39C] bg-[#c5a059]/10 dark:bg-[#c5a059]/15 border border-[#c5a059]/25 dark:border-[#c5a059]/30 shadow-2xs">
-                <span>
-                  {lang === 'ar'
-                    ? `سورة ${dailyVerse.surahAr} • ${dailyVerse.ayahNumberAr.includes('–') ? 'الآيات' : 'الآية'} ${dailyVerse.ayahNumberAr}`
-                    : `Surah ${dailyVerse.surahEn} • ${dailyVerse.ayahNumberEn.includes('–') ? 'Verses' : 'Verse'} ${dailyVerse.ayahNumberEn}`}
-                </span>
+            {/* Inner Ornamental Frame with delicate Islamic corner motifs */}
+            <div className="relative rounded-xl border border-[#c5a059]/25 dark:border-[#c5a059]/20 px-3 py-2.5 sm:px-6 sm:py-3.5 transition-colors">
+              {/* 4 Corner Geometric Motifs (Refined Islamic corner brackets) */}
+              <span aria-hidden="true" className="pointer-events-none absolute -top-1.5 -start-1.5 size-3 text-[#c5a059]/70 dark:text-[#E8D39C]/70">
+                <svg viewBox="0 0 12 12" fill="none" className="size-full">
+                  <path d="M1 11V1H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <circle cx="1" cy="1" r="1" fill="currentColor" />
+                </svg>
               </span>
-              <span aria-hidden="true" className="h-px w-7 bg-gradient-to-l from-transparent to-[#c5a059]/50 dark:to-[#E8D39C]/50" />
+              <span aria-hidden="true" className="pointer-events-none absolute -top-1.5 -end-1.5 size-3 text-[#c5a059]/70 dark:text-[#E8D39C]/70">
+                <svg viewBox="0 0 12 12" fill="none" className="size-full">
+                  <path d="M11 11V1H1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <circle cx="11" cy="1" r="1" fill="currentColor" />
+                </svg>
+              </span>
+              <span aria-hidden="true" className="pointer-events-none absolute -bottom-1.5 -start-1.5 size-3 text-[#c5a059]/70 dark:text-[#E8D39C]/70">
+                <svg viewBox="0 0 12 12" fill="none" className="size-full">
+                  <path d="M1 1V11H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <circle cx="1" cy="1" r="1" fill="currentColor" />
+                </svg>
+              </span>
+              <span aria-hidden="true" className="pointer-events-none absolute -bottom-1.5 -end-1.5 size-3 text-[#c5a059]/70 dark:text-[#E8D39C]/70">
+                <svg viewBox="0 0 12 12" fill="none" className="size-full">
+                  <path d="M11 1V11H1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <circle cx="11" cy="1" r="1" fill="currentColor" />
+                </svg>
+              </span>
+
+              {/* 1. Header / Crown Crest: «آية اليوم» */}
+              <div className="flex items-center justify-center gap-2 mb-1.5 sm:mb-2 select-none">
+                <span aria-hidden="true" className="h-px w-6 sm:w-12 bg-gradient-to-r from-transparent to-[#c5a059]/50 dark:to-[#E8D39C]/50" />
+                <span aria-hidden="true" className="size-1 rounded-full bg-[#c5a059]/70 dark:bg-[#E8D39C]/70" />
+                <span className="text-[10px] sm:text-[11px] font-bold font-['Alexandria'] text-[#8b6d2a] dark:text-[#E8D39C] tracking-widest uppercase">
+                  {lang === 'ar' ? 'آيــة الـيــوم' : 'Verse of the Day'}
+                </span>
+                <span aria-hidden="true" className="size-1 rounded-full bg-[#c5a059]/70 dark:bg-[#E8D39C]/70" />
+                <span aria-hidden="true" className="h-px w-6 sm:w-12 bg-gradient-to-l from-transparent to-[#c5a059]/50 dark:to-[#E8D39C]/50" />
+              </div>
+
+              {/* 2. The Noble Ayah Text */}
+              <p
+                className={`quran-verse-text font-arabic text-[#10362c] dark:text-[#FBF2DD] transition-all ${
+                  (lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn).length > 80
+                    ? 'text-[17px] sm:text-[19px] md:text-[21px] leading-[2.1] sm:leading-[2.2]'
+                    : (lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn).length > 50
+                      ? 'text-[19px] sm:text-[21px] md:text-[23px] leading-[2.15] sm:leading-[2.25]'
+                      : 'text-[21px] sm:text-[23px] md:text-[25px] leading-[2.2] sm:leading-[2.3]'
+                } tracking-wide font-normal selection:bg-amber-100 selection:text-emerald-950`}
+              >
+                {lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn}
+              </p>
+
+              {/* 3. Integrated Surah & Ayah Attribution Badge */}
+              <div className="mt-2 sm:mt-2.5 flex items-center justify-center gap-2 select-none">
+                <span aria-hidden="true" className="h-px w-8 sm:w-16 bg-gradient-to-r from-transparent to-[#c5a059]/45 dark:to-[#E8D39C]/45" />
+                <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-[11px] sm:text-xs font-semibold text-[#7a591a] dark:text-[#E8D39C] bg-[#c5a059]/12 dark:bg-[#c5a059]/15 border border-[#c5a059]/25 dark:border-[#c5a059]/30 shadow-2xs font-['Alexandria']">
+                  <span>
+                    {lang === 'ar'
+                      ? `سورة ${dailyVerse.surahAr} • ${dailyVerse.ayahNumberAr.includes('–') ? 'الآيات' : 'الآية'} ${dailyVerse.ayahNumberAr}`
+                      : `Surah ${dailyVerse.surahEn} • ${dailyVerse.ayahNumberEn.includes('–') ? 'Verses' : 'Verse'} ${dailyVerse.ayahNumberEn}`}
+                  </span>
+                </span>
+                <span aria-hidden="true" className="h-px w-8 sm:w-16 bg-gradient-to-l from-transparent to-[#c5a059]/45 dark:to-[#E8D39C]/45" />
+              </div>
             </div>
-          </div>
+          </article>
         )}
 
         {/* Main Section: Circular Progress Gauge + 4 Circular Metric Gauges (دوائر تفاعلية بدلاً من البطاقات) */}

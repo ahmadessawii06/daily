@@ -691,7 +691,7 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
     flex-direction: column;
     justify-content: center;
     margin: 0 auto;
-    padding: .5rem .75rem;
+    padding: 0;
   }
   .header-progress-content [data-progress-layout="compact"] {
     min-width: 0;

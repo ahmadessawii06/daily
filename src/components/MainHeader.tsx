@@ -65,7 +65,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
   const themeLabel = theme === 'dark' ? (ar ? 'تفعيل الوضع الفاتح' : 'Switch to light mode') : (ar ? 'تفعيل الوضع الداكن' : 'Switch to dark mode');
 
   return (
-    <header data-main-header className="relative isolate flex flex-col gap-2 overflow-visible rounded-3xl border border-white/80 bg-white/40 px-3 py-2.5 shadow-[0_8px_32px_-4px_rgba(18,56,38,0.08),inset_0_1px_1.5px_0_rgba(255,255,255,0.95)] backdrop-blur-md sm:px-5 sm:py-3 dark:border-white/12 dark:bg-[#071714]/85 dark:shadow-[0_8px_32px_rgba(0,0,0,0.45),inset_0_1px_1px_0_rgba(255,255,255,0.08)]">
+    <header data-main-header className="relative isolate flex flex-col gap-2 overflow-visible rounded-3xl border border-white/80 bg-white/40 px-3 py-2.5 pb-3.5 shadow-[0_8px_32px_-4px_rgba(18,56,38,0.08),inset_0_1px_1.5px_0_rgba(255,255,255,0.95)] backdrop-blur-md sm:px-5 sm:py-3 sm:pb-4 dark:border-white/12 dark:bg-[#071714]/85 dark:shadow-[0_8px_32px_rgba(0,0,0,0.45),inset_0_1px_1px_0_rgba(255,255,255,0.08)]">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-3xl">
         <img
           src={headerBackgrounds.light}

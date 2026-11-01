@@ -61,12 +61,35 @@ export function DayMemories({ date, lang, onSaved }: { date: string; lang: Langu
           ? (ar ? (hasJournal ? 'ذكريات اليوم (يوجد تدوين)' : 'ذكريات اليوم') : (hasJournal ? "Today's memories (written)" : "Today's memories"))
           : (ar ? (photoCount > 0 ? `صورة اليوم (${photoCount})` : 'صورة اليوم') : (photoCount > 0 ? `Today's photo (${photoCount})` : 'Photo of the day'));
         return <Tooltip key={kind} text={tooltipText}>
-          <button id={`header-day-${kind}-btn`} ref={node => { if (node && active) triggerButton.current = node; }} type="button" aria-label={hasContent ? `${label} — ${badgeLabel}` : label} aria-haspopup="dialog" aria-expanded={active} aria-controls={`memory-${kind}`} onClick={() => { triggerButton.current = document.getElementById(`header-day-${kind}-btn`) as HTMLButtonElement | null; setOpen(active ? null : kind); }}
-          className={`group relative flex h-control min-w-control cursor-pointer items-center justify-center rounded-2xl border border-white/35 bg-slate-100/70 px-2 text-slate-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_2px_8px_rgba(38,63,48,0.06)] transition-[transform,background-color,border-color,color,box-shadow] duration-200 ease-out motion-safe:hover:-translate-y-0.5 motion-safe:active:translate-y-0 motion-safe:active:scale-95 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 ${kind === 'journal' ? 'hover:border-emerald-400/60 hover:bg-emerald-50 hover:text-emerald-700 hover:shadow-[0_6px_20px_-6px_rgba(16,185,129,0.4)] focus-visible:outline-emerald-500 dark:hover:border-emerald-400/40 dark:hover:bg-emerald-400/10 dark:hover:text-emerald-300' : 'hover:border-amber-400/60 hover:bg-amber-50 hover:text-amber-700 hover:shadow-[0_6px_20px_-6px_rgba(245,158,11,0.4)] focus-visible:outline-amber-500 dark:hover:border-amber-400/40 dark:hover:bg-amber-400/10 dark:hover:text-amber-300'} ${active ? (kind === 'journal' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300') : 'dark:border-white/[.08] dark:bg-white/[.04] dark:text-zinc-300'}`}>
-          <Icon size={20} strokeWidth={2} aria-hidden="true" className={`motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out ${kind === 'journal' ? 'motion-safe:group-hover:-rotate-12 motion-safe:group-hover:scale-110 motion-safe:group-focus-visible:-rotate-12 motion-safe:group-focus-visible:scale-110' : 'motion-safe:group-hover:rotate-6 motion-safe:group-hover:scale-125 motion-safe:group-focus-visible:rotate-6 motion-safe:group-focus-visible:scale-125'}`} />
-          {hasContent && <span aria-hidden="true" className={`absolute -end-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums shadow-sm ring-2 ring-white dark:ring-[#111416] ${kind === 'journal' ? 'bg-emerald-500 text-white' : 'bg-amber-400 text-amber-950'}`}>
-            {kind === 'journal' ? <Check size={12} strokeWidth={1.8} /> : photoCount}
-          </span>}
+          <button
+          id={`header-day-${kind}-btn`}
+          ref={node => { if (node && active) triggerButton.current = node; }}
+          type="button"
+          aria-label={hasContent ? `${label} — ${badgeLabel}` : label}
+          aria-haspopup="dialog"
+          aria-expanded={active}
+          aria-controls={`memory-${kind}`}
+          onClick={() => { triggerButton.current = document.getElementById(`header-day-${kind}-btn`) as HTMLButtonElement | null; setOpen(active ? null : kind); }}
+          className={`group relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 cursor-pointer shrink-0 items-center justify-center rounded-lg border border-transparent text-slate-700 hover:text-emerald-800 hover:bg-emerald-600/10 dark:text-zinc-200 dark:hover:text-emerald-300 dark:hover:bg-emerald-400/15 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-emerald-500 transition-all duration-150 motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-95 ${
+            active
+              ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300'
+              : ''
+          }`}
+        >
+          <Icon
+            size={17}
+            strokeWidth={1.9}
+            aria-hidden="true"
+            className="motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out motion-safe:group-hover:scale-110"
+          />
+          {hasContent && (
+            <span
+              aria-hidden="true"
+              className="absolute -top-1 -end-1 flex size-3.5 items-center justify-center rounded-full bg-emerald-500 text-[8.5px] font-bold text-white shadow-2xs ring-1.5 ring-white dark:ring-[#071714]"
+            >
+              {kind === 'journal' ? <Check size={8} strokeWidth={2.4} /> : photoCount}
+            </span>
+          )}
         </button>
         </Tooltip>;
       })}
