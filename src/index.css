@@ -737,7 +737,7 @@ html[data-color-theme]:not([data-color-theme="default"]):not([data-color-theme="
   .main-header-secondary-bar > .main-header-secondary-date { grid-column: 3; grid-row: 1; align-self: start; }
   .main-header-secondary-bar > :is(.main-header-clock, .main-header-secondary-date) { width: 100%; min-width: 0; align-self: start; }
   .main-header-secondary-bar > :is(.main-header-clock, .main-header-secondary-date) > nav { width: 100%; max-width: 100%; }
-  .header-progress-content [data-progress-verse] .quran-verse-text { font-size: 1.42rem; line-height: 1.9; white-space: normal; }
+  .header-progress-content [data-progress-verse] .quran-verse-text { line-height: 1.9; white-space: normal; }
   .header-progress-content [data-progress-verse] > p:last-child { font-size: .75rem; margin-top: .375rem; }
 }
 
@@ -1572,7 +1572,7 @@ html.light [data-prayer-verse] .quran-verse-text {
 }
 
 html.light [data-progress-verse] .quran-verse-text {
-  color: #163830;
+  color: #12382e;
 }
 
 html.dark [data-prayer-verse] {

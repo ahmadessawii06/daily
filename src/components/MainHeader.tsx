@@ -85,16 +85,22 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
             theme === 'dark' ? 'opacity-95' : 'opacity-0'
           }`}
         />
-        {/* Subtle warm atmospheric gradient & transparent center ensuring natural vibrant palms and sunrise */}
+        {/* Subtle warm atmospheric vertical gradient */}
         <div className={`absolute inset-0 transition-colors duration-500 ${
           theme === 'light'
             ? 'bg-gradient-to-b from-amber-50/15 via-transparent to-emerald-950/10'
             : 'bg-gradient-to-b from-[#02110e]/65 via-[#031814]/45 to-[#02110e]/75'
         }`} />
+        {/* Selective peripheral vignette: softens high contrast on palm silhouettes at extreme sides while keeping center golden and clear */}
         <div className={`absolute inset-0 transition-colors duration-500 ${
           theme === 'light'
-            ? 'bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.05)_65%,transparent_100%)]'
-            : 'bg-[radial-gradient(ellipse_at_center,rgba(5,28,24,0.5)_0%,rgba(3,17,14,0.25)_65%,transparent_100%)]'
+            ? 'bg-gradient-to-r from-emerald-950/10 via-transparent via-50% to-emerald-950/10'
+            : 'bg-gradient-to-r from-black/25 via-transparent via-50% to-black/25'
+        }`} />
+        <div className={`absolute inset-0 transition-colors duration-500 ${
+          theme === 'light'
+            ? 'bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.04)_65%,transparent_100%)]'
+            : 'bg-[radial-gradient(ellipse_at_center,rgba(5,28,24,0.45)_0%,rgba(3,17,14,0.2)_65%,transparent_100%)]'
         }`} />
       </div>
       <div className="relative z-10 flex flex-col gap-1.5">
@@ -125,13 +131,13 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
           <div className="flex items-center gap-0.5">
             <Tooltip text={ar ? 'إضافة مهمة جديدة' : 'Add new task'}>
               <button id="header-add-task-btn" type="button" onClick={onOpenAddTask} aria-label={ar ? 'إضافة مهمة جديدة واختيار مكانها' : 'Add a task and choose where it goes'} className={`${control} text-emerald-700 dark:text-emerald-400 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/15`}>
-                <Plus aria-hidden="true" size={18} strokeWidth={2.4} className={`${iconMotion} motion-safe:group-hover:rotate-90`} />
+                <Plus aria-hidden="true" size={17} strokeWidth={2.2} className={`${iconMotion} motion-safe:group-hover:rotate-90`} />
               </button>
             </Tooltip>
             {onToggleCardColumns && (
               <Tooltip text={ar ? `تغيير الأعمدة (${cardColumns} حالياً)` : `Change columns (${cardColumns})`}>
                 <button id="header-columns-btn" type="button" onClick={onToggleCardColumns} aria-label={ar ? `${cardColumns} بطاقات بالصف، التبديل إلى ${cardColumns === 4 ? 2 : cardColumns === 2 ? 3 : 4}` : `${cardColumns} cards per row, switch to ${cardColumns === 4 ? 2 : cardColumns === 2 ? 3 : 4}`} className={control}>
-                  {cardColumns === 4 ? <Columns4 aria-hidden="true" size={16} strokeWidth={1.8} /> : cardColumns === 3 ? <Columns3 aria-hidden="true" size={16} strokeWidth={1.8} /> : <Columns2 aria-hidden="true" size={16} strokeWidth={1.8} />}
+                  {cardColumns === 4 ? <Columns4 aria-hidden="true" size={17} strokeWidth={1.9} /> : cardColumns === 3 ? <Columns3 aria-hidden="true" size={17} strokeWidth={1.9} /> : <Columns2 aria-hidden="true" size={17} strokeWidth={1.9} />}
                 </button>
               </Tooltip>
             )}
@@ -149,7 +155,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
             </div>
             <Tooltip text={ar ? 'تصدير كصورة' : 'Export as image'}>
               <button id="header-export-btn" type="button" onClick={onExport} disabled={exporting} aria-busy={exporting} aria-label={ar ? 'تصدير صورة اليوم' : 'Export today as an image'} className={control}>
-                {exporting ? <Loader2 aria-hidden="true" size={16} strokeWidth={2} className="animate-spin" /> : <Share2 aria-hidden="true" size={16} strokeWidth={1.9} className={`${iconMotion} motion-safe:group-hover:scale-115`} />}
+                {exporting ? <Loader2 aria-hidden="true" size={16} strokeWidth={2} className="animate-spin" /> : <Share2 aria-hidden="true" size={17} strokeWidth={1.9} className={`${iconMotion} motion-safe:group-hover:scale-115`} />}
               </button>
             </Tooltip>
           </div>

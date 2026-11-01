@@ -258,32 +258,32 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
             data-progress-verse
             lang="ar"
             dir="rtl"
-            className="mx-auto w-full min-w-0 max-w-4xl rounded-2xl border border-amber-600/35 bg-gradient-to-b from-white/88 via-[#fefdfa]/82 to-[#faf5ea]/88 px-4 py-3 sm:py-3.5 text-center shadow-[0_6px_24px_-4px_rgba(22,56,44,0.08),inset_0_1px_1.5px_0_rgba(255,255,255,0.95),inset_0_-1px_1px_0_rgba(197,160,89,0.15)] backdrop-blur-md transition-all dark:border-amber-400/30 dark:bg-gradient-to-b dark:from-[#071f19]/88 dark:via-[#051814]/82 dark:to-[#08221b]/88 dark:shadow-[0_8px_32px_-4px_rgba(0,0,0,0.5),inset_0_1px_1px_0_rgba(255,255,255,0.1),inset_0_-1px_1px_0_rgba(212,175,95,0.18)] sm:px-6"
+            className="mx-auto w-full min-w-0 max-w-4xl rounded-2xl border border-amber-600/30 bg-gradient-to-b from-white/90 via-[#fdfbf7]/85 to-[#f8f4ea]/90 px-4 py-2.5 sm:py-3 text-center shadow-[0_4px_20px_-4px_rgba(22,56,44,0.07),inset_0_1px_1.5px_0_rgba(255,255,255,0.95),inset_0_-1px_1px_0_rgba(197,160,89,0.12)] backdrop-blur-md transition-all dark:border-amber-400/25 dark:bg-gradient-to-b dark:from-[#08221b]/88 dark:via-[#061b16]/82 dark:to-[#08221b]/88 dark:shadow-[0_6px_28px_-4px_rgba(0,0,0,0.5),inset_0_1px_1px_0_rgba(255,255,255,0.1),inset_0_-1px_1px_0_rgba(212,175,95,0.15)] sm:px-6"
           >
-            <p className="quran-verse-text font-arabic leading-[1.85] sm:leading-[1.95] text-[#12382e] dark:text-[#FBF2DD] text-[18px] sm:text-[21px] md:text-[23px] tracking-wide font-normal">
+            <p className={`quran-verse-text font-arabic leading-[1.85] sm:leading-[1.95] text-[#12382e] dark:text-[#FBF2DD] ${(lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn).length > 70 ? 'text-[16px] sm:text-[18px] md:text-[20px]' : 'text-[18px] sm:text-[20px] md:text-[22px]'} tracking-wide font-normal`}>
               {lang === 'ar' ? dailyVerse.textAr : dailyVerse.textEn}
             </p>
-            <div className="mt-2 flex items-center justify-center gap-2.5">
-              <span aria-hidden="true" className="h-px w-8 bg-gradient-to-r from-transparent to-[#c5a059]/60 dark:to-[#E8D39C]/60" />
-              <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs sm:text-[13px] font-semibold tracking-wide text-[#7a591a] dark:text-[#E8D39C] bg-[#c5a059]/12 dark:bg-[#c5a059]/15 border border-[#c5a059]/30 dark:border-[#c5a059]/35 shadow-2xs">
+            <div className="mt-1.5 flex items-center justify-center gap-2">
+              <span aria-hidden="true" className="h-px w-7 bg-gradient-to-r from-transparent to-[#c5a059]/50 dark:to-[#E8D39C]/50" />
+              <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs sm:text-[12.5px] font-semibold tracking-wide text-[#7a591a] dark:text-[#E8D39C] bg-[#c5a059]/10 dark:bg-[#c5a059]/15 border border-[#c5a059]/25 dark:border-[#c5a059]/30 shadow-2xs">
                 <span>
                   {lang === 'ar'
                     ? `سورة ${dailyVerse.surahAr} • ${dailyVerse.ayahNumberAr.includes('–') ? 'الآيات' : 'الآية'} ${dailyVerse.ayahNumberAr}`
                     : `Surah ${dailyVerse.surahEn} • ${dailyVerse.ayahNumberEn.includes('–') ? 'Verses' : 'Verse'} ${dailyVerse.ayahNumberEn}`}
                 </span>
               </span>
-              <span aria-hidden="true" className="h-px w-8 bg-gradient-to-l from-transparent to-[#c5a059]/60 dark:to-[#E8D39C]/60" />
+              <span aria-hidden="true" className="h-px w-7 bg-gradient-to-l from-transparent to-[#c5a059]/50 dark:to-[#E8D39C]/50" />
             </div>
           </div>
         )}
 
         {/* Main Section: Circular Progress Gauge + 4 Circular Metric Gauges (دوائر تفاعلية بدلاً من البطاقات) */}
-        <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-4xl grid-cols-5 items-center gap-2 sm:gap-4 rounded-2xl border border-white/85 bg-gradient-to-b from-white/82 via-[#fcfbf9]/75 to-white/82 px-4 sm:px-6 py-2.5 sm:py-3 shadow-[0_6px_24px_-4px_rgba(18,50,38,0.06),inset_0_1px_1.5px_rgba(255,255,255,0.95)] backdrop-blur-md dark:border-white/12 dark:bg-gradient-to-b dark:from-[#07241d]/85 dark:via-[#051c17]/80 dark:to-[#07241d]/85 dark:shadow-[0_8px_28px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.08)]' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
+        <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-4xl grid-cols-5 items-center gap-2 sm:gap-4 rounded-2xl border border-white/85 bg-gradient-to-b from-white/88 via-[#fcfbfa]/82 to-[#f8f6f2]/88 px-4 sm:px-6 py-2.5 sm:py-3 shadow-[0_4px_20px_-4px_rgba(18,50,38,0.06),inset_0_1px_1.5px_rgba(255,255,255,0.95)] backdrop-blur-md dark:border-white/12 dark:bg-gradient-to-b dark:from-[#07241d]/85 dark:via-[#051c17]/80 dark:to-[#07241d]/85 dark:shadow-[0_8px_28px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.08)]' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
           
           {/* Main Circular Progress Gauge */}
           <div data-progress-main className={`${compact ? 'col-start-3 row-start-1 w-auto justify-self-center' : 'w-full justify-center gap-3 sm:gap-4 md:w-auto md:flex-1 md:justify-start'} flex min-w-0 shrink-0 items-center`}>
             <div className="flex flex-col items-center select-none">
-              <div className={`progress-circle-wrap ${compact ? 'rounded-full bg-gradient-to-b from-emerald-500/[0.12] to-emerald-600/[0.04] p-1.5 ring-1 ring-emerald-500/30 dark:from-emerald-400/[0.15] dark:to-emerald-500/[0.05] dark:ring-emerald-400/30 shadow-[0_4px_16px_rgba(16,185,129,0.18)]' : ''} relative flex shrink-0 items-center justify-center`}>
+              <div className={`progress-circle-wrap ${compact ? 'rounded-full bg-gradient-to-b from-emerald-500/[0.12] to-emerald-600/[0.04] p-1.5 ring-1 ring-emerald-500/25 dark:from-emerald-400/[0.12] dark:to-emerald-500/[0.04] dark:ring-emerald-400/25 shadow-[0_2px_12px_rgba(16,185,129,0.12)]' : ''} relative flex shrink-0 items-center justify-center`}>
                 <svg
                   viewBox="0 0 100 100"
                   className={`${compact ? 'h-15 w-15 sm:h-17 sm:w-17' : 'h-24 w-24 sm:h-28 sm:w-28'} -rotate-90 shrink-0 transform-gpu`}

@@ -87,7 +87,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
             r={radius}
             fill="none"
             stroke="currentColor"
-            strokeWidth="3.2"
+            strokeWidth="3"
             className={`progress-track ${colorConfig.track}`}
           />
           {/* Active progress arc */}
@@ -98,7 +98,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
               r={radius}
               fill="none"
               stroke={`var(--progress-color, ${colorConfig.stroke})`}
-              strokeWidth="3.2"
+              strokeWidth="3"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
