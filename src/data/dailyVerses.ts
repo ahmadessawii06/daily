@@ -9,6 +9,14 @@ export interface DailyVerse {
 
 export const DAILY_VERSES: DailyVerse[] = [
   {
+    textAr: '﴿يَٰٓأَيُّهَا ٱلنَّاسُ ٱتَّقُوا۟ رَبَّكُمْ وَٱخْشَوْا۟ يَوْمًۭا لَّا يَجْزِى وَالِدٌ عَن وَلَدِهِۦ وَلَا مَوْلُودٌ هُوَ جَازٍ عَن وَالِدِهِۦ شَيْـًٔا ۚ إِنَّ وَعْدَ ٱللَّهِ حَقٌّۭ ۖ فَلَا تَغُرَّنَّكُمُ ٱلْحَيَوٰةُ ٱلدُّنْيَا وَلَا يَغُرَّنَّكُم بِٱللَّهِ ٱلْغَرُورُ﴾',
+    textEn: '“O mankind, fear your Lord and fear a Day when no father will avail his son, nor will a son avail his father at all. Indeed, the promise of Allah is truth, so let not the worldly life delude you and be not deceived about Allah by the Deceiver.”',
+    surahAr: 'لقمان',
+    surahEn: 'Luqman',
+    ayahNumberAr: '٣٣',
+    ayahNumberEn: '33',
+  },
+  {
     textAr: '﴿فَإِذَا عَزَمْتَ فَتَوَكَّلْ عَلَى اللَّهِ ۚ إِنَّ اللَّهَ يُحِبُّ الْمُتَوَكِّلِينَ﴾',
     textEn: '“When you have decided, then rely upon Allah. Indeed, Allah loves those who rely upon Him.”',
     surahAr: 'آل عمران',
