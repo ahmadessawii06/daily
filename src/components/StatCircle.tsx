@@ -32,37 +32,37 @@ export const StatCircle: React.FC<StatCircleProps> = ({
   const colorConfig = {
     emerald: {
       stroke: '#059669',
-      bgGlow: 'bg-emerald-500/[0.08] dark:bg-emerald-400/[0.1] border border-emerald-500/20 dark:border-emerald-400/20',
-      text: 'text-emerald-800 dark:text-emerald-300',
-      valueText: 'text-emerald-700 dark:text-emerald-300',
-      subLabelText: 'text-emerald-700/80 dark:text-emerald-400/80 font-bold',
+      bgGlow: 'bg-emerald-500/[0.08] dark:bg-emerald-400/[0.1] border border-emerald-500/25 dark:border-emerald-400/25 shadow-2xs',
+      text: 'text-emerald-900 dark:text-emerald-300',
+      valueText: 'text-emerald-800 dark:text-emerald-200',
+      subLabelText: 'text-emerald-700 dark:text-emerald-400 font-bold',
       activeRing: 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-white dark:ring-offset-[#06201a]',
       track: 'text-emerald-500/15 dark:text-emerald-400/15',
     },
     amber: {
       stroke: '#d97706',
-      bgGlow: 'bg-amber-500/[0.08] dark:bg-amber-400/[0.1] border border-amber-500/20 dark:border-amber-400/20',
-      text: 'text-amber-800 dark:text-amber-300',
-      valueText: 'text-amber-700 dark:text-amber-300',
-      subLabelText: 'text-amber-700/80 dark:text-amber-400/80 font-bold',
+      bgGlow: 'bg-amber-500/[0.08] dark:bg-amber-400/[0.1] border border-amber-500/25 dark:border-amber-400/25 shadow-2xs',
+      text: 'text-amber-900 dark:text-amber-300',
+      valueText: 'text-amber-800 dark:text-amber-200',
+      subLabelText: 'text-amber-700 dark:text-amber-400 font-bold',
       activeRing: 'ring-2 ring-amber-500 ring-offset-2 ring-offset-white dark:ring-offset-[#06201a]',
       track: 'text-amber-500/15 dark:text-amber-400/15',
     },
     rose: {
-      stroke: '#e11d48',
-      bgGlow: 'bg-rose-500/[0.08] dark:bg-rose-400/[0.1] border border-rose-500/20 dark:border-rose-400/20',
-      text: 'text-rose-800 dark:text-rose-300',
-      valueText: 'text-rose-700 dark:text-rose-300',
-      subLabelText: 'text-rose-700/80 dark:text-rose-400/80 font-bold',
+      stroke: '#e05353',
+      bgGlow: 'bg-rose-500/[0.07] dark:bg-rose-400/[0.09] border border-rose-500/20 dark:border-rose-400/20 shadow-2xs',
+      text: 'text-[#9c2b2b] dark:text-[#fca5a5]',
+      valueText: 'text-[#b93838] dark:text-[#f87171]',
+      subLabelText: 'text-[#b93838]/90 dark:text-[#f87171]/90 font-bold',
       activeRing: 'ring-2 ring-rose-500 ring-offset-2 ring-offset-white dark:ring-offset-[#06201a]',
       track: 'text-rose-500/15 dark:text-rose-400/15',
     },
     indigo: {
-      stroke: '#4f46e5',
-      bgGlow: 'bg-indigo-500/[0.08] dark:bg-indigo-400/[0.1] border border-indigo-500/20 dark:border-indigo-400/20',
-      text: 'text-indigo-800 dark:text-indigo-300',
-      valueText: 'text-indigo-700 dark:text-indigo-300',
-      subLabelText: 'text-indigo-700/80 dark:text-indigo-400/80 font-bold',
+      stroke: '#4361ee',
+      bgGlow: 'bg-indigo-500/[0.07] dark:bg-indigo-400/[0.09] border border-indigo-500/20 dark:border-indigo-400/20 shadow-2xs',
+      text: 'text-[#2b3a8c] dark:text-[#a5b4fc]',
+      valueText: 'text-[#374ab5] dark:text-[#818cf8]',
+      subLabelText: 'text-[#374ab5]/90 dark:text-[#818cf8]/90 font-bold',
       activeRing: 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-white dark:ring-offset-[#06201a]',
       track: 'text-indigo-500/15 dark:text-indigo-400/15',
     },
@@ -87,7 +87,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
             r={radius}
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.8"
+            strokeWidth="3.2"
             className={`progress-track ${colorConfig.track}`}
           />
           {/* Active progress arc */}
@@ -98,7 +98,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
               r={radius}
               fill="none"
               stroke={`var(--progress-color, ${colorConfig.stroke})`}
-              strokeWidth="2.8"
+              strokeWidth="3.2"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
@@ -109,7 +109,7 @@ export const StatCircle: React.FC<StatCircleProps> = ({
 
         {/* Number inside Circle */}
         <span
-          className={`progress-value font-numbers text-base font-black leading-none tracking-tight sm:text-lg ${colorConfig.valueText}`}
+          className={`progress-value font-numbers text-lg font-black leading-none tracking-tight sm:text-xl ${colorConfig.valueText}`}
         >
           {value}
         </span>

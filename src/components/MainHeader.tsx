@@ -58,21 +58,21 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
     const interval = window.setInterval(() => setClock(getLiveClock(lang)), 1000);
     return () => window.clearInterval(interval);
   }, [lang]);
-  const controlBase = 'group flex h-8 w-8 sm:h-8.5 sm:w-8.5 cursor-pointer shrink-0 items-center justify-center rounded-lg border border-transparent text-slate-600 hover:text-emerald-700 hover:bg-white/80 dark:text-zinc-300 dark:hover:text-emerald-300 dark:hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-emerald-500 disabled:cursor-wait disabled:opacity-50 transition-all duration-150 motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-95';
+  const controlBase = 'group flex h-8 w-8 sm:h-8.5 sm:w-8.5 cursor-pointer shrink-0 items-center justify-center rounded-lg border border-transparent text-slate-700 hover:text-emerald-800 hover:bg-emerald-600/10 dark:text-zinc-200 dark:hover:text-emerald-300 dark:hover:bg-emerald-400/15 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-emerald-500 disabled:cursor-wait disabled:opacity-50 transition-all duration-150 motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-95';
   const control = `${controlBase}`;
   const logoutControl = `${controlBase} hover:!text-red-600 hover:!bg-red-50/80 dark:hover:!text-red-400 dark:hover:!bg-red-500/10 focus-visible:!outline-red-500`;
   const iconMotion = 'motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out';
   const themeLabel = theme === 'dark' ? (ar ? 'تفعيل الوضع الفاتح' : 'Switch to light mode') : (ar ? 'تفعيل الوضع الداكن' : 'Switch to dark mode');
 
   return (
-    <header data-main-header className="relative isolate flex flex-col gap-2 overflow-visible rounded-3xl border border-white/60 bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur-md sm:px-5 sm:py-3 dark:border-white/10 dark:bg-[#071714]/90 dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+    <header data-main-header className="relative isolate flex flex-col gap-2 overflow-visible rounded-3xl border border-white/80 bg-white/40 px-3 py-2.5 shadow-[0_8px_32px_-4px_rgba(18,56,38,0.08),inset_0_1px_1.5px_0_rgba(255,255,255,0.95)] backdrop-blur-md sm:px-5 sm:py-3 dark:border-white/12 dark:bg-[#071714]/85 dark:shadow-[0_8px_32px_rgba(0,0,0,0.45),inset_0_1px_1px_0_rgba(255,255,255,0.08)]">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-3xl">
         <img
           src={headerBackgrounds.light}
           alt=""
           fetchPriority="high"
           decoding="async"
-          className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-500 ease-in-out filter saturate-[0.82] contrast-[0.96] ${
+          className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-500 ease-in-out filter saturate-[1.14] contrast-[1.02] brightness-[1.01] ${
             theme === 'light' ? 'opacity-95' : 'opacity-0'
           }`}
         />
@@ -81,26 +81,26 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
           alt=""
           fetchPriority="high"
           decoding="async"
-          className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-500 ease-in-out filter saturate-[0.85] contrast-[0.95] brightness-[0.85] ${
+          className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-500 ease-in-out filter saturate-[1.05] contrast-[1.05] brightness-[0.9] ${
             theme === 'dark' ? 'opacity-95' : 'opacity-0'
           }`}
         />
-        {/* Soft atmospheric gradient & calm radial vignette behind content */}
+        {/* Subtle warm atmospheric gradient & transparent center ensuring natural vibrant palms and sunrise */}
         <div className={`absolute inset-0 transition-colors duration-500 ${
           theme === 'light'
-            ? 'bg-gradient-to-b from-white/40 via-white/25 to-white/45'
-            : 'bg-gradient-to-b from-[#02110e]/75 via-[#031814]/60 to-[#02110e]/85'
+            ? 'bg-gradient-to-b from-amber-50/15 via-transparent to-emerald-950/10'
+            : 'bg-gradient-to-b from-[#02110e]/65 via-[#031814]/45 to-[#02110e]/75'
         }`} />
         <div className={`absolute inset-0 transition-colors duration-500 ${
           theme === 'light'
-            ? 'bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.6)_0%,rgba(245,250,248,0.3)_65%,transparent_100%)]'
-            : 'bg-[radial-gradient(ellipse_at_center,rgba(5,28,24,0.65)_0%,rgba(3,17,14,0.35)_65%,transparent_100%)]'
+            ? 'bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.05)_65%,transparent_100%)]'
+            : 'bg-[radial-gradient(ellipse_at_center,rgba(5,28,24,0.5)_0%,rgba(3,17,14,0.25)_65%,transparent_100%)]'
         }`} />
       </div>
       <div className="relative z-10 flex flex-col gap-1.5">
       <div className="main-header-top-bar">
         <div className="flex min-w-0 items-center gap-2 justify-self-start">
-          <div className="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-slate-200/80 bg-white/75 px-3 text-xs font-bold text-slate-900 shadow-xs backdrop-blur-md dark:border-white/15 dark:bg-black/30 dark:text-white">
+          <div className="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-white/85 bg-white/80 px-3 text-xs font-bold text-[#14382f] shadow-[0_2px_10px_-2px_rgba(18,50,38,0.06),inset_0_1px_1px_rgba(255,255,255,0.95)] backdrop-blur-md dark:border-white/15 dark:bg-[#061e18]/85 dark:text-[#F8EBCD]">
             <span aria-hidden="true" className="h-2 w-2 rounded-full bg-[#10e588] shadow-[0_0_10px_rgba(16,229,136,0.55)]" />
             <span>{ar ? 'ميزان' : 'Mizan'}</span>
           </div>
@@ -110,7 +110,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
           role="group"
           aria-label={ar ? 'أدوات اليوم' : 'Day tools'}
           dir="ltr"
-          className="main-header-tools inline-flex items-center gap-0.5 rounded-xl border border-white/50 bg-white/60 p-1 shadow-xs backdrop-blur-md dark:border-white/10 dark:bg-black/30"
+          className="main-header-tools inline-flex items-center gap-0.5 rounded-xl border border-white/85 bg-white/75 p-1 shadow-[0_4px_16px_-4px_rgba(18,50,38,0.08),inset_0_1px_1.5px_rgba(255,255,255,0.95)] backdrop-blur-md dark:border-white/15 dark:bg-black/40 dark:shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)]"
         >
           {/* Cluster 1: Logout */}
           <Tooltip text={ar ? 'تسجيل الخروج' : 'Sign out'}>
@@ -119,7 +119,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
             </button>
           </Tooltip>
 
-          <span aria-hidden="true" className="h-4 w-px bg-slate-300/60 dark:bg-white/10 shrink-0 mx-0.5" />
+          <span aria-hidden="true" className="h-4 w-px bg-slate-300/80 dark:bg-white/15 shrink-0 mx-1" />
 
           {/* Cluster 2: Tasks & Insights */}
           <div className="flex items-center gap-0.5">
@@ -156,7 +156,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
 
           {(dayMemories || quickNotes) && (
             <>
-              <span aria-hidden="true" className="h-4 w-px bg-slate-300/60 dark:bg-white/10 shrink-0 mx-0.5" />
+              <span aria-hidden="true" className="h-4 w-px bg-slate-300/80 dark:bg-white/15 shrink-0 mx-1" />
               {/* Cluster 3: Memories & Notes */}
               <div className="flex items-center gap-0.5">
                 {dayMemories && <div className="contents" dir="ltr">{dayMemories}</div>}
@@ -165,7 +165,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
             </>
           )}
 
-          <span aria-hidden="true" className="h-4 w-px bg-slate-300/60 dark:bg-white/10 shrink-0 mx-0.5" />
+          <span aria-hidden="true" className="h-4 w-px bg-slate-300/80 dark:bg-white/15 shrink-0 mx-1" />
 
           {/* Cluster 4: Preferences & Settings */}
           <div className="flex items-center gap-0.5">
@@ -193,7 +193,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({ cardColumns = 4, onToggl
         </div>
         <div className="main-header-actions flex min-w-0 items-center gap-2 justify-self-end">
           <div
-            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-slate-200/80 bg-white/75 px-3 text-xs font-bold text-slate-900 shadow-xs backdrop-blur-md dark:border-white/15 dark:bg-black/30 dark:text-white select-none"
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-white/85 bg-white/80 px-3 text-xs font-bold text-[#14382f] shadow-[0_2px_10px_-2px_rgba(18,50,38,0.06),inset_0_1px_1px_rgba(255,255,255,0.95)] backdrop-blur-md dark:border-white/15 dark:bg-[#061e18]/85 dark:text-[#F8EBCD] select-none"
             aria-label={`${clock.text} ${clock.period}`}
             dir={ar ? 'rtl' : 'ltr'}
           >
