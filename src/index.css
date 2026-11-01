@@ -440,45 +440,114 @@
   outline-offset: -2px;
 }
 
-/* Subtle 4-sided borders indicating page/task completion status */
+/* No 4-sided borders on navigation buttons */
+.worship-navigation-items button.is-completed,
+.worship-navigation-items button.is-pending,
+.dark .worship-navigation-items button.is-completed,
+.dark .worship-navigation-items button.is-pending {
+  border: 1px solid transparent !important;
+  border-color: transparent !important;
+}
+
 .worship-navigation-items button.is-completed {
-  border: 1px solid rgba(16, 185, 129, 0.45);
   background: rgba(16, 185, 129, 0.04);
 }
 
 .dark .worship-navigation-items button.is-completed {
-  border: 1px solid rgba(52, 211, 153, 0.38);
   background: rgba(16, 185, 129, 0.06);
 }
 
 .worship-navigation-items button.is-pending {
-  border: 1px solid rgba(245, 158, 11, 0.35);
   background: rgba(245, 158, 11, 0.03);
 }
 
 .dark .worship-navigation-items button.is-pending {
-  border: 1px solid rgba(245, 158, 11, 0.28);
   background: rgba(245, 158, 11, 0.04);
 }
 
 .worship-navigation-items button.is-completed:hover {
-  border-color: rgba(16, 185, 129, 0.65);
-  background: rgba(16, 185, 129, 0.08);
+  background: rgba(16, 185, 129, 0.1);
+  border-color: transparent !important;
 }
 
 .dark .worship-navigation-items button.is-completed:hover {
-  border-color: rgba(52, 211, 153, 0.55);
-  background: rgba(16, 185, 129, 0.12);
+  background: rgba(16, 185, 129, 0.15);
+  border-color: transparent !important;
 }
 
 .worship-navigation-items button.is-pending:hover {
-  border-color: rgba(245, 158, 11, 0.5);
-  background: rgba(245, 158, 11, 0.07);
+  background: rgba(245, 158, 11, 0.08);
+  border-color: transparent !important;
 }
 
 .dark .worship-navigation-items button.is-pending:hover {
-  border-color: rgba(245, 158, 11, 0.4);
-  background: rgba(245, 158, 11, 0.09);
+  background: rgba(245, 158, 11, 0.12);
+  border-color: transparent !important;
+}
+
+/* Accent Glow Line indicating completion status (Green = Done, Orange = Pending) */
+.worship-navigation-items button::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 3px;
+  border-radius: 9999px;
+  transition: width 0.25s ease, opacity 0.25s ease, box-shadow 0.25s ease;
+  pointer-events: none;
+}
+
+.worship-navigation-items button:hover::after {
+  width: 34px;
+}
+
+/* Completed (مكتمل) - Glowing Emerald Green line */
+.worship-navigation-items button.is-completed::after {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.65), 0 1px 2px rgba(16, 185, 129, 0.4);
+}
+
+.dark .worship-navigation-items button.is-completed::after {
+  background: #34d399;
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.75), 0 1px 2px rgba(52, 211, 153, 0.5);
+}
+
+/* Pending / In progress (غير منجز / متبقي) - Glowing Amber Orange line */
+.worship-navigation-items button.is-pending::after {
+  background: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.65), 0 1px 2px rgba(245, 158, 11, 0.4);
+}
+
+.dark .worship-navigation-items button.is-pending::after {
+  background: #fbbf24;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.75), 0 1px 2px rgba(251, 191, 36, 0.5);
+}
+
+/* Active tab variations for the glow line */
+.worship-navigation-items button.is-active.is-completed::after {
+  background: #a7f3d0;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.9), 0 0 14px rgba(52, 211, 153, 0.85);
+  width: 32px;
+}
+
+.dark .worship-navigation-items button.is-active.is-completed::after {
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.95), 0 0 16px rgba(110, 231, 183, 0.9);
+  width: 32px;
+}
+
+.worship-navigation-items button.is-active.is-pending::after {
+  background: #fde047;
+  box-shadow: 0 0 10px rgba(253, 224, 71, 0.9), 0 0 14px rgba(245, 158, 11, 0.85);
+  width: 32px;
+}
+
+.dark .worship-navigation-items button.is-active.is-pending::after {
+  background: #fef08a;
+  box-shadow: 0 0 10px rgba(254, 240, 138, 0.95), 0 0 16px rgba(251, 191, 36, 0.9);
+  width: 32px;
 }
 
 /* Active states are fully handled above with no borders */
@@ -553,6 +622,15 @@
     font-size: 0.725rem;
     border-radius: 0.75rem;
     justify-content: center;
+  }
+  .worship-navigation-items button::after {
+    bottom: 2.5px;
+    width: 18px;
+    height: 2.5px;
+  }
+  .worship-navigation-items button:hover::after,
+  .worship-navigation-items button.is-active::after {
+    width: 24px;
   }
   .worship-navigation-icon svg {
     width: 15px;
