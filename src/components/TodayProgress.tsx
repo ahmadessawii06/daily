@@ -2,6 +2,7 @@ import React from 'react';
 import { Target, Trophy, Sparkles, CheckCircle2, Clock, XCircle, ListTodo } from 'lucide-react';
 import { DayStats, Language, StatusFilter, Theme } from '../types';
 import { StatCircle } from './StatCircle';
+import { DailyInspirationPreview } from './DailyInspirationPreview';
 
 const progressBackgrounds: Record<Theme, string> = {
   dark: new URL('../assets/images/home/daily-progress-abstract-dark.webp', import.meta.url).href,
@@ -159,6 +160,173 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
     );
   };
 
+  const progressCard = (
+    <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-4xl grid-cols-5 items-center gap-2 sm:gap-4 rounded-2xl border border-white/85 bg-gradient-to-b from-white/88 via-[#fcfbfa]/82 to-[#f8f6f2]/88 px-4 sm:px-6 py-2.5 sm:py-3 shadow-[0_4px_20px_-4px_rgba(18,50,38,0.06),inset_0_1px_1.5px_rgba(255,255,255,0.95)] backdrop-blur-md dark:border-white/12 dark:bg-gradient-to-b dark:from-[#07241d]/85 dark:via-[#051c17]/80 dark:to-[#07241d]/85 dark:shadow-[0_8px_28px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.08)]' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
+            
+            {/* Main Circular Progress Gauge */}
+            <div data-progress-main className={`${compact ? 'col-start-3 row-start-1 w-auto justify-self-center' : 'w-full justify-center gap-3 sm:gap-4 md:w-auto md:flex-1 md:justify-start'} flex min-w-0 shrink-0 items-center`}>
+              <div className="flex flex-col items-center select-none">
+                <div className={`progress-circle-wrap ${compact ? 'rounded-full bg-gradient-to-b from-emerald-500/[0.12] to-emerald-600/[0.04] p-1.5 ring-1 ring-emerald-500/25 dark:from-emerald-400/[0.12] dark:to-emerald-500/[0.04] dark:ring-emerald-400/25 shadow-[0_2px_12px_rgba(16,185,129,0.12)]' : ''} relative flex shrink-0 items-center justify-center`}>
+                  <svg
+                    viewBox="0 0 100 100"
+                    className={`${compact ? 'h-15 w-15 sm:h-17 sm:w-17' : 'h-24 w-24 sm:h-28 sm:w-28'} -rotate-90 shrink-0 transform-gpu`}
+                    aria-label={`Progress: ${percentage}%`}
+                  >
+                    {/* Background track (neutral dark/light) */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r={radius}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={compact ? '6.5' : '7.5'}
+                      className="text-slate-200/80 dark:text-white/10"
+                    />
+  
+                    {/* Active progress arc (calm emerald) */}
+                    {percentage > 0 && (
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r={radius}
+                        fill="none"
+                        stroke="var(--theme-progress-main, #059669)"
+                        strokeWidth={compact ? '6.5' : '7.5'}
+                        strokeDasharray={circumference}
+                        strokeDashoffset={strokeDashoffset}
+                        strokeLinecap="round"
+                        className="transition-[stroke-dashoffset] duration-700 ease-out motion-reduce:transition-none"
+                      />
+                    )}
+                  </svg>
+  
+                  {/* Inner Content inside Circle */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
+                    {isAllComplete ? (
+                      <div className="flex flex-col items-center justify-center leading-none">
+                        <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 dark:text-emerald-400 mb-0.5" />
+                        <div className="flex items-baseline justify-center font-numbers">
+                          <span className={`${compact ? 'text-xl sm:text-2xl' : 'text-xl sm:text-2xl'} font-black tracking-tight text-emerald-700 dark:text-emerald-300`}>
+                            100
+                          </span>
+                          <span className="text-[10px] sm:text-xs font-bold text-emerald-600 dark:text-emerald-400 ms-0.5">
+                            %
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center leading-none">
+                        <div className="flex items-baseline justify-center font-numbers">
+                          <span className="text-2xl font-black tracking-tight text-emerald-800 dark:text-emerald-200 sm:text-3xl">
+                            {percentage}
+                          </span>
+                          <span className={`${compact ? 'text-[10px]' : 'text-xs sm:text-sm'} font-bold text-emerald-600 dark:text-emerald-400 ms-0.5`}>
+                            %
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+  
+                {/* Label under Circle */}
+                {compact && (
+                  <div className="flex max-w-full flex-col items-center mt-1 leading-tight text-center">
+                    <span className="text-xs font-black font-['Alexandria'] leading-snug text-emerald-950 dark:text-emerald-100">
+                      {lang === 'ar' ? 'إنجاز اليوم' : "Today's Progress"}
+                    </span>
+                  </div>
+                )}
+              </div>
+  
+              {/* Motivational Title & Subtitle beside main circle */}
+              <div className={`${compact ? 'hidden' : 'flex'} min-w-0 max-w-[240px] flex-col justify-center sm:max-w-[280px]`}>
+                <span className={`${compact ? 'text-[11px]' : 'text-xs sm:text-sm'} font-bold leading-relaxed tracking-tight text-slate-900 dark:text-white font-['Alexandria']`}>
+                  {getMotivationalTitle()}
+                </span>
+                <span className="mt-1 text-xs font-medium leading-relaxed text-slate-600 dark:text-zinc-300 font-['Alexandria']">
+                  {getMotivationalSubtitle()}
+                </span>
+              </div>
+            </div>
+  
+            {/* 4 Circular Metric Gauges (دوائر الإحصائيات الأربعة) - بدون بطاقات */}
+            <div
+              data-progress-stats
+              className={`grid grid-cols-4 justify-items-center ${compact
+                ? 'contents'
+                : 'w-full gap-1 border-t border-slate-100 pt-2 sm:gap-3 md:w-auto md:flex-1 md:border-s-0 md:border-t-0 md:ps-4 md:pt-0 lg:ps-6 dark:border-white/[0.05]'}`}
+              style={compact ? { display: 'contents' } : undefined}
+            >
+              
+              {/* 1. Total (دائرة مطلوبة) — نقرة لتفعيل الفلتر ونقرة ثانية لإلغائه */}
+              <StatCircle
+                label={lang === 'ar' ? 'مطلوبة' : 'Required'}
+                title={lang === 'ar' ? (currentFilter === 'all' && isAllSelected ? 'إلغاء فلتر مطلوبة وعرض الكل' : 'اضغط لتطبيق فلتر - المهام المطلوبة') : 'Click to filter - Required tasks'}
+                value={stats.total}
+                percentage={stats.total > 0 ? 100 : 0}
+                color="indigo"
+                isActive={currentFilter === 'all' && isAllSelected}
+                onClick={() => {
+                  if (currentFilter === 'all' && isAllSelected) {
+                    setIsAllSelected(false);
+                  } else {
+                    setIsAllSelected(true);
+                    onFilterChange?.('all');
+                  }
+                }}
+                compact={compact}
+                className={compact ? 'order-1 rtl:order-1' : ''}
+                subLabel={stats.total > 0 ? '100%' : '0%'}
+              />
+  
+              {/* 2. Completed (دائرة مكتملة) */}
+              <StatCircle
+                label={lang === 'ar' ? 'مكتملة' : 'Done'}
+                title={lang === 'ar' ? (currentFilter === 'done' ? 'إلغاء فلتر مكتملة وعرض الكل' : 'اضغط لتطبيق فلتر - المهام المكتملة') : 'Click to filter - Completed tasks'}
+                value={stats.done}
+                percentage={stats.total > 0 ? (stats.done / stats.total) * 100 : 0}
+                color="emerald"
+                isActive={currentFilter === 'done'}
+                onClick={() => onFilterChange?.(currentFilter === 'done' ? 'all' : 'done')}
+                compact={compact}
+                className={compact ? 'order-2 rtl:order-2' : ''}
+                subLabel={stats.total > 0 ? `${Math.round((stats.done / stats.total) * 100)}%` : '0%'}
+              />
+  
+              {/* 3. Remaining (دائرة متبقية) */}
+              <StatCircle
+                label={lang === 'ar' ? 'متبقية' : 'Remaining'}
+                title={lang === 'ar' ? (currentFilter === 'pending' ? 'إلغاء فلتر متبقية وعرض الكل' : 'اضغط لتطبيق فلتر - المهام المتبقية') : 'Click to filter - Remaining tasks'}
+                value={remaining}
+                percentage={stats.total > 0 ? (remaining / stats.total) * 100 : 0}
+                color="amber"
+                isActive={currentFilter === 'pending'}
+                onClick={() => onFilterChange?.(currentFilter === 'pending' ? 'all' : 'pending')}
+                compact={compact}
+                className={compact ? 'order-3 rtl:order-3' : ''}
+                subLabel={stats.total > 0 ? `${Math.round((remaining / stats.total) * 100)}%` : '0%'}
+              />
+  
+              {/* 4. Not Done (دائرة غير منجزة) */}
+              <StatCircle
+                label={lang === 'ar' ? 'غير منجزة' : 'Not Done'}
+                title={lang === 'ar' ? (currentFilter === 'not-done' ? 'إلغاء فلتر غير منجزة وعرض الكل' : 'اضغط لتطبيق فلتر - المهام غير المنجزة') : 'Click to filter - Not done tasks'}
+                value={stats.notDone}
+                percentage={stats.total > 0 ? (stats.notDone / stats.total) * 100 : 0}
+                color="rose"
+                isActive={currentFilter === 'not-done'}
+                onClick={() => onFilterChange?.(currentFilter === 'not-done' ? 'all' : 'not-done')}
+                compact={compact}
+                className={compact ? 'order-4 rtl:order-4' : ''}
+                subLabel={stats.total > 0 ? `${Math.round((stats.notDone / stats.total) * 100)}%` : '0%'}
+              />
+  
+            </div>
+  
+          </div>
+  );
+
   return (
     <div
       data-today-progress
@@ -251,171 +419,36 @@ export const TodayProgress: React.FC<TodayProgressProps> = ({
 
 
 
-        {/* Main Section: Circular Progress Gauge + 4 Circular Metric Gauges (دوائر تفاعلية بدلاً من البطاقات) */}
-        <div data-progress-layout={compact ? 'compact' : undefined} className={`flex items-center pt-0 ${compact ? 'mx-auto grid w-full max-w-4xl grid-cols-5 items-center gap-2 sm:gap-4 rounded-2xl border border-white/85 bg-gradient-to-b from-white/88 via-[#fcfbfa]/82 to-[#f8f6f2]/88 px-4 sm:px-6 py-2.5 sm:py-3 shadow-[0_4px_20px_-4px_rgba(18,50,38,0.06),inset_0_1px_1.5px_rgba(255,255,255,0.95)] backdrop-blur-md dark:border-white/12 dark:bg-gradient-to-b dark:from-[#07241d]/85 dark:via-[#051c17]/80 dark:to-[#07241d]/85 dark:shadow-[0_8px_28px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.08)]' : 'flex-col md:flex-row md:justify-between'} ${compact ? 'md:gap-4' : 'gap-3 md:gap-4 lg:gap-6'}`}>
-          
-          {/* Main Circular Progress Gauge */}
-          <div data-progress-main className={`${compact ? 'col-start-3 row-start-1 w-auto justify-self-center' : 'w-full justify-center gap-3 sm:gap-4 md:w-auto md:flex-1 md:justify-start'} flex min-w-0 shrink-0 items-center`}>
-            <div className="flex flex-col items-center select-none">
-              <div className={`progress-circle-wrap ${compact ? 'rounded-full bg-gradient-to-b from-emerald-500/[0.12] to-emerald-600/[0.04] p-1.5 ring-1 ring-emerald-500/25 dark:from-emerald-400/[0.12] dark:to-emerald-500/[0.04] dark:ring-emerald-400/25 shadow-[0_2px_12px_rgba(16,185,129,0.12)]' : ''} relative flex shrink-0 items-center justify-center`}>
-                <svg
-                  viewBox="0 0 100 100"
-                  className={`${compact ? 'h-15 w-15 sm:h-17 sm:w-17' : 'h-24 w-24 sm:h-28 sm:w-28'} -rotate-90 shrink-0 transform-gpu`}
-                  aria-label={`Progress: ${percentage}%`}
-                >
-                  {/* Background track (neutral dark/light) */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r={radius}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={compact ? '6.5' : '7.5'}
-                    className="text-slate-200/80 dark:text-white/10"
-                  />
-
-                  {/* Active progress arc (calm emerald) */}
-                  {percentage > 0 && (
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r={radius}
-                      fill="none"
-                      stroke="var(--theme-progress-main, #059669)"
-                      strokeWidth={compact ? '6.5' : '7.5'}
-                      strokeDasharray={circumference}
-                      strokeDashoffset={strokeDashoffset}
-                      strokeLinecap="round"
-                      className="transition-[stroke-dashoffset] duration-700 ease-out motion-reduce:transition-none"
-                    />
-                  )}
-                </svg>
-
-                {/* Inner Content inside Circle */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
-                  {isAllComplete ? (
-                    <div className="flex flex-col items-center justify-center leading-none">
-                      <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 dark:text-emerald-400 mb-0.5" />
-                      <div className="flex items-baseline justify-center font-numbers">
-                        <span className={`${compact ? 'text-xl sm:text-2xl' : 'text-xl sm:text-2xl'} font-black tracking-tight text-emerald-700 dark:text-emerald-300`}>
-                          100
-                        </span>
-                        <span className="text-[10px] sm:text-xs font-bold text-emerald-600 dark:text-emerald-400 ms-0.5">
-                          %
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center leading-none">
-                      <div className="flex items-baseline justify-center font-numbers">
-                        <span className="text-2xl font-black tracking-tight text-emerald-800 dark:text-emerald-200 sm:text-3xl">
-                          {percentage}
-                        </span>
-                        <span className={`${compact ? 'text-[10px]' : 'text-xs sm:text-sm'} font-bold text-emerald-600 dark:text-emerald-400 ms-0.5`}>
-                          %
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
+        {/* Main Section: Circular Progress Gauge + 4 Circular Metric Gauges with side Ayah & Hadith cards */}
+        {compact ? (
+          <div className="w-full">
+            {/* Desktop 3-Column Layout: [Hadith] [Statistics] [Ayah] in RTL */}
+            <div className="w-full grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(auto,56rem)_minmax(0,1fr)] items-stretch gap-2.5 sm:gap-3">
+              {/* Right Column in RTL: Ayah Preview */}
+              <div className="hidden xl:flex min-w-0 h-full">
+                <DailyInspirationPreview type="ayah" currentDate={currentDate} lang={lang} />
               </div>
 
-              {/* Label under Circle */}
-              {compact && (
-                <div className="flex max-w-full flex-col items-center mt-1 leading-tight text-center">
-                  <span className="text-xs font-black font-['Alexandria'] leading-snug text-emerald-950 dark:text-emerald-100">
-                    {lang === 'ar' ? 'إنجاز اليوم' : "Today's Progress"}
-                  </span>
-                </div>
-              )}
+              {/* Center Column: Statistics Card */}
+              <div className="w-full min-w-0 flex justify-center">
+                {progressCard}
+              </div>
+
+              {/* Left Column in RTL: Hadith Preview */}
+              <div className="hidden xl:flex min-w-0 h-full">
+                <DailyInspirationPreview type="hadith" currentDate={currentDate} lang={lang} />
+              </div>
             </div>
 
-            {/* Motivational Title & Subtitle beside main circle */}
-            <div className={`${compact ? 'hidden' : 'flex'} min-w-0 max-w-[240px] flex-col justify-center sm:max-w-[280px]`}>
-              <span className={`${compact ? 'text-[11px]' : 'text-xs sm:text-sm'} font-bold leading-relaxed tracking-tight text-slate-900 dark:text-white font-['Alexandria']`}>
-                {getMotivationalTitle()}
-              </span>
-              <span className="mt-1 text-xs font-medium leading-relaxed text-slate-600 dark:text-zinc-300 font-['Alexandria']">
-                {getMotivationalSubtitle()}
-              </span>
+            {/* Mobile & Tablet Row: 2-column inspiration cards below statistics */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 w-full max-w-4xl mx-auto mt-2 xl:hidden">
+              <DailyInspirationPreview type="ayah" currentDate={currentDate} lang={lang} />
+              <DailyInspirationPreview type="hadith" currentDate={currentDate} lang={lang} />
             </div>
           </div>
-
-          {/* 4 Circular Metric Gauges (دوائر الإحصائيات الأربعة) - بدون بطاقات */}
-          <div
-            data-progress-stats
-            className={`grid grid-cols-4 justify-items-center ${compact
-              ? 'contents'
-              : 'w-full gap-1 border-t border-slate-100 pt-2 sm:gap-3 md:w-auto md:flex-1 md:border-s-0 md:border-t-0 md:ps-4 md:pt-0 lg:ps-6 dark:border-white/[0.05]'}`}
-            style={compact ? { display: 'contents' } : undefined}
-          >
-            
-            {/* 1. Total (دائرة مطلوبة) — نقرة لتفعيل الفلتر ونقرة ثانية لإلغائه */}
-            <StatCircle
-              label={lang === 'ar' ? 'مطلوبة' : 'Required'}
-              title={lang === 'ar' ? (currentFilter === 'all' && isAllSelected ? 'إلغاء فلتر مطلوبة وعرض الكل' : 'اضغط لتطبيق فلتر - المهام المطلوبة') : 'Click to filter - Required tasks'}
-              value={stats.total}
-              percentage={stats.total > 0 ? 100 : 0}
-              color="indigo"
-              isActive={currentFilter === 'all' && isAllSelected}
-              onClick={() => {
-                if (currentFilter === 'all' && isAllSelected) {
-                  setIsAllSelected(false);
-                } else {
-                  setIsAllSelected(true);
-                  onFilterChange?.('all');
-                }
-              }}
-              compact={compact}
-              className={compact ? 'order-1 rtl:order-1' : ''}
-              subLabel={stats.total > 0 ? '100%' : '0%'}
-            />
-
-            {/* 2. Completed (دائرة مكتملة) */}
-            <StatCircle
-              label={lang === 'ar' ? 'مكتملة' : 'Done'}
-              title={lang === 'ar' ? (currentFilter === 'done' ? 'إلغاء فلتر مكتملة وعرض الكل' : 'اضغط لتطبيق فلتر - المهام المكتملة') : 'Click to filter - Completed tasks'}
-              value={stats.done}
-              percentage={stats.total > 0 ? (stats.done / stats.total) * 100 : 0}
-              color="emerald"
-              isActive={currentFilter === 'done'}
-              onClick={() => onFilterChange?.(currentFilter === 'done' ? 'all' : 'done')}
-              compact={compact}
-              className={compact ? 'order-2 rtl:order-2' : ''}
-              subLabel={stats.total > 0 ? `${Math.round((stats.done / stats.total) * 100)}%` : '0%'}
-            />
-
-            {/* 3. Remaining (دائرة متبقية) */}
-            <StatCircle
-              label={lang === 'ar' ? 'متبقية' : 'Remaining'}
-              title={lang === 'ar' ? (currentFilter === 'pending' ? 'إلغاء فلتر متبقية وعرض الكل' : 'اضغط لتطبيق فلتر - المهام المتبقية') : 'Click to filter - Remaining tasks'}
-              value={remaining}
-              percentage={stats.total > 0 ? (remaining / stats.total) * 100 : 0}
-              color="amber"
-              isActive={currentFilter === 'pending'}
-              onClick={() => onFilterChange?.(currentFilter === 'pending' ? 'all' : 'pending')}
-              compact={compact}
-              className={compact ? 'order-3 rtl:order-3' : ''}
-              subLabel={stats.total > 0 ? `${Math.round((remaining / stats.total) * 100)}%` : '0%'}
-            />
-
-            {/* 4. Not Done (دائرة غير منجزة) */}
-            <StatCircle
-              label={lang === 'ar' ? 'غير منجزة' : 'Not Done'}
-              title={lang === 'ar' ? (currentFilter === 'not-done' ? 'إلغاء فلتر غير منجزة وعرض الكل' : 'اضغط لتطبيق فلتر - المهام غير المنجزة') : 'Click to filter - Not done tasks'}
-              value={stats.notDone}
-              percentage={stats.total > 0 ? (stats.notDone / stats.total) * 100 : 0}
-              color="rose"
-              isActive={currentFilter === 'not-done'}
-              onClick={() => onFilterChange?.(currentFilter === 'not-done' ? 'all' : 'not-done')}
-              compact={compact}
-              className={compact ? 'order-4 rtl:order-4' : ''}
-              subLabel={stats.total > 0 ? `${Math.round((stats.notDone / stats.total) * 100)}%` : '0%'}
-            />
-
-          </div>
-
-        </div>
+        ) : (
+          progressCard
+        )}
 
       </div>
     </div>

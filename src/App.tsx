@@ -43,7 +43,6 @@ import { canMoveTask } from './shared/taskPlanning';
 import { MainHeader } from './components/MainHeader';
 import { applyColorTheme, readColorTheme } from './utils/colorThemes';
 import { TodayProgress } from './components/TodayProgress';
-import { DailyAyahSection } from './components/DailyAyahSection';
 import { PrayerCard } from './components/PrayerCard';
 import { DateNavigation } from './components/DateNavigation';
 import { DayMemories } from './components/DayMemories';
@@ -796,13 +795,6 @@ export default function App() {
               worshipNavigation={<ReligiousTabs active={religiousSection} onChange={setReligiousSection} currentDate={currentDate} tasks={tasks} />}
             />
           </MainHeader> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
-
-          {/* Daily Quranic Editorial Section (Leading the Main Content Area) */}
-          {!support && (
-            <div className="pt-1.5 pb-1 sm:pt-2 sm:pb-1.5">
-              <DailyAyahSection currentDate={currentDate} lang={lang} />
-            </div>
-          )}
 
           {support && <DateNavigation currentDate={currentDate} onDateChange={setCurrentDate} lang={lang} />}
 

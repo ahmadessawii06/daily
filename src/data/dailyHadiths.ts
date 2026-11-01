@@ -264,3 +264,4 @@ export function getDailyHadith(dateStr?: string): DailyHadith {
   const index = Math.abs(hash + 7) % DAILY_HADITHS.length;
   return DAILY_HADITHS[index];
 }
+
