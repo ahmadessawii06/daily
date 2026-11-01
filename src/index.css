@@ -393,16 +393,46 @@
   transform: scale(0.98);
 }
 
-.worship-navigation-items button.is-active {
-  background: var(--worship-active-bg);
-  color: var(--worship-active-text);
-  border-color: var(--worship-active-border);
-  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  font-weight: 800;
+.worship-navigation-items button.is-active,
+.worship-navigation-items button.is-active.is-completed,
+.worship-navigation-items button.is-active.is-pending {
+  background: linear-gradient(180deg, #059669 0%, #047857 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 14px -1px rgba(4, 120, 87, 0.4), inset 0 1px 0.5px rgba(255, 255, 255, 0.3) !important;
+  font-weight: 800 !important;
+  transform: translateY(-1px);
 }
 
-.dark .worship-navigation-items button.is-active {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+.worship-navigation-items button.is-active:hover,
+.worship-navigation-items button.is-active.is-completed:hover,
+.worship-navigation-items button.is-active.is-pending:hover {
+  background: linear-gradient(180deg, #047857 0%, #065f46 100%) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  transform: translateY(-1px);
+}
+
+.dark .worship-navigation-items button.is-active,
+.dark .worship-navigation-items button.is-active.is-completed,
+.dark .worship-navigation-items button.is-active.is-pending {
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 16px -1px rgba(16, 185, 129, 0.45), inset 0 1px 0.5px rgba(255, 255, 255, 0.35) !important;
+  font-weight: 800 !important;
+  transform: translateY(-1px);
+}
+
+.dark .worship-navigation-items button.is-active:hover,
+.dark .worship-navigation-items button.is-active.is-completed:hover,
+.dark .worship-navigation-items button.is-active.is-pending:hover {
+  background: linear-gradient(180deg, #059669 0%, #047857 100%) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  transform: translateY(-1px);
 }
 
 .worship-navigation-items button:focus-visible {
@@ -451,25 +481,7 @@
   background: rgba(245, 158, 11, 0.09);
 }
 
-.worship-navigation-items button.is-active.is-completed {
-  border-color: rgba(16, 185, 129, 0.7);
-  box-shadow: 0 1px 4px rgba(16, 185, 129, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-
-.dark .worship-navigation-items button.is-active.is-completed {
-  border-color: rgba(52, 211, 153, 0.65);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.worship-navigation-items button.is-active.is-pending {
-  border-color: rgba(245, 158, 11, 0.6);
-  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-
-.dark .worship-navigation-items button.is-active.is-pending {
-  border-color: rgba(245, 158, 11, 0.5);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
+/* Active states are fully handled above with no borders */
 
 .worship-navigation-icon {
   display: flex;
