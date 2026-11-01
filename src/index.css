@@ -410,6 +410,67 @@
   outline-offset: -2px;
 }
 
+/* Subtle 4-sided borders indicating page/task completion status */
+.worship-navigation-items button.is-completed {
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.dark .worship-navigation-items button.is-completed {
+  border: 1px solid rgba(52, 211, 153, 0.38);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.worship-navigation-items button.is-pending {
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.03);
+}
+
+.dark .worship-navigation-items button.is-pending {
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  background: rgba(245, 158, 11, 0.04);
+}
+
+.worship-navigation-items button.is-completed:hover {
+  border-color: rgba(16, 185, 129, 0.65);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.dark .worship-navigation-items button.is-completed:hover {
+  border-color: rgba(52, 211, 153, 0.55);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.worship-navigation-items button.is-pending:hover {
+  border-color: rgba(245, 158, 11, 0.5);
+  background: rgba(245, 158, 11, 0.07);
+}
+
+.dark .worship-navigation-items button.is-pending:hover {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.09);
+}
+
+.worship-navigation-items button.is-active.is-completed {
+  border-color: rgba(16, 185, 129, 0.7);
+  box-shadow: 0 1px 4px rgba(16, 185, 129, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.dark .worship-navigation-items button.is-active.is-completed {
+  border-color: rgba(52, 211, 153, 0.65);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.worship-navigation-items button.is-active.is-pending {
+  border-color: rgba(245, 158, 11, 0.6);
+  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.dark .worship-navigation-items button.is-active.is-pending {
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
 .worship-navigation-icon {
   display: flex;
   align-items: center;

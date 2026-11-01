@@ -164,26 +164,20 @@ export function ReligiousTabs({
         {visibleTabs.map(tab => {
           const isActive = active === tab.id;
           const status = getSectionStatus(tab.id, effectiveDate, tasks);
+          const statusClass = status.isDone ? 'is-completed' : 'is-pending';
           return (
             <button
               key={tab.id}
               type="button"
               aria-current={isActive ? 'page' : undefined}
               onClick={() => onChange(tab.id)}
-              className={isActive ? 'is-active' : ''}
+              className={`${isActive ? 'is-active' : ''} ${statusClass}`.trim()}
+              title={status.isDone ? `${tab.label}: مكتمل اليوم ✓` : `${tab.label}: مطلوب اليوم`}
+              aria-label={status.isDone ? `${tab.label}: مكتمل اليوم` : `${tab.label}: مطلوب اليوم`}
             >
-              <span className="worship-navigation-label flex items-center justify-center gap-1.5">
+              <span className="worship-navigation-label flex items-center justify-center">
                 <span className="hidden sm:inline">{tab.label}</span>
                 <span className="sm:hidden">{tab.shortLabel}</span>
-                <span
-                  className={`worship-tab-dot inline-block size-1.5 rounded-full shrink-0 transition-all duration-300 ${
-                    status.isDone
-                      ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)] ring-1 ring-emerald-400/40'
-                      : 'bg-amber-400/90 shadow-[0_0_4px_rgba(245,158,11,0.5)]'
-                  }`}
-                  title={status.isDone ? `${tab.label}: مكتمل اليوم ✓` : `${tab.label}: مطلوب اليوم`}
-                  aria-label={status.isDone ? `${tab.label}: مكتمل اليوم` : `${tab.label}: مطلوب اليوم`}
-                />
               </span>
             </button>
           );
