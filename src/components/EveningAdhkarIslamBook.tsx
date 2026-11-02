@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { AZKAR_MASAA, type ZekrItem } from '../data/azkarMasaa';
 import { userStorage } from '../utils/scopedStorage';
+import { IslamicReadingToolbar, type ReadingViewMode } from './IslamicReadingToolbar';
 
 interface EveningAdhkarProps {
   date: string;
@@ -66,6 +67,60 @@ export function EveningAdhkarIslamBook({ date }: EveningAdhkarProps) {
       return saved.autoScroll !== undefined ? saved.autoScroll : true;
     } catch { return true; }
   });
+
+  // View Mode: 'fit-screen' (ملء الصفحة) vs 'fit-width' (ملء العرض)
+  const [viewMode, setViewMode] = useState<ReadingViewMode>(() => {
+    try {
+      const saved = JSON.parse(userStorage.getItem(SETTINGS_KEY) || '{}');
+      if (saved.viewMode === 'fit-screen' || saved.viewMode === 'fit-width') return saved.viewMode;
+      return 'fit-screen';
+    } catch { return 'fit-screen'; }
+  });
+
+  // Zoom preset percentage (100%, 150%, 200%, 300%)
+  const [zoomLevel, setZoomLevel] = useState<number>(() => {
+    try {
+      const saved = JSON.parse(userStorage.getItem(SETTINGS_KEY) || '{}');
+      if ([100, 150, 200, 300].includes(saved.zoomLevel)) return saved.zoomLevel;
+      return 100;
+    } catch { return 100; }
+  });
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+    }
+  };
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  // Keyboard navigation shortcuts (F for fullscreen, W for view mode toggle)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+      if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      } else if (e.key === 'w' || e.key === 'W') {
+        setViewMode(prev => (prev === 'fit-screen' ? 'fit-width' : 'fit-screen'));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
@@ -142,9 +197,11 @@ export function EveningAdhkarIslamBook({ date }: EveningAdhkarProps) {
       isBold,
       fontSize,
       fontFamily,
-      autoScroll
+      autoScroll,
+      viewMode,
+      zoomLevel
     }));
-  }, [showTashkeel, isBold, fontSize, fontFamily, autoScroll]);
+  }, [showTashkeel, isBold, fontSize, fontFamily, autoScroll, viewMode, zoomLevel]);
 
   // Save counts when changed
   useEffect(() => {
@@ -328,11 +385,24 @@ const parseZekrContent = (text: string) => {
     return [hrs, mins, secs].map(v => String(v).padStart(2, '0')).join(':');
   };
 
+  // Calculate effective font size scaled by quick zoom preset
+  const effectiveFontSize = Math.round(fontSize * (zoomLevel / 100));
+
   return (
-    <div className="islambook-container mt-2 w-full max-w-full md:max-w-[740px] lg:max-w-3xl xl:max-w-4xl mx-auto px-2 sm:px-3 md:px-0" dir="rtl" lang="ar">
+    <div 
+      ref={containerRef}
+      className={`islambook-container mt-2 w-full mx-auto px-2 sm:px-3 transition-all ${
+        isFullscreen ? 'fixed inset-0 z-50 bg-[#f8fafc] dark:bg-[#06221d] p-3 sm:p-6 overflow-y-auto max-w-none' : ''
+      } ${
+        viewMode === 'fit-width' ? 'max-w-full px-2 sm:px-6 md:px-10' : 'max-w-full md:max-w-[740px] lg:max-w-3xl xl:max-w-4xl md:px-0'
+      }`} 
+      dir="rtl" 
+      lang="ar"
+    >
       {/* 1. Low-Profile Sticky Accomplishment & Navigation Header */}
       <div className="sticky top-[8px] z-40 mb-3 sm:mb-4 -mx-1 px-1 sm:mx-0 sm:px-0">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3.5 rounded-2xl border border-emerald-600/20 bg-white/95 text-slate-900 dark:border-teal-400/25 dark:bg-[#06221d]/95 dark:text-white px-3 py-2 sm:px-4 sm:py-2.5 shadow-lg shadow-slate-900/5 dark:shadow-emerald-950/20 backdrop-blur-md transition-all">
+        <div className="flex flex-col gap-2 rounded-2xl border border-emerald-600/20 bg-white/95 text-slate-900 dark:border-teal-400/25 dark:bg-[#06221d]/95 dark:text-white px-3 py-2 sm:px-4 sm:py-2.5 shadow-lg shadow-slate-900/5 dark:shadow-emerald-950/20 backdrop-blur-md transition-all">
+          <div className="flex flex-col xl:flex-row items-center justify-between gap-2 sm:gap-3.5 w-full">
           
           {/* Section Title & Navigation to Current Zekr */}
           <div className="flex w-full sm:w-auto items-center justify-between sm:justify-start gap-2.5 shrink-0">
@@ -536,7 +606,21 @@ const parseZekrContent = (text: string) => {
             </div>
           </div>
         </div>
+
+        {/* Reading Toolbar Row: [ملء الصفحة | ملء العرض] | [100% 150% 200% 300%] | [شاشة كاملة] */}
+        <div className="flex items-center justify-between sm:justify-end w-full pt-1.5 border-t border-slate-200/70 dark:border-white/10">
+          <IslamicReadingToolbar
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            zoomLevel={zoomLevel}
+            onZoomLevelChange={setZoomLevel}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={toggleFullscreen}
+            className="w-full sm:w-auto justify-between sm:justify-end"
+          />
+        </div>
       </div>
+    </div>
 
       {/* 2. Structured Adhkar Cards List with Strong Visual Hierarchy */}
       <div className="space-y-3">
@@ -689,7 +773,7 @@ const parseZekrContent = (text: string) => {
                         className="ib-zekr-text select-text text-right text-slate-900 dark:text-slate-100 py-1 sm:py-2"
                         style={{
                           fontFamily: getFontFamilyStyle(fontFamily),
-                          fontSize: `${fontSize}px`,
+                          fontSize: `${effectiveFontSize}px`,
                           fontWeight: isBold ? 600 : 400,
                           lineHeight: 2.25,
                         }}
