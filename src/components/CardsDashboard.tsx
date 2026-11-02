@@ -264,10 +264,10 @@ function CategoryCard({ category, tasks, filter, lang, theme = 'dark', currentDa
   // Use stored order rather than visible position so renaming/deleting cards never recolors their neighbors.
   const hues = [215, 35, 270, 345, 155, 190];
   const hue = hues[category.order] ?? (215 + category.order * 137.508) % 360;
-  const colorStyle = { '--card-hue': hue, '--card-saturation': category.id === UNASSIGNED_CATEGORY ? '0%' : '65%' } as CSSProperties;
+  const colorStyle = { '--card-hue': hue, '--card-saturation': category.id === UNASSIGNED_CATEGORY ? '0%' : '42%' } as CSSProperties;
   return (
-    <article aria-label={name} data-category-id={category.id} data-card-complete={isComplete} style={{ ...colorStyle, '--category-span-md': gridSpans.md, '--category-span-lg': gridSpans.lg, '--category-span-xl': gridSpans.xl } as CSSProperties} className="dashboard-category-card planner-card relative z-10 min-w-0 overflow-hidden rounded-card border border-t-[3px] shadow-2xs">
-      <div data-category-banner={banner ? category.id : undefined} className={`relative isolate flex items-center gap-3 overflow-hidden p-4 ${banner ? 'planner-card-banner' : ''}`}>
+    <article aria-label={name} data-category-id={category.id} data-card-complete={isComplete} style={{ ...colorStyle, '--category-span-md': gridSpans.md, '--category-span-lg': gridSpans.lg, '--category-span-xl': gridSpans.xl } as CSSProperties} className="dashboard-category-card planner-card group relative z-10 min-w-0 overflow-hidden rounded-card border shadow-2xs transition-all duration-200">
+      <div data-category-banner={banner ? category.id : undefined} className={`relative isolate flex items-center justify-between gap-2.5 overflow-hidden px-3.5 py-3 ${banner ? 'planner-card-banner' : ''}`}>
         {bannerConfig ? <>
           {darkPair?.ar && (
             <img
@@ -319,46 +319,60 @@ function CategoryCard({ category, tasks, filter, lang, theme = 'dark', currentDa
           )}
           <span aria-hidden="true" className="planner-card-image-shade pointer-events-none absolute inset-0 z-10" />
         </> : null}
-        <div className="relative z-20 flex min-w-0 flex-1 items-center gap-3">
-          <div aria-hidden="true" className={`planner-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
-            banner
-              ? isLightBanner
-                ? 'border-emerald-600/25 bg-white/70 text-emerald-800 shadow-xs backdrop-blur-md'
-                : 'border-white/25 bg-black/20 text-white shadow-xs backdrop-blur-sm dark:bg-black/35'
-              : ''
-          }`}><Icon className="h-[18px] w-[18px]" strokeWidth={1.8} /></div>
+        <div className="relative z-20 flex min-w-0 flex-1 items-center gap-2.5">
+          <div
+            aria-hidden="true"
+            className="planner-card-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/80 bg-white/85 text-slate-800 shadow-[0_2px_8px_rgba(0,0,0,0.06)] backdrop-blur-md transition-transform duration-200 group-hover:scale-105 dark:border-white/15 dark:bg-black/45 dark:text-white dark:shadow-[0_2px_8px_rgba(0,0,0,0.25)]"
+          >
+            <Icon className="h-4 w-4" strokeWidth={1.8} />
+          </div>
           <div className="min-w-0 flex-1">
-            <h3 className={`break-words text-sm font-bold leading-6 ${
-              banner
-                ? isLightBanner
-                  ? 'text-slate-900 drop-shadow-[0_1px_2px_rgba(255,255,255,0.7)]'
-                  : 'text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]'
-                : ''
-            }`}>{name}</h3>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <h3 className={`break-words text-[14px] font-extrabold tracking-tight leading-snug ${
+                banner
+                  ? isLightBanner
+                    ? 'text-slate-900 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]'
+                    : 'text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]'
+                  : 'text-slate-900 dark:text-white'
+              }`}>
+                {name}
+              </h3>
+              {tasks.length > 0 && (
+                <span
+                  className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10.5px] font-bold tabular-nums border ${
+                    isComplete
+                      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                      : 'bg-black/5 dark:bg-white/10 text-slate-600 dark:text-zinc-300 border-black/5 dark:border-white/10'
+                  }`}
+                >
+                  {completed}/{tasks.length}
+                </span>
+              )}
+            </div>
           </div>
         </div>
-        {onCustomize && <div className={`relative z-20 flex shrink-0 items-center gap-0.5 ${
-          banner
-            ? isLightBanner
-              ? 'rounded-xl border border-slate-900/10 bg-white/70 p-0.5 backdrop-blur-md'
-              : 'rounded-xl border border-white/20 bg-black/20 p-0.5 backdrop-blur-sm dark:border-transparent dark:bg-black/35'
-            : ''
-        }`}>
-          <button type="button" aria-label={ar ? `تخصيص ${name}` : `Customize ${name}`} onClick={onCustomize} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-            banner
-              ? isLightBanner
-                ? 'text-slate-700 hover:bg-black/10 hover:text-slate-950'
-                : 'text-white/90 hover:bg-white/20 hover:text-white'
-              : 'text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5'
-          }`}><MoreHorizontal className="h-4 w-4" /></button>
-          <button type="button" aria-label={ar ? (collapsed ? `توسيع ${name}` : `طي ${name}`) : (collapsed ? `Expand ${name}` : `Collapse ${name}`)} aria-expanded={!collapsed} aria-controls={regionId} onClick={() => updatePlannerCategory(category.id, { collapsed: !collapsed })} className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-            banner
-              ? isLightBanner
-                ? 'text-slate-700 hover:bg-black/10 hover:text-slate-950'
-                : 'text-white/90 hover:bg-white/20 hover:text-white'
-              : 'text-slate-500 hover:bg-slate-100 dark:text-zinc-400 dark:hover:bg-white/5'
-          }`}><ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${collapsed ? '-rotate-90 rtl:rotate-90' : ''}`} /></button>
-        </div>}
+        {onCustomize && (
+          <div className="relative z-20 flex shrink-0 items-center gap-0.5 rounded-xl border border-white/80 bg-white/75 p-0.5 shadow-xs backdrop-blur-md transition-all dark:border-white/10 dark:bg-black/40 dark:shadow-[0_2px_8px_rgba(0,0,0,0.25)]">
+            <button
+              type="button"
+              aria-label={ar ? `تخصيص ${name}` : `Customize ${name}`}
+              onClick={onCustomize}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-black/5 hover:text-slate-950 active:scale-95 dark:text-white/80 dark:hover:bg-white/15 dark:hover:text-white"
+            >
+              <MoreHorizontal className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              aria-label={ar ? (collapsed ? `توسيع ${name}` : `طي ${name}`) : (collapsed ? `Expand ${name}` : `Collapse ${name}`)}
+              aria-expanded={!collapsed}
+              aria-controls={regionId}
+              onClick={() => updatePlannerCategory(category.id, { collapsed: !collapsed })}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-black/5 hover:text-slate-950 active:scale-95 dark:text-white/80 dark:hover:bg-white/15 dark:hover:text-white"
+            >
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 motion-reduce:transition-none ${collapsed ? '-rotate-90 rtl:rotate-90' : ''}`} />
+            </button>
+          </div>
+        )}
       </div>
       {isComplete && <div dir={ar ? 'rtl' : 'ltr'} data-card-completion-banner role="status" className="mx-4 mt-2 mb-3 flex items-center justify-between gap-2 rounded-xl border border-emerald-300/40 bg-emerald-400/10 px-3 py-2 text-[11px] font-semibold text-emerald-700 dark:border-emerald-400/25 dark:bg-emerald-400/10 dark:text-emerald-300"><span className="inline-flex items-center gap-2"><span>{ar ? 'اكتملت كل المهام' : 'All tasks complete'}</span><CheckCheck aria-hidden="true" className="h-4 w-4 shrink-0" /></span><span dir="ltr" className="tabular-nums">100%</span></div>}
       {tasks.length > 0 && <div data-card-stats role="group" aria-label={ar ? `إحصائيات ${name}` : `${name} statistics`} className="mx-4 grid grid-cols-4 items-start gap-1 border-t border-slate-200/60 py-3 dark:border-white/[0.06]">
@@ -369,12 +383,22 @@ function CategoryCard({ category, tasks, filter, lang, theme = 'dark', currentDa
       </div>}
       <div id={regionId} data-planner-card-content hidden={collapsed} className="p-3 pt-2">
         <div className="space-y-1">
-          {tasks.length === 0 && <div className="flex flex-col gap-2 rounded-xl border border-dashed border-slate-200/80 bg-slate-50/60 px-3 py-4 text-center dark:border-white/[0.08] dark:bg-white/[0.02]">
-            {!emptyComposerOpen && <button type="button" onClick={() => setEmptyComposerOpen(true)} className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-transparent px-3 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:text-zinc-300 dark:hover:bg-white/[0.05] dark:hover:text-zinc-100">
-              <Plus aria-hidden="true" className="h-3.5 w-3.5" />
-              {ar ? 'أضف أول مهمة' : 'Add first task'}
-            </button>}
-          </div>}
+          {tasks.length === 0 && (
+            <div className="py-1">
+              {!emptyComposerOpen && (
+                <button
+                  type="button"
+                  onClick={() => setEmptyComposerOpen(true)}
+                  className="group flex min-h-[44px] w-full items-center justify-center gap-2.5 rounded-xl border border-dashed border-slate-300/80 bg-gradient-to-b from-slate-50/70 to-slate-100/50 px-3 py-2 text-xs font-semibold text-slate-600 transition-all duration-200 hover:border-emerald-500/60 hover:bg-emerald-50/30 hover:text-emerald-800 hover:shadow-2xs active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 dark:border-white/10 dark:from-white/[0.02] dark:to-white/[0.04] dark:text-zinc-300 dark:hover:border-emerald-400/50 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-300"
+                >
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-slate-600 shadow-2xs border border-slate-200/80 transition-transform duration-200 group-hover:scale-110 group-hover:border-emerald-500 group-hover:bg-emerald-600 group-hover:text-white dark:border-white/10 dark:bg-white/10 dark:text-zinc-200 dark:group-hover:border-emerald-500 dark:group-hover:bg-emerald-500 dark:group-hover:text-black">
+                    <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+                  </span>
+                  <span>{ar ? 'أضف أول مهمة' : 'Add first task'}</span>
+                </button>
+              )}
+            </div>
+          )}
           {tasks.length > 0 && visible.length === 0 && <p className="px-2 py-5 text-xs leading-6 text-slate-500 dark:text-zinc-400">{ar ? 'لا توجد مهام تطابق هذا الفلتر.' : 'No tasks match this filter.'}</p>}
           {visible.map(task => {
             return <div key={task.id} data-card-task-status={task.status} className="task-row card-task-row group grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-start gap-x-1 rounded-xl px-1 py-1.5 transition-colors hover:bg-slate-100/70 focus-within:bg-slate-100/70 motion-reduce:transition-none dark:hover:bg-white/[0.04] dark:focus-within:bg-white/[0.04]">
@@ -391,10 +415,42 @@ function CategoryCard({ category, tasks, filter, lang, theme = 'dark', currentDa
           </div>;
           })}
         </div>
-        {(tasks.length > 0 || emptyComposerOpen) && <form className="planner-card-form mt-2 flex items-center gap-1 rounded-xl border border-slate-200/80 bg-white/60 dark:border-white/[0.07] dark:bg-white/[0.02]" onSubmit={e => { e.preventDefault(); if (!title.trim()) return; onAdd(title.trim(), category.id); setTitle(''); setNotice(ar ? 'تمت إضافة المهمة' : 'Task added'); }}>
-          <input ref={inputRef} aria-label={ar ? `مهمة جديدة في ${name}` : `New task in ${name}`} maxLength={300} value={title} onChange={e => { setTitle(e.target.value); setNotice(''); }} onKeyDown={e => { if (e.nativeEvent.isComposing && e.key === 'Enter') e.preventDefault(); }} placeholder={ar ? 'أضف مهمة…' : 'Add a task…'} className="min-h-11 min-w-0 flex-1 rounded-xl bg-transparent px-3 text-xs outline-none placeholder:text-slate-500 dark:placeholder:text-zinc-400" />
-          <button type="submit" disabled={!title.trim()} aria-label={ar ? `إضافة مهمة إلى ${name}` : `Add task to ${name}`} className="planner-card-add m-1 flex h-control-compact w-control-compact shrink-0 items-center justify-center rounded-control disabled:bg-transparent disabled:text-slate-400 dark:disabled:text-zinc-600"><Plus className="h-4 w-4" /></button>
-        </form>}
+        {(tasks.length > 0 || emptyComposerOpen) && (
+          <form
+            className="planner-card-form mt-2 flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white/80 p-1 shadow-2xs backdrop-blur-xs transition-all focus-within:border-emerald-500/70 focus-within:ring-2 focus-within:ring-emerald-500/20 dark:border-white/[0.08] dark:bg-white/[0.03]"
+            onSubmit={e => {
+              e.preventDefault();
+              if (!title.trim()) return;
+              onAdd(title.trim(), category.id);
+              setTitle('');
+              setNotice(ar ? 'تمت إضافة المهمة' : 'Task added');
+            }}
+          >
+            <input
+              ref={inputRef}
+              aria-label={ar ? `مهمة جديدة في ${name}` : `New task in ${name}`}
+              maxLength={300}
+              value={title}
+              onChange={e => {
+                setTitle(e.target.value);
+                setNotice('');
+              }}
+              onKeyDown={e => {
+                if (e.nativeEvent.isComposing && e.key === 'Enter') e.preventDefault();
+              }}
+              placeholder={ar ? 'أضف مهمة…' : 'Add a task…'}
+              className="min-h-9 min-w-0 flex-1 rounded-lg bg-transparent px-2.5 text-xs text-slate-800 outline-none placeholder:text-slate-400 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+            />
+            <button
+              type="submit"
+              disabled={!title.trim()}
+              aria-label={ar ? `إضافة مهمة إلى ${name}` : `Add task to ${name}`}
+              className="planner-card-add flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg transition-transform active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </form>
+        )}
         <p role="status" aria-live="polite" className="sr-only">{notice}</p>
       </div>
     </article>

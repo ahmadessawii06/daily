@@ -86,11 +86,11 @@ test('API authentication, durable storage, isolation and conflicts', async t => 
       assert.equal(result.settings.theme, 'light'); assert.equal(result.settings.userId, undefined);
     });
     await t.test('workspace sync preserves untimed tasks, merges category edits, and isolates accounts', async () => {
-      const baseline = createWorkspace('cards', '2026-11-01T00:00:00Z');
+      const baseline = createWorkspace('cards', '2030-11-01T00:00:00Z');
       const firstEdit = structuredClone(baseline), secondEdit = structuredClone(baseline);
-      firstEdit.categories[0].name = 'Personal study'; firstEdit.categories[0].updatedAt = '2026-11-02T00:00:00Z';
-      firstEdit.view = 'timeline'; firstEdit.viewUpdatedAt = '2026-11-02T00:00:00Z';
-      secondEdit.categories[1].name = 'Personal work'; secondEdit.categories[1].updatedAt = '2026-11-03T00:00:00Z';
+      firstEdit.categories[0].name = 'Personal study'; firstEdit.categories[0].updatedAt = '2030-11-02T00:00:00Z';
+      firstEdit.view = 'timeline'; firstEdit.viewUpdatedAt = '2030-11-02T00:00:00Z';
+      secondEdit.categories[1].name = 'Personal work'; secondEdit.categories[1].updatedAt = '2030-11-03T00:00:00Z';
       const flexible = { ...task, id: 'flexible', title: 'Without a time', time: '', endTime: undefined, duration: undefined, categoryId: 'study' };
       const date = '2026-10-02';
       const firstResult = await request('/sync/batch', { workspace: firstEdit, days: { [date]: { date, tasks: [flexible], updatedAt: task.updatedAt } }, versions: { workspace: 10 } }, token);
@@ -101,7 +101,7 @@ test('API authentication, durable storage, isolation and conflicts', async t => 
       assert.equal(secondResult.data.workspace.categories.find((c: any) => c.id === 'work').name, 'Personal work');
       assert.equal(secondResult.data.workspace.view, 'timeline');
       const deleted = structuredClone(secondResult.data.workspace);
-      deleted.categories.find((c: any) => c.id === 'study').deletedAt = '2026-11-04T00:00:00Z';
+      deleted.categories.find((c: any) => c.id === 'study').deletedAt = '2030-11-04T00:00:00Z';
       await request('/sync/batch', { workspace: deleted, versions: { workspace: 11 } }, token);
       const after = await request('/sync/batch', { workspace: baseline, versions: { workspace: 1 } }, token);
       assert.ok(after.data.workspace.categories.find((c: any) => c.id === 'study').deletedAt);

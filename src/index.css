@@ -1194,78 +1194,108 @@ html[data-color-theme="paper"] .bg-mesh {
   .planner-card {
     container-name: planner-card;
     container-type: inline-size;
-    --card-accent: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 38%);
-    background-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 97%);
-    border-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 85%);
-    border-top-color: var(--card-top-accent-color, var(--card-accent));
-    box-shadow: 0 2px 8px -6px rgb(15 23 42 / 22%);
+    --card-accent: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 42%);
+    background: linear-gradient(180deg, #ffffff 0%, color-mix(in srgb, var(--card-accent) 2%, #fafbfb) 100%);
+    border-color: rgba(226, 232, 240, 0.85);
+    border-top: 2.5px solid var(--card-top-accent-color, var(--card-accent));
+    border-radius: 1.125rem;
+    box-shadow: 0 4px 18px -4px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
     transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
   }
 
   .planner-card-banner {
-    height: clamp(6rem, 33cqw, 7rem);
+    height: 108px;
   }
 
-  /* Keep artwork shading separate from theme surface gradient overrides. */
   .planner-card-image-shade {
-    background: transparent;
+    background: linear-gradient(to left, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.68) 46%, rgba(255, 255, 255, 0.15) 100%);
+  }
+
+  [dir="ltr"] .planner-card-image-shade {
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.68) 46%, rgba(255, 255, 255, 0.15) 100%);
+  }
+
+  .dark .planner-card {
+    --card-accent: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 62%);
+    background: linear-gradient(180deg, rgba(26, 30, 36, 0.95) 0%, rgba(18, 21, 26, 0.98) 100%);
+    border-color: rgba(255, 255, 255, 0.08);
+    border-top: 2.5px solid var(--card-top-accent-color, var(--card-accent));
+    box-shadow: 0 8px 26px -10px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
   .dark .planner-card-image-shade {
-    background: linear-gradient(to right, rgb(0 0 0 / 18%), rgb(0 0 0 / 8%), rgb(0 0 0 / 18%));
+    background: linear-gradient(to left, rgba(15, 23, 42, 0.94) 0%, rgba(15, 23, 42, 0.68) 48%, rgba(15, 23, 42, 0.22) 100%);
+  }
+
+  [dir="ltr"] .dark .planner-card-image-shade {
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.65) 48%, rgba(15, 23, 42, 0.22) 100%);
   }
 
   @media (min-width: 40rem) and (max-width: 63.999rem) {
     .planner-card-banner {
-      height: clamp(6rem, 30cqw, 6.875rem);
+      height: 108px;
     }
   }
 
   @media (min-width: 64rem) {
     .planner-card-banner {
-      height: clamp(6.875rem, 33cqw, 7.5rem);
+      height: 108px;
     }
   }
 
   .planner-card > div:first-child {
-    background-color: color-mix(in srgb, var(--card-accent) 5%, transparent);
-    border-bottom: 1px solid color-mix(in srgb, var(--card-accent) 12%, transparent);
-  }
-
-  .dark .planner-card {
-    --card-accent: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 72%);
-    background-color: hsl(var(--mood-card-hue, var(--card-hue)) 22% 10%);
-    border-color: hsl(var(--mood-card-hue, var(--card-hue)) 30% 24%);
-    border-top-color: var(--card-top-accent-color, var(--card-accent));
-    box-shadow: 0 8px 24px -18px rgb(0 0 0 / 75%);
+    background-color: transparent;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.65);
   }
 
   .dark .planner-card > div:first-child {
-    background-color: color-mix(in srgb, var(--card-accent) 7%, transparent);
-    border-bottom-color: color-mix(in srgb, var(--card-accent) 14%, transparent);
+    background-color: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
 
   .planner-card:hover,
   .planner-card:focus-within {
-    border-color: color-mix(in srgb, var(--card-accent) 55%, transparent);
-    border-top-color: var(--card-top-accent-color, color-mix(in srgb, var(--card-accent) 55%, transparent));
-    box-shadow: 0 12px 28px -20px color-mix(in srgb, var(--card-accent) 75%, transparent);
+    border-color: color-mix(in srgb, var(--card-accent) 40%, rgba(226, 232, 240, 0.85));
+    border-top-color: var(--card-top-accent-color, var(--card-accent));
+    box-shadow: 0 12px 28px -8px rgba(15, 23, 42, 0.09), 0 2px 6px rgba(15, 23, 42, 0.04);
+  }
+
+  .dark .planner-card:hover,
+  .dark .planner-card:focus-within {
+    border-color: color-mix(in srgb, var(--card-accent) 40%, rgba(255, 255, 255, 0.08));
+    border-top-color: var(--card-top-accent-color, var(--card-accent));
+    box-shadow: 0 14px 34px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
   .planner-card[data-card-complete="true"] {
     background-image: none;
-    background-color: hsl(var(--mood-card-hue, var(--card-hue)) var(--mood-card-saturation, var(--card-saturation)) 90%);
-    border-color: var(--card-border-color, var(--card-accent));
-    box-shadow: none;
+    background: linear-gradient(180deg, #ffffff 0%, rgba(240, 253, 244, 0.6) 100%);
+    border-color: rgba(16, 185, 129, 0.35);
+    border-top: 2.5px solid #10b981;
+    box-shadow: 0 4px 18px -4px rgba(16, 185, 129, 0.08);
   }
 
-  .planner-card[data-category-id="work"] { --card-top-accent-color: #8b5cf6; }
-  .planner-card[data-category-id="health"] { --card-top-accent-color: #22c55e; }
-  .planner-card[data-category-id="rest"] { --card-top-accent-color: #a16207; }
+  .dark .planner-card[data-card-complete="true"] {
+    background: linear-gradient(180deg, rgba(22, 32, 28, 0.95) 0%, rgba(16, 24, 21, 0.98) 100%);
+    border-color: rgba(16, 185, 129, 0.25);
+    border-top: 2.5px solid #34d399;
+  }
 
+  .planner-card[data-category-id="study"] { --card-top-accent-color: #6366f1; }
+  .planner-card[data-category-id="work"] { --card-top-accent-color: #8b5cf6; }
+  .planner-card[data-category-id="ideas"] { --card-top-accent-color: #0ea5e9; }
+  .planner-card[data-category-id="health"] { --card-top-accent-color: #10b981; }
+  .planner-card[data-category-id="rest"] { --card-top-accent-color: #f59e0b; }
+  .planner-card[data-category-id="expenses"],
+  .planner-card[data-category-id="money"] { --card-top-accent-color: #14b8a6; }
+
+  .dark .planner-card[data-category-id="study"] { --card-top-accent-color: #818cf8; }
   .dark .planner-card[data-category-id="work"] { --card-top-accent-color: #a78bfa; }
-  .dark .planner-card[data-category-id="health"] { --card-top-accent-color: #4ade80; }
-  .dark .planner-card[data-category-id="rest"] { --card-top-accent-color: #c08457; }
+  .dark .planner-card[data-category-id="ideas"] { --card-top-accent-color: #38bdf8; }
+  .dark .planner-card[data-category-id="health"] { --card-top-accent-color: #34d399; }
+  .dark .planner-card[data-category-id="rest"] { --card-top-accent-color: #fbbf24; }
+  .dark .planner-card[data-category-id="expenses"],
+  .dark .planner-card[data-category-id="money"] { --card-top-accent-color: #2dd4bf; }
 
   .dark .planner-card[data-card-complete="true"] {
     background-color: hsl(var(--mood-card-hue, var(--card-hue)) 35% 18%);
