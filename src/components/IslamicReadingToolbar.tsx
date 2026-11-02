@@ -102,3 +102,4 @@ export const IslamicReadingToolbar: React.FC<IslamicReadingToolbarProps> = ({
     </div>
   );
 };
+

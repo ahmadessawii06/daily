@@ -36,8 +36,8 @@ interface SettingsPageProps {
   onReplayTour?: () => void;
 }
 
-const cardSurface = 'overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-white/[0.08] dark:bg-[#141D29]';
-const btnSecondary = 'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition-all duration-200 hover:border-[#00C896]/50 hover:bg-[#00C896]/10 hover:text-[#00C896] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00C896] disabled:cursor-wait disabled:opacity-50 dark:border-white/[0.08] dark:bg-[#1C2938] dark:text-[#C3CEDD] dark:hover:border-[#00C896]/50 dark:hover:bg-[#00C896]/15 dark:hover:text-white cursor-pointer';
+const cardSurface = 'overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xs dark:border-white/[0.08] dark:bg-[#141D29]';
+const btnSecondary = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200/90 bg-white px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 transition-all duration-200 hover:border-[#00C896]/60 hover:bg-[#00C896]/10 hover:text-[#008f6b] dark:hover:text-[#00C896] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00C896] disabled:cursor-wait disabled:opacity-50 dark:border-white/[0.08] dark:bg-[#1C2938] dark:text-[#C3CEDD] dark:hover:border-[#00C896]/50 dark:hover:bg-[#00C896]/15 dark:hover:text-white cursor-pointer';
 
 const sections = [
   { id: 'overview', icon: Grid2X2, ar: 'نظرة عامة', en: 'Overview' },
@@ -51,10 +51,10 @@ type SectionId = typeof sections[number]['id'];
 function SectionHeading({ id, title, description }: { id: string; title: string; description: string }) {
   return (
     <div className="mb-3.5 space-y-1">
-      <h2 id={id} className="text-sm font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif]">
+      <h2 id={id} className="text-sm sm:text-base font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif]">
         {title}
       </h2>
-      <p className="text-xs leading-relaxed text-slate-500 dark:text-[#94A3B8]">
+      <p className="text-xs sm:text-sm leading-relaxed text-slate-600 dark:text-slate-300">
         {description}
       </p>
     </div>
@@ -78,33 +78,33 @@ function ActionRow({
   disabled?: boolean;
   highlight?: boolean;
 }) {
-  const Arrow = ar ? ArrowUpLeft : ArrowUpRight;
+  const Arrow = ar ? ChevronLeft : ChevronRight;
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="group relative flex w-full items-center gap-3.5 px-4 py-3.5 text-start transition-all duration-200 hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#00C896] disabled:cursor-wait disabled:opacity-50 dark:hover:bg-[#1C2938]/60 sm:gap-4 sm:px-5 sm:py-4 cursor-pointer"
+      className="group relative flex w-full items-center gap-3.5 px-4 py-3.5 text-start transition-all duration-200 hover:bg-slate-50/90 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#00C896] disabled:cursor-wait disabled:opacity-50 dark:hover:bg-[#1C2938]/60 sm:gap-4 sm:px-5 sm:py-4 cursor-pointer"
     >
       <span
         className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 ${
           highlight
-            ? 'border-[#00C896]/30 bg-[#00C896]/10 text-[#00C896] group-hover:scale-105 group-hover:bg-[#00C896]/20'
-            : 'border-slate-200/80 bg-slate-50 text-slate-600 group-hover:border-[#00C896]/30 group-hover:bg-[#00C896]/10 group-hover:text-[#00C896] dark:border-white/[0.06] dark:bg-white/[0.03] dark:text-[#A9B8CA] dark:group-hover:text-[#00C896]'
+            ? 'border-[#00C896]/40 bg-[#00C896]/10 text-[#008f6b] dark:text-[#00C896] group-hover:scale-105 group-hover:bg-[#00C896]/20'
+            : 'border-slate-200/90 bg-slate-50 text-slate-700 group-hover:border-[#00C896]/40 group-hover:bg-[#00C896]/10 group-hover:text-[#008f6b] dark:group-hover:text-[#00C896] dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-[#C3CEDD]'
         }`}
       >
-        <Icon aria-hidden="true" size={19} strokeWidth={1.8} />
+        <Icon aria-hidden="true" size={20} strokeWidth={1.9} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-white group-hover:text-[#00C896] transition-colors duration-200">
+        <span className="block text-xs sm:text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#008f6b] dark:group-hover:text-[#00C896] transition-colors duration-200">
           {title}
         </span>
-        <span className="mt-0.5 block text-[11px] sm:text-xs font-normal leading-relaxed text-slate-500 dark:text-[#94A3B8]">
+        <span className="mt-0.5 block text-xs font-normal leading-relaxed text-slate-600 dark:text-slate-300">
           {description}
         </span>
       </span>
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-all duration-200 group-hover:bg-white/[0.04] group-hover:text-[#00C896] group-hover:-translate-x-1 dark:text-slate-500">
-        <Arrow aria-hidden="true" size={16} strokeWidth={2} />
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-all duration-200 group-hover:bg-slate-100 group-hover:text-[#008f6b] dark:group-hover:text-[#00C896] rtl:group-hover:-translate-x-1 ltr:group-hover:translate-x-1 dark:text-slate-400 dark:group-hover:bg-white/[0.06]">
+        <Arrow aria-hidden="true" size={18} strokeWidth={2.2} />
       </span>
     </button>
   );
@@ -216,45 +216,45 @@ export function SettingsPage(props: SettingsPageProps) {
     {
       icon: Cloud,
       title: t('المزامنة والاتصال', 'Sync & connection'),
-      description: syncing ? t('جارٍ المزامنة…', 'Syncing…') : t('حالة الاتصال ومزامنة آخر التعديلات', 'Connection status and your latest changes'),
+      description: syncing ? t('جارٍ مزامنة البيانات…', 'Syncing…') : t('متابعة حالة الاتصال ومزامنة التعديلات مع الخادم', 'Connection status and your latest changes'),
       action: () => goToSection('sync'),
       disabled: syncing,
-      keywords: 'sync cloud مزامنة اتصال سيرفر شبكة',
+      keywords: 'sync cloud مزامنة اتصال سيرفر شبكة سحابي خادم',
     },
     {
       icon: UserRound,
-      title: t('حسابي وكود الحساب', 'Account & account code'),
-      description: accountName,
+      title: t('كود الحساب وبيانات الدخول', 'Account & account code'),
+      description: t('عرض كود الحساب الفريد لتسجيل الدخول بأمان', accountName),
       action: () => goToSection('account'),
-      keywords: 'account code copy الحساب كود نسخ بيانات',
+      keywords: 'account code copy الحساب كود نسخ بيانات دخول مفتاح',
     },
     {
       icon: ShieldCheck,
-      title: t('الجلسة وإعادة الضبط', 'Session & reset'),
-      description: t('إدارة الدخول والبيانات', 'Manage your session and data'),
+      title: t('إدارة الجلسة وبيانات الحساب', 'Session & reset'),
+      description: t('التحكم في تسجيل الدخول أو مسح المهام وإعادة الضبط', 'Manage your session and data'),
       action: () => goToSection('session'),
-      keywords: 'session reset logout الجلسة خروج مسح ضبط حذف',
+      keywords: 'session reset logout الجلسة خروج مسح ضبط حذف أمان',
     },
     ...(onReplayTour ? [{
       icon: Sparkles,
       title: t('إعادة الجولة التعريفية', 'Replay onboarding tour'),
-      description: t('استكشف ميزات ميزان من جديد', 'Revisit Mizan features'),
+      description: t('استكشف ميزات ميزان وتعرّف على أساسيات تنظيم يومك', 'Revisit Mizan features'),
       action: () => { onBack(); onReplayTour(); },
-      keywords: 'tour onboarding جولة تعريفية استكشاف تعليمات بداية',
+      keywords: 'tour onboarding جولة تعريفية استكشاف تعليمات بداية تدريب إرشاد',
     }] : []),
     ...(Object.keys(legacy).length ? [{
       icon: Download,
       title: t('بيانات النسخة القديمة', 'Legacy browser data'),
-      description: t('النسخ الاحتياطي والاستيراد', 'Backup & import'),
+      description: t('تنزيل نسخة احتياطية من البيانات السابقة أو استيرادها', 'Backup & import'),
       action: () => goToSection('tools'),
-      keywords: 'legacy backup import بيانات قديمة استيراد نسخة احتياطية',
+      keywords: 'legacy backup import بيانات قديمة استيراد نسخة احتياطية أرشيف',
     }] : []),
     ...(hasPermission(currentUser.role, 'users.read') ? [{
-      icon: ShieldCheck,
+      icon: Shield,
       title: t('إدارة المستخدمين', 'User management'),
-      description: t('الحسابات والصلاحيات', 'Accounts & permissions'),
-      action: () => goToSection('tools'),
-      keywords: 'admin users إدارة مستخدمين صلاحيات تدقيق',
+      description: t('إدارة الحسابات وتعيين الصلاحيات ومراجعة سجل التدقيق', 'Accounts & permissions'),
+      action: onOpenAdmin,
+      keywords: 'admin users إدارة مستخدمين صلاحيات تدقيق إشراف أدمن',
     }] : []),
   ];
 
@@ -272,37 +272,41 @@ export function SettingsPage(props: SettingsPageProps) {
       lang={lang}
       compact
       title={t('الإعدادات', 'Settings')}
-      description={t('كل شيء تحتاجه، أقرب إليك.', 'Everything you need, within reach.')}
+      description={t('إدارة حسابك، وتفضيلات المزامنة، وخيارات النظام وتنظيم يومك.', 'Manage your account, sync preferences, and system options.')}
       onBack={onBack}
     >
-      <div className="settings-compact space-y-4 sm:space-y-5">
-        {/* Modern Command Search Input */}
-        <div className="relative">
-          <label className="group flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 transition-all duration-200 focus-within:border-[#00C896] focus-within:ring-2 focus-within:ring-[#00C896]/20 dark:border-white/[0.08] dark:bg-[#141D29] dark:hover:border-white/[0.14] dark:focus-within:border-[#00C896] dark:focus-within:bg-[#182332]">
-            <Search aria-hidden="true" size={18} className="shrink-0 text-slate-400 group-focus-within:text-[#00C896] transition-colors duration-200" />
+      <div className="settings-compact flex flex-col space-y-5 sm:space-y-6">
+        {/* Search Input for Settings (order-3 visually so it appears after tabs and before shortcuts) */}
+        <div className="relative order-3">
+          <label className="group flex w-full items-center gap-3 rounded-2xl border border-slate-200/90 bg-white px-4 py-2.5 transition-all duration-200 focus-within:border-[#00C896] focus-within:ring-2 focus-within:ring-[#00C896]/20 shadow-xs dark:border-white/[0.08] dark:bg-[#141D29] dark:hover:border-white/[0.14] dark:focus-within:border-[#00C896] dark:focus-within:bg-[#182332]">
+            <Search aria-hidden="true" size={18} className="shrink-0 text-slate-500 group-focus-within:text-[#00C896] transition-colors duration-200" />
             <input
               type="search"
               value={query}
               onChange={event => { setQuery(event.target.value); setActiveSection('overview'); }}
-              aria-label={t('ابحث في الإعدادات', 'Search settings')}
-              placeholder={t('ابحث عن إعداد أو أداة…', 'Find a setting or tool…')}
-              className="min-h-10 min-w-0 flex-1 bg-transparent text-xs sm:text-sm outline-none text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-[#94A3B8]"
+              aria-label={t('البحث في الإعدادات', 'Search settings')}
+              placeholder={t('البحث في الإعدادات والخيارات والأدوات…', 'Search settings, options, and tools…')}
+              className="min-h-10 min-w-0 flex-1 bg-transparent text-xs sm:text-sm font-medium outline-none text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400"
             />
-            {query && (
+            {query ? (
               <button
                 type="button"
                 onClick={() => setQuery('')}
-                aria-label={t('مسح البحث', 'Clear search')}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/[0.06] dark:hover:text-white transition-colors cursor-pointer"
+                aria-label={t('مسح نص البحث', 'Clear search text')}
+                className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white transition-colors cursor-pointer"
               >
-                <X size={15} />
+                <X size={16} />
               </button>
+            ) : (
+              <span className="hidden sm:inline-flex items-center rounded-md border border-slate-200/80 bg-slate-100/80 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
+                {t('بحث في الإعدادات', 'Settings search')}
+              </span>
             )}
           </label>
         </div>
 
-        {/* Profile SaaS Hero Card */}
-        <div className={`${cardSurface} flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5`}>
+        {/* 1. Account Hero Card (بطاقة الحساب) */}
+        <div className={`${cardSurface} order-1 flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5`}>
           <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
             <span
               aria-hidden="true"
@@ -311,17 +315,25 @@ export function SettingsPage(props: SettingsPageProps) {
               {accountName.trim().charAt(0).toUpperCase()}
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="break-words text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                <bdi>{accountName}</bdi>
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="break-words text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                  <bdi>{accountName}</bdi>
+                </h2>
+                <span className="flex h-2 w-2 rounded-full bg-[#00C896] shadow-[0_0_6px_rgba(0,200,150,0.6)]" title={t('حساب نشط', 'Active account')} />
+              </div>
               <div className="mt-1 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#00C896]/30 bg-[#00C896]/10 px-2 py-0.5 text-[11px] font-semibold text-[#00C896]">
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#00C896]/30 bg-[#00C896]/10 px-2 py-0.5 text-[11px] font-bold text-[#008f6b] dark:text-[#00C896]">
                   <Shield aria-hidden="true" size={11} />
                   <span>{role}</span>
                 </span>
                 {currentUser.username && (
-                  <span className="text-[11px] text-slate-500 dark:text-[#94A3B8]" dir="ltr">
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-300" dir="ltr">
                     @{currentUser.username}
+                  </span>
+                )}
+                {currentUser.email && (
+                  <span className="text-xs font-mono text-slate-600 dark:text-slate-300" dir="ltr">
+                    {currentUser.email}
                   </span>
                 )}
               </div>
@@ -340,60 +352,84 @@ export function SettingsPage(props: SettingsPageProps) {
           </div>
         </div>
 
-        {/* Segmented Navigation Tab Bar */}
-        <div
-          role="tablist"
-          aria-label={t('أقسام الإعدادات', 'Settings sections')}
-          aria-orientation="horizontal"
-          className="flex gap-1.5 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white p-1.5 scrollbar-none dark:border-white/[0.08] dark:bg-[#141D29]"
-        >
-          {sections.map(({ id, icon: Icon, ar: arabic, en }) => {
-            const isActive = activeSection === id;
-            return (
-              <button
-                key={id}
-                ref={element => { tabRefs.current[id] = element; }}
-                id={`settings-tab-${id}`}
-                type="button"
-                role="tab"
-                aria-controls={`settings-${id}`}
-                aria-selected={isActive}
-                tabIndex={isActive ? 0 : -1}
-                onClick={() => { setQuery(''); goToSection(id); }}
-                onKeyDown={event => handleTabKey(event, id)}
-                className={`flex min-h-10 shrink-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-xs font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#00C896] cursor-pointer ${
-                  isActive
-                    ? 'bg-[#00C896] text-[#080D14] shadow-[0_2px_12px_rgba(0,200,150,0.25)] font-bold'
-                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-[#94A3B8] dark:hover:bg-white/[0.04] dark:hover:text-white'
-                }`}
-              >
-                <Icon aria-hidden="true" size={16} className={isActive ? 'stroke-[2.2]' : 'stroke-[1.8]'} />
-                <span>{ar ? arabic : en}</span>
-              </button>
-            );
-          })}
+        {/* 2. Main Sections Tabs (التبويبات كأقسام رئيسية متساوية المساحة) */}
+        <div className="order-2 space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+              <span className="flex h-1.5 w-1.5 rounded-full bg-[#00C896]" />
+              <span>{t('الأقسام الرئيسية', 'Main Sections')}</span>
+            </div>
+            <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
+              {t('اختر قسماً للانتقال إليه', 'Select a section to navigate')}
+            </span>
+          </div>
+
+          <div
+            role="tablist"
+            aria-label={t('أقسام الإعدادات الرئيسية', 'Main settings sections')}
+            aria-orientation="horizontal"
+            className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 sm:gap-2 rounded-2xl border border-slate-200/90 bg-white p-1.5 dark:border-white/[0.08] dark:bg-[#141D29] shadow-xs"
+          >
+            {sections.map(({ id, icon: Icon, ar: arabic, en }) => {
+              const isActive = activeSection === id;
+              return (
+                <button
+                  key={id}
+                  ref={element => { tabRefs.current[id] = element; }}
+                  id={`settings-tab-${id}`}
+                  type="button"
+                  role="tab"
+                  aria-controls={`settings-${id}`}
+                  aria-selected={isActive}
+                  tabIndex={isActive ? 0 : -1}
+                  onClick={() => { setQuery(''); goToSection(id); }}
+                  onKeyDown={event => handleTabKey(event, id)}
+                  className={`flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl px-2 sm:px-3 text-xs sm:text-sm font-bold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00C896] cursor-pointer text-center select-none ${
+                    isActive
+                      ? 'bg-[#00C896] text-[#080D14] shadow-[0_2px_14px_rgba(0,200,150,0.3)] font-bold'
+                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/[0.05] dark:hover:text-white'
+                  } ${id === 'session' ? 'col-span-2 sm:col-span-1' : ''}`}
+                >
+                  <Icon aria-hidden="true" size={16} className={isActive ? 'stroke-[2.3]' : 'stroke-[1.9] text-slate-600 dark:text-slate-400'} />
+                  <span>{ar ? arabic : en}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Tab Panels */}
-        <div className="min-w-0">
-          {/* TAB 1: OVERVIEW */}
+        {/* 3. Tab Panels / Content Area */}
+        <div className="order-4 min-w-0">
+          {/* TAB 1: OVERVIEW / SHORTCUTS */}
           <section
             id="settings-overview"
             role="tabpanel"
             aria-labelledby="settings-tab-overview"
             hidden={activeSection !== 'overview'}
             tabIndex={0}
-            className="space-y-3.5 outline-none"
+            className="space-y-4 outline-none"
           >
-            <div className="space-y-1">
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif]">
-                {query ? t('نتائج البحث', 'Search results') : t('اختصاراتك، بدون لف ودوران', 'A shortcut to everything')}
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-[#94A3B8]">
-                {query ? t('اختر النتيجة للوصول مباشرة.', 'Choose a result to jump straight in.') : t('الأشياء اللي بتحتاجها كل يوم، بضغطة واحدة.', 'Your everyday actions, one click away.')}
-              </p>
+            {/* Shortcuts Section Header: Clearly labeled as Quick Links */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-[#00C896]/10 px-2 py-0.5 text-[11px] font-bold text-[#008f6b] dark:text-[#00C896] border border-[#00C896]/20">
+                    <Sparkles size={11} />
+                    <span>{t('روابط سريعة', 'Quick Links')}</span>
+                  </span>
+                  <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif]">
+                    {query ? t('نتائج البحث في الإعدادات', 'Search results') : t('اختصارات سريعة للوصول المباشر', 'A shortcut to everything')}
+                  </h2>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                  {query
+                    ? t('انقر على أي نتيجة للانتقال مباشرة إلى الإعداد المطلوب.', 'Click any result to jump directly to that setting.')
+                    : t('روابط مباشرة للوصول السريع إلى الأدوات والإعدادات الشائعة دون الحاجة للبحث.', 'Direct links for instant access to common tools and settings without searching.')}
+                </p>
+              </div>
             </div>
 
+            {/* Action Rows Container */}
             <div className={`${cardSurface} divide-y divide-slate-100 dark:divide-white/[0.05]`}>
               {matchingShortcuts.map(({ icon, title, description, action, disabled }) => (
                 <ActionRow
@@ -410,18 +446,22 @@ export function SettingsPage(props: SettingsPageProps) {
 
             {matchingShortcuts.length === 0 && (
               <div role="status" className={`${cardSurface} flex flex-col items-center justify-center p-8 text-center sm:p-12`}>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200/80 bg-slate-100 text-slate-400 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-[#94A3B8] mb-3">
-                  <Search size={22} strokeWidth={1.7} />
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200/90 bg-slate-100 text-slate-500 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-slate-400 mb-3">
+                  <Search size={22} strokeWidth={1.8} />
                 </div>
-                <p className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-white">
-                  {t('ما لقينا نتيجة. جرّب اسم الأداة أو الإعداد.', 'No results. Try a tool or setting name.')}
+                <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white">
+                  {t('لم يتم العثور على نتائج مطابقة للبحث.', 'No matching settings found.')}
+                </p>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                  {t('يرجى تجربة كلمة بحث أخرى أو اسم القسم المطلوب.', 'Please try another search keyword or section name.')}
                 </p>
                 <button
                   type="button"
                   onClick={() => setQuery('')}
-                  className="mt-3 text-xs font-semibold text-[#00C896] hover:underline cursor-pointer"
+                  className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#008f6b] dark:text-[#00C896] hover:underline cursor-pointer"
                 >
-                  {t('مسح البحث وعرض كل الإعدادات', 'Clear search and show all settings')}
+                  <RotateCcw size={12} />
+                  <span>{t('إعادة ضبط البحث وعرض جميع الاختصارات', 'Reset search and show all shortcuts')}</span>
                 </button>
               </div>
             )}
@@ -429,10 +469,10 @@ export function SettingsPage(props: SettingsPageProps) {
             {result?.source === 'sync' && (
               <div
                 role={result.ok ? 'status' : 'alert'}
-                className={`rounded-2xl border p-4 text-xs sm:text-sm leading-relaxed ${
+                className={`rounded-2xl border p-4 text-xs sm:text-sm font-medium leading-relaxed ${
                   result.ok
-                    ? 'border-[#00C896]/30 bg-[#00C896]/10 text-emerald-800 dark:text-[#00C896]'
-                    : 'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300'
+                    ? 'border-[#00C896]/30 bg-[#00C896]/10 text-emerald-900 dark:text-[#00C896]'
+                    : 'border-rose-500/20 bg-rose-500/10 text-rose-800 dark:text-rose-300'
                 }`}
               >
                 {result.text}
@@ -453,51 +493,51 @@ export function SettingsPage(props: SettingsPageProps) {
               <h2 id="settings-account-heading" className="text-sm sm:text-base font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif]">
                 {t('تفاصيل الحساب', 'Account details')}
               </h2>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-slate-600 dark:text-[#C3CEDD]">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-slate-700 dark:text-[#C3CEDD]">
                 {currentUser.username && (
-                  <span className="flex items-center gap-1.5">
-                    <span className="text-slate-400">@</span>
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <span className="text-slate-500">@</span>
                     <bdi>{currentUser.username}</bdi>
                   </span>
                 )}
                 {currentUser.email && (
-                  <span className="break-all font-mono text-xs">
+                  <span className="break-all font-mono text-xs font-medium text-slate-700 dark:text-slate-300">
                     <bdi>{currentUser.email}</bdi>
                   </span>
                 )}
-                <span className="inline-flex items-center rounded-md bg-white/[0.05] px-2 py-0.5 text-xs text-[#00C896] font-semibold">
+                <span className="inline-flex items-center rounded-md bg-[#00C896]/10 px-2.5 py-0.5 text-xs text-[#008f6b] dark:text-[#00C896] font-bold border border-[#00C896]/20">
                   {role}
                 </span>
               </div>
             </div>
 
-            <div className="bg-slate-50/70 p-4 dark:bg-[#101721] sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+            <div className="bg-slate-50/80 p-4 dark:bg-[#101721] sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
               <div className="mb-3 space-y-1 sm:mb-0">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-white">
-                  <KeyRound aria-hidden="true" size={15} className="text-[#00C896]" />
-                  <span>{t('كود الحساب', 'Account code')}</span>
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                  <KeyRound aria-hidden="true" size={16} className="text-[#008f6b] dark:text-[#00C896]" />
+                  <span>{t('كود الحساب الفريد', 'Unique account code')}</span>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-[#94A3B8]">
-                  {t('استخدم كود حسابك الفريد لتسجيل الدخول بأمان.', 'Use your unique code to sign in securely.')}
+                <p className="text-xs text-slate-600 dark:text-slate-300">
+                  {t('استخدم كود حسابك الفريد لتسجيل الدخول بأمان إلى مساحتك من أي جهاز.', 'Use your unique account code to securely sign in from any device.')}
                 </p>
               </div>
 
               <div className="min-w-0 sm:w-80 space-y-1.5">
-                <div className="flex min-w-0 items-center gap-2 rounded-xl border border-slate-200/80 bg-white ps-3.5 pe-1.5 py-1 dark:border-white/[0.08] dark:bg-[#080D14]">
-                  <code dir="ltr" className="min-w-0 flex-1 select-all break-all font-mono text-xs font-semibold tracking-wider text-slate-800 dark:text-[#C3CEDD]">
+                <div className="flex min-w-0 items-center gap-2 rounded-xl border border-slate-200/90 bg-white ps-3.5 pe-1.5 py-1 dark:border-white/[0.08] dark:bg-[#080D14]">
+                  <code dir="ltr" className="min-w-0 flex-1 select-all break-all font-mono text-xs font-bold tracking-wider text-slate-900 dark:text-[#C3CEDD]">
                     {currentUser.userCode}
                   </code>
                   <button
                     type="button"
                     onClick={() => { void copyCode(); }}
                     aria-label={t('نسخ كود الحساب', 'Copy account code')}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#00C896] hover:bg-[#00C896]/15 focus-visible:outline-2 focus-visible:outline-[#00C896] transition-colors cursor-pointer"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[#008f6b] hover:bg-[#00C896]/15 focus-visible:outline-2 focus-visible:outline-[#00C896] dark:text-[#00C896] transition-colors cursor-pointer"
                   >
-                    {copied ? <Check aria-hidden="true" size={16} strokeWidth={2.5} /> : <Copy aria-hidden="true" size={16} />}
+                    {copied ? <Check aria-hidden="true" size={17} strokeWidth={2.5} /> : <Copy aria-hidden="true" size={17} />}
                   </button>
                 </div>
-                <p aria-live="polite" className="text-[11px] leading-5 text-slate-500 dark:text-[#94A3B8]">
-                  {copied ? t('تم نسخ الكود.', 'Code copied.') : copyError ? t('يمكنك تحديد الكود ونسخه يدويًا.', 'You can select and copy the code manually.') : ''}
+                <p aria-live="polite" className="text-xs leading-5 font-semibold text-emerald-700 dark:text-[#00C896]">
+                  {copied ? t('تم نسخ كود الحساب بنجاح.', 'Code copied successfully.') : copyError ? t('يمكنك تحديد الكود ونسخه يدويًا.', 'You can select and copy the code manually.') : ''}
                 </p>
               </div>
             </div>
@@ -514,32 +554,32 @@ export function SettingsPage(props: SettingsPageProps) {
           >
             <SectionHeading
               id="settings-sync-heading"
-              title={t('يومك، على كل أجهزتك', 'One day. Every device.')}
-              description={t('تابع حالة الاتصال، وزامن آخر تعديلات حسابك.', 'Check your connection and sync the latest changes to your account.')}
+              title={t('المزامنة السحابية وحالة الاتصال', 'Cloud sync & connection status')}
+              description={t('متابعة حالة الاتصال بالخادم، ومزامنة آخر التعديلات فوراً بين أجهزتك.', 'Monitor server connection status and sync the latest updates across your devices.')}
             />
 
             <div className={`${cardSurface} p-4 sm:p-6 space-y-5`}>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-start gap-4">
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#00C896]/30 bg-[#00C896]/10 text-[#00C896]">
-                    <Cloud aria-hidden="true" size={24} strokeWidth={1.7} />
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#00C896]/40 bg-[#00C896]/10 text-[#008f6b] dark:text-[#00C896]">
+                    <Cloud aria-hidden="true" size={24} strokeWidth={1.8} />
                   </span>
                   <div className="space-y-1.5">
                     <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-                      {t('المزامنة', 'Sync')}
+                      {t('المزامنة والاتصال', 'Sync & connection')}
                     </h3>
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-[#94A3B8]">
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
                       <span
                         aria-hidden="true"
-                        className={`h-2 w-2 shrink-0 rounded-full ${
+                        className={`h-2.5 w-2.5 shrink-0 rounded-full ${
                           health.checking ? 'bg-slate-400' : health.connected ? 'bg-[#00C896] shadow-[0_0_8px_rgba(0,200,150,0.6)]' : 'bg-amber-500'
                         }`}
                       />
-                      <span className="font-medium text-slate-800 dark:text-white">
-                        {health.checking ? t('جارٍ التحقق…', 'Checking…') : health.connected ? t('متصل', 'Connected') : t('غير متصل', 'Unavailable')}
+                      <span className="font-bold text-slate-800 dark:text-white">
+                        {health.checking ? t('جارٍ التحقق…', 'Checking…') : health.connected ? t('متصل بالخادم', 'Connected to server') : t('غير متصل حالياً', 'Currently disconnected')}
                       </span>
                       {health.database && (
-                        <span className="break-words font-mono text-[11px] text-slate-400 dark:text-[#64748B]">
+                        <span className="break-words font-mono text-xs font-medium text-slate-500 dark:text-slate-400">
                           ({health.database})
                         </span>
                       )}
@@ -553,21 +593,21 @@ export function SettingsPage(props: SettingsPageProps) {
                   disabled={syncing}
                   className={`${btnSecondary} sm:w-auto w-full`}
                 >
-                  {syncing ? <Loader2 aria-hidden="true" size={15} className="animate-spin text-[#00C896]" /> : <RefreshCw aria-hidden="true" size={15} />}
+                  {syncing ? <Loader2 aria-hidden="true" size={15} className="animate-spin text-[#008f6b] dark:text-[#00C896]" /> : <RefreshCw aria-hidden="true" size={15} />}
                   <span>{syncing ? t('جارٍ المزامنة…', 'Syncing…') : t('مزامنة الآن', 'Sync now')}</span>
                 </button>
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/[0.06]">
-                <p className="text-xs leading-relaxed text-slate-500 dark:text-[#94A3B8]">
-                  {t('تعديلاتك المحلية تبقى محفوظة عند انقطاع الاتصال.', 'Your local changes stay saved when you are offline.')}
+                <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-medium">
+                  {t('تعديلاتك المحلية تظل محفوظة بأمان وتتم مزامنتها تلقائياً عند عودة الاتصال.', 'Your local changes stay safely saved and will sync automatically when reconnected.')}
                 </p>
                 <SyncIndicator lang={lang} userId={currentUser.id} />
               </div>
 
               {!health.connected && !health.checking && (
-                <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-800 dark:text-amber-300">
-                  {t('ستُستأنف المزامنة عند عودة الاتصال.', 'Sync will resume when the connection is restored.')}
+                <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-xs font-medium leading-relaxed text-amber-900 dark:text-amber-200">
+                  {t('ستُستأنف المزامنة السحابية تلقائياً بمجرد عودة الاتصال بالإنترنت.', 'Cloud sync will resume automatically once connection is restored.')}
                 </div>
               )}
             </div>
@@ -575,10 +615,10 @@ export function SettingsPage(props: SettingsPageProps) {
             {result?.source === 'sync' && (
               <div
                 role={result.ok ? 'status' : 'alert'}
-                className={`rounded-2xl border p-4 text-xs sm:text-sm leading-relaxed ${
+                className={`rounded-2xl border p-4 text-xs sm:text-sm font-medium leading-relaxed ${
                   result.ok
-                    ? 'border-[#00C896]/30 bg-[#00C896]/10 text-emerald-800 dark:text-[#00C896]'
-                    : 'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300'
+                    ? 'border-[#00C896]/30 bg-[#00C896]/10 text-emerald-900 dark:text-[#00C896]'
+                    : 'border-rose-500/20 bg-rose-500/10 text-rose-800 dark:text-rose-300'
                 }`}
               >
                 {result.text}
@@ -596,23 +636,23 @@ export function SettingsPage(props: SettingsPageProps) {
             className="outline-none space-y-3.5"
           >
             {!hasPermission(currentUser.role, 'users.read') && Object.keys(legacy).length === 0 && !onReplayTour && (
-              <div className={`${cardSurface} p-4 text-xs leading-relaxed text-slate-500 dark:text-[#94A3B8]`}>
+              <div className={`${cardSurface} p-4 text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-300`}>
                 {t('لا توجد بيانات قديمة للاستيراد في هذا المتصفح. أدوات يومك متاحة من الصفحة الرئيسية.', 'There is no legacy data to import in this browser. Your daily tools are available from the planner.')}
               </div>
             )}
 
             <SectionHeading
               id="settings-tools-heading"
-              title={t('مساحة أكبر ليومك', 'Get more from your day')}
-              description={t('كل أدواتك، بدون ما تزدحم لوحة يومك.', 'Your everyday tools, with room to focus in your planner.')}
+              title={t('أدوات إضافية وإدارة البيانات', 'Additional tools & data')}
+              description={t('الوصول إلى الجولة الإرشادية، وإدارة المستخدمين، وإدارة النسخ الاحتياطية للبيانات السابقة.', 'Access the guided tour, manage users, and handle legacy data backups.')}
             />
 
             <div className={`${cardSurface} divide-y divide-slate-100 dark:divide-white/[0.05]`}>
               {onReplayTour && (
                 <ActionRow
                   icon={Sparkles}
-                  title={t('إعادة الجولة التعريفية', 'Replay onboarding tour')}
-                  description={t('استكشف ميزات ميزان وتعرّف على أساسيات تنظيم يومك.', 'Revisit Mizan features and learn how to plan your day.')}
+                  title={t('الجولة الإرشادية التفاعلية', 'Interactive onboarding tour')}
+                  description={t('استكشف ميزات ميزان وتعرّف على أساسيات تنظيم يومك والتخطيط.', 'Revisit Mizan features and learn how to plan your day.')}
                   onClick={() => { onBack(); onReplayTour(); }}
                   ar={ar}
                   highlight
@@ -620,9 +660,9 @@ export function SettingsPage(props: SettingsPageProps) {
               )}
               {hasPermission(currentUser.role, 'users.read') && (
                 <ActionRow
-                  icon={ShieldCheck}
-                  title={t('إدارة المستخدمين', 'User management')}
-                  description={t('الحسابات والصلاحيات وسجل التدقيق.', 'Accounts, permissions and audit log.')}
+                  icon={Shield}
+                  title={t('لوحة إدارة المستخدمين', 'User administration')}
+                  description={t('إدارة الحسابات والصلاحيات وسجل التدقيق الإداري.', 'Manage accounts, permissions and administrative audit logs.')}
                   onClick={onOpenAdmin}
                   ar={ar}
                 />
@@ -633,16 +673,16 @@ export function SettingsPage(props: SettingsPageProps) {
               <div className={`${cardSurface} p-4 sm:p-6 space-y-3`}>
                 <div className="space-y-1">
                   <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif]">
-                    {t('بيانات النسخة القديمة', 'Legacy browser data')}
+                    {t('بيانات المتصفح السابقة', 'Legacy browser data')}
                   </h3>
-                  <p className="text-xs leading-relaxed text-slate-500 dark:text-[#94A3B8]">
-                    {t('نزّل نسخة احتياطية أو ادمجها مع هذا الحساب.', 'Download a backup or merge it into this account.')}
+                  <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-medium">
+                    {t('تنزيل نسخة احتياطية من بيانات المتصفح السابقة أو دمجها في هذا الحساب.', 'Download a backup of earlier records or merge them into this account.')}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2.5 pt-1">
                   <button type="button" className={btnSecondary} onClick={backupLegacy}>
                     <Download aria-hidden="true" size={15} />
-                    <span>{t('تنزيل نسخة', 'Download backup')}</span>
+                    <span>{t('تنزيل نسخة احتياطية', 'Download backup')}</span>
                   </button>
                   <button type="button" className={btnSecondary} onClick={importLegacy}>
                     <span>{t('استيراد لهذا الحساب', 'Import into this account')}</span>
@@ -654,10 +694,10 @@ export function SettingsPage(props: SettingsPageProps) {
             {result?.source === 'tools' && (
               <div
                 role={result.ok ? 'status' : 'alert'}
-                className={`rounded-2xl border p-4 text-xs sm:text-sm leading-relaxed ${
+                className={`rounded-2xl border p-4 text-xs sm:text-sm font-medium leading-relaxed ${
                   result.ok
-                    ? 'border-[#00C896]/30 bg-[#00C896]/10 text-emerald-800 dark:text-[#00C896]'
-                    : 'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300'
+                    ? 'border-[#00C896]/30 bg-[#00C896]/10 text-emerald-900 dark:text-[#00C896]'
+                    : 'border-rose-500/20 bg-rose-500/10 text-rose-800 dark:text-rose-300'
                 }`}
               >
                 {result.text}
@@ -676,33 +716,33 @@ export function SettingsPage(props: SettingsPageProps) {
           >
             <SectionHeading
               id="settings-session-heading"
-              title={t('حسابك وبياناتك', 'Account & data')}
-              description={t('إدارة الجلسة وإعادة الضبط، بخطوات واضحة.', 'Manage your session and data with clear, deliberate actions.')}
+              title={t('إدارة الجلسة وبيانات الحساب', 'Session & account data')}
+              description={t('إجراءات حساسة لإعادة ضبط المهام والعادات أو إدارة بيانات الحساب الحالي.', 'Sensitive actions to reset tasks and habits or manage current account data.')}
             />
 
             <div className="overflow-hidden rounded-2xl border border-rose-500/20 bg-white dark:border-rose-500/25 dark:bg-[#141D29]">
-              <div className="flex flex-col justify-between gap-4 bg-rose-50/40 p-4 dark:bg-rose-500/[0.03] sm:flex-row sm:items-center sm:p-6">
+              <div className="flex flex-col justify-between gap-4 bg-rose-50/50 p-4 dark:bg-rose-500/[0.04] sm:flex-row sm:items-center sm:p-6">
                 <div className="space-y-1">
-                  <h3 className="text-xs sm:text-sm font-bold text-rose-700 dark:text-rose-300 font-['Alexandria','Cairo',sans-serif]">
+                  <h3 className="text-xs sm:text-sm font-bold text-rose-800 dark:text-rose-300 font-['Alexandria','Cairo',sans-serif]">
                     {t('مسح المهام وإعادة ضبط العادات', 'Reset tasks & habits')}
                   </h3>
-                  <p className="max-w-md text-xs leading-relaxed text-slate-500 dark:text-[#94A3B8]">
-                    {t('يمسح مهام هذا الحساب ويعيد ضبط عاداته. سيُطلب منك التأكيد.', 'Clears this account’s tasks and resets its habits. You will be asked to confirm.')}
+                  <p className="max-w-md text-xs leading-relaxed text-slate-700 dark:text-slate-300 font-medium">
+                    {t('يمسح مهام هذا الحساب ويعيد ضبط عاداته إلى الوضع الافتراضي. سيُطلب منك التأكيد قبل التنفيذ.', 'Clears this account’s tasks and resets its habits to default. Confirmation is required.')}
                   </p>
                 </div>
                 <button
                   type="button"
                   disabled={syncing}
-                  className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-xs font-semibold text-rose-600 transition-all duration-200 hover:border-rose-500/50 hover:bg-rose-500/20 hover:text-rose-700 focus-visible:outline-2 focus-visible:outline-rose-500 dark:text-rose-400 dark:hover:text-rose-200 cursor-pointer"
+                  className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-xs sm:text-sm font-bold text-rose-700 transition-all duration-200 hover:border-rose-500/50 hover:bg-rose-500/20 hover:text-rose-800 focus-visible:outline-2 focus-visible:outline-rose-500 dark:text-rose-300 dark:hover:text-white cursor-pointer"
                   onClick={() => {
-                    if (window.confirm(t('هل تريد مسح مهام هذا الحساب وإعادة ضبط العادات؟', 'Clear this account’s tasks and reset habits?'))) {
+                    if (window.confirm(t('هل أنت متأكد من مسح مهام هذا الحساب وإعادة ضبط العادات؟', 'Are you sure you want to clear this account’s tasks and reset habits?'))) {
                       onResetData();
                       onBack();
                     }
                   }}
                 >
                   <RotateCcw aria-hidden="true" size={15} />
-                  <span>{t('إعادة الضبط', 'Reset data')}</span>
+                  <span>{t('إعادة الضبط الآن', 'Reset data now')}</span>
                 </button>
               </div>
             </div>

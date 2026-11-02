@@ -792,7 +792,7 @@ export default function App() {
               lang={lang}
               theme={theme}
               compact
-              worshipNavigation={<ReligiousTabs active={religiousSection} onChange={setReligiousSection} currentDate={currentDate} tasks={tasks} />}
+              worshipNavigation={<ReligiousTabs active={religiousSection} onChange={setReligiousSection} currentDate={currentDate} tasks={tasks} lang={lang} />}
             />
           </MainHeader> : <h1 className="text-xl font-bold"><bdi>{currentUser.name || currentUser.username}</bdi></h1>}
 
@@ -810,7 +810,7 @@ export default function App() {
             />
           </div>}
 
-          {support && <div className="flex justify-center w-full"><ReligiousTabs active={religiousSection} onChange={setReligiousSection} /></div>}
+          {support && <div className="flex justify-center w-full"><ReligiousTabs active={religiousSection} onChange={setReligiousSection} lang={lang} /></div>}
           <div id="onboarding-planner-area" className="space-y-4 sm:space-y-6">
             {religiousSection !== 'prayers' && <div className="religious-content-switch" key={religiousSection}>
               {religiousSection === 'morning' && <MorningAdhkarIslamBook date={currentDate} />}

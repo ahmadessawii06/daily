@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { ReligiousSection } from './religiousContent';
-import type { Task } from '../types';
+import type { Language, Task } from '../types';
 import {
   getStoredMorningCounts,
   isStoredMorningConfirmed,
@@ -20,14 +20,6 @@ import { AZKAR_MASAA } from '../data/azkarMasaa';
 import { partitionPrayerTasks } from '../utils/prayerTasks';
 import { getDayRecord } from '../utils/storage';
 import { getTodayDateString } from '../utils/date';
-
-const tabs: Array<{ id: ReligiousSection; label: string; shortLabel: string }> = [
-  { id: 'quran', label: 'وردك', shortLabel: 'وردك' },
-  { id: 'morning', label: 'أذكار الصباح', shortLabel: 'الصباح' },
-  { id: 'prayers', label: 'الصلوات والمهام', shortLabel: 'الصلوات' },
-  { id: 'evening', label: 'أذكار المساء', shortLabel: 'المساء' },
-  { id: 'duas', label: 'أدعيتك', shortLabel: 'أدعيتك' },
-];
 
 function getSectionStatus(section: ReligiousSection, date: string, tasksList?: Task[]): { isDone: boolean } {
   try {
@@ -78,6 +70,7 @@ interface ReligiousTabsProps {
   label?: string;
   currentDate?: string;
   tasks?: Task[];
+  lang?: Language;
 }
 
 export function ReligiousTabs({
@@ -85,11 +78,20 @@ export function ReligiousTabs({
   onChange,
   sections,
   className = '',
-  label = 'أقسام العبادة',
+  label,
   currentDate,
   tasks,
+  lang = 'ar',
 }: ReligiousTabsProps) {
-  const visibleTabs = sections ? tabs.filter(tab => sections.includes(tab.id)) : tabs;
+  const ar = lang === 'ar';
+  const allTabs: Array<{ id: ReligiousSection; label: string; shortLabel: string }> = [
+    { id: 'quran', label: ar ? 'وردك' : 'Quran Wird', shortLabel: ar ? 'وردك' : 'Quran' },
+    { id: 'morning', label: ar ? 'أذكار الصباح' : 'Morning Adhkar', shortLabel: ar ? 'الصباح' : 'Morning' },
+    { id: 'prayers', label: ar ? 'الصلوات والمهام' : 'Prayers & Tasks', shortLabel: ar ? 'الصلوات' : 'Prayers' },
+    { id: 'evening', label: ar ? 'أذكار المساء' : 'Evening Adhkar', shortLabel: ar ? 'المساء' : 'Evening' },
+    { id: 'duas', label: ar ? 'أدعيتك' : 'Your Duas', shortLabel: ar ? 'أدعيتك' : 'Duas' },
+  ];
+  const visibleTabs = sections ? allTabs.filter(tab => sections.includes(tab.id)) : allTabs;
   const navigation = useRef<HTMLElement>(null);
   const effectiveDate = currentDate || getTodayDateString();
   const [, setStatusTick] = useState(0);
@@ -144,7 +146,7 @@ export function ReligiousTabs({
       ? 0
       : event.key === 'End'
         ? buttons.length - 1
-        : (current + (event.key === 'ArrowLeft' ? 1 : -1) + buttons.length) % buttons.length;
+        : (current + (event.key === (ar ? 'ArrowLeft' : 'ArrowRight') ? 1 : -1) + buttons.length) % buttons.length;
     buttons[next].focus({ preventScroll: true });
     reveal(buttons[next]);
   };
@@ -152,9 +154,9 @@ export function ReligiousTabs({
   return (
     <nav
       ref={navigation}
-      dir="rtl"
+      dir={ar ? 'rtl' : 'ltr'}
       className={`worship-navigation ${className}`.trim()}
-      aria-label={label}
+      aria-label={label || (ar ? 'أقسام العبادة' : 'Worship sections')}
       onKeyDown={handleKeyDown}
     >
       <div
@@ -165,6 +167,9 @@ export function ReligiousTabs({
           const isActive = active === tab.id;
           const status = getSectionStatus(tab.id, effectiveDate, tasks);
           const statusClass = status.isDone ? 'is-completed' : 'is-pending';
+          const completionTitle = status.isDone
+            ? (ar ? `${tab.label}: مكتمل اليوم ✓` : `${tab.label}: Completed today ✓`)
+            : (ar ? `${tab.label}: مطلوب اليوم` : `${tab.label}: Due today`);
           return (
             <button
               key={tab.id}
@@ -172,8 +177,8 @@ export function ReligiousTabs({
               aria-current={isActive ? 'page' : undefined}
               onClick={() => onChange(tab.id)}
               className={`${isActive ? 'is-active' : ''} ${statusClass}`.trim()}
-              title={status.isDone ? `${tab.label}: مكتمل اليوم ✓` : `${tab.label}: مطلوب اليوم`}
-              aria-label={status.isDone ? `${tab.label}: مكتمل اليوم` : `${tab.label}: مطلوب اليوم`}
+              title={completionTitle}
+              aria-label={completionTitle}
             >
               <span className="worship-navigation-label flex items-center justify-center">
                 <span className="hidden sm:inline">{tab.label}</span>
