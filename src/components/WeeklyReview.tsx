@@ -1,961 +1,1628 @@
-import React, { useState, useRef, useMemo } from 'react';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  ChevronRight, 
-  ChevronLeft, 
-  Award, 
-  AlertTriangle, 
-  Sparkles, 
-  Camera, 
-  CheckCircle2, 
-  Clock, 
-  XCircle, 
-  Flame, 
-  BookOpen, 
-  Code2, 
-  HeartPulse, 
-  Bed, 
-  MoonStar, 
+import React, { useState, useRef, useMemo, useEffect } from 'react';
+import {
+  TrendingUp,
+  TrendingDown,
+  ChevronRight,
+  ChevronLeft,
+  Award,
+  AlertTriangle,
+  Sparkles,
+  Camera,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  Flame,
+  BookOpen,
+  Code2,
+  HeartPulse,
+  Bed,
+  MoonStar,
   ArrowUpRight,
   ArrowDownRight,
-  Layers,
   Calendar,
   Zap,
   Info,
-  LayoutGrid,
-  Table2,
-  X
+  X,
+  Share2,
+  Printer,
+  ChevronDown,
+  ChevronUp,
+  Check,
+  Activity,
+  Layers,
+  GraduationCap,
+  Book,
+  MoveRight,
+  ArrowRight,
+  RefreshCw,
+  Sun,
+  ShieldCheck,
+  CircleDot,
+  FileText,
+  CalendarCheck,
+  Star,
+  Compass,
 } from 'lucide-react';
-import { Language, PlannerCategory, PlannerWorkspace, Task } from '../types';
-import { analyzeWeek, WeeklyAnalysisResult, CategoryStat } from '../utils/weeklyAnalytics';
+import { Language, Task, TaskCategory } from '../types';
+import {
+  computeComprehensiveWeeklyReview,
+  WeeklyLifeDashboardData,
+  WeekStartDay,
+  DayOverview,
+  HeatmapCell,
+} from '../utils/comprehensiveWeeklyAnalytics';
 import { addDays, getTodayDateString, formatHeaderDate, formatTime12h } from '../utils/date';
-import { activeCategories, groupTasksByCategory, UNASSIGNED_CATEGORY } from '../shared/workspace';
-import { getPlannerWorkspace } from '../utils/workspace';
-import { partitionPrayerTasks } from '../utils/prayerTasks';
-import { CARD_ICONS } from './CategoryEditor';
-import { StatCircle } from './StatCircle';
-import { TaskStatusIndicator } from './TaskStatusIndicator';
-import { calculateStats } from '../utils/storage';
-import type { CSSProperties } from 'react';
-
+import { addTaskToDay } from '../utils/storage';
+import { userStorage } from '../utils/scopedStorage';
 
 interface WeeklyReviewProps {
   lang: Language;
   onNavigateToDay: (dateStr: string) => void;
 }
 
-interface SelectedReviewCell {
-  date: string;
-  dayName: string;
-  label: string;
-  categoryId?: string;
-  tasks: Task[];
-}
-
 export const WeeklyReview: React.FC<WeeklyReviewProps> = ({
   lang,
   onNavigateToDay,
 }) => {
-  // Reference date for the week (defaults to today)
-  const [weekEndDate, setWeekEndDate] = useState<string>(() => getTodayDateString());
-  const [isExporting, setIsExporting] = useState(false);
-  const [heatmapMode, setHeatmapMode] = useState<'schedule' | 'cards'>('schedule');
-  const [hoveredCell, setHoveredCell] = useState<{ dayName: string; label: string; title: string; status: string } | null>(null);
-  const [selectedCell, setSelectedCell] = useState<SelectedReviewCell | null>(null);
+  const ar = lang === 'ar';
+  const todayStr = useMemo(() => getTodayDateString(), []);
 
+  // Selected reference date for the week (defaults to today)
+  const [referenceDate, setReferenceDate] = useState<string>(todayStr);
+  const [weekStartPreference, setWeekStartPreference] = useState<WeekStartDay>(() => {
+    return (userStorage.getItem('week_start') as WeekStartDay) || (ar ? 'saturday' : 'sunday');
+  });
+
+  // Selected Day for Section 03 "Story of My Week" detail panel (defaults to today or last day)
+  const [selectedDayDate, setSelectedDayDate] = useState<string>(todayStr);
+
+  // Heatmap filtering and selection
+  const [heatmapCategoryFilter, setHeatmapCategoryFilter] = useState<string>('all');
+  const [selectedHeatmapCell, setSelectedHeatmapCell] = useState<HeatmapCell | null>(null);
+  const [hoveredHeatmapCell, setHoveredHeatmapCell] = useState<{ dayName: string; hourStr: string; tasksText: string } | null>(null);
+
+  // Expandable sections in Section 04
+  const [expandedCategoryTabs, setExpandedCategoryTabs] = useState<Record<string, boolean>>({
+    prayers: true,
+    quran: true,
+    books: true,
+    lectures: true,
+    custom: true,
+  });
+
+  // Export & copy states
+  const [isExportingImage, setIsExportingImage] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
-  const workspace = useMemo(() => getPlannerWorkspace(), []);
 
-  // Compute analytics memoized
-  const data: WeeklyAnalysisResult = useMemo(() => {
-    return analyzeWeek(weekEndDate, lang);
-  }, [weekEndDate, lang]);
+  // Compute the comprehensive 13-section analytics memoized
+  const data: WeeklyLifeDashboardData = useMemo(() => {
+    return computeComprehensiveWeeklyReview(referenceDate, lang, weekStartPreference);
+  }, [referenceDate, lang, weekStartPreference]);
 
-  const cardRows = useMemo(() => {
-    const active = activeCategories(workspace);
-    const groupedByDay = data.days.map(day => {
-      const prayers = partitionPrayerTasks(day.tasks);
-      return { day, prayerTasks: prayers.slots.flatMap(slot => slot.task ? [slot.task] : []), groupedTasks: groupTasksByCategory(prayers.otherTasks, workspace) };
-    });
-    const usedCategoryIds = new Set(groupedByDay.flatMap(row => [...row.groupedTasks.keys()]));
-    const categories = active.filter(category => usedCategoryIds.has(category.id)).map(category => ({
-      id: category.id,
-      label: lang === 'ar' ? category.name : category.nameEn || category.name,
-    }));
-    if (usedCategoryIds.has(UNASSIGNED_CATEGORY)) {
-      categories.push({ id: UNASSIGNED_CATEGORY, label: lang === 'ar' ? 'غير مصنّف' : 'Unassigned' });
+  // Keep selectedDayDate within current week
+  useEffect(() => {
+    if (!data.days.some((d) => d.date === selectedDayDate)) {
+      // Default to today if in range, otherwise the most recent day of the week
+      const todayInWeek = data.days.find((d) => d.date === todayStr);
+      setSelectedDayDate(todayInWeek ? todayInWeek.date : data.days[data.days.length - 1].date);
     }
-    const hasPrayerTasks = groupedByDay.some(row => row.prayerTasks.length > 0);
-    return {
-      columns: [...(hasPrayerTasks ? [{ id: 'daily-prayers', label: lang === 'ar' ? 'الصلوات' : 'Prayers' }] : []), ...categories],
-      rows: groupedByDay.map(({ day, prayerTasks, groupedTasks }) => ({
-        day,
-        tasksByCard: new Map([
-          ['daily-prayers', prayerTasks],
-          ...[...groupedTasks.entries()],
-        ]),
-      })),
-    };
-  }, [data.days, lang, workspace]);
+  }, [data.days, selectedDayDate, todayStr]);
 
+  const selectedDayOverview: DayOverview | undefined = useMemo(() => {
+    return data.days.find((d) => d.date === selectedDayDate) || data.days[0];
+  }, [data.days, selectedDayDate]);
+
+  // Toast auto-clear
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => setToastMessage(null), 3500);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
+  // Navigation handlers
   const handlePrevWeek = () => {
-    setWeekEndDate((prev) => addDays(prev, -7));
+    setReferenceDate((prev) => addDays(prev, -7));
+    setSelectedHeatmapCell(null);
   };
 
   const handleNextWeek = () => {
-    setWeekEndDate((prev) => addDays(prev, 7));
+    setReferenceDate((prev) => addDays(prev, 7));
+    setSelectedHeatmapCell(null);
   };
 
   const handleResetToCurrentWeek = () => {
-    setWeekEndDate(getTodayDateString());
+    setReferenceDate(todayStr);
+    setSelectedDayDate(todayStr);
+    setSelectedHeatmapCell(null);
   };
 
-  // Export weekly review card as PNG
+  const handleWeekStartChange = (start: WeekStartDay) => {
+    setWeekStartPreference(start);
+    try {
+      userStorage.setItem('week_start', start);
+    } catch {}
+  };
+
+  // Rollover unfinished task to today
+  const handleRolloverTask = (taskTitle: string, taskCategory: string) => {
+    try {
+      addTaskToDay(todayStr, {
+        title: taskTitle,
+        time: '',
+        status: 'pending',
+        category: (taskCategory as TaskCategory) || 'general',
+        notes: ar ? `مرحّلة من أسبوع ${data.rangeLabel}` : `Rolled over from ${data.rangeLabel}`,
+      });
+      setToastMessage(ar ? `تم ترحيل «${taskTitle}» إلى اليوم بنجاح ✓` : `Moved "${taskTitle}" to today ✓`);
+    } catch {
+      setToastMessage(ar ? 'تعذر ترحيل المهمة' : 'Failed to move task');
+    }
+  };
+
+  // Export full page as image
   const handleExportImage = async () => {
     if (!reportRef.current) return;
     try {
-      setIsExporting(true);
-      const dataUrl = await (await import('html-to-image')).toPng(reportRef.current, {
+      setIsExportingImage(true);
+      const htmlToImage = await import('html-to-image');
+      const dataUrl = await htmlToImage.toPng(reportRef.current, {
         cacheBust: true,
         pixelRatio: 2,
-        backgroundColor: '#090a0f',
+        backgroundColor: '#f8fafc',
       });
       const link = document.createElement('a');
-      link.download = `daily-track-weekly-${data.startDate}-to-${data.endDate}.png`;
+      link.download = `mizan-weekly-review-${data.startDate}-to-${data.endDate}.png`;
       link.href = dataUrl;
       link.click();
+      setToastMessage(ar ? 'تم تصدير صورة التقرير الأسبوعي بنجاح' : 'Weekly review image exported successfully');
     } catch (err) {
-      console.error('Export weekly report error:', err);
+      console.error('Export weekly image error:', err);
+      setToastMessage(ar ? 'حدث خطأ أثناء تصدير الصورة' : 'Failed to export image');
     } finally {
-      setIsExporting(false);
+      setIsExportingImage(false);
     }
   };
 
-  // Helper for Category icons
-  const getCategoryIcon = (id: string) => {
-    switch (id) {
-      case 'worship':
-        return MoonStar;
-      case 'study':
-        return BookOpen;
-      case 'work_dev':
-        return Code2;
-      case 'fitness':
-        return Flame;
-      case 'health_nutrition':
-        return HeartPulse;
-      case 'sleep_rest':
-        return Bed;
-      default:
-        return Sparkles;
+  // Print / PDF Export
+  const handlePrintPdf = () => {
+    window.print();
+  };
+
+  // Share / Copy summary to clipboard
+  const handleCopySummary = async () => {
+    const summary = [
+      ar ? `📊 ملخص حصاد أسبوعي (${data.rangeLabel}):` : `📊 My Weekly Summary (${data.rangeLabel}):`,
+      ar ? `• المهام المنجزة: ${data.kpis.tasks.done} من ${data.kpis.tasks.total} (${data.kpis.tasks.percentage}%)` : `• Completed tasks: ${data.kpis.tasks.done}/${data.kpis.tasks.total} (${data.kpis.tasks.percentage}%)`,
+      ar ? `• الصلوات المؤداة: ${data.kpis.prayers.done} من 35 صلاة مسجلة` : `• Prayers completed: ${data.kpis.prayers.done}/35`,
+      data.kpis.quran.totalPages > 0 ? (ar ? `• صفحات القرآن الكريم: ${data.kpis.quran.totalPages} صفحة` : `• Quran pages: ${data.kpis.quran.totalPages}`) : null,
+      data.kpis.books.totalPages > 0 ? (ar ? `• قراءة الكتب: ${data.kpis.books.totalPages} صفحة` : `• Book reading: ${data.kpis.books.totalPages} pages`) : null,
+      data.kpis.study.durationMinutes > 0 ? (ar ? `• ساعات الدراسة: ${(data.kpis.study.durationMinutes / 60).toFixed(1)} ساعة` : `• Study time: ${(data.kpis.study.durationMinutes / 60).toFixed(1)} hrs`) : null,
+      ar ? `• أكثر أيام الأسبوع إنتاجية: يوم ${data.insights.mostProductiveDay.dayName}` : `• Most productive day: ${data.insights.mostProductiveDay.dayName}`,
+      '',
+      ar ? `«${data.closing.summaryText}»` : `"${data.closing.summaryText}"`,
+      '',
+      ar ? 'تم الإنشاء بواسطة ميزان - المخطط اليومي' : 'Generated via Mizan Daily Planner',
+    ].filter(Boolean).join('\n');
+
+    try {
+      await navigator.clipboard.writeText(summary);
+      setToastMessage(ar ? 'تم نسخ ملخص أسبوعك إلى الحافظة بنجاح ✓' : 'Weekly summary copied to clipboard ✓');
+    } catch {
+      setToastMessage(ar ? 'تعذر نسخ النص' : 'Failed to copy summary');
     }
   };
 
-  const getTaskStatusLabel = (status: Task['status']) => {
-    if (lang === 'ar') {
-      return status === 'done' ? 'مكتملة' : status === 'not-done' ? 'غير منجزة' : 'متبقية';
-    }
-    return status === 'done' ? 'Completed' : status === 'not-done' ? 'Not done' : 'Pending';
+  const toggleCategoryTab = (key: string) => {
+    setExpandedCategoryTabs((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12 transition-colors">
+    <div className="weekly-review-dashboard space-y-8 max-w-7xl mx-auto pb-20 px-3 sm:px-6 transition-colors">
       
-      {/* 1. Header & Navigation Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#11131a] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs">
-        
-        {/* Title & Badge */}
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white font-['Alexandria']">
-              {lang === 'ar' ? 'التراك الأسبوعي' : 'Weekly Track'}
+      {/* Toast Notification */}
+      {toastMessage && (
+        <aside
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-slate-900 text-white dark:bg-emerald-600 dark:text-white px-5 py-3 rounded-2xl shadow-xl border border-slate-700 dark:border-emerald-500 flex items-center gap-2.5 text-xs sm:text-sm font-bold font-['Alexandria'] animate-fade-in"
+        >
+          <CheckCircle2 className="w-4 h-4 text-[#00C896] dark:text-white" />
+          <span>{toastMessage}</span>
+        </aside>
+      )}
+
+      {/* ========================================================================= */}
+      {/* SECTION 01 — Weekly Header (رأس الأسبوع وأدوات التحكم)                    */}
+      {/* ========================================================================= */}
+      <header className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-7 shadow-xs dark:border-white/[0.08] dark:bg-[#111622]">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          
+          {/* Title, Subtitle & Status Badge */}
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#00C896]/10 text-[#008f6b] dark:text-[#00C896] border border-[#00C896]/20">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{ar ? 'أسبوعك أمام عينيك' : 'Your Week at a Glance'}</span>
+              </span>
+              
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                data.isCurrentWeek
+                  ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20'
+                  : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'
+              }`}>
+                <CircleDot className="w-3 h-3 animate-pulse" />
+                <span>{data.isCurrentWeek ? (ar ? 'الأسبوع جاري' : 'In Progress') : (ar ? 'أسبوع مكتمل' : 'Completed Week')}</span>
+              </span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif]">
+              {ar ? 'أسبوعك بالأرقام والتفاصيل' : 'Your Week in Numbers & Details'}
             </h1>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-              <Sparkles className="w-3 h-3 stroke-[2.5]" />
-              {lang === 'ar' ? 'تحليل ذكي' : 'Smart Insights'}
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1 font-medium font-['Alexandria']">
-            {data.rangeLabel}
-          </p>
-        </div>
+            
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed max-w-2xl">
+              {ar
+                ? 'كل صلاة صليتها، وكل صفحة قرأتها، وكل مهمة أنجزتها... هذا هو حصاد أسبوعك الحقيقي أمامك.'
+                : 'Every prayer performed, page read, and task completed—this is your actual weekly harvest.'}
+            </p>
 
-        {/* Navigation & Export Actions */}
-        <div className="flex items-center gap-2 self-start sm:self-center">
-          
-          {/* Week Navigation Buttons */}
-          <div className="inline-flex items-center bg-slate-100 dark:bg-white/[0.06] rounded-xl p-1 border border-slate-200/80 dark:border-white/[0.08]">
-            <button
-              type="button"
-              onClick={handlePrevWeek}
-              title={lang === 'ar' ? 'الأسبوع السابق' : 'Previous Week'}
-              className="p-1.5 rounded-lg hover:bg-white dark:hover:bg-white/[0.1] text-slate-700 dark:text-zinc-300 transition-colors cursor-pointer"
-            >
-              <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
-            </button>
-            <button
-              type="button"
-              onClick={handleResetToCurrentWeek}
-              className="px-2.5 py-1 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 font-['Alexandria'] cursor-pointer"
-            >
-              {lang === 'ar' ? 'هذا الأسبوع' : 'This Week'}
-            </button>
-            <button
-              type="button"
-              onClick={handleNextWeek}
-              title={lang === 'ar' ? 'الأسبوع التالي' : 'Next Week'}
-              className="p-1.5 rounded-lg hover:bg-white dark:hover:bg-white/[0.1] text-slate-700 dark:text-zinc-300 transition-colors cursor-pointer"
-            >
-              <ChevronLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
-            </button>
+            <div className="flex items-center gap-2 pt-1 text-xs font-bold text-slate-700 dark:text-slate-300">
+              <Calendar className="w-4 h-4 text-[#00C896]" />
+              <span className="font-mono">{data.rangeLabel}</span>
+            </div>
           </div>
 
-          {/* Export button */}
-          <button
-            type="button"
-            onClick={handleExportImage}
-            disabled={isExporting}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-white/[0.06] hover:bg-slate-200 dark:hover:bg-white/[0.1] text-slate-800 dark:text-zinc-200 border border-slate-200/80 dark:border-white/[0.08] transition-all cursor-pointer font-['Alexandria']"
-          >
-            <Camera className="w-3.5 h-3.5 stroke-[2.2]" />
-            <span className="hidden sm:inline">{isExporting ? (lang === 'ar' ? 'جاري التصدير...' : 'Exporting...') : (lang === 'ar' ? 'تصدير التقرير' : 'Export')}</span>
-          </button>
+          {/* Controls: Navigation, Week Start Preference, Export Actions */}
+          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5">
+            
+            {/* Week Stepper Buttons */}
+            <div className="inline-flex items-center justify-between bg-slate-100 dark:bg-white/[0.05] rounded-2xl p-1 border border-slate-200/80 dark:border-white/[0.08]">
+              <button
+                type="button"
+                onClick={handlePrevWeek}
+                title={ar ? 'الأسبوع السابق' : 'Previous Week'}
+                className="p-2 rounded-xl hover:bg-white dark:hover:bg-white/[0.1] text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
+              </button>
+              
+              <button
+                type="button"
+                onClick={handleResetToCurrentWeek}
+                className="px-3 py-1.5 text-xs font-bold text-slate-800 dark:text-white hover:text-[#00C896] dark:hover:text-[#00C896] transition-colors font-['Alexandria'] cursor-pointer"
+              >
+                {ar ? 'هذا الأسبوع' : 'This Week'}
+              </button>
+              
+              <button
+                type="button"
+                onClick={handleNextWeek}
+                title={ar ? 'الأسبوع التالي' : 'Next Week'}
+                className="p-2 rounded-xl hover:bg-white dark:hover:bg-white/[0.1] text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
+              </button>
+            </div>
+
+            {/* Week Start Day Selector */}
+            <div className="inline-flex items-center gap-1 bg-slate-100 dark:bg-white/[0.05] rounded-2xl p-1 border border-slate-200/80 dark:border-white/[0.08] text-xs">
+              <span className="px-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400 hidden sm:inline">
+                {ar ? 'البداية:' : 'Starts:'}
+              </span>
+              {(['saturday', 'sunday', 'monday'] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => handleWeekStartChange(s)}
+                  className={`px-2.5 py-1.5 rounded-xl font-bold transition-all text-[11px] cursor-pointer ${
+                    weekStartPreference === s
+                      ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-800 dark:text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  {s === 'saturday' ? (ar ? 'السبت' : 'Sat') : s === 'sunday' ? (ar ? 'الأحد' : 'Sun') : (ar ? 'الاثنين' : 'Mon')}
+                </button>
+              ))}
+            </div>
+
+            {/* Export & Share Action Buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handlePrintPdf}
+                title={ar ? 'تصدير كتقرير PDF أو طباعة' : 'Export as PDF or print'}
+                className="flex-1 sm:flex-initial inline-flex min-h-11 items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-white/10 hover:border-[#00C896]/50 hover:bg-slate-50 text-slate-700 dark:text-slate-200 transition-all cursor-pointer shadow-2xs"
+              >
+                <Printer className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                <span>{ar ? 'تصدير PDF' : 'Export PDF'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExportImage}
+                disabled={isExportingImage}
+                title={ar ? 'تصدير كصورة كاملة' : 'Export as image'}
+                className="flex-1 sm:flex-initial inline-flex min-h-11 items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-white/10 hover:border-[#00C896]/50 hover:bg-slate-50 text-slate-700 dark:text-slate-200 transition-all cursor-pointer shadow-2xs"
+              >
+                <Camera className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                <span>{isExportingImage ? (ar ? 'جارٍ التصدير…' : 'Exporting…') : (ar ? 'صورة' : 'Image')}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCopySummary}
+                title={ar ? 'نسخ ملخص الأسبوع للمشاركة' : 'Copy weekly summary text'}
+                className="inline-flex min-h-11 items-center justify-center p-2.5 rounded-xl text-xs font-bold bg-[#00C896] hover:bg-[#00b587] text-slate-950 transition-all cursor-pointer shadow-sm shadow-[#00C896]/20"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+            </div>
+
+          </div>
 
         </div>
-      </div>
+      </header>
 
-      {/* Main Report Container for Visualization & Export */}
-      <div ref={reportRef} className="space-y-6">
+      {/* Main Full-Page Printable/Exportable Body */}
+      <div ref={reportRef} className="space-y-8">
         
-        {/* 2. شريط ملخص علوي (Summary Bar & Key Metrics) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          
-          {/* Card 1: نسبة الإنجاز الإجمالية للأسبوع */}
-          <div className="bg-white dark:bg-[#11131a] p-4 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs">
-            <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400 font-['Alexandria']">
-              {lang === 'ar' ? 'نسبة إنجاز الأسبوع' : 'Weekly Completion'}
+        {/* ========================================================================= */}
+        {/* SECTION 02 — My Week in One Glance (أسبوعك في لمحة واحدة)                 */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="section-02-heading" className="space-y-3.5">
+          <div className="flex items-center justify-between">
+            <h2 id="section-02-heading" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif] flex items-center gap-2">
+              <Compass className="w-5 h-5 text-[#00C896]" />
+              <span>{ar ? 'أسبوعك في لمحة واحدة' : 'My Week in One Glance'}</span>
+            </h2>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              {ar ? '8 مؤشرات حيوية مستخرجة من واقع نشاطك' : '8 core vital indicators'}
             </span>
-            <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-3xl sm:text-4xl font-black font-mono text-emerald-600 dark:text-emerald-400">
-                {data.overallPercentage}%
-              </span>
-              <span className="text-xs font-mono text-slate-400 dark:text-zinc-500">
-                ({data.totalDoneCount}/{data.totalTasksCount})
-              </span>
-            </div>
-            <div className="w-full bg-slate-100 dark:bg-white/[0.06] rounded-full h-1.5 mt-3 overflow-hidden">
-              <div 
-                className="bg-emerald-500 h-full rounded-full transition-all duration-500" 
-                style={{ width: `${data.overallPercentage}%` }} 
-              />
-            </div>
           </div>
 
-          {/* Card 2: مقارنة مع الأسبوع السابق */}
-          <div className="bg-white dark:bg-[#11131a] p-4 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs">
-            <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400 font-['Alexandria']">
-              {lang === 'ar' ? 'مقارنة بالأسبوع السابق' : 'Vs. Last Week'}
-            </span>
-            <div className="flex items-center gap-2 mt-2">
-              {data.diffFromLastWeek >= 0 ? (
-                <div className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-2xl sm:text-3xl font-black font-mono">
-                  <ArrowUpRight className="w-6 h-6 stroke-[3]" />
-                  <span>+{data.diffFromLastWeek}%</span>
-                </div>
-              ) : (
-                <div className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400 text-2xl sm:text-3xl font-black font-mono">
-                  <ArrowDownRight className="w-6 h-6 stroke-[3]" />
-                  <span>{data.diffFromLastWeek}%</span>
-                </div>
-              )}
-            </div>
-            <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-2 font-medium font-['Alexandria']">
-              {lang === 'ar' ? `الأسبوع الماضي كان: ${data.previousWeekPercentage}%` : `Last week was ${data.previousWeekPercentage}%`}
-            </p>
-          </div>
-
-          {/* Card 3: الأيام المكتملة (High Output Days) */}
-          <div className="bg-white dark:bg-[#11131a] p-4 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs">
-            <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400 font-['Alexandria']">
-              {lang === 'ar' ? 'أيام مكتملة (≥85%)' : 'High Focus Days'}
-            </span>
-            <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-3xl sm:text-4xl font-black font-mono text-slate-900 dark:text-white">
-                {data.completedDaysCount}
-              </span>
-              <span className="text-xs text-slate-400 dark:text-zinc-500 font-['Alexandria']">
-                {lang === 'ar' ? 'من أصل 7 أيام' : 'of 7 days'}
-              </span>
-            </div>
-            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-2 font-medium font-['Alexandria'] flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
-              {lang === 'ar' ? 'استمرارية ممتازة' : 'Great consistency'}
-            </p>
-          </div>
-
-          {/* Card 4: الأيام الضعيفة (<50%) */}
-          <div className="bg-white dark:bg-[#11131a] p-4 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs">
-            <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400 font-['Alexandria']">
-              {lang === 'ar' ? 'أيام منخفضة (<50%)' : 'Low Output Days'}
-            </span>
-            <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-3xl sm:text-4xl font-black font-mono text-amber-600 dark:text-amber-400">
-                {data.weakDaysCount}
-              </span>
-              <span className="text-xs text-slate-400 dark:text-zinc-500 font-['Alexandria']">
-                {lang === 'ar' ? 'من أصل 7 أيام' : 'of 7 days'}
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-2 font-medium font-['Alexandria']">
-              {data.weakDaysCount === 0 
-                ? (lang === 'ar' ? 'أسبوع متوازن بدون تعثر' : 'Clean week without dips')
-                : (lang === 'ar' ? 'فرصة للتعويض الأسبوع القادم' : 'Room to bounce back')}
-            </p>
-          </div>
-
-        </div>
-
-        {/* 3. الشارتات التحليلية الرئيسية (Charts Grid) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          {/* Bar Chart أسبوعي: نسبة الإنجاز لكل يوم من أيام الأسبوع الـ 7 */}
-          <div className="lg:col-span-7 bg-white dark:bg-[#11131a] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs">
-            <div className="flex items-center justify-between mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            
+            {/* Card 1: الصلوات (Prayers) */}
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] flex flex-col justify-between">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white font-['Alexandria']">
-                  {lang === 'ar' ? 'الأداء اليومي عبر الأسبوع' : 'Daily Performance'}
-                </h3>
-                <span className="text-xs text-slate-500 dark:text-zinc-400 font-['Alexandria']">
-                  {lang === 'ar' ? 'انقر على أي يوم لفتح جدوله بالتفصيل' : 'Click any day to jump to its schedule'}
-                </span>
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span className="font-semibold">{ar ? 'الصلوات التي أديتها' : 'Prayers Performed'}</span>
+                  <MoonStar className="w-4 h-4 text-emerald-600 dark:text-[#00C896]" />
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-2">
+                  <span className="text-2xl sm:text-3xl font-black font-mono text-emerald-700 dark:text-[#00C896]">
+                    {data.kpis.prayers.done}
+                  </span>
+                  <span className="text-xs font-mono text-slate-500">
+                    / {data.kpis.prayers.expected}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-white/[0.06] rounded-full h-1.5 mt-2.5 overflow-hidden">
+                  <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(data.kpis.prayers.percentage, 100)}%` }} />
+                </div>
               </div>
-              <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400">
-                7 Days
-              </span>
-            </div>
-
-            {/* Custom SVG Bar Chart */}
-            <div className="flex items-end justify-between gap-2 sm:gap-4 h-48 pt-6 pb-2 px-1 border-b border-slate-100 dark:border-white/[0.06]">
-              {data.days.map((day) => {
-                let barColor = 'bg-emerald-500';
-                if (day.percentage < 50) barColor = 'bg-rose-500';
-                else if (day.percentage < 75) barColor = 'bg-amber-500';
-
-                return (
-                  <button
-                    key={day.date}
-                    type="button"
-                    onClick={() => onNavigateToDay(day.date)}
-                    className="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer"
-                  >
-                    {/* Value Badge above bar */}
-                    <span className="text-[10px] sm:text-xs font-mono font-bold text-slate-600 dark:text-zinc-400 mb-1 opacity-80 group-hover:opacity-100 transition-opacity">
-                      {day.percentage}%
-                    </span>
-
-                    {/* Bar Pillar */}
-                    <div className="w-full max-w-[36px] bg-slate-100 dark:bg-white/[0.05] rounded-t-lg h-full flex items-end overflow-hidden p-0.5">
-                      <div
-                        className={`w-full rounded-t-md transition-all duration-500 group-hover:brightness-110 ${barColor}`}
-                        style={{ height: `${Math.max(day.percentage, 6)}%` }}
-                      />
-                    </div>
-
-                    {/* Day Name */}
-                    <span className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-zinc-300 mt-2 font-['Alexandria'] truncate">
-                      {day.dayName}
-                    </span>
-                    {/* Day Date */}
-                    <span className="text-[9px] font-mono text-slate-400 dark:text-zinc-500">
-                      {day.date.slice(8)}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Color threshold legend */}
-            <div className="flex items-center justify-center gap-4 sm:gap-6 mt-4 text-[11px] font-medium text-slate-500 dark:text-zinc-400 font-['Alexandria']">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                {lang === 'ar' ? 'ممتاز (≥75%)' : 'High (≥75%)'}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                {lang === 'ar' ? 'متوسط (50-74%)' : 'Medium (50-74%)'}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                {lang === 'ar' ? 'ضعيف (<50%)' : 'Low (<50%)'}
-              </span>
-            </div>
-          </div>
-
-          {/* Bar أفقي لفئات المهام (Category Breakdown) */}
-          <div className="lg:col-span-5 bg-white dark:bg-[#11131a] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white font-['Alexandria']">
-                  {lang === 'ar' ? 'إنجاز فئات المهام' : 'Category Breakdown'}
-                </h3>
-                <span className="text-xs text-slate-400 dark:text-zinc-500 font-['Alexandria']">
-                  {lang === 'ar' ? 'طوال الأسبوع' : 'Full Week'}
-                </span>
-              </div>
-
-              {/* Category bars list */}
-              <div className="space-y-3">
-                {data.categories.map((cat) => {
-                  const CatIcon = getCategoryIcon(cat.id);
-                  let barColor = 'bg-emerald-500';
-                  if (cat.percentage < 50) barColor = 'bg-rose-500';
-                  else if (cat.percentage < 70) barColor = 'bg-amber-500';
-
-                  return (
-                    <div key={cat.id} className="space-y-1">
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <CatIcon className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400 shrink-0" />
-                          <span className="font-semibold text-slate-800 dark:text-zinc-200 truncate font-['Alexandria']">
-                            {lang === 'ar' ? cat.name : cat.nameEn}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0 font-mono">
-                          <span className="text-slate-400 dark:text-zinc-500 text-[11px]">
-                            {cat.done}/{cat.total}
-                          </span>
-                          <span className="font-bold text-slate-800 dark:text-white text-xs">
-                            {cat.percentage}%
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Bar */}
-                      <div className="w-full bg-slate-100 dark:bg-white/[0.06] rounded-full h-2 overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-300 ${barColor}`}
-                          style={{ width: `${cat.percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-4 font-['Alexandria']">
-              {lang === 'ar' 
-                ? 'يتم تصنيف المهام آلياً استناداً إلى اسم المهمة وطبيعتها اليومية.'
-                : 'Tasks are automatically classified according to title keywords and context.'}
-            </p>
-          </div>
-
-        </div>
-
-        {/* 4. Heatmap مصغر: شبكة 7 أيام × 24 ساعة */}
-        <div className="bg-white dark:bg-[#11131a] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white font-['Alexandria'] flex items-center gap-2">
-                <Clock className="w-4 h-4 text-emerald-500 stroke-[2.5]" />
-                <span>{heatmapMode === 'schedule'
-                  ? (lang === 'ar' ? 'الخريطة الحرارية لساعات اليوم (7 × 24)' : 'Weekly 24h Heatmap')
-                  : (lang === 'ar' ? 'إنجاز المهام حسب البطاقات' : 'Progress by cards')}</span>
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 font-['Alexandria'] mt-0.5">
-                {lang === 'ar' 
-                  ? 'تابع إنجاز مهامك حسب أوقات الجدول أو بطاقات يومك'
-                  : 'Track your completed tasks by schedule time or daily cards'}
+              <p className="mt-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                {ar
+                  ? `أديت ${data.kpis.prayers.done} من 35 صلاة (${data.kpis.prayers.percentage}%) في ${data.kpis.prayers.daysAllCompleted} أيام كاملة`
+                  : `${data.kpis.prayers.done} of 35 prayers completed in ${data.kpis.prayers.daysAllCompleted} full days`}
               </p>
             </div>
 
-            <div role="group" aria-label={lang === 'ar' ? 'طريقة عرض التقدم' : 'Progress view'} className="inline-flex self-start rounded-xl border border-slate-200/80 bg-slate-100 p-1 dark:border-white/[0.08] dark:bg-white/[0.06]">
-              <button type="button" aria-pressed={heatmapMode === 'schedule'} onClick={() => { setHeatmapMode('schedule'); setHoveredCell(null); setSelectedCell(null); }}
-                className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition-colors ${heatmapMode === 'schedule' ? 'bg-white text-emerald-700 shadow-sm dark:bg-white/[0.12] dark:text-emerald-300' : 'text-slate-600 dark:text-zinc-400'}`}>
-                <Table2 aria-hidden="true" className="h-3.5 w-3.5" />
-                {lang === 'ar' ? 'حسب الجدول' : 'Schedule'}
-              </button>
-              <button type="button" aria-pressed={heatmapMode === 'cards'} onClick={() => { setHeatmapMode('cards'); setHoveredCell(null); setSelectedCell(null); }}
-                className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition-colors ${heatmapMode === 'cards' ? 'bg-white text-emerald-700 shadow-sm dark:bg-white/[0.12] dark:text-emerald-300' : 'text-slate-600 dark:text-zinc-400'}`}>
-                <LayoutGrid aria-hidden="true" className="h-3.5 w-3.5" />
-                {lang === 'ar' ? 'حسب البطاقات' : 'Cards'}
-              </button>
+            {/* Card 2: القرآن الكريم (Holy Quran) */}
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span className="font-semibold">{ar ? 'القرآن الكريم' : 'Holy Quran'}</span>
+                  <BookOpen className="w-4 h-4 text-amber-500" />
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-2">
+                  <span className="text-2xl sm:text-3xl font-black font-mono text-amber-600 dark:text-amber-400">
+                    {data.kpis.quran.totalPages}
+                  </span>
+                  <span className="text-xs font-semibold text-slate-500 font-['Alexandria']">
+                    {ar ? 'صفحة' : 'pages'}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-white/[0.06] rounded-full h-1.5 mt-2.5 overflow-hidden">
+                  <div className="bg-amber-500 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(data.kpis.quran.targetPercentage, 100)}%` }} />
+                </div>
+              </div>
+              <p className="mt-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                {ar
+                  ? `${data.kpis.quran.daysRead} أيام قراءة · معدل ${data.kpis.quran.averagePagesPerSession} صفحة/جلسة`
+                  : `${data.kpis.quran.daysRead} days read · ${data.kpis.quran.averagePagesPerSession} p/session`}
+              </p>
             </div>
+
+            {/* Card 3: قراءة الكتب (Book Reading) */}
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span className="font-semibold">{ar ? 'قراءة الكتب' : 'Book Reading'}</span>
+                  <Book className="w-4 h-4 text-indigo-500" />
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-2">
+                  <span className="text-2xl sm:text-3xl font-black font-mono text-indigo-600 dark:text-indigo-400">
+                    {data.kpis.books.totalPages}
+                  </span>
+                  <span className="text-xs font-semibold text-slate-500 font-['Alexandria']">
+                    {ar ? 'صفحة' : 'pages'}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-white/[0.06] rounded-full h-1.5 mt-2.5 overflow-hidden">
+                  <div className="bg-indigo-500 h-full rounded-full" style={{ width: `${Math.min((data.kpis.books.totalPages / 50) * 100, 100)}%` }} />
+                </div>
+              </div>
+              <p className="mt-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300 truncate">
+                {data.kpis.books.titles.length > 0
+                  ? data.kpis.books.titles.join('، ')
+                  : (ar ? 'جلسات قراءة متنوعة' : 'General reading')}
+              </p>
+            </div>
+
+            {/* Card 4: المحاضرات والدروس (Lectures) */}
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span className="font-semibold">{ar ? 'المحاضرات والدروس' : 'Lectures & Classes'}</span>
+                  <GraduationCap className="w-4 h-4 text-blue-500" />
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-2">
+                  <span className="text-2xl sm:text-3xl font-black font-mono text-blue-600 dark:text-blue-400">
+                    {data.kpis.lectures.completedCount}
+                  </span>
+                  <span className="text-xs font-mono text-slate-500">
+                    / {data.kpis.lectures.totalCount} {ar ? 'محاضرة' : 'classes'}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-white/[0.06] rounded-full h-1.5 mt-2.5 overflow-hidden">
+                  <div className="bg-blue-500 h-full rounded-full" style={{ width: `${Math.min(data.kpis.lectures.percentage, 100)}%` }} />
+                </div>
+              </div>
+              <p className="mt-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                {ar
+                  ? `${(data.kpis.lectures.durationMinutes / 60).toFixed(1)} ساعة مسجلة في المحاضرات`
+                  : `${(data.kpis.lectures.durationMinutes / 60).toFixed(1)} hrs in lectures`}
+              </p>
+            </div>
+
+            {/* Card 5: الدراسة والتعلم (Study & Learning) */}
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span className="font-semibold">{ar ? 'الدراسة والتعلم' : 'Study & Learning'}</span>
+                  <FileText className="w-4 h-4 text-teal-500" />
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-2">
+                  <span className="text-2xl sm:text-3xl font-black font-mono text-teal-600 dark:text-teal-400">
+                    {(data.kpis.study.durationMinutes / 60).toFixed(1)}
+                  </span>
+                  <span className="text-xs font-semibold text-slate-500 font-['Alexandria']">
+                    {ar ? 'ساعة' : 'hours'}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-white/[0.06] rounded-full h-1.5 mt-2.5 overflow-hidden">
+                  <div className="bg-teal-500 h-full rounded-full" style={{ width: `${Math.min((data.kpis.study.durationMinutes / 600) * 100, 100)}%` }} />
+                </div>
+              </div>
+              <p className="mt-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                {ar ? `${data.kpis.study.sessionsCount} جلسات دراسية مسجلة` : `${data.kpis.study.sessionsCount} study sessions`}
+              </p>
+            </div>
+
+            {/* Card 6: المهام اليومية (Tasks) */}
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span className="font-semibold">{ar ? 'المهام اليومية' : 'Daily Tasks'}</span>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-2">
+                  <span className="text-2xl sm:text-3xl font-black font-mono text-slate-900 dark:text-white">
+                    {data.kpis.tasks.percentage}%
+                  </span>
+                  <span className="text-xs font-mono text-slate-500">
+                    ({data.kpis.tasks.done}/{data.kpis.tasks.total})
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-white/[0.06] rounded-full h-1.5 mt-2.5 overflow-hidden">
+                  <div className="bg-[#00C896] h-full rounded-full" style={{ width: `${data.kpis.tasks.percentage}%` }} />
+                </div>
+              </div>
+              <p className="mt-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                {ar ? `${data.kpis.tasks.pending} متبقية · ${data.kpis.tasks.notDone} غير منجزة` : `${data.kpis.tasks.pending} pending · ${data.kpis.tasks.notDone} missed`}
+              </p>
+            </div>
+
+            {/* Card 7: العادات (Habits) */}
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span className="font-semibold">{ar ? 'العادات والاستمرارية' : 'Habit Consistency'}</span>
+                  <Zap className="w-4 h-4 text-amber-500" />
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-2">
+                  <span className="text-2xl sm:text-3xl font-black font-mono text-amber-600 dark:text-amber-400">
+                    {data.kpis.habits.totalCompletions}
+                  </span>
+                  <span className="text-xs font-semibold text-slate-500 font-['Alexandria']">
+                    {ar ? 'مرة تنفيذ' : 'checks'}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-white/[0.06] rounded-full h-1.5 mt-2.5 overflow-hidden">
+                  <div className="bg-amber-500 h-full rounded-full" style={{ width: `${Math.min((data.kpis.habits.bestStreak / 7) * 100, 100)}%` }} />
+                </div>
+              </div>
+              <p className="mt-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300 truncate">
+                {ar ? `أفضل سلسلة: ${data.kpis.habits.bestStreak} أيام متتالية` : `Best streak: ${data.kpis.habits.bestStreak} days`}
+              </p>
+            </div>
+
+            {/* Card 8: النشاط العام (Overall Activity) */}
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span className="font-semibold">{ar ? 'النشاط العام' : 'Overall Activity'}</span>
+                  <Activity className="w-4 h-4 text-[#00C896]" />
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-2">
+                  <span className="text-2xl sm:text-3xl font-black font-mono text-slate-900 dark:text-white">
+                    {data.kpis.activity.activeDaysCount}
+                  </span>
+                  <span className="text-xs font-mono text-slate-500">
+                    / 7 {ar ? 'أيام نشطة' : 'active days'}
+                  </span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-white/[0.06] rounded-full h-1.5 mt-2.5 overflow-hidden">
+                  <div className="bg-[#00C896] h-full rounded-full" style={{ width: `${(data.kpis.activity.activeDaysCount / 7) * 100}%` }} />
+                </div>
+              </div>
+              <p className="mt-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                {ar ? `${(data.kpis.activity.totalDurationMinutes / 60).toFixed(1)} ساعة إجمالي الأنشطة المسجلة` : `${(data.kpis.activity.totalDurationMinutes / 60).toFixed(1)} hrs recorded activity`}
+              </p>
+            </div>
+
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 03 — The Story of My Week (حكاية أسبوعك)                           */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="section-03-heading" className="space-y-4">
+          <div className="space-y-1">
+            <h2 id="section-03-heading" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif] flex items-center gap-2">
+              <CalendarCheck className="w-5 h-5 text-[#00C896]" />
+              <span>{ar ? 'حكاية أسبوعك' : 'The Story of My Week'}</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">
+              {ar ? 'سبعة أيام، ولكل يوم قصة. انقر على أي يوم لاستعراض تفاصيله وجدوله الزمني الكامل.' : 'Seven days, each with a story. Select any day to explore its detailed timeline.'}
+            </p>
           </div>
 
-          {/* Heatmap Legend */}
-          <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-slate-500 dark:text-zinc-400 font-['Alexandria']">
+          {/* 7 Days Horizontal Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 sm:gap-3">
+            {data.days.map((day) => {
+              const isSelected = selectedDayDate === day.date;
+              const qualityBadge = day.statusQuality === 'excellent'
+                ? 'bg-emerald-500/10 text-emerald-700 dark:text-[#00C896] border-emerald-500/20'
+                : day.statusQuality === 'good'
+                  ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
+                  : day.statusQuality === 'low'
+                    ? 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20'
+                    : 'bg-slate-100 text-slate-500 dark:bg-white/[0.05] dark:text-slate-400 border-transparent';
+
+              return (
+                <button
+                  key={day.date}
+                  type="button"
+                  onClick={() => setSelectedDayDate(day.date)}
+                  className={`flex flex-col justify-between p-3.5 rounded-2xl border text-start transition-all cursor-pointer select-none ${
+                    isSelected
+                      ? 'border-[#00C896] ring-2 ring-[#00C896]/30 bg-white dark:bg-[#151c2a] shadow-sm'
+                      : 'border-slate-200/90 bg-white hover:border-[#00C896]/40 dark:border-white/[0.08] dark:bg-[#111622]'
+                  }`}
+                >
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-extrabold text-slate-900 dark:text-white font-['Alexandria']">
+                        {day.dayName}
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-400">
+                        {day.dayShortDate}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-xl font-black font-mono text-slate-900 dark:text-white">
+                        {day.completionRate}%
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-400">
+                        ({day.doneTasks}/{day.totalTasks})
+                      </span>
+                    </div>
+
+                    <div className="w-full bg-slate-100 dark:bg-white/[0.06] rounded-full h-1 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          day.completionRate >= 80 ? 'bg-[#00C896]' : day.completionRate >= 50 ? 'bg-amber-500' : 'bg-rose-500'
+                        }`}
+                        style={{ width: `${day.completionRate}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.05] space-y-1">
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                      <span>{ar ? 'صلوات' : 'Prayers'}: {day.prayersDone}/5</span>
+                      {day.quranPagesRead > 0 && <span>{day.quranPagesRead} ص</span>}
+                    </div>
+
+                    <span className={`block text-center text-[10px] font-bold py-0.5 rounded-md border ${qualityBadge}`}>
+                      {day.statusLabel}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Day Detail Panel */}
+          {selectedDayOverview && (
+            <div className="rounded-3xl border border-[#00C896]/30 bg-slate-50/70 dark:bg-[#0c121d] p-5 sm:p-6 space-y-5 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-white/[0.08] pb-4">
+                <div>
+                  <span className="text-xs font-bold text-[#008f6b] dark:text-[#00C896] uppercase tracking-wider">
+                    {ar ? 'تفاصيل اليوم المختار' : 'Selected Day Detailed Log'}
+                  </span>
+                  <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif]">
+                    {selectedDayOverview.dayName} — {ar ? 'ماذا فعلت في هذا اليوم؟' : `What did you do on this day?`}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                    {selectedDayOverview.date} · {selectedDayOverview.totalTasks} {ar ? 'أنشطة مسجلة' : 'activities recorded'}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => onNavigateToDay(selectedDayOverview.date)}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[#00C896] hover:bg-[#00b587] text-slate-950 transition-all cursor-pointer shadow-sm"
+                >
+                  <span>{ar ? 'فتح اليوم في المخطط الرئيسي' : 'Open in Planner'}</span>
+                  <ArrowUpRight className="w-4 h-4 rtl:rotate-[-90deg] ltr:rotate-0" />
+                </button>
+              </div>
+
+              {/* Chronological Activity Feed */}
+              {selectedDayOverview.activities.length > 0 ? (
+                <div className="space-y-2.5">
+                  {selectedDayOverview.activities.map((act) => {
+                    const statusBadge = act.status === 'done'
+                      ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-[#00C896]'
+                      : act.status === 'not-done'
+                        ? 'border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300'
+                        : 'border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300';
+
+                    return (
+                      <div
+                        key={act.id}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-white dark:bg-[#141b29] border border-slate-200/80 dark:border-white/[0.06] shadow-2xs hover:border-[#00C896]/40 transition-colors"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-white/[0.05] text-slate-700 dark:text-slate-200 font-bold">
+                            {act.status === 'done' ? (
+                              <CheckCircle2 className="w-5 h-5 text-[#00C896]" />
+                            ) : act.status === 'not-done' ? (
+                              <XCircle className="w-5 h-5 text-rose-500" />
+                            ) : (
+                              <Clock className="w-5 h-5 text-amber-500" />
+                            )}
+                          </span>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                {act.title}
+                              </span>
+                              {act.quantityLabel && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
+                                  {act.quantityLabel}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400">
+                              <span className="font-semibold text-slate-600 dark:text-slate-300">
+                                {act.categoryName}
+                              </span>
+                              {act.time && (
+                                <>
+                                  <span>•</span>
+                                  <span className="font-mono">{formatTime12h(act.time, lang).formatted}</span>
+                                </>
+                              )}
+                              {act.durationMinutes > 0 && (
+                                <>
+                                  <span>•</span>
+                                  <span>{act.durationMinutes} {ar ? 'دقيقة' : 'min'}</span>
+                                </>
+                              )}
+                              {act.notes && (
+                                <>
+                                  <span>•</span>
+                                  <span className="truncate max-w-xs italic text-slate-400">{act.notes}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+                          <span className={`px-2.5 py-1 rounded-xl text-xs font-bold border ${statusBadge}`}>
+                            {act.status === 'done' ? (ar ? 'مكتملة ✓' : 'Done ✓') : act.status === 'not-done' ? (ar ? 'غير منجزة' : 'Not Done') : (ar ? 'متبقية' : 'Pending')}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
+                  {ar ? 'لا توجد أنشطة مسجلة في هذا اليوم. يمكنك إضافة مهام في المخطط اليومي.' : 'No activities recorded on this day.'}
+                </div>
+              )}
+
+              {/* Day Summary Footer */}
+              <div className="rounded-2xl bg-white dark:bg-[#141b29] p-4 border border-slate-200/80 dark:border-white/[0.06] flex flex-wrap items-center justify-between gap-4 text-xs font-semibold">
+                <span className="text-slate-700 dark:text-slate-200 font-bold font-['Alexandria']">
+                  {ar ? 'ملخص يومك:' : 'Day Summary:'}
+                </span>
+                <div className="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-300 font-medium">
+                  <span>{selectedDayOverview.prayersDone}/5 {ar ? 'صلوات' : 'prayers'}</span>
+                  <span>•</span>
+                  <span>{selectedDayOverview.quranPagesRead} {ar ? 'صفحة قرآن' : 'quran pages'}</span>
+                  <span>•</span>
+                  <span>{selectedDayOverview.doneTasks} {ar ? 'من' : 'of'} {selectedDayOverview.totalTasks} {ar ? 'مهام مكتملة' : 'tasks done'}</span>
+                  <span>•</span>
+                  <span>{(selectedDayOverview.totalDurationMinutes / 60).toFixed(1)} {ar ? 'ساعة مسجلة' : 'hrs logged'}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 04 — Detailed Weekly Achievements (ماذا أنجزت بالتفصيل؟)           */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="section-04-heading" className="space-y-4">
+          <div className="space-y-1">
+            <h2 id="section-04-heading" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif] flex items-center gap-2">
+              <Award className="w-5 h-5 text-[#00C896]" />
+              <span>{ar ? 'ماذا أنجزت هذا الأسبوع بالتفصيل؟' : 'Detailed Weekly Achievements'}</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">
+              {ar ? 'جداول تفصيلية قابلة للتوسيع توثق التزامك بالصلوات، والقرآن، والكتب، والمحاضرات، والأنشطة.' : 'Expandable deep-dive sections documenting prayers, Quran, books, lectures, and activities.'}
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            
+            {/* 1. الصلاة والعبادات (Weekly Prayer Grid) */}
+            <div className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] space-y-4">
+              <div className="flex items-center justify-between cursor-pointer" onClick={() => toggleCategoryTab('prayers')}>
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-700 dark:text-[#00C896]">
+                    <MoonStar className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white font-['Alexandria']">
+                      {ar ? 'الصلاة والعبادات (جدول الصلوات الخمس الأسبوعي)' : 'Prayers & Worship Grid'}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {ar ? `أديت ${data.prayerMatrix.totalDone} من ${data.prayerMatrix.totalExpected} صلاة مسجلة` : `${data.prayerMatrix.totalDone} of ${data.prayerMatrix.totalExpected} prayers`}
+                    </p>
+                  </div>
+                </div>
+                <button type="button" className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">
+                  {expandedCategoryTabs.prayers ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </button>
+              </div>
+
+              {expandedCategoryTabs.prayers && (
+                <div className="space-y-4 pt-2">
+                  <div className="overflow-x-auto pb-2">
+                    <table className="w-full min-w-[500px] text-xs font-semibold text-slate-700 dark:text-slate-200 text-center border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200/80 dark:border-white/[0.08]">
+                          <th className="py-2.5 px-3 text-start text-slate-500 dark:text-slate-400">{ar ? 'الصلاة' : 'Prayer'}</th>
+                          {data.prayerMatrix.days.map((d) => (
+                            <th key={d.date} className="py-2.5 px-2">
+                              <div>{d.dayName}</div>
+                              <div className="text-[10px] font-mono font-normal text-slate-400">{d.date.slice(8)}</div>
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-white/[0.05]">
+                        {(['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'] as const).map((prayerKey) => {
+                          const pNames = {
+                            fajr: ar ? 'الفجر' : 'Fajr',
+                            dhuhr: ar ? 'الظهر' : 'Dhuhr',
+                            asr: ar ? 'العصر' : 'Asr',
+                            maghrib: ar ? 'المغرب' : 'Maghrib',
+                            isha: ar ? 'العشاء' : 'Isha',
+                          };
+                          return (
+                            <tr key={prayerKey}>
+                              <td className="py-3 px-3 text-start font-bold text-slate-900 dark:text-white">
+                                {pNames[prayerKey]}
+                              </td>
+                              {data.prayerMatrix.days.map((d) => {
+                                const st = d[prayerKey];
+                                return (
+                                  <td key={d.date} className="py-3 px-2">
+                                    <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold ${
+                                      st === 'done'
+                                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-[#00C896]'
+                                        : st === 'not-done'
+                                          ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400'
+                                          : 'bg-slate-100 text-slate-400 dark:bg-white/[0.05]'
+                                    }`}>
+                                      {st === 'done' ? '✓' : st === 'not-done' ? '✕' : '—'}
+                                    </span>
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Prayer Summary Badges */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-100 dark:border-white/[0.06] text-xs">
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03]">
+                      <span className="text-slate-500 block text-[11px]">{ar ? 'أكثر صلاة انتظاماً' : 'Most Consistent'}</span>
+                      <span className="font-bold text-emerald-600 dark:text-[#00C896] mt-0.5 block">{data.prayerMatrix.mostConsistentPrayer.name} ({data.prayerMatrix.mostConsistentPrayer.count}/7)</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03]">
+                      <span className="text-slate-500 block text-[11px]">{ar ? 'أقل صلاة انتظاماً' : 'Least Consistent'}</span>
+                      <span className="font-bold text-amber-600 dark:text-amber-400 mt-0.5 block">{data.prayerMatrix.leastConsistentPrayer.name} ({data.prayerMatrix.leastConsistentPrayer.count}/7)</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03]">
+                      <span className="text-slate-500 block text-[11px]">{ar ? 'أيام الصلوات كاملة' : 'Full Prayer Days'}</span>
+                      <span className="font-bold text-slate-900 dark:text-white mt-0.5 block">{data.prayerMatrix.daysWithAllFive} {ar ? 'من 7 أيام' : 'of 7 days'}</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03]">
+                      <span className="text-slate-500 block text-[11px]">{ar ? 'السنن والأذكار' : 'Sunnah & Adhkar'}</span>
+                      <span className="font-bold text-slate-900 dark:text-white mt-0.5 block">{data.prayerMatrix.morningAdhkarDoneDays} {ar ? 'صباح' : 'morning'} · {data.prayerMatrix.eveningAdhkarDoneDays} {ar ? 'مساء' : 'evening'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. القرآن الكريم (Holy Quran) */}
+            <div className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] space-y-4">
+              <div className="flex items-center justify-between cursor-pointer" onClick={() => toggleCategoryTab('quran')}>
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                    <BookOpen className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white font-['Alexandria']">
+                      {ar ? 'القرآن الكريم والورد اليومي' : 'Holy Quran & Daily Wird'}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {ar ? `إجمالي ${data.quranDetail.totalPages} صفحة مقروءة في ${data.quranDetail.readingDaysCount} أيام` : `${data.quranDetail.totalPages} pages in ${data.quranDetail.readingDaysCount} days`}
+                    </p>
+                  </div>
+                </div>
+                <button type="button" className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white">
+                  {expandedCategoryTabs.quran ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </button>
+              </div>
+
+              {expandedCategoryTabs.quran && (
+                <div className="space-y-4 pt-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-7 gap-2">
+                    {data.quranDetail.dailyPages.map((dp) => (
+                      <div key={dp.date} className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.03] text-center space-y-1">
+                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">{dp.dayName}</span>
+                        <span className="text-xl font-black font-mono text-amber-600 dark:text-amber-400 block">{dp.pages}</span>
+                        <span className="text-[10px] text-slate-400 block">{ar ? 'صفحة' : 'pages'}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-amber-500/[0.06] border border-amber-500/20 flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <span className="font-semibold text-amber-900 dark:text-amber-200">
+                      {ar ? 'التقدم نحو الختمة المباركة:' : 'Khatmah progress:'}
+                    </span>
+                    <span className="font-mono font-bold text-amber-800 dark:text-amber-300">
+                      {data.quranDetail.totalPages} / 604 {ar ? 'صفحة' : 'pages'} ({data.quranDetail.estimatedKhatmahProgressPercent}%)
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 3. قراءة الكتب والمحاضرات (Books & Lectures) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              {/* Books */}
+              <div className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                    <Book className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white font-['Alexandria']">
+                      {ar ? 'قراءة الكتب والمراجع' : 'Book Reading'}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      {data.booksDetail.totalPages} {ar ? 'صفحة مقروءة' : 'pages read'}
+                    </p>
+                  </div>
+                </div>
+
+                {data.booksDetail.entries.length > 0 ? (
+                  <div className="space-y-2 pt-2">
+                    {data.booksDetail.entries.map((bk, i) => (
+                      <div key={i} className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.03] flex items-center justify-between text-xs">
+                        <span className="font-bold text-slate-800 dark:text-white truncate">{bk.title}</span>
+                        <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 shrink-0">{bk.pagesRead} {ar ? 'ص' : 'p'}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 py-3">{ar ? 'لم يتم تسجيل كتب محددة هذا الأسبوع.' : 'No books logged.'}</p>
+                )}
+              </div>
+
+              {/* Lectures */}
+              <div className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                    <GraduationCap className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white font-['Alexandria']">
+                      {ar ? 'المحاضرات والدورات' : 'Lectures & Courses'}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      {data.lecturesDetail.totalHours} {ar ? 'ساعات حضور' : 'hours logged'}
+                    </p>
+                  </div>
+                </div>
+
+                {data.lecturesDetail.entries.length > 0 ? (
+                  <div className="space-y-2 pt-2 max-h-48 overflow-y-auto">
+                    {data.lecturesDetail.entries.map((lec) => (
+                      <div key={lec.id} className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.03] flex items-center justify-between text-xs">
+                        <div className="min-w-0 flex-1">
+                          <span className="font-bold text-slate-800 dark:text-white truncate block">{lec.title}</span>
+                          <span className="text-[10px] text-slate-500 font-mono">{lec.dayName} · {lec.durationMinutes} دقيقة</span>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold shrink-0 ${
+                          lec.status === 'done' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-slate-200 text-slate-700'
+                        }`}>
+                          {lec.status === 'done' ? (ar ? 'مكتملة' : 'Done') : (ar ? 'متبقية' : 'Pending')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 py-3">{ar ? 'لم يتم تسجيل محاضرات هذا الأسبوع.' : 'No lectures logged.'}</p>
+                )}
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 05 — Weekly Activity Timeline Heatmap (خريطة أسبوعك الزمنية)       */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="section-05-heading" className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 id="section-05-heading" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif] flex items-center gap-2">
+                <Clock className="w-5 h-5 text-[#00C896]" />
+                <span>{ar ? 'خريطة أسبوعك الزمنية (24h Heatmap)' : 'Weekly Activity Timeline'}</span>
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                {ar ? 'توزيع الأنشطة حسب ساعات اليوم الـ 24 عبر الأيام السبعة.' : 'Hourly distribution of activities throughout the week.'}
+              </p>
+            </div>
+
+            {/* Heatmap Legend */}
+            <div className="flex items-center gap-3 text-[11px] font-medium text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-1">
                 <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />
-                {lang === 'ar' ? 'مكتملة' : 'Completed'}
+                <span>{ar ? 'مكتملة' : 'Done'}</span>
               </span>
               <span className="flex items-center gap-1">
                 <span className="w-2.5 h-2.5 rounded-sm bg-amber-500" />
-                {lang === 'ar' ? 'متبقية / إنجاز جزئي' : 'Pending / Partial'}
+                <span>{ar ? 'متبقية' : 'Pending'}</span>
               </span>
               <span className="flex items-center gap-1">
                 <span className="w-2.5 h-2.5 rounded-sm bg-rose-500" />
-                {lang === 'ar' ? 'غير منجزة' : 'Not Done'}
+                <span>{ar ? 'غير منجزة' : 'Missed'}</span>
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-sm bg-slate-200 dark:bg-white/[0.08]" />
-                {lang === 'ar' ? 'فارغ' : 'Empty'}
+                <span className="w-2.5 h-2.5 rounded-sm bg-slate-100 dark:bg-white/[0.05]" />
+                <span>{ar ? 'فارغ' : 'Empty'}</span>
               </span>
+            </div>
           </div>
 
-          {/* Grid Container */}
+          {/* Heatmap Grid */}
           <div className="overflow-x-auto pb-2">
-            <div className="min-w-[680px]">
-              {heatmapMode === 'schedule' ? <>
-              {/* Hour Labels Header (00 to 23) */}
+            <div className="min-w-[660px] space-y-1.5">
+              
+              {/* Hour header */}
               <div className="flex items-center ms-20 sm:ms-24 mb-1">
                 {Array.from({ length: 24 }).map((_, h) => (
-                  <div key={h} className="flex-1 text-center text-[9px] font-mono text-slate-400 dark:text-zinc-500">
+                  <div key={h} className="flex-1 text-center text-[10px] font-mono text-slate-400 dark:text-slate-500">
                     {h % 3 === 0 ? String(h).padStart(2, '0') : ''}
                   </div>
                 ))}
               </div>
 
               {/* 7 Days Rows */}
-              <div className="space-y-1.5">
-                {data.days.map((day) => (
-                  <div key={day.date} className="flex items-center gap-2">
-                    
-                    {/* Day Label on the left/start */}
-                    <div 
-                      onClick={() => onNavigateToDay(day.date)}
-                      className="w-18 sm:w-22 text-xs font-bold text-slate-700 dark:text-zinc-300 font-['Alexandria'] truncate cursor-pointer hover:text-emerald-500 shrink-0"
-                    >
-                      {day.dayName} <span className="text-[10px] font-mono text-slate-400 font-normal">{day.date.slice(8)}</span>
-                    </div>
-
-                    {/* 24 Cells */}
-                    <div className="flex-1 flex items-center gap-1">
-                      {Array.from({ length: 24 }).map((_, h) => {
-                        const timeStr = `${String(h).padStart(2, '0')}:00`;
-                        const foundTasks = day.tasks.filter((task) => task.title.trim() && task.time && task.time.startsWith(String(h).padStart(2, '0')));
-                        const doneCount = foundTasks.filter(task => task.status === 'done').length;
-                        const notDoneCount = foundTasks.filter(task => task.status === 'not-done').length;
-
-                        let cellClass = 'bg-slate-100 dark:bg-white/[0.04] border-transparent';
-                        if (foundTasks.length > 0) {
-                          if (doneCount === foundTasks.length) {
-                            cellClass = 'bg-emerald-500 hover:brightness-110';
-                          } else if (doneCount > 0) {
-                            cellClass = 'bg-amber-500 hover:brightness-110';
-                          } else if (notDoneCount > 0) {
-                            cellClass = 'bg-rose-500 hover:brightness-110';
-                          } else {
-                            cellClass = 'bg-amber-500 hover:brightness-110';
-                          }
-                        }
-                        const taskTitles = foundTasks.map(task => `${task.title} (${getTaskStatusLabel(task.status)})`).join('، ');
-                        const isSelected = selectedCell?.date === day.date && selectedCell.label === timeStr;
-
-                        return (
-                          <button
-                            key={h}
-                            type="button"
-                            aria-pressed={isSelected}
-                            aria-label={`${day.dayName} ${timeStr}: ${taskTitles || (lang === 'ar' ? 'لا توجد مهمة' : 'No task')}`}
-                            onClick={() => setSelectedCell({ date: day.date, dayName: day.dayName, label: timeStr, tasks: foundTasks })}
-                            onMouseEnter={() => {
-                              setHoveredCell({
-                                dayName: day.dayName,
-                                label: timeStr,
-                                title: taskTitles,
-                                status: foundTasks.length ? `${doneCount}/${foundTasks.length} ${lang === 'ar' ? 'مكتملة' : 'done'}` : '',
-                              });
-                            }}
-                            onMouseLeave={() => setHoveredCell(null)}
-                            title={`${day.dayName} ${timeStr}: ${taskTitles || (lang === 'ar' ? 'لا توجد مهمة' : 'No task')}`}
-                            className={`flex-1 h-5 sm:h-6 rounded-xs transition-colors cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${cellClass} ${isSelected ? 'ring-2 ring-offset-1 ring-emerald-600 dark:ring-emerald-400 ring-offset-white dark:ring-offset-[#11131a]' : ''}`}
-                          />
-                        );
-                      })}
-                    </div>
-
+              {data.heatmap.days.map((row) => (
+                <div key={row.date} className="flex items-center gap-2">
+                  <div
+                    onClick={() => setSelectedDayDate(row.date)}
+                    className="w-18 sm:w-22 text-xs font-bold text-slate-700 dark:text-slate-300 font-['Alexandria'] truncate cursor-pointer hover:text-[#00C896] shrink-0"
+                  >
+                    {row.dayName} <span className="text-[10px] font-mono text-slate-400 font-normal">{row.date.slice(8)}</span>
                   </div>
-                ))}
-              </div>
-              </> : <>
-                <div className="grid items-center gap-1.5" style={{ gridTemplateColumns: `5rem repeat(${cardRows.columns.length}, minmax(3rem, 1fr))` }}>
-                  <span />
-                  {cardRows.columns.map(column => (
-                    <span key={column.id} className="truncate text-center text-[10px] font-bold text-slate-500 dark:text-zinc-400" title={column.label}>{column.label}</span>
-                  ))}
+
+                  <div className="flex-1 flex items-center gap-1">
+                    {row.hours.map((cell) => {
+                      const hourStr = `${String(cell.hour).padStart(2, '0')}:00`;
+                      let cellClass = 'bg-slate-100 dark:bg-white/[0.04] border-transparent';
+                      if (cell.tasks.length > 0) {
+                        if (cell.doneCount === cell.tasks.length) cellClass = 'bg-emerald-500 hover:brightness-110';
+                        else if (cell.doneCount > 0) cellClass = 'bg-amber-500 hover:brightness-110';
+                        else if (cell.notDoneCount > 0) cellClass = 'bg-rose-500 hover:brightness-110';
+                        else cellClass = 'bg-amber-500 hover:brightness-110';
+                      }
+
+                      return (
+                        <button
+                          key={cell.hour}
+                          type="button"
+                          onClick={() => setSelectedHeatmapCell(cell)}
+                          onMouseEnter={() => {
+                            setHoveredHeatmapCell({
+                              dayName: row.dayName,
+                              hourStr,
+                              tasksText: cell.tasks.map((t) => t.title).join('، ') || (ar ? 'لا توجد مهام' : 'No tasks'),
+                            });
+                          }}
+                          onMouseLeave={() => setHoveredHeatmapCell(null)}
+                          className={`flex-1 h-6 rounded-xs transition-colors cursor-pointer border ${cellClass}`}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
-                {cardRows.columns.length === 0 ? (
-                  <p className="py-8 text-center text-xs text-slate-500 dark:text-zinc-400">{lang === 'ar' ? 'ما في مهام مسجلة لهذا الأسبوع.' : 'No tasks recorded for this week.'}</p>
-                ) : (
-                  <div className="mt-1.5 space-y-1.5">
-                    {cardRows.rows.map(({ day, tasksByCard }) => (
-                      <div key={day.date} className="grid items-center gap-1.5" style={{ gridTemplateColumns: `5rem repeat(${cardRows.columns.length}, minmax(3rem, 1fr))` }}>
-                        <button type="button" onClick={() => onNavigateToDay(day.date)} className="truncate text-start text-xs font-bold text-slate-700 hover:text-emerald-500 dark:text-zinc-300">
-                          {day.dayName} <span className="text-[10px] font-mono font-normal text-slate-400">{day.date.slice(8)}</span>
-                        </button>
-                        {cardRows.columns.map(column => {
-                          const tasks = tasksByCard.get(column.id) || [];
-                          const doneCount = tasks.filter(task => task.status === 'done').length;
-                          const notDoneCount = tasks.filter(task => task.status === 'not-done').length;
-                          const cellClass = tasks.length === 0 ? 'bg-slate-100 dark:bg-white/[0.04] border-transparent text-transparent'
-                            : doneCount === tasks.length ? 'bg-emerald-500 border-emerald-500 text-white'
-                              : doneCount > 0 ? 'bg-amber-500 border-amber-500 text-white'
-                                : notDoneCount > 0 ? 'bg-rose-500 border-rose-500 text-white'
-                                  : 'bg-amber-500 border-amber-500 text-white';
-                          const title = tasks.map(task => `${task.title} (${getTaskStatusLabel(task.status)})`).join('، ');
-                          const isSelected = selectedCell?.date === day.date && selectedCell.label === column.label;
-                          return (
-                            <button key={column.id} type="button"
-                              aria-pressed={isSelected}
-                              onClick={() => setSelectedCell({ date: day.date, dayName: day.dayName, label: column.label, categoryId: column.id, tasks })}
-                              onMouseEnter={() => setHoveredCell({ dayName: day.dayName, label: column.label, title, status: `${doneCount}/${tasks.length} ${lang === 'ar' ? 'مكتملة' : 'done'}` })}
-                              onMouseLeave={() => setHoveredCell(null)}
-                              title={`${day.dayName} · ${column.label}: ${title || (lang === 'ar' ? 'لا توجد مهام' : 'No tasks')}`}
-                              aria-label={`${day.dayName}, ${column.label}: ${doneCount}/${tasks.length} ${lang === 'ar' ? 'مكتملة' : 'completed'}`}
-                              className={`flex h-8 min-w-0 items-center justify-center rounded-sm border text-[9px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${cellClass} ${isSelected ? 'ring-2 ring-offset-1 ring-emerald-600 dark:ring-emerald-400 ring-offset-white dark:ring-offset-[#11131a]' : ''}`}>
-                              {tasks.length > 0 ? `${doneCount}/${tasks.length}` : ''}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>}
+              ))}
+            </div>
+          </div>
 
-              {/* Hover Preview Bar */}
-              <div className="min-h-[24px] mt-2 text-xs font-medium text-slate-600 dark:text-zinc-400 font-['Alexandria'] flex items-center gap-2">
-                {hoveredCell ? (
-                  <div className="flex items-center gap-2">
-                    <span className="shrink-0 font-bold text-slate-900 dark:text-white">{hoveredCell.dayName} ({hoveredCell.label}):</span>
-                    <span className="truncate">{hoveredCell.title || (lang === 'ar' ? 'لا توجد مهام' : 'No tasks')}</span>
-                    {hoveredCell.status && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-200 dark:bg-white/[0.1]">
-                        {hoveredCell.status}
+          {/* Heatmap Tooltip & Conclusion */}
+          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <div className="text-slate-600 dark:text-slate-300 font-medium">
+              {hoveredHeatmapCell ? (
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {hoveredHeatmapCell.dayName} ({hoveredHeatmapCell.hourStr}): {hoveredHeatmapCell.tasksText}
+                </span>
+              ) : (
+                <span>{ar ? 'مرر الفأرة فوق أي ساعة لمشاهدة تفاصيل أنشطتها.' : 'Hover over any hour to see activity.'}</span>
+              )}
+            </div>
+
+            <div className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-[#00C896] shrink-0">
+              <Zap className="w-4 h-4" />
+              <span>{ar ? `ذروة نشاطك: ${data.heatmap.peakActiveTimeRange}` : `Peak hours: ${data.heatmap.peakActiveTimeRange}`}</span>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 06 — Weekly Performance Analytics (الأداء عبر الأيام السبعة)        */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="section-06-heading" className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 id="section-06-heading" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif] flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-[#00C896]" />
+                <span>{ar ? 'كيف كان أداؤك خلال الأيام السبعة؟' : 'Weekly Performance Analytics'}</span>
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                {ar ? 'نسبة الإنجاز اليومية مع تمييز الأيام المكتملة والجزئية.' : 'Daily task completion rate vs scheduled goals.'}
+              </p>
+            </div>
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-200 font-mono">
+              {ar ? `المتوسط اليومي: ${data.performanceChart.averageDailyTasks} مهام` : `Avg: ${data.performanceChart.averageDailyTasks} tasks/day`}
+            </span>
+          </div>
+
+          <div className="flex items-end justify-between gap-2 sm:gap-4 h-48 pt-6 pb-2 px-1 border-b border-slate-100 dark:border-white/[0.06]">
+            {data.performanceChart.days.map((d) => {
+              const barColor = d.percentage >= 80 ? 'bg-[#00C896]' : d.percentage >= 50 ? 'bg-amber-500' : 'bg-rose-500';
+              return (
+                <div
+                  key={d.date}
+                  onClick={() => setSelectedDayDate(d.date)}
+                  className="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer"
+                >
+                  <span className="text-[11px] font-mono font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    {d.percentage}%
+                  </span>
+                  <div className="w-full max-w-[38px] bg-slate-100 dark:bg-white/[0.05] rounded-t-xl h-full flex items-end overflow-hidden p-0.5">
+                    <div
+                      className={`w-full rounded-t-lg transition-all duration-500 ${barColor}`}
+                      style={{ height: `${Math.max(d.percentage, 6)}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-2 font-['Alexandria'] truncate">
+                    {d.dayName}
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-400">
+                    {d.done}/{d.total}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 07 — Where Did My Time Go? (أين ذهب وقتك هذا الأسبوع؟)             */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="section-07-heading" className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 id="section-07-heading" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif] flex items-center gap-2">
+                <Clock className="w-5 h-5 text-indigo-500" />
+                <span>{ar ? 'أين ذهب وقتك هذا الأسبوع؟' : 'Where Did My Time Go?'}</span>
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                {ar ? 'تحليل توزيع الساعات المسجلة عبر مختلف جوانب حياتك.' : 'Audit of recorded hours distributed across activities.'}
+              </p>
+            </div>
+            <div className="text-end">
+              <span className="text-2xl font-black font-mono text-slate-900 dark:text-white">
+                {(data.timeAudit.totalMinutes / 60).toFixed(1)}
+              </span>
+              <span className="text-xs font-bold text-slate-500 ms-1 font-['Alexandria']">
+                {ar ? 'ساعة مسجلة' : 'hours logged'}
+              </span>
+            </div>
+          </div>
+
+          {/* Proportional Stacked Bar */}
+          <div className="w-full h-3 rounded-full overflow-hidden flex bg-slate-100 dark:bg-white/[0.05]">
+            {data.timeAudit.breakdown.map((item) => (
+              <div
+                key={item.id}
+                title={`${item.name}: ${item.hoursFormatted} (${item.percentage}%)`}
+                style={{ width: `${item.percentage}%`, backgroundColor: item.color }}
+                className="h-full transition-all duration-500 hover:opacity-80"
+              />
+            ))}
+          </div>
+
+          {/* Categories Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 pt-2">
+            {data.timeAudit.breakdown.map((item) => (
+              <div key={item.id} className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.05] space-y-1">
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                  <span className="font-bold text-slate-800 dark:text-slate-200 truncate">{item.name}</span>
+                </div>
+                <div className="flex items-baseline justify-between text-xs font-mono font-bold mt-1">
+                  <span className="text-slate-900 dark:text-white">{item.hoursFormatted}</span>
+                  <span className="text-slate-400">{item.percentage}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 pt-1">
+            {ar ? 'ملاحظة: يتم احتساب الأوقات بناءً على المهام والجلسات المحددة بمدة زمنية؛ والوقت غير المسجل لا يُحتسب كفراغ.' : 'Note: Calculations reflect activities with recorded durations; untracked time is not assumed idle.'}
+          </p>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 08 — Weekly Comparison (هذا الأسبوع مقارنة بالأسبوع الماضي)        */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="section-08-heading" className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] space-y-4">
+          <div>
+            <h2 id="section-08-heading" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif] flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-emerald-500" />
+              <span>{ar ? 'هذا الأسبوع مقارنة بالأسبوع الماضي' : 'Weekly Comparison'}</span>
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {ar ? 'مقارنة إحصائية دقيقة تكشف وتيرة تطورك أو تراجعك.' : 'Statistical comparison revealing growth or dip trends.'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            
+            {/* 1. نسبة إنجاز المهام */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.05] space-y-1">
+              <span className="text-[11px] font-semibold text-slate-500 block">{ar ? 'نسبة إنجاز المهام' : 'Completion Rate'}</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-xl font-black font-mono text-slate-900 dark:text-white">{data.comparison.current.completionRate}%</span>
+                <span className={`text-xs font-mono font-bold flex items-center ${data.comparison.diffs.completionRate.diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {data.comparison.diffs.completionRate.diff >= 0 ? '+' : ''}{data.comparison.diffs.completionRate.diff}%
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-400 block">{ar ? `السابق: ${data.comparison.previous.completionRate}%` : `Prev: ${data.comparison.previous.completionRate}%`}</span>
+            </div>
+
+            {/* 2. الصلوات المؤداة */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.05] space-y-1">
+              <span className="text-[11px] font-semibold text-slate-500 block">{ar ? 'الصلوات المؤداة' : 'Prayers'}</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-xl font-black font-mono text-slate-900 dark:text-white">{data.comparison.current.prayersDone}</span>
+                <span className={`text-xs font-mono font-bold flex items-center ${data.comparison.diffs.prayersDone.diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {data.comparison.diffs.prayersDone.diff >= 0 ? '+' : ''}{data.comparison.diffs.prayersDone.diff}
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-400 block">{ar ? `السابق: ${data.comparison.previous.prayersDone}` : `Prev: ${data.comparison.previous.prayersDone}`}</span>
+            </div>
+
+            {/* 3. صفحات القرآن */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.05] space-y-1">
+              <span className="text-[11px] font-semibold text-slate-500 block">{ar ? 'صفحات القرآن' : 'Quran Pages'}</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-xl font-black font-mono text-slate-900 dark:text-white">{data.comparison.current.quranPages}</span>
+                <span className={`text-xs font-mono font-bold flex items-center ${data.comparison.diffs.quranPages.diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {data.comparison.diffs.quranPages.diff >= 0 ? '+' : ''}{data.comparison.diffs.quranPages.diff}
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-400 block">{ar ? `السابق: ${data.comparison.previous.quranPages}` : `Prev: ${data.comparison.previous.quranPages}`}</span>
+            </div>
+
+            {/* 4. ساعات الدراسة */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.05] space-y-1">
+              <span className="text-[11px] font-semibold text-slate-500 block">{ar ? 'ساعات الدراسة' : 'Study Hours'}</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-xl font-black font-mono text-slate-900 dark:text-white">{data.comparison.current.studyHours}h</span>
+                <span className={`text-xs font-mono font-bold flex items-center ${data.comparison.diffs.studyHours.diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {data.comparison.diffs.studyHours.diff >= 0 ? '+' : ''}{data.comparison.diffs.studyHours.diff}h
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-400 block">{ar ? `السابق: ${data.comparison.previous.studyHours}h` : `Prev: ${data.comparison.previous.studyHours}h`}</span>
+            </div>
+
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 09 — Smart Weekly Insights (ماذا يقول أسبوعك عنك؟)                 */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="section-09-heading" className="space-y-4">
+          <div className="space-y-1">
+            <h2 id="section-09-heading" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif] flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-amber-500" />
+              <span>{ar ? 'ماذا يقول أسبوعك عنك؟ (تحليلات ذكية)' : 'Smart Weekly Insights'}</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">
+              {ar ? 'استنتاجات شخصية دقيقة مبنية على أرقامك وسلوكك الفعلي هذا الأسبوع.' : 'Objective takeaways derived from your recorded weekly habits and outputs.'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            {/* 1. أقوى إنجاز */}
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.04] p-5 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-emerald-500" />
+                  <span>{ar ? 'أقوى إنجاز هذا الأسبوع' : 'Top Strength'}</span>
+                </span>
+                <span className="font-mono text-emerald-700 dark:text-[#00C896] font-bold">#1</span>
+              </div>
+              {data.insights.topStrength ? (
+                <>
+                  <h4 className="text-base font-extrabold text-slate-900 dark:text-white font-['Alexandria']">
+                    {data.insights.topStrength.title}
+                  </h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                    {data.insights.topStrength.explanation} ({data.insights.topStrength.metric})
+                  </p>
+                </>
+              ) : (
+                <p className="text-xs text-slate-500">{ar ? 'سجل المزيد من الأنشطة لاكتشاف أقوى ركائزك.' : 'Keep logging to reveal strengths.'}</p>
+              )}
+            </div>
+
+            {/* 2. نقطة تحتاج اهتمام */}
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/[0.04] p-5 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-500" />
+                  <span>{ar ? 'أكبر نقطة تحتاج اهتمام' : 'Area for Focus'}</span>
+                </span>
+                <span className="font-mono text-amber-700 dark:text-amber-400 font-bold">Attention</span>
+              </div>
+              {data.insights.topWeakness ? (
+                <>
+                  <h4 className="text-base font-extrabold text-slate-900 dark:text-white font-['Alexandria']">
+                    {data.insights.topWeakness.title}
+                  </h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                    {data.insights.topWeakness.explanation} ({data.insights.topWeakness.metric})
+                  </p>
+                </>
+              ) : (
+                <p className="text-xs text-slate-500">{ar ? 'أداء متوازن جداً دون تعثر ملحوظ!' : 'Balanced performance across all domains!'}</p>
+              )}
+            </div>
+
+            {/* 3. أكثر يوم إنتاجية */}
+            <div className="rounded-2xl border border-blue-500/30 bg-blue-500/[0.04] p-5 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-blue-800 dark:text-blue-300 flex items-center gap-1.5">
+                  <Flame className="w-4 h-4 text-blue-500" />
+                  <span>{ar ? 'أكثر يوم إنتاجية' : 'Peak Day'}</span>
+                </span>
+                <span className="font-mono text-blue-700 dark:text-blue-400 font-bold">{data.insights.mostProductiveDay.doneCount} {ar ? 'مهمة' : 'done'}</span>
+              </div>
+              <h4 className="text-base font-extrabold text-slate-900 dark:text-white font-['Alexandria']">
+                {ar ? `يوم ${data.insights.mostProductiveDay.dayName}` : data.insights.mostProductiveDay.dayName}
+              </h4>
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                {ar
+                  ? `أنجزت فيه ${data.insights.mostProductiveDay.doneCount} مهام بنسبة نجاح ${data.insights.mostProductiveDay.percentage}%.`
+                  : `${data.insights.mostProductiveDay.doneCount} tasks finished with ${data.insights.mostProductiveDay.percentage}% completion.`}
+              </p>
+            </div>
+
+          </div>
+
+          {/* Narrative Paragraph Card */}
+          <div className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] flex items-start gap-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#00C896]/10 text-[#008f6b] dark:text-[#00C896] mt-1">
+              <Star className="w-5 h-5" />
+            </span>
+            <div className="space-y-1.5">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white font-['Alexandria']">
+                {ar ? 'مراجعة الأسبوع بأسلوب إنساني' : 'Human Narrative Review'}
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 font-medium leading-relaxed font-['Alexandria','Cairo',sans-serif]">
+                «{data.insights.narrativeParagraph}»
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 10 — My Weekly Achievements (إنجازات تستحق أن تفتخر بها)          */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="section-10-heading" className="space-y-3.5">
+          <div>
+            <h2 id="section-10-heading" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif] flex items-center gap-2">
+              <Award className="w-5 h-5 text-amber-500" />
+              <span>{ar ? 'إنجازات تستحق أن تفتخر بها' : 'My Weekly Achievements'}</span>
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {ar ? 'أوسمة ونقاط مضيئة تحققت بفضل ثباتك واجتهادك هذا الأسبوع.' : 'Milestones and badges unlocked by your actual effort.'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {data.achievements.map((ach) => (
+              <div
+                key={ach.id}
+                className={`p-4 rounded-2xl border flex items-center gap-3.5 transition-all ${
+                  ach.unlocked
+                    ? 'border-emerald-500/30 bg-emerald-500/[0.04] dark:bg-emerald-950/20 shadow-2xs'
+                    : 'border-slate-200/60 bg-slate-50/60 dark:border-white/[0.04] dark:bg-white/[0.02] opacity-60'
+                }`}
+              >
+                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
+                  ach.unlocked ? 'bg-emerald-500 text-slate-950' : 'bg-slate-200 text-slate-400 dark:bg-white/[0.08]'
+                }`}>
+                  <Award className="w-5 h-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate font-['Alexandria']">
+                      {ach.title}
+                    </h4>
+                    {ach.metricValue && (
+                      <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-[#00C896] shrink-0">
+                        {ach.metricValue}
                       </span>
                     )}
                   </div>
-                ) : (
-                  <span className="text-slate-400 dark:text-zinc-500 text-[11px]">
-                    {lang === 'ar' ? 'اضغط على أي مربع لعرض التفاصيل، ثم افتح اليوم في الصفحة الرئيسية' : 'Click a square to view its details, then open the day on the home page'}
-                  </span>
-                )}
-              </div>
-
-            </div>
-          </div>
-          {selectedCell && (
-            <section aria-live="polite" className="mt-4 rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.04] p-4 sm:p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-                    {lang === 'ar' ? 'تفاصيل التحديد' : 'Selection details'}
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed mt-0.5">
+                    {ach.description}
                   </p>
-                  <h4 className="mt-1 text-sm font-bold text-slate-900 dark:text-white">
-                    {selectedCell.dayName} · {selectedCell.label}
-                  </h4>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700 dark:bg-white/[0.08] dark:text-zinc-200">
-                    {selectedCell.tasks.filter(task => task.status === 'done').length}/{selectedCell.tasks.length} {lang === 'ar' ? 'مكتملة' : 'completed'}
-                  </span>
-                  <button type="button" onClick={() => setSelectedCell(null)}
-                    aria-label={lang === 'ar' ? 'إغلاق التفاصيل' : 'Close details'}
-                    className="flex size-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-200 dark:text-zinc-400 dark:hover:bg-white/[0.1]">
-                    <X aria-hidden="true" className="size-4" />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 11 — Unfinished Business (ما الذي لم يكتمل هذا الأسبوع؟)           */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="section-11-heading" className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 id="section-11-heading" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif] flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-amber-500" />
+                <span>{ar ? 'ما الذي لم يكتمل هذا الأسبوع؟' : 'Unfinished Business'}</span>
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                {ar ? 'مراجعة هادئة للمهام غير المكتملة دون إحباط، مع خيار ترحيلها إلى اليوم بضغطة واحدة.' : 'Constructive review of incomplete tasks with one-click rollover to today.'}
+              </p>
+            </div>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300 font-mono">
+              {data.unfinishedTasks.length} {ar ? 'مهام متبقية' : 'tasks'}
+            </span>
+          </div>
+
+          {data.unfinishedTasks.length > 0 ? (
+            <div className="space-y-2.5 max-h-72 overflow-y-auto pe-1">
+              {data.unfinishedTasks.slice(0, 15).map((t) => (
+                <div
+                  key={t.id}
+                  className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                >
+                  <div className="min-w-0 flex-1">
+                    <span className="font-bold text-slate-900 dark:text-white truncate block">
+                      {t.title}
+                    </span>
+                    <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-slate-500">
+                      <span>{t.dayName} ({t.date.slice(8)})</span>
+                      <span>•</span>
+                      <span>{t.category}</span>
+                      {t.notDoneReason && (
+                        <>
+                          <span>•</span>
+                          <span className="text-amber-700 dark:text-amber-300 italic">{t.notDoneReason}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRolloverTask(t.title, t.category)}
+                    className="inline-flex min-h-9 items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:border-[#00C896] text-slate-700 dark:text-slate-200 hover:text-[#00C896] transition-all cursor-pointer shrink-0 shadow-2xs"
+                  >
+                    <span>{ar ? 'ترحيل إلى اليوم' : 'Rollover to today'}</span>
+                    <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
                   </button>
                 </div>
-              </div>
-
-              {selectedCell.tasks.length > 0 ? heatmapMode === 'cards' ? (
-                <SelectedCardPreview selectedCell={selectedCell} workspace={workspace} lang={lang} />
-              ) : (
-                <SelectedSchedulePreview selectedCell={selectedCell} lang={lang} />
-              ) : (
-                <p className="mt-3 text-xs text-slate-500 dark:text-zinc-400">
-                  {lang === 'ar' ? 'ما في مهام مسجلة في هذا التحديد.' : 'No tasks recorded for this selection.'}
-                </p>
-              )}
-
-              <button type="button" onClick={() => onNavigateToDay(selectedCell.date)}
-                className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:bg-emerald-500 dark:hover:bg-emerald-400">
-                {lang === 'ar' ? 'عرض اليوم في الصفحة الرئيسية' : 'Open day on the home page'}
-                <ArrowUpRight aria-hidden="true" className="size-4 rtl:rotate-[-90deg] ltr:rotate-0" />
-              </button>
-            </section>
+              ))}
+            </div>
+          ) : (
+            <div className="py-6 text-center text-xs text-emerald-600 dark:text-[#00C896] font-bold">
+              {ar ? 'أحسنت! لا توجد مهام عالقة أو غير مكتملة هذا الأسبوع.' : 'Brilliant! All tasks were accomplished.'}
+            </div>
           )}
-        </div>
+        </section>
 
-        {/* 5. بطاقات التحليل الذكي الثلاث: الأقوى، الأضعف، وتحتاج تطوير */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          
-          {/* Card 1: أقوى نقطة (Top Strength) */}
-          <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent dark:from-emerald-950/40 dark:via-emerald-900/10 dark:to-transparent p-5 rounded-2xl border border-emerald-500/30 shadow-2xs relative overflow-hidden flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-['Alexandria']">
-                  <Award className="w-3.5 h-3.5 stroke-[2.5]" />
-                  {lang === 'ar' ? 'أقوى نقطة هذا الأسبوع' : 'Top Strength'}
-                </span>
-                <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                  #1
-                </span>
-              </div>
+        {/* ========================================================================= */}
+        {/* SECTION 12 — Next Week, Better (كيف تجعل أسبوعك القادم أفضل؟)              */}
+        {/* ========================================================================= */}
+        <section aria-labelledby="section-12-heading" className="space-y-4">
+          <div className="space-y-1">
+            <h2 id="section-12-heading" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif] flex items-center gap-2">
+              <Compass className="w-5 h-5 text-[#00C896]" />
+              <span>{ar ? 'كيف تجعل أسبوعك القادم أفضل؟ (3 توصيات عملية)' : 'Next Week, Better'}</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">
+              {ar ? 'توصيات واقعية وقابلة للتطبيق مستخرجة مباشرة من نقاط القوة والضعف في أسبوعك.' : 'Realistic recommendations tailored directly to your weekly habits.'}
+            </p>
+          </div>
 
-              {data.topStrength ? (
-                <>
-                  <h4 className="text-lg font-extrabold text-slate-900 dark:text-white font-['Alexandria'] flex items-center gap-2">
-                    <span>{lang === 'ar' ? data.topStrength.name : data.topStrength.nameEn}</span>
-                  </h4>
-                  <div className="flex items-baseline gap-2 mt-2">
-                    <span className="text-3xl font-black font-mono text-emerald-600 dark:text-emerald-400">
-                      {data.topStrength.percentage}%
-                    </span>
-                    <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400 font-['Alexandria']">
-                      ({data.topStrength.done} {lang === 'ar' ? 'من أصل' : 'of'} {data.topStrength.total})
-                    </span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {data.recommendations.map((rec) => (
+              <div
+                key={rec.id}
+                className="rounded-3xl border border-slate-200/90 bg-white p-5 shadow-xs dark:border-white/[0.08] dark:bg-[#111622] flex flex-col justify-between space-y-4"
+              >
+                <div className="space-y-2.5">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-[#00C896]/10 text-[#008f6b] dark:text-[#00C896] border border-[#00C896]/20 font-['Alexandria']">
+                    <Zap className="w-3 h-3" />
+                    <span>{ar ? 'توصية مخصصة' : 'Recommendation'}</span>
+                  </span>
+
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white font-['Alexandria'] leading-snug">
+                    {rec.title}
+                  </h3>
+
+                  <div className="space-y-2 text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                    <p><strong className="text-slate-800 dark:text-white">{ar ? 'السبب:' : 'Reason:'}</strong> {rec.reason}</p>
+                    <p><strong className="text-slate-800 dark:text-white">{ar ? 'الخطوة المقترحة:' : 'Step:'}</strong> {rec.suggestedStep}</p>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-zinc-300 mt-3 font-medium font-['Alexandria'] leading-relaxed">
-                    {lang === 'ar'
-                      ? `أداء استثنائي والتزام رائع بنسبة ${data.topStrength.percentage}%! هذا الركن هو صمام أمان إنتاجيتك واستمراره يعطيك دافعاً لبقية المهام.`
-                      : `Exceptional consistency at ${data.topStrength.percentage}%! This is your strongest foundation this week.`}
-                  </p>
-                </>
-              ) : (
-                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-2 font-['Alexandria']">
-                  {lang === 'ar' ? 'سجل مهامك لـ 3 أيام على الأقل لعرض أقوى نقطة.' : 'Record tasks for at least 3 days to reveal strengths.'}
-                </p>
-              )}
-            </div>
+                </div>
 
-            <div className="mt-4 pt-3 border-t border-emerald-500/20 flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-300 font-bold font-['Alexandria']">
-              <Flame className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-              <span>{lang === 'ar' ? 'الأفضل إنجازاً والأكثر ثباتاً' : 'Highest consistency'}</span>
+                <div className="pt-3 border-t border-slate-100 dark:border-white/[0.06] text-[11px] font-semibold text-emerald-700 dark:text-[#00C896]">
+                  {ar ? 'الفائدة المتوقعة: ' : 'Benefit: '}{rec.expectedBenefit}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 13 — Weekly Closing Summary (الخاتمة وحصاد الأسبوع)                 */}
+        {/* ========================================================================= */}
+        <footer aria-labelledby="section-13-heading" className="rounded-3xl border border-[#00C896]/40 bg-gradient-to-br from-emerald-500/10 via-white to-amber-500/5 dark:from-[#0e1920] dark:via-[#111622] dark:to-[#171b1e] p-6 sm:p-8 space-y-6 shadow-sm">
+          <div className="space-y-2">
+            <span className="text-xs font-extrabold uppercase tracking-widest text-[#008f6b] dark:text-[#00C896]">
+              {ar ? 'حصاد أسبوعك الكامل' : 'Full Harvest Summary'}
+            </span>
+            <h2 id="section-13-heading" className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white font-['Alexandria','Cairo',sans-serif]">
+              {ar ? 'هذا كان أسبوعك... وكل خطوة محسوبة' : 'This Was Your Week... Every Step Counts'}
+            </h2>
+            <p className="text-sm sm:text-base text-slate-700 dark:text-slate-200 font-medium leading-relaxed max-w-3xl">
+              {data.closing.summaryText}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-medium">
+            <div className="p-4 rounded-2xl bg-white/80 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.06] space-y-1">
+              <span className="font-bold text-emerald-800 dark:text-emerald-300 block">{ar ? 'أبرز إنجازاتك:' : 'Highlight:'}</span>
+              <p className="text-slate-700 dark:text-slate-300">{data.closing.topHighlight}</p>
+            </div>
+            <div className="p-4 rounded-2xl bg-white/80 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.06] space-y-1">
+              <span className="font-bold text-amber-800 dark:text-amber-300 block">{ar ? 'أهم فرصة للتحسين:' : 'Growth Area:'}</span>
+              <p className="text-slate-700 dark:text-slate-300">{data.closing.growthOpportunity}</p>
             </div>
           </div>
 
-          {/* Card 2: أضعف نقطة (Top Weakness) */}
-          <div className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent dark:from-amber-950/40 dark:via-amber-900/10 dark:to-transparent p-5 rounded-2xl border border-amber-500/30 shadow-2xs relative overflow-hidden flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-500/20 text-amber-800 dark:text-amber-300 font-['Alexandria']">
-                  <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5]" />
-                  {lang === 'ar' ? 'أضعف نقطة هذا الأسبوع' : 'Top Weakness'}
-                </span>
-                <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
-                  Attention
-                </span>
-              </div>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 italic">
+            «{data.closing.encouragingMessage}»
+          </p>
 
-              {data.topWeakness ? (
-                <>
-                  <h4 className="text-lg font-extrabold text-slate-900 dark:text-white font-['Alexandria']">
-                    {lang === 'ar' ? data.topWeakness.name : data.topWeakness.nameEn}
-                  </h4>
-                  <div className="flex items-baseline gap-2 mt-2">
-                    <span className="text-3xl font-black font-mono text-amber-600 dark:text-amber-400">
-                      {data.topWeakness.percentage}%
-                    </span>
-                    <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400 font-['Alexandria']">
-                      ({data.topWeakness.done} {lang === 'ar' ? 'من أصل' : 'of'} {data.topWeakness.total})
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-zinc-300 mt-3 font-medium font-['Alexandria'] leading-relaxed">
-                    {lang === 'ar'
-                      ? `تم تفويت ${data.topWeakness.notDone + data.topWeakness.pending} مرات هذا الأسبوع. لا داعي للإحباط؛ التركيز عليها كأولوية في بداية اليوم سيرفع معدلها سريعاً.`
-                      : `Missed ${data.topWeakness.notDone + data.topWeakness.pending} times this week. Prioritizing it earlier in your day will yield quick improvements.`}
-                  </p>
-                </>
-              ) : (
-                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-2 font-['Alexandria']">
-                  {lang === 'ar' ? 'لا توجد نقاط ضعف واضحة؛ جميع الفئات فوق المعدل!' : 'No major weaknesses detected!'}
-                </p>
-              )}
-            </div>
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={handlePrevWeek}
+              className="inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-white/10 hover:border-[#00C896] text-slate-800 dark:text-white transition-all cursor-pointer shadow-2xs"
+            >
+              <span>{ar ? 'استعراض الأسبوع السابق' : 'Browse Previous Week'}</span>
+              <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
+            </button>
 
-            <div className="mt-4 pt-3 border-t border-amber-500/20 flex items-center gap-1.5 text-[11px] text-amber-700 dark:text-amber-300 font-bold font-['Alexandria']">
-              <Info className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-              <span>{lang === 'ar' ? 'تحتاج ضبط التوقيت وإعادة الجدولة' : 'Needs time adjustment'}</span>
-            </div>
+            <button
+              type="button"
+              onClick={handleResetToCurrentWeek}
+              className="inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#00C896] hover:bg-[#00b587] text-slate-950 transition-all cursor-pointer shadow-sm"
+            >
+              <span>{ar ? 'جدول اليوم في المخطط' : 'Go to Today in Planner'}</span>
+              <ArrowUpRight className="w-4 h-4 rtl:rotate-[-90deg] ltr:rotate-0" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handlePrintPdf}
+              className="inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-white/10 hover:border-[#00C896] text-slate-800 dark:text-white transition-all cursor-pointer shadow-2xs"
+            >
+              <Printer className="w-4 h-4 text-slate-500" />
+              <span>{ar ? 'تصدير التقرير الكامل' : 'Export Full Report'}</span>
+            </button>
           </div>
-
-          {/* Card 3: سكشن "نقاط تحتاج تطوير" (Areas to Improve) */}
-          <div className="bg-white dark:bg-[#11131a] p-5 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-2xs flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-extrabold bg-slate-100 dark:bg-white/[0.06] text-slate-800 dark:text-zinc-200 font-['Alexandria'] border border-slate-200 dark:border-white/[0.08]">
-                  <Zap className="w-3.5 h-3.5 text-amber-500 stroke-[2.5]" />
-                  {lang === 'ar' ? 'نقاط تحتاج تطوير' : 'Areas to Improve'}
-                </span>
-                <span className="text-xs text-slate-400 dark:text-zinc-500 font-['Alexandria']">
-                  {data.improvements.length} {lang === 'ar' ? 'اقتراحات' : 'items'}
-                </span>
-              </div>
-
-              {/* Items List */}
-              <div className="space-y-3 mt-3">
-                {data.improvements.length > 0 ? (
-                  data.improvements.map((item) => (
-                    <div 
-                      key={item.id} 
-                      className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.06] space-y-1.5"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-900 dark:text-white font-['Alexandria']">
-                          {item.name}
-                        </span>
-                        <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
-                          {item.percentage}%
-                        </span>
-                      </div>
-
-                      <div className="w-full bg-slate-200 dark:bg-white/[0.08] rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className="h-full bg-amber-500 rounded-full"
-                          style={{ width: `${item.percentage}%` }}
-                        />
-                      </div>
-
-                      <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-['Alexandria'] leading-relaxed">
-                        {lang === 'ar' ? item.advice : item.adviceEn}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-slate-500 dark:text-zinc-400 font-['Alexandria']">
-                    {lang === 'ar' 
-                      ? 'جميع فئات مهامك تعمل بكفاءة متوازنة هذا الأسبوع!' 
-                      : 'All task categories performed smoothly this week!'}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/[0.06] text-[11px] text-slate-400 dark:text-zinc-500 font-['Alexandria']">
-              {lang === 'ar' ? 'النصائح مبنية على تحليل أوقات تفويت المهام' : 'Calculated based on missed time patterns'}
-            </div>
-          </div>
-
-        </div>
+        </footer>
 
       </div>
 
     </div>
   );
 };
-
-function SelectedCardPreview({ selectedCell, workspace, lang }: {
-  selectedCell: SelectedReviewCell;
-  workspace: PlannerWorkspace;
-  lang: Language;
-}) {
-  const ar = lang === 'ar';
-  const stats = calculateStats(selectedCell.tasks);
-  const isPrayerCard = selectedCell.categoryId === 'daily-prayers';
-  const category: PlannerCategory | undefined = activeCategories(workspace).find(item => item.id === selectedCell.categoryId);
-  const Icon = isPrayerCard ? MoonStar : CARD_ICONS[category?.icon || 'layers'];
-  const name = isPrayerCard
-    ? (ar ? 'الصلوات الخمس' : 'Five daily prayers')
-    : category
-      ? (ar ? category.name : category.nameEn || category.name)
-      : (ar ? 'غير مصنّف' : 'Unassigned');
-  const hues = [215, 35, 270, 345, 155, 190];
-  const hue = category ? hues[category.order] ?? (215 + category.order * 137.508) % 360 : 0;
-  const colorStyle = {
-    '--card-hue': hue,
-    '--card-saturation': category?.id === UNASSIGNED_CATEGORY ? '0%' : '65%',
-  } as CSSProperties;
-  const labels = ar
-    ? { done: 'مكتملة', pending: 'متبقية', notDone: 'غير منجزة' }
-    : { done: 'Completed', pending: 'Remaining', notDone: 'Not done' };
-
-  return (
-    <article
-      aria-label={name}
-      data-card-complete={stats.total > 0 && stats.done === stats.total}
-      style={colorStyle}
-      className={`mt-4 min-w-0 rounded-2xl border border-t-[3px] shadow-2xs ${isPrayerCard ? 'border-emerald-300/70 bg-linear-to-br from-emerald-50 via-white to-amber-50/60 dark:border-emerald-400/25 dark:from-[#102521] dark:via-[#111b1c] dark:to-[#202219]' : 'planner-card'}`}
-    >
-      <div className="flex items-center gap-3 p-4">
-        <div aria-hidden="true" className={`planner-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${isPrayerCard ? 'border-amber-300/50 bg-amber-100/70 text-amber-700 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-200' : ''}`}>
-          <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h5 className="break-words text-sm font-bold leading-6">{name}</h5>
-          <p className="text-[11px] text-slate-500 dark:text-zinc-400">
-            {ar ? `${stats.done} من ${stats.total} مكتملة` : `${stats.done} of ${stats.total} complete`}
-          </p>
-        </div>
-      </div>
-      <div data-card-stats role="group" aria-label={ar ? `إحصائيات ${name}` : `${name} statistics`} className="mx-4 grid grid-cols-4 items-start gap-1 border-t border-slate-200/60 py-3 dark:border-white/[0.06]">
-        <StatCircle compact label={ar ? 'الإجمالي' : 'Total'} value={stats.total} percentage={stats.total ? 100 : 0} color="indigo" isActive={false} subLabel={stats.total ? '100%' : '0%'} className="order-1 rtl:order-1" />
-        <StatCircle compact label={labels.done} value={stats.done} percentage={stats.total ? stats.done / stats.total * 100 : 0} color="emerald" isActive={false} subLabel={`${stats.total ? Math.round(stats.done / stats.total * 100) : 0}%`} className="order-2 rtl:order-2" />
-        <StatCircle compact label={labels.pending} value={stats.pending} percentage={stats.total ? stats.pending / stats.total * 100 : 0} color="amber" isActive={false} subLabel={`${stats.total ? Math.round(stats.pending / stats.total * 100) : 0}%`} className="order-3 rtl:order-3" />
-        <StatCircle compact label={labels.notDone} value={stats.notDone} percentage={stats.total ? stats.notDone / stats.total * 100 : 0} color="rose" isActive={false} subLabel={`${stats.total ? Math.round(stats.notDone / stats.total * 100) : 0}%`} className="order-4 rtl:order-4" />
-      </div>
-      <div className="p-3 pt-2">
-        <div className="space-y-1">
-          {selectedCell.tasks.map(task => (
-            <div key={task.id} data-card-task-status={task.status} className="task-row card-task-row group grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-1 rounded-xl px-1 py-1.5">
-              <span className="flex h-9 w-7 shrink-0 items-center justify-center">
-                <TaskStatusIndicator status={task.status} />
-              </span>
-              <div className="flex min-h-9 min-w-0 flex-col justify-center py-1">
-                <span data-card-task-title dir="auto" className={`line-clamp-2 w-full min-w-0 text-[13px] font-medium leading-6 [overflow-wrap:anywhere] ${task.status === 'done' ? 'text-slate-500 dark:text-zinc-400' : 'text-slate-800 dark:text-zinc-200'}`}>
-                  {task.title}
-                </span>
-                {(task.time || task.notes) && <span className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-400">{task.time && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime12h(task.time, lang).formatted}</span>}{task.notes && <span title={task.notes} className="max-w-full truncate">{task.notes}</span>}</span>}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function SelectedSchedulePreview({ selectedCell, lang }: {
-  selectedCell: SelectedReviewCell;
-  lang: Language;
-}) {
-  const stats = calculateStats(selectedCell.tasks);
-  const ar = lang === 'ar';
-  const timeClasses = {
-    done: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50/60 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20',
-    pending: 'text-slate-600 dark:text-zinc-400 bg-slate-100/70 dark:bg-white/[0.03] border-slate-200/70 dark:border-white/[0.06]',
-    'not-done': 'text-rose-700 dark:text-rose-300 bg-rose-50/60 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20',
-  };
-  const titleClasses = {
-    done: 'text-slate-500 dark:text-zinc-400 font-medium',
-    pending: 'text-slate-900 dark:text-zinc-100 font-bold',
-    'not-done': 'text-slate-900 dark:text-zinc-100 font-bold',
-  };
-
-  return (
-    <div className="mt-4 space-y-2">
-      <div className="mb-3 grid grid-cols-4 items-start gap-1 border-b border-slate-200/60 pb-3 dark:border-white/[0.06]">
-        <StatCircle compact label={ar ? 'الإجمالي' : 'Total'} value={stats.total} percentage={stats.total ? 100 : 0} color="indigo" isActive={false} subLabel={stats.total ? '100%' : '0%'} className="order-1 rtl:order-1" />
-        <StatCircle compact label={ar ? 'مكتملة' : 'Completed'} value={stats.done} percentage={stats.total ? stats.done / stats.total * 100 : 0} color="emerald" isActive={false} subLabel={`${stats.total ? Math.round(stats.done / stats.total * 100) : 0}%`} className="order-2 rtl:order-2" />
-        <StatCircle compact label={ar ? 'متبقية' : 'Remaining'} value={stats.pending} percentage={stats.total ? stats.pending / stats.total * 100 : 0} color="amber" isActive={false} subLabel={`${stats.total ? Math.round(stats.pending / stats.total * 100) : 0}%`} className="order-3 rtl:order-3" />
-        <StatCircle compact label={ar ? 'غير منجزة' : 'Not done'} value={stats.notDone} percentage={stats.total ? stats.notDone / stats.total * 100 : 0} color="rose" isActive={false} subLabel={`${stats.total ? Math.round(stats.notDone / stats.total * 100) : 0}%`} className="order-4 rtl:order-4" />
-      </div>
-      {selectedCell.tasks.map(task => (
-        <article key={task.id} data-task-status={task.status} className={`task-row relative flex min-w-0 items-center gap-3 overflow-hidden rounded-2xl border px-3 py-2.5 sm:px-4 ${task.status === 'done' || task.status === 'pending' || task.status === 'not-done' ? 'bg-white dark:bg-[#11131a] border-slate-200/70 dark:border-white/[0.06]' : ''}`}>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center">
-            <TaskStatusIndicator status={task.status} />
-          </span>
-          <span className={`font-numbers inline-flex shrink-0 items-center gap-1.5 rounded-xl border px-2.5 py-1 text-xs font-black tabular-nums ${timeClasses[task.status]}`}>
-            <Clock aria-hidden="true" className="h-3.5 w-3.5 opacity-75" />
-            {task.time ? formatTime12h(task.time, lang).formatted : (ar ? 'بدون وقت' : 'Unscheduled')}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className={`break-words text-sm leading-relaxed ${titleClasses[task.status]}`}>{task.title}</p>
-            {task.notes && <p className="mt-1 break-words text-xs font-semibold text-amber-900 dark:text-amber-300">{task.notes}</p>}
-          </div>
-        </article>
-      ))}
-    </div>
-  );
-}
