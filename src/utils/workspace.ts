@@ -20,8 +20,8 @@ export function resetPlannerWorkspace(): PlannerWorkspace {
 }
 
 export const DEFAULT_CANONICAL_SPACES: Array<{ id: string; name: string; nameEn: string; icon: CategoryIcon }> = [
-  { id: 'work', name: 'العمل والمشاريع', nameEn: 'Work & projects', icon: 'briefcase' },
   { id: 'study', name: 'الجامعة والدراسة', nameEn: 'University & Study', icon: 'book' },
+  { id: 'work', name: 'العمل والمشاريع', nameEn: 'Work & projects', icon: 'briefcase' },
   { id: 'health', name: 'الصحة والنشاط', nameEn: 'Health & fitness', icon: 'heart' },
   { id: 'rest', name: 'الحياة الشخصية', nameEn: 'Personal life', icon: 'leaf' },
   { id: 'ideas', name: 'الأفكار والمساعدات', nameEn: 'Ideas & Assistance', icon: 'moon' },
@@ -34,7 +34,15 @@ function createDefaultDayCategories(updatedAt = new Date().toISOString()): Plann
 
 function dateWorkspace(base: PlannerWorkspace, date: string): PlannerWorkspace {
   const existing = base.dailyCategories?.[date];
-  if (existing) return { ...base, categories: structuredClone(existing) };
+  if (existing) {
+    const study = existing.find(c => c.id === 'study' && !c.deletedAt);
+    const work = existing.find(c => c.id === 'work' && !c.deletedAt);
+    if (study && work && work.order === 0 && study.order === 1) {
+      study.order = 0;
+      work.order = 1;
+    }
+    return { ...base, categories: structuredClone(existing) };
+  }
 
   // A legacy global workspace is migrated once to the first selected date. Every
   // other date gets a clean canonical template, never a copy of that legacy state.
@@ -69,6 +77,14 @@ export function ensureCanonicalSpaces(workspace: PlannerWorkspace): PlannerWorks
 
   // 1. Upgrade legacy study name if unchanged by user
   const studyCat = categories.find(c => c.id === 'study' && !c.deletedAt);
+  const workCat = categories.find(c => c.id === 'work' && !c.deletedAt);
+  if (studyCat && workCat && workCat.order === 0 && studyCat.order === 1) {
+    studyCat.order = 0;
+    workCat.order = 1;
+    studyCat.updatedAt = now;
+    workCat.updatedAt = now;
+    changed = true;
+  }
   if (studyCat && (studyCat.name === 'الدراسة' || studyCat.name === 'Study')) {
     studyCat.name = 'الجامعة والدراسة';
     studyCat.nameEn = 'University & Study';

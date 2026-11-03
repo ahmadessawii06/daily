@@ -29,8 +29,8 @@ test('daily card configurations initialize independently and survive switching a
   const dayB = '2026-10-29';
   storeWorkspace(createWorkspace('cards'));
 
-  assert.deepEqual(ids(dayA), ['work', 'study', 'health', 'rest', 'ideas', 'expenses']);
-  assert.deepEqual(ids(dayB), ['work', 'study', 'health', 'rest', 'ideas', 'expenses']);
+  assert.deepEqual(ids(dayA), ['study', 'work', 'health', 'rest', 'ideas', 'expenses']);
+  assert.deepEqual(ids(dayB), ['study', 'work', 'health', 'rest', 'ideas', 'expenses']);
 
   deletePlannerCategory('study', dayA);
   updatePlannerCategory('expenses', { collapsed: true }, dayA);
@@ -43,13 +43,13 @@ test('daily card configurations initialize independently and survive switching a
 
   assert.equal(ids(dayA).includes('study'), false);
   assert.ok(ids(dayA).includes(withCustom.categories.find(category => category.name === 'Day A custom')!.id));
-  assert.deepEqual(ids(dayB), ['work', 'study', 'health', 'rest', 'ideas', 'expenses']);
+  assert.deepEqual(ids(dayB), ['study', 'work', 'health', 'rest', 'ideas', 'expenses']);
 
   // Re-reading the persisted workspace simulates a refresh; switching back must
   // return the exact date-scoped configuration, not the last opened date.
   assert.ok(readStoredWorkspace()?.dailyCategories?.[dayA]);
   const beforeRefresh = ids(dayA);
-  assert.deepEqual(ids(dayB), ['work', 'study', 'health', 'rest', 'ideas', 'expenses']);
+  assert.deepEqual(ids(dayB), ['study', 'work', 'health', 'rest', 'ideas', 'expenses']);
   assert.deepEqual(ids(dayA), beforeRefresh);
 });
 
