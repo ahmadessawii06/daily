@@ -56,6 +56,7 @@ function getTasksForDate(date?: string): Task[] {
  */
 export function isMorningAdhkarTask(title: string): boolean {
   const norm = normalizeArabicText(title);
+  if (norm.includes('مساء') || norm.includes('evening')) return false;
   return (
     norm.includes('اذكار الصباح') ||
     norm.includes('اذكار صباح') ||
@@ -63,7 +64,13 @@ export function isMorningAdhkarTask(title: string): boolean {
     norm.includes('morning athkar') ||
     (norm.includes('اذكار') && norm.includes('صباح')) ||
     norm === 'اذكار الصباح' ||
-    norm === 'اذكار صباح'
+    norm === 'اذكار صباح' ||
+    norm === 'اذكار' ||
+    norm === 'الاذكار' ||
+    norm.includes('الاذكار +') ||
+    norm.includes('الاذكار و') ||
+    norm.includes('اذكار +') ||
+    norm.includes('اذكار و')
   );
 }
 
@@ -99,7 +106,9 @@ export function isQuranWirdTask(title: string): boolean {
     norm.includes('quran wird') ||
     norm === 'ورد القران' ||
     norm === 'الورد القراني' ||
-    norm === 'وردك'
+    norm === 'وردك' ||
+    norm === 'الورد' ||
+    norm === 'ورد'
   );
 }
 

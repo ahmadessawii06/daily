@@ -29,8 +29,28 @@ export function partitionPrayerTasks(tasks: Task[]) {
   const otherTasks: Task[] = [];
   for (const task of tasks) {
     const id = dailyPrayerId(task.title);
-    if (id && !selected.has(id)) selected.set(id, task);
-    else otherTasks.push(task);
+    if (id) {
+      const existing = selected.get(id);
+      if (!existing) {
+        selected.set(id, task);
+      } else if (task.status === 'done' && existing.status !== 'done') {
+        otherTasks.push(existing);
+        selected.set(id, task);
+      } else if (existing.status === 'done' && task.status !== 'done') {
+        otherTasks.push(task);
+      } else {
+        const tNew = Date.parse(task.updatedAt || task.createdAt || '') || 0;
+        const tOld = Date.parse(existing.updatedAt || existing.createdAt || '') || 0;
+        if (tNew > tOld) {
+          otherTasks.push(existing);
+          selected.set(id, task);
+        } else {
+          otherTasks.push(task);
+        }
+      }
+    } else {
+      otherTasks.push(task);
+    }
   }
   return { slots: DAILY_PRAYERS.map(prayer => ({ prayer, task: selected.get(prayer.id) })), otherTasks };
 }

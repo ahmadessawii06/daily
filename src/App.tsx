@@ -264,10 +264,64 @@ export default function App() {
     const refresh = () => {
       if (disposed) return;
       setWorkspace(getPlannerWorkspace(currentDate));
-      setTasks(getDayRecord(currentDate).tasks);
+
+      const rec = getDayRecord(currentDate);
+      const currentTasks = rec.tasks;
+
+      // 1. Morning Adhkar bidirectional sync
+      const morningConf = Boolean(JSON.parse(userStorage.getItem(`islambook_azkar_morning_session_${currentDate}`) || '{}').confirmed);
+      const morningTask = currentTasks.find(t => isMorningAdhkarTask(t.title));
+      if (morningConf && (!morningTask || morningTask.status !== 'done')) {
+        if (morningTask) updateTaskInDay(currentDate, morningTask.id, { status: 'done' });
+        else addTaskToDay(currentDate, { title: 'أذكار الصباح', categoryId: 'worship', time: '05:30', status: 'done' });
+      } else if (!morningConf && morningTask?.status === 'done') {
+        const sess = JSON.parse(userStorage.getItem(`islambook_azkar_morning_session_${currentDate}`) || '{}');
+        userStorage.setItem(`islambook_azkar_morning_session_${currentDate}`, JSON.stringify({ ...sess, confirmed: true }));
+      }
+
+      // 2. Evening Adhkar bidirectional sync
+      const eveningConf = Boolean(JSON.parse(userStorage.getItem(`islambook_azkar_evening_session_${currentDate}`) || '{}').confirmed);
+      const eveningTask = currentTasks.find(t => isEveningAdhkarTask(t.title));
+      if (eveningConf && (!eveningTask || eveningTask.status !== 'done')) {
+        if (eveningTask) updateTaskInDay(currentDate, eveningTask.id, { status: 'done' });
+        else addTaskToDay(currentDate, { title: 'أذكار المساء', categoryId: 'worship', time: '17:00', status: 'done' });
+      } else if (!eveningConf && eveningTask?.status === 'done') {
+        const sess = JSON.parse(userStorage.getItem(`islambook_azkar_evening_session_${currentDate}`) || '{}');
+        userStorage.setItem(`islambook_azkar_evening_session_${currentDate}`, JSON.stringify({ ...sess, confirmed: true }));
+      }
+
+      // 3. Quran Wird bidirectional sync
+      const quranConf = userStorage.getItem(`islambook_quran_wird_completed_${currentDate}`) === 'true';
+      const quranTask = currentTasks.find(t => isQuranWirdTask(t.title));
+      if (quranConf && (!quranTask || quranTask.status !== 'done')) {
+        if (quranTask) updateTaskInDay(currentDate, quranTask.id, { status: 'done' });
+        else addTaskToDay(currentDate, { title: 'الورد اليومي', categoryId: 'worship', time: '06:00', status: 'done' });
+      } else if (!quranConf && quranTask?.status === 'done') {
+        userStorage.setItem(`islambook_quran_wird_completed_${currentDate}`, 'true');
+        const sess = JSON.parse(userStorage.getItem(`islambook_quran_wird_session_${currentDate}`) || '{}');
+        userStorage.setItem(`islambook_quran_wird_session_${currentDate}`, JSON.stringify({ ...sess, completed: true }));
+      }
+
+      // 4. Quranic Duas bidirectional sync
+      const duasConf = Boolean(
+        JSON.parse(userStorage.getItem(`islambook_duas_quran_session_${currentDate}`) || userStorage.getItem(`islambook_quranic_duas_session_${currentDate}`) || '{}').confirmed
+      );
+      const duasTask = currentTasks.find(t => isDuasTask(t.title));
+      if (duasConf && (!duasTask || duasTask.status !== 'done')) {
+        if (duasTask) updateTaskInDay(currentDate, duasTask.id, { status: 'done' });
+        else addTaskToDay(currentDate, { title: 'أدعيتك اليومية', categoryId: 'worship', time: '21:00', status: 'done' });
+      } else if (!duasConf && duasTask?.status === 'done') {
+        const raw = JSON.stringify({ confirmed: true });
+        userStorage.setItem(`islambook_duas_quran_session_${currentDate}`, raw);
+        userStorage.setItem(`islambook_quranic_duas_session_${currentDate}`, raw);
+      }
+
+      const finalRecord = getDayRecord(currentDate);
+      setTasks(finalRecord.tasks);
       setArchiveDays(getAllArchiveDays());
       setTheme(getStoredTheme());
       setLang(userStorage.getItem('lang') === 'en' ? 'en' : 'ar');
+      setReligiousTick(t => t + 1);
     };
     if (!isPreparingWorkspace) refresh();
     window.addEventListener('mizan:data-synced', refresh);
@@ -640,12 +694,30 @@ export default function App() {
 
         if (matcher) {
           const matchingTasks = dayRecord.tasks.filter(t => matcher(t.title));
-          for (const t of matchingTasks) {
-            const nextStatus: TaskStatus = isDone ? 'done' : 'pending';
-            if (t.status !== nextStatus) {
-              updateTaskInDay(targetDate, t.id, { status: nextStatus });
-              updated = true;
+          if (matchingTasks.length > 0) {
+            for (const t of matchingTasks) {
+              const nextStatus: TaskStatus = isDone ? 'done' : 'pending';
+              if (t.status !== nextStatus) {
+                updateTaskInDay(targetDate, t.id, { status: nextStatus });
+                updated = true;
+              }
             }
+          } else if (isDone) {
+            const title = 
+              detail.type === 'morning' ? 'أذكار الصباح' :
+              detail.type === 'evening' ? 'أذكار المساء' :
+              detail.type === 'quran' ? 'الورد اليومي' : 'أدعيتك اليومية';
+            const time = 
+              detail.type === 'morning' ? '05:30' :
+              detail.type === 'evening' ? '17:00' :
+              detail.type === 'quran' ? '06:00' : '21:00';
+            addTaskToDay(targetDate, {
+              title,
+              categoryId: 'worship',
+              time,
+              status: 'done',
+            });
+            updated = true;
           }
         }
         if (updated && targetDate === currentDate) {
