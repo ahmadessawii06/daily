@@ -9,6 +9,7 @@ export async function requestApi(path: string, body?: unknown, overrideToken?: s
   const token = overrideToken ?? getAuthToken();
   const response = await fetch(`/api${path}`, {
     method: body === undefined ? 'GET' : 'POST',
+    cache: 'no-store',
     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     signal: AbortSignal.timeout(15000),

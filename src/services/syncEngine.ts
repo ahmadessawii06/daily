@@ -1,10 +1,10 @@
 import type { DayRecord } from '../types';
 import { getStoredAuth } from '../utils/auth';
 import { loadAllDays, saveAllDays } from '../utils/storage';
-import { userStorage } from '../utils/scopedStorage';
+import { userStorage, scopedKey, isReligiousSyncKey } from '../utils/scopedStorage';
 import { mergeDay } from '../shared/merge';
 import { requestApi } from './api';
-import { getQueue, saveQueue } from './syncQueue';
+import { enqueue, getQueue, saveQueue } from './syncQueue';
 import { mergeWorkspace, parseWorkspace } from '../shared/workspace';
 import { readStoredWorkspace, storeWorkspace } from '../utils/workspace';
 import { prepareDayForSync } from '../utils/dayPhoto';
@@ -58,10 +58,62 @@ async function sync(userId: string, token: string): Promise<boolean> {
     const result = support ? await requestApi('/sync/read') : await requestApi('/sync/batch', body);
     if (!result.success || !result.days) throw new Error('استجابة المزامنة غير صالحة');
     if (sent.some(item => item.type === 'workspace') && !result.workspace) throw new Error('الخادم الحالي لا يدعم مزامنة البطاقات بعد');
+    if (sent.some(item => item.type === 'religious') && !result.religious) throw new Error('الخادم الحالي لا يدعم مزامنة بيانات الورد والأذكار');
     if (!active(userId, token)) return false;
     const acknowledged = new Set(sent.map(item => item.id));
     // Edits made during the request have different IDs and stay queued.
     const pending = getQueue(userId).filter(item => !acknowledged.has(item.id));
+    if (result.religious && !support) {
+      const sentReligious = sent.find(item => item.type === 'religious');
+      let next = pending.find(item => item.type === 'religious');
+      const retain = (key: string, entry: { value: string | null; version: number; id: string }) => {
+        if (!next) {
+          next = { id: crypto.randomUUID(), type: 'religious', data: {}, clientTimestamp: Date.now() };
+          pending.push(next);
+        }
+        next.data[key] = entry;
+      };
+      for (const key of Object.keys(sentReligious?.data || {})) if (!result.religious[key]) throw new Error('Server did not acknowledge religious data');
+      for (const [key, remote] of Object.entries(result.religious as Record<string, { value: string | null; version: number; id: string }>)) {
+        if (!isReligiousSyncKey(key) || !remote || typeof remote.version !== 'number') throw new Error('Invalid religious sync response');
+        const sentEntry = sentReligious?.data[key];
+        if (next?.data[key] && next.data[key].version <= remote.version) next.data[key].version = remote.version + 1;
+        if (sentEntry && (remote.version !== sentEntry.version || remote.id !== sentEntry.id) && !next?.data[key]) {
+          // A conflicting update won on the server. Preserve the user's edit
+          // and retry it after the observed version.
+          retain(key, { ...sentEntry, version: remote.version + 1 });
+        }
+        if (next?.data[key] || (sentEntry && (remote.version !== sentEntry.version || remote.id !== sentEntry.id))) continue;
+        const storageKey = scopedKey(key, userId);
+        if (remote.value === null) localStorage.removeItem(storageKey); else localStorage.setItem(storageKey, remote.value);
+      }
+      // Import existing account-scoped data only when the server has no value.
+      if (!userStorage.getItem('religious_sync_imported')) {
+        const prefix = scopedKey('', userId);
+        for (let i = 0; i < localStorage.length; i++) {
+          const storageKey = localStorage.key(i)!;
+          const key = storageKey.startsWith(prefix) ? storageKey.slice(prefix.length) : '';
+          if (isReligiousSyncKey(key) && !result.religious[key] && !sentReligious?.data[key] && !next?.data[key]) {
+            retain(key, { value: localStorage.getItem(storageKey), version: Date.now(), id: crypto.randomUUID() });
+          }
+        }
+        userStorage.setItem('religious_sync_imported', '1');
+      }
+    }
+    // A newer version from another device means the server rejected this
+    // collection update. Rebase it and retry instead of losing the edit.
+    for (const item of sent) {
+      if (!['habits', 'recurring', 'settings'].includes(item.type)) continue;
+      const remoteVersion = result.versions?.[item.type];
+      if (typeof remoteVersion !== 'number' || remoteVersion <= item.clientTimestamp) continue;
+      const newer = pending.find(entry => entry.type === item.type);
+      if (newer) {
+        if (item.type === 'settings') newer.data = { ...item.data, ...newer.data };
+        newer.clientTimestamp = Math.max(newer.clientTimestamp, remoteVersion + 1);
+      } else {
+        pending.push({ ...item, clientTimestamp: remoteVersion + 1 });
+      }
+    }
     if (result.workspace) {
       const workspace = parseWorkspace(result.workspace);
       storeWorkspace(support ? workspace : mergeWorkspace(readStoredWorkspace(), workspace));
@@ -104,7 +156,7 @@ async function sync(userId: string, token: string): Promise<boolean> {
     }
     lastSyncedAt = new Date().toLocaleTimeString('en-GB-u-nu-latn', { hour: '2-digit', minute: '2-digit' });
     window.dispatchEvent(new Event('mizan:data-synced'));
-    return true;
+    return pending.length === 0;
   } catch (err) {
     if (active(userId, token)) {
       status = navigator.onLine ? 'error' : 'offline'; errorMessage = (err as Error).message;
@@ -112,6 +164,10 @@ async function sync(userId: string, token: string): Promise<boolean> {
     }
     return false;
   } finally { if (active(userId, token)) notify(); }
+}
+
+function enqueueReligious(key: string, value: string | null) {
+  enqueue('religious', { [key]: { value, version: Date.now(), id: Array.from(crypto.getRandomValues(new Uint32Array(4))).join('-') } });
 }
 
 export async function triggerSync(userId = getStoredAuth().user?.id, force = false): Promise<boolean> {
@@ -134,11 +190,15 @@ export async function triggerSync(userId = getStoredAuth().user?.id, force = fal
   inFlight = sync(userId, session.token);
   const success = await inFlight;
   inFlight = null; inFlightUser = undefined;
-  if (success && active(userId, session.token) && getQueue(userId).length) void triggerSync(userId);
+  if (active(userId, session.token) && getQueue(userId).length && (success || status === 'saving')) void triggerSync(userId);
   return success;
 }
 
 if (typeof window !== 'undefined') {
+  window.addEventListener('mizan:religious-change', event => {
+    const { key, value } = (event as CustomEvent).detail;
+    enqueueReligious(key, value);
+  });
   window.addEventListener('mizan:queue-changed', () => { void triggerSync(); });
   window.addEventListener('online', () => { void triggerSync(undefined, true); });
   window.addEventListener('offline', () => { status = 'offline'; notify(); });

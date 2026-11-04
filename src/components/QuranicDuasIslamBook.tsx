@@ -230,6 +230,9 @@ export function QuranicDuasIslamBook({ date }: QuranicDuasProps) {
       const detail = (e as CustomEvent).detail;
       if (!detail || detail.date === date) {
         setIsConfirmed(getStoredDuasCompleted(date).completed);
+        if (e.type === 'mizan:data-synced') {
+          try { setCounts(JSON.parse(userStorage.getItem(COUNTS_KEY) || userStorage.getItem(`islambook_quranic_duas_counts_${date}`) || '{}')); } catch {}
+        }
       }
     };
     window.addEventListener('daily_religious_progress_changed', handleSync);

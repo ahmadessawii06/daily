@@ -4,7 +4,7 @@ import type { DayRecord } from '../types';
 
 export interface QueueItem {
   id: string;
-  type: 'day' | 'habits' | 'recurring' | 'settings' | 'workspace';
+  type: 'day' | 'habits' | 'recurring' | 'settings' | 'workspace' | 'religious';
   date?: string;
   data: any;
   clientTimestamp: number;
@@ -25,6 +25,10 @@ export function enqueue(type: QueueItem['type'], data: any, date?: string): void
   if (!userId) return;
   if (type === 'settings') {
     const previous = getQueue(userId).find(item => item.type === 'settings');
+    data = { ...previous?.data, ...data };
+  }
+  if (type === 'religious') {
+    const previous = getQueue(userId).find(item => item.type === 'religious');
     data = { ...previous?.data, ...data };
   }
   const existing = getQueue(userId);

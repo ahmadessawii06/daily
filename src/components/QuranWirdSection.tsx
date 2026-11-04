@@ -1,5 +1,5 @@
 import { BookOpen, Check, ChevronLeft, Minus, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { userStorage } from '../utils/scopedStorage';
 import { QURAN_READING_SAMPLES } from './religiousContent';
 
@@ -9,6 +9,18 @@ export function QuranWirdSection({ date }: { date: string }) {
   const [progress, setProgress] = useState<number>(saved.date === date ? saved.progress || 0 : 0);
   const [surah, setSurah] = useState(saved.surah || 'الفاتحة');
   const [ayah, setAyah] = useState(saved.ayah || '2');
+  useEffect(() => {
+    const refresh = () => {
+      try {
+        const value = JSON.parse(userStorage.getItem('religious_quran_wird') || '{}');
+        setGoal(value.goal || 5); setProgress(value.date === date ? value.progress || 0 : 0);
+        if (value.surah) setSurah(value.surah);
+        if (value.ayah) setAyah(value.ayah);
+      } catch {}
+    };
+    window.addEventListener('mizan:data-synced', refresh);
+    return () => window.removeEventListener('mizan:data-synced', refresh);
+  }, [date]);
   const save = (next: Partial<typeof saved>) => {
     userStorage.setItem('religious_quran_wird', JSON.stringify({ ...saved, goal, progress, surah, ayah, date, ...next }));
     window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'quran', date } }));

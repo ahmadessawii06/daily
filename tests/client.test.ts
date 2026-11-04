@@ -44,6 +44,37 @@ test('login accepts valid credentials even when optional workspace metadata is i
 
 test('client storage and sync regression cases', async t => {
   auth.saveStoredAuth(user, 'signed-token');
+  await t.test('religious changes survive offline and are applied on another device', async () => {
+    const originalFetch = globalThis.fetch;
+    const key = 'islambook_quran_wird_page_2026-10-01';
+    userStorage.setItem('religious_sync_imported', '1');
+    queue.saveQueue([]);
+    Object.defineProperty(globalThis, 'navigator', { value: { onLine: false }, configurable: true });
+    userStorage.setItem(key, '42');
+    assert.equal(await engine.triggerSync(user.id, true), false);
+    assert.equal(queue.getQueue()[0].data[key].value, '42');
+    Object.defineProperty(globalThis, 'navigator', { value: { onLine: true }, configurable: true });
+    let remote: any = {};
+    globalThis.fetch = async (_url, options) => {
+      const body = JSON.parse(options!.body as string);
+      remote = { ...remote, ...body.religious };
+      return new Response(JSON.stringify({ success: true, days: {}, religious: remote, versions: {} }), { headers: { 'content-type': 'application/json' } });
+    };
+    try {
+      assert.equal(await engine.triggerSync(user.id, true), true);
+      assert.deepEqual(queue.getQueue(), []);
+      localStorage.removeItem(`mizan_user_alice:${key}`);
+      assert.equal(await engine.triggerSync(user.id, true), true);
+      assert.equal(userStorage.getItem(key), '42');
+    } finally { globalThis.fetch = originalFetch; }
+  });
+  await t.test('missing religious acknowledgement keeps the edit queued', async () => {
+    queue.saveQueue([{ id: 'religious', type: 'religious', data: { religious_dua_favorites: { value: '[]', version: 1, id: 'a' } }, clientTimestamp: 1 }]);
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () => new Response(JSON.stringify({ success: true, days: {}, religious: {}, versions: {} }), { headers: { 'content-type': 'application/json' } });
+    try { assert.equal(await engine.triggerSync(user.id, true), false); assert.equal(queue.getQueue().length, 1); }
+    finally { globalThis.fetch = originalFetch; queue.saveQueue([]); }
+  });
   await t.test('sync acknowledges changes when server workspace lacks legacy metadata', async () => {
     const originalFetch = globalThis.fetch;
     queue.saveQueue([{ id: 'legacy-sync', type: 'settings', data: { lang: 'ar' }, clientTimestamp: 1 }]);
@@ -108,6 +139,24 @@ test('client storage and sync regression cases', async t => {
     assert.ok(queue.getQueue()[0].clientTimestamp > future);
     queue.saveQueue([]);
   });
+  await t.test('a rejected stale settings edit is retained and retried against the server version', async () => {
+    queue.saveQueue([{ id: 'stale-settings', type: 'settings', data: { lang: 'en' }, clientTimestamp: 10 }]);
+    const originalFetch = globalThis.fetch;
+    const requests: any[] = [];
+    globalThis.fetch = async (_url, options) => {
+      const body = JSON.parse(options!.body as string);
+      requests.push(body);
+      const accepted = body.versions.settings > 20;
+      return new Response(JSON.stringify({ success: true, days: {}, settings: { theme: 'dark', lang: accepted ? 'en' : 'ar' }, versions: { settings: accepted ? body.versions.settings : 20 } }), { headers: { 'content-type': 'application/json' } });
+    };
+    try {
+      assert.equal(await engine.triggerSync(user.id, true), false);
+      assert.equal(queue.getQueue()[0].clientTimestamp, 21);
+      assert.equal(await engine.triggerSync(user.id, true), true);
+      assert.deepEqual(queue.getQueue(), []);
+      assert.equal(requests[1].settings.lang, 'en');
+    } finally { globalThis.fetch = originalFetch; }
+  });
   await t.test('edits created while sync is in flight remain queued and are retried', async () => {
     queue.saveQueue([]); storage.saveAllDays({ [day.date]: day }); queue.enqueueDay(day);
     let release!: (value: Response) => void;
@@ -119,7 +168,7 @@ test('client storage and sync regression cases', async t => {
     const edited = { ...day, tasks: [{ ...task, title: 'New edit', updatedAt: '2026-10-02T10:00:00Z' }], updatedAt: '2026-10-02T10:00:00Z' };
     storage.saveAllDays({ [day.date]: edited }); queue.enqueueDay(edited);
     release(new Response(JSON.stringify({ success: true, days: { [day.date]: day }, habits: [], recurring: [], settings: {}, versions: {} }), { headers: { 'content-type': 'application/json' } }));
-    assert.equal(await pending, true);
+    assert.equal(await pending, false);
     assert.equal(queue.getQueue().length, 1);
     assert.equal(storage.loadAllDays()[day.date].tasks.find(t => t.id === task.id)?.title, 'New edit');
     auth.clearStoredAuth(); auth.saveStoredAuth(user, 'signed-token');
@@ -135,7 +184,7 @@ test('client storage and sync regression cases', async t => {
     const category = edited.categories.find(c => c.name === 'Created during sync')!;
     const remote = { ...baseline, categories: [...baseline.categories, { ...category, id: 'remote-card', name: 'Remote category' }] };
     release(new Response(JSON.stringify({ success: true, days: {}, workspace: remote, versions: { workspace: 1 } }), { headers: { 'content-type': 'application/json' } }));
-    assert.equal(await pending, true);
+    assert.equal(await pending, false);
     assert.equal(queue.getQueue().length, 1);
     assert.ok(workspace.getPlannerWorkspace().categories.some(c => c.id === category.id));
     assert.ok(workspace.getPlannerWorkspace().categories.some(c => c.id === 'remote-card'));

@@ -1,5 +1,5 @@
 import { Check, Clipboard, Heart, Search, Share2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { userStorage } from '../utils/scopedStorage';
 import { DUAS } from './religiousContent';
 
@@ -8,6 +8,11 @@ export function DuasSection() {
   const [category, setCategory] = useState<(typeof categories)[number]>('الكل');
   const [query, setQuery] = useState('');
   const [favorites, setFavorites] = useState<string[]>(() => { try { return JSON.parse(userStorage.getItem('religious_dua_favorites') || '[]'); } catch { return []; } });
+  useEffect(() => {
+    const refresh = () => { try { setFavorites(JSON.parse(userStorage.getItem('religious_dua_favorites') || '[]')); } catch {} };
+    window.addEventListener('mizan:data-synced', refresh);
+    return () => window.removeEventListener('mizan:data-synced', refresh);
+  }, []);
   const [copied, setCopied] = useState<string | null>(null);
   const visible = useMemo(() => DUAS.filter(dua => (category === 'الكل' || dua.category === category) && (!query.trim() || dua.text.includes(query.trim()) || dua.category.includes(query.trim()))), [category, query]);
   const toggleFavorite = (id: string) => { const next = favorites.includes(id) ? favorites.filter(item => item !== id) : [...favorites, id]; setFavorites(next); userStorage.setItem('religious_dua_favorites', JSON.stringify(next)); };

@@ -24,6 +24,8 @@ export interface Account extends User {
     settings: Record<string, any>;
     workspace?: PlannerWorkspace;
     versions: Record<string, number>;
+    religious?: Record<string, { value: string | null; version: number; id: string }>;
+    dailyQuranPages?: Record<string, number>;
   };
 }
 

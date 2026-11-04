@@ -143,7 +143,9 @@ export default function App() {
       } catch { /* requestApi handles a revoked or expired session. */ }
     };
     void verify(); const timer = setInterval(() => { void verify(); }, 30000);
-    return () => { disposed = true; clearInterval(timer); };
+    const onVisible = () => { if (document.visibilityState === 'visible') void verify(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { disposed = true; clearInterval(timer); document.removeEventListener('visibilitychange', onVisible); };
   }, [currentUser?.id]);
   const [isPreparingWorkspace, setIsPreparingWorkspace] = useState(() => Boolean(
     getStoredAuth().user && !readStoredWorkspace() && Object.keys(loadAllDays()).length === 0
@@ -328,6 +330,8 @@ export default function App() {
     window.addEventListener('mizan:workspace-changed', refresh);
     const syncOnFocus = () => { void triggerSync(currentUser.id, true); };
     window.addEventListener('focus', syncOnFocus);
+    const syncOnVisible = () => { if (document.visibilityState === 'visible') syncOnFocus(); };
+    document.addEventListener('visibilitychange', syncOnVisible);
     const interval = setInterval(syncOnFocus, 30000);
     void triggerSync(currentUser.id, true).finally(() => {
       if (disposed) return;
@@ -341,6 +345,7 @@ export default function App() {
       clearTimeout(loadingTimer);
       clearInterval(interval);
       window.removeEventListener('focus', syncOnFocus);
+      document.removeEventListener('visibilitychange', syncOnVisible);
       window.removeEventListener('mizan:data-synced', refresh);
       window.removeEventListener('mizan:workspace-changed', refresh);
     };

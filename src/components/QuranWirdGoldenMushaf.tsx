@@ -26,10 +26,12 @@ import {
   QURAN_JUZS, 
   getSurahForPage, 
   getJuzForPage, 
-  getDailyWirdPageForDate, 
   getGoldenQuranPageUrl 
 } from '../data/quranNavigation';
 import { userStorage } from '../utils/scopedStorage';
+import { getStoredAuth } from '../utils/auth';
+import { getPrayerTimeZoneDate } from '../utils/prayerSchedule';
+import { requestApi } from '../services/api';
 import { getStoredQuranCompleted } from '../utils/dailyProgress';
 import type { Theme } from '../types';
 
@@ -41,6 +43,50 @@ interface QuranWirdProps {
 }
 
 export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
+  const cacheKey = `daily_quran_assignment_${date}`;
+  const readPage = () => {
+    const value = Number(userStorage.getItem(cacheKey));
+    return Number.isInteger(value) && value >= 1 && value <= 604 ? value : null;
+  };
+  const [page, setPage] = useState<number | null>(readPage);
+  const [error, setError] = useState(false);
+  useEffect(() => {
+    let disposed = false;
+    let loading = false;
+    const session = getStoredAuth();
+    const load = async () => {
+      if (loading || !navigator.onLine) { if (!navigator.onLine) setError(true); return; }
+      loading = true;
+      try {
+        const current = date === getPrayerTimeZoneDate(new Date());
+        const result = current && !session.user?.impersonation
+          ? await requestApi('/quran/daily', { date })
+          : await requestApi(`/quran/daily/${date}`);
+        if (result.date !== date || !Number.isInteger(result.page) || result.page < 1 || result.page > 604) throw new Error('Invalid daily page');
+        if (!disposed && getStoredAuth().token === session.token && getStoredAuth().user?.id === session.user?.id) {
+          userStorage.setItem(cacheKey, String(result.page));
+          setPage(result.page); setError(false);
+        }
+      } catch { if (!disposed) setError(true); }
+      finally { loading = false; }
+    };
+    setPage(readPage());
+    void load();
+    const onVisible = () => { if (document.visibilityState === 'visible') void load(); };
+    window.addEventListener('online', load);
+    window.addEventListener('focus', load);
+    window.addEventListener('mizan:data-synced', load);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { disposed = true; window.removeEventListener('online', load); window.removeEventListener('focus', load); window.removeEventListener('mizan:data-synced', load); document.removeEventListener('visibilitychange', onVisible); };
+  }, [date]);
+  if (page === null) return <p role={error ? 'alert' : 'status'} className="p-5 text-center">{error ? 'تعذّر جلب صفحة الورد لهذا اليوم. اتصل بالإنترنت وحاول مجددًا.' : 'جارٍ جلب صفحة الورد…'}</p>;
+  return <>
+    {error && <p role="status" className="p-2 text-center text-sm">تُعرض صفحة الورد المحفوظة على هذا الجهاز؛ سيُعاد التحقق عند الاتصال.</p>}
+    <QuranWirdReader date={date} theme={theme} assignedPage={page} />
+  </>;
+}
+
+function QuranWirdReader({ date, theme, assignedPage }: QuranWirdProps & { assignedPage: number }) {
   // Storage keys
   const COMPLETED_KEY = `islambook_quran_wird_completed_${date}`;
   const PAGE_KEY = `islambook_quran_wird_page_${date}`;
@@ -56,7 +102,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
   }, []);
 
   // Default daily page for this date
-  const defaultDailyPage = getDailyWirdPageForDate(date);
+  const defaultDailyPage = assignedPage;
 
   // Current page state
   const [currentPage, setCurrentPage] = useState<number>(() => {
@@ -177,6 +223,10 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
       const detail = (e as CustomEvent).detail;
       if (!detail || detail.date === date) {
         setIsCompleted(getStoredQuranCompleted(date));
+        if (e.type === 'mizan:data-synced') {
+          const page = Number(userStorage.getItem(PAGE_KEY));
+          if (page >= 1 && page <= 604) setCurrentPage(page);
+        }
       }
     };
     window.addEventListener('daily_religious_progress_changed', handleSync);

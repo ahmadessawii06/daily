@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
-import { randomBytes, randomUUID } from 'node:crypto';
+import { randomBytes, randomInt, randomUUID } from 'node:crypto';
 import { createAccount, findAccount, storageStatus, updateState, type Account } from './repository.js';
 import { hashPassword, matchesPassword } from './security.js';
 import { authenticateRequest, installAdminRoutes, installResetRoute, newSession, publicUser, requestClaims, usable, fail, type ResetMailer } from './admin.js';
@@ -10,6 +10,8 @@ import { createWorkspace, mergeWorkspace, parseWorkspace } from '../src/shared/w
 import type { DayRecord } from '../src/types';
 import { normalizePhotoTimestamp } from '../src/shared/photoTimestamp.js';
 import { installProfileRoutes } from './profile.js';
+import { isReligiousSyncKey } from '../src/utils/scopedStorage.js';
+import { getPrayerTimeZoneDate } from '../src/utils/prayerSchedule.js';
 
 function badRequest(message: string): never {
   throw Object.assign(new Error(message), { status: 400 });
@@ -48,7 +50,7 @@ export function validateDay(date: string, data: any): DayRecord {
     dayNote: typeof data.dayNote === 'string' ? data.dayNote : undefined, updatedAt, deletedTaskIds };
 }
 
-export function createApiApp(production = false, options: { resetMailer?: ResetMailer } = {}) {
+export function createApiApp(production = false, options: { resetMailer?: ResetMailer; now?: () => Date } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '5mb' }));
@@ -119,6 +121,28 @@ export function createApiApp(production = false, options: { resetMailer?: ResetM
   });
 
   api.get('/auth/me', (_req, res) => res.json({ success: true, user: { ...publicUser(res.locals.account), ...(res.locals.impersonation ? { impersonation: res.locals.impersonation } : {}) } }));
+  api.get('/quran/daily/:date', (req, res) => {
+    if (!validDate(req.params.date)) badRequest('Invalid date');
+    const page = res.locals.account.state.dailyQuranPages?.[req.params.date];
+    if (!page) return res.status(404).json({ success: false, error: 'No daily page saved for this date' });
+    res.json({ success: true, date: req.params.date, page });
+  });
+  api.post('/quran/daily', asyncRoute(async (req, res) => {
+    const date = getPrayerTimeZoneDate(options.now?.() ?? new Date());
+    if (req.body?.date !== date) badRequest('Daily page can only be selected for today in Asia/Hebron');
+    const previous = new Date(`${date}T00:00:00Z`);
+    previous.setUTCDate(previous.getUTCDate() - 1);
+    const yesterday = previous.toISOString().slice(0, 10);
+    const state = await updateState(res.locals.account.id, state => {
+      const pages = state.dailyQuranPages ??= {};
+      if (!pages[date]) {
+        const previousPage = pages[yesterday];
+        const candidate = randomInt(1, previousPage ? 604 : 605);
+        pages[date] = previousPage && candidate >= previousPage ? candidate + 1 : candidate;
+      }
+    });
+    res.json({ success: true, date, page: state.dailyQuranPages![date] });
+  }));
   installAdminRoutes(api, asyncRoute, options.resetMailer);
   api.get('/days', (_req, res) => res.json({ days: res.locals.account.state.days }));
   api.get('/days/:date', (req, res) => {
@@ -133,6 +157,13 @@ export function createApiApp(production = false, options: { resetMailer?: ResetM
 
   api.post('/sync/batch', asyncRoute(async (req, res) => {
     const body = req.body || {};
+    if (body.religious !== undefined) {
+      if (!body.religious || typeof body.religious !== 'object' || Array.isArray(body.religious) || Object.keys(body.religious).length > 5000) badRequest('Invalid religious data');
+      for (const [key, raw] of Object.entries(body.religious)) {
+        const entry = raw as any;
+        if (!isReligiousSyncKey(key) || !entry || (entry.value !== null && (typeof entry.value !== 'string' || entry.value.length > 50000)) || !Number.isSafeInteger(entry.version) || entry.version < 1 || typeof entry.id !== 'string' || entry.id.length > 100 || !entry.id) badRequest('Invalid religious entry');
+      }
+    }
     const workspace = body.workspace === undefined ? undefined : parseWorkspace(body.workspace);
     const days: DayRecord[] = [];
     if (body.days) {
@@ -153,6 +184,12 @@ export function createApiApp(production = false, options: { resetMailer?: ResetM
       }
     }
     const state = await updateState(res.locals.account.id, state => {
+      state.religious ??= {};
+      for (const [key, raw] of Object.entries(body.religious || {})) {
+        const entry = raw as { value: string | null; version: number; id: string };
+        const existing = state.religious[key];
+        if (!existing || entry.version > existing.version || (entry.version === existing.version && entry.id > existing.id)) state.religious[key] = entry;
+      }
       if (workspace) {
         const version = body.versions?.workspace;
         if (!Number.isFinite(version) || version <= 0) badRequest('Invalid workspace version');

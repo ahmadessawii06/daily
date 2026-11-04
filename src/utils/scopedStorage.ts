@@ -1,5 +1,9 @@
 import { getStoredAuth } from './auth';
 
+export function isReligiousSyncKey(key: string): boolean {
+  return /^(islambook_(azkar_(morning|evening)_(counts|session|bookmark)|duas_quran_(counts|session|bookmark)|quranic_duas_(counts|session)|quran_wird_(page|completed|session))(_\d{4}-\d{2}-\d{2})?|religious_(quran_wird|dua_favorites))$/.test(key);
+}
+
 export function scopedKey(key: string, userId = getStoredAuth().user?.id): string {
   const support = getStoredAuth().user?.impersonation;
   if (support && userId === getStoredAuth().user?.id) return `mizan_support_${support.id}:${key}`;
@@ -8,8 +12,16 @@ export function scopedKey(key: string, userId = getStoredAuth().user?.id): strin
 
 export const userStorage = {
   getItem(key: string): string | null { return localStorage.getItem(scopedKey(key)); },
-  setItem(key: string, value: string): void { localStorage.setItem(scopedKey(key), value); },
-  removeItem(key: string): void { localStorage.removeItem(scopedKey(key)); },
+  setItem(key: string, value: string): void {
+    if (localStorage.getItem(scopedKey(key)) === value) return;
+    localStorage.setItem(scopedKey(key), value);
+    if (isReligiousSyncKey(key) && typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('mizan:religious-change', { detail: { key, value } }));
+  },
+  removeItem(key: string): void {
+    if (localStorage.getItem(scopedKey(key)) === null) return;
+    localStorage.removeItem(scopedKey(key));
+    if (isReligiousSyncKey(key) && typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('mizan:religious-change', { detail: { key, value: null } }));
+  },
 };
 
 // Unscoped data has no trustworthy owner. Keep it for an explicit import.
