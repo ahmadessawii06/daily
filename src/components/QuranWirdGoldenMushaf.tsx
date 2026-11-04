@@ -30,7 +30,6 @@ import {
 } from '../data/quranNavigation';
 import { userStorage } from '../utils/scopedStorage';
 import { getStoredAuth } from '../utils/auth';
-import { getPrayerTimeZoneDate } from '../utils/prayerSchedule';
 import { requestApi } from '../services/api';
 import { getStoredQuranCompleted } from '../utils/dailyProgress';
 import type { Theme } from '../types';
@@ -58,8 +57,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
       if (loading || !navigator.onLine) { if (!navigator.onLine) setError(true); return; }
       loading = true;
       try {
-        const current = date === getPrayerTimeZoneDate(new Date());
-        const result = current && !session.user?.impersonation
+        const result = !session.user?.impersonation
           ? await requestApi('/quran/daily', { date })
           : await requestApi(`/quran/daily/${date}`);
         if (result.date !== date || !Number.isInteger(result.page) || result.page < 1 || result.page > 604) throw new Error('Invalid daily page');

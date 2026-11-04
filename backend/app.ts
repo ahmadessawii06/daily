@@ -11,7 +11,6 @@ import type { DayRecord } from '../src/types';
 import { normalizePhotoTimestamp } from '../src/shared/photoTimestamp.js';
 import { installProfileRoutes } from './profile.js';
 import { isReligiousSyncKey } from '../src/shared/religiousKeys.js';
-import { getPrayerTimeZoneDate } from '../src/utils/prayerSchedule.js';
 
 function badRequest(message: string): never {
   throw Object.assign(new Error(message), { status: 400 });
@@ -50,7 +49,7 @@ export function validateDay(date: string, data: any): DayRecord {
     dayNote: typeof data.dayNote === 'string' ? data.dayNote : undefined, updatedAt, deletedTaskIds };
 }
 
-export function createApiApp(production = false, options: { resetMailer?: ResetMailer; now?: () => Date } = {}) {
+export function createApiApp(production = false, options: { resetMailer?: ResetMailer } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '5mb' }));
@@ -128,17 +127,22 @@ export function createApiApp(production = false, options: { resetMailer?: ResetM
     res.json({ success: true, date: req.params.date, page });
   });
   api.post('/quran/daily', asyncRoute(async (req, res) => {
-    const date = getPrayerTimeZoneDate(options.now?.() ?? new Date());
-    if (req.body?.date !== date) badRequest('Daily page can only be selected for today in Asia/Hebron');
+    const date = req.body?.date;
+    if (typeof date !== 'string' || !validDate(date)) badRequest('Invalid date');
     const previous = new Date(`${date}T00:00:00Z`);
     previous.setUTCDate(previous.getUTCDate() - 1);
     const yesterday = previous.toISOString().slice(0, 10);
+    const next = new Date(`${date}T00:00:00Z`);
+    next.setUTCDate(next.getUTCDate() + 1);
+    const tomorrow = next.toISOString().slice(0, 10);
     const state = await updateState(res.locals.account.id, state => {
       const pages = state.dailyQuranPages ??= {};
       if (!pages[date]) {
-        const previousPage = pages[yesterday];
-        const candidate = randomInt(1, previousPage ? 604 : 605);
-        pages[date] = previousPage && candidate >= previousPage ? candidate + 1 : candidate;
+        // Dates can be opened in any order. Exclude both saved neighbours
+        // without ever changing an assignment another device already received.
+        const candidates = Array.from({ length: 604 }, (_, index) => index + 1)
+          .filter(page => page !== pages[yesterday] && page !== pages[tomorrow]);
+        pages[date] = candidates[randomInt(candidates.length)];
       }
     });
     res.json({ success: true, date, page: state.dailyQuranPages![date] });

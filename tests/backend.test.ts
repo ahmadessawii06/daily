@@ -17,9 +17,8 @@ test('API authentication, durable storage, isolation and conflicts', async t => 
   process.env.NODE_ENV = 'test';
   let server: Server;
   let base: string;
-  let mockNow: Date | undefined;
   const start = async () => {
-    server = createApiApp(false, { now: () => mockNow ?? new Date() }).listen(0, '127.0.0.1');
+    server = createApiApp().listen(0, '127.0.0.1');
     await new Promise<void>(resolve => server.once('listening', resolve));
     base = `http://127.0.0.1:${(server.address() as any).port}/api`;
   };
@@ -35,8 +34,7 @@ test('API authentication, durable storage, isolation and conflicts', async t => 
     const first = await request('/auth/register', { username: 'alice', password: 'secret pass ', name: 'Alice' });
     const second = await request('/auth/register', { username: 'bob', password: 'another password' });
     const token = first.data.token;
-    await t.test('daily Quran assignment is account scoped, atomic and changes at Hebron midnight', async () => {
-      mockNow = new Date('2026-10-11T12:00:00Z');
+    await t.test('daily Quran assignments are stable for arbitrary dates and avoid both neighbours', async () => {
       const date = '2026-10-11';
       const results = await Promise.all(Array.from({ length: 8 }, () => request('/quran/daily', { date }, token)));
       assert.ok(results.every(result => result.status === 200 && result.data.page === results[0].data.page));
@@ -44,13 +42,19 @@ test('API authentication, durable storage, isolation and conflicts', async t => 
       assert.ok(firstPage >= 1 && firstPage <= 604);
       assert.equal((await request(`/quran/daily/${date}`, undefined, token)).data.page, firstPage);
       assert.equal((await request(`/quran/daily/${date}`, undefined, second.data.token)).status, 404);
-      mockNow = new Date('2026-10-11T22:01:00Z');
-      const next = await request('/quran/daily', { date: '2026-10-12' }, token);
+      // Open the future first, then fill the gap between two saved days.
+      const future = await request('/quran/daily', { date: '2099-10-13' }, token);
+      const earlier = await request('/quran/daily', { date: '2099-10-11' }, token);
+      const next = await request('/quran/daily', { date: '2099-10-12' }, token);
       assert.equal(next.status, 200);
-      assert.notEqual(next.data.page, firstPage);
-      assert.equal((await request('/quran/daily', { date }, token)).status, 400);
-      assert.equal((await request('/quran/daily', { date: '2026-10-12' }, token)).data.page, next.data.page);
-      mockNow = undefined;
+      assert.notEqual(next.data.page, future.data.page);
+      assert.notEqual(next.data.page, earlier.data.page);
+      assert.equal((await request('/quran/daily', { date }, token)).data.page, firstPage);
+      assert.equal((await request('/quran/daily', { date: '2099-10-12' }, token)).data.page, next.data.page);
+      assert.equal((await request('/quran/daily/2099-10-13', undefined, token)).data.page, future.data.page);
+      for (const invalid of [undefined, '2099-02-30', 'tomorrow', {}, '2099-1-2']) {
+        assert.equal((await request('/quran/daily', { date: invalid }, token)).status, 400);
+      }
     });
     await t.test('religious data round trips, isolates accounts and resolves stale writes', async () => {
       const key = 'islambook_azkar_morning_counts_2026-10-01';
