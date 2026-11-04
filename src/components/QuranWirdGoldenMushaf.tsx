@@ -80,7 +80,7 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
   if (page === null) return <p role={error ? 'alert' : 'status'} className="p-5 text-center">{error ? 'تعذّر جلب صفحة الورد لهذا اليوم. اتصل بالإنترنت وحاول مجددًا.' : 'جارٍ جلب صفحة الورد…'}</p>;
   return <>
     {error && <p role="status" className="p-2 text-center text-sm">تُعرض صفحة الورد المحفوظة على هذا الجهاز؛ سيُعاد التحقق عند الاتصال.</p>}
-    <QuranWirdReader date={date} theme={theme} assignedPage={page} />
+    <QuranWirdReader key={`${date}:${page}`} date={date} theme={theme} assignedPage={page} />
   </>;
 }
 
@@ -103,18 +103,8 @@ function QuranWirdReader({ date, theme, assignedPage }: QuranWirdProps & { assig
   const defaultDailyPage = assignedPage;
 
   // Current page state
-  const [currentPage, setCurrentPage] = useState<number>(() => {
-    try {
-      const saved = userStorage.getItem(PAGE_KEY);
-      if (saved) {
-        const parsed = parseInt(saved, 10);
-        if (parsed >= 1 && parsed <= 604) return parsed;
-      }
-      return defaultDailyPage;
-    } catch {
-      return defaultDailyPage;
-    }
-  });
+  const [currentPage, setCurrentPage] = useState(defaultDailyPage);
+  const hasNavigated = useRef(false);
 
   // Completion state
   const [isCompleted, setIsCompleted] = useState<boolean>(() => {
@@ -196,7 +186,7 @@ function QuranWirdReader({ date, theme, assignedPage }: QuranWirdProps & { assig
 
   // Persist current page
   useEffect(() => {
-    userStorage.setItem(PAGE_KEY, String(currentPage));
+    if (hasNavigated.current) userStorage.setItem(PAGE_KEY, String(currentPage));
   }, [currentPage, PAGE_KEY]);
 
   // Persist view mode
@@ -221,10 +211,6 @@ function QuranWirdReader({ date, theme, assignedPage }: QuranWirdProps & { assig
       const detail = (e as CustomEvent).detail;
       if (!detail || detail.date === date) {
         setIsCompleted(getStoredQuranCompleted(date));
-        if (e.type === 'mizan:data-synced') {
-          const page = Number(userStorage.getItem(PAGE_KEY));
-          if (page >= 1 && page <= 604) setCurrentPage(page);
-        }
       }
     };
     window.addEventListener('daily_religious_progress_changed', handleSync);
@@ -287,6 +273,7 @@ function QuranWirdReader({ date, theme, assignedPage }: QuranWirdProps & { assig
   const goToPage = useCallback((page: number) => {
     const clamped = Math.max(1, Math.min(604, page));
     setIsLoadingImage(true);
+    hasNavigated.current = true;
     setCurrentPage(clamped);
     if (!timerRunning && !isCompleted) {
       setTimerRunning(true);
