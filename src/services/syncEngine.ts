@@ -1,7 +1,8 @@
 import type { DayRecord } from '../types';
 import { getStoredAuth } from '../utils/auth';
 import { loadAllDays, saveAllDays } from '../utils/storage';
-import { userStorage, scopedKey, isReligiousSyncKey } from '../utils/scopedStorage';
+import { userStorage, scopedKey } from '../utils/scopedStorage';
+import { isReligiousSyncKey } from '../shared/religiousKeys';
 import { mergeDay } from '../shared/merge';
 import { requestApi } from './api';
 import { enqueue, getQueue, saveQueue } from './syncQueue';

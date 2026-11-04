@@ -10,7 +10,7 @@ import { createWorkspace, mergeWorkspace, parseWorkspace } from '../src/shared/w
 import type { DayRecord } from '../src/types';
 import { normalizePhotoTimestamp } from '../src/shared/photoTimestamp.js';
 import { installProfileRoutes } from './profile.js';
-import { isReligiousSyncKey } from '../src/utils/scopedStorage.js';
+import { isReligiousSyncKey } from '../src/shared/religiousKeys.js';
 import { getPrayerTimeZoneDate } from '../src/utils/prayerSchedule.js';
 
 function badRequest(message: string): never {
