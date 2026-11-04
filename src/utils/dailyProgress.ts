@@ -1,6 +1,6 @@
 import type { DayStats, Task } from '../types';
 import { partitionPrayerTasks } from './prayerTasks';
-import { calculateStats } from './storage';
+import { calculateStats, loadAllDays } from './storage';
 import { userStorage } from './scopedStorage';
 import { AZKAR_SABAH } from '../data/azkarSabah';
 import { AZKAR_MASAA } from '../data/azkarMasaa';
@@ -41,6 +41,16 @@ function normalizeArabicText(text: string): string {
     .trim();
 }
 
+function getTasksForDate(date?: string): Task[] {
+  if (!date) return [];
+  try {
+    const all = loadAllDays();
+    return all[date]?.tasks || [];
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Detects if a task specifically represents Morning Adhkar to avoid double-counting.
  */
@@ -51,6 +61,7 @@ export function isMorningAdhkarTask(title: string): boolean {
     norm.includes('اذكار صباح') ||
     norm.includes('morning adhkar') ||
     norm.includes('morning athkar') ||
+    (norm.includes('اذكار') && norm.includes('صباح')) ||
     norm === 'اذكار الصباح' ||
     norm === 'اذكار صباح'
   );
@@ -66,6 +77,7 @@ export function isEveningAdhkarTask(title: string): boolean {
     norm.includes('اذكار مساء') ||
     norm.includes('evening adhkar') ||
     norm.includes('evening athkar') ||
+    (norm.includes('اذكار') && norm.includes('مساء')) ||
     norm === 'اذكار المساء' ||
     norm === 'اذكار مساء'
   );
@@ -81,6 +93,9 @@ export function isQuranWirdTask(title: string): boolean {
     norm.includes('الورد القراني') ||
     norm.includes('وردك') ||
     norm.includes('قراءة القران') ||
+    norm.includes('الورد اليومي') ||
+    norm.includes('ورد يومي') ||
+    norm.includes('الورد') ||
     norm.includes('quran wird') ||
     norm === 'ورد القران' ||
     norm === 'الورد القراني' ||
@@ -98,6 +113,8 @@ export function isDuasTask(title: string): boolean {
     norm.includes('الادعية') ||
     norm.includes('ادعية قرانية') ||
     norm.includes('قراءة الادعية') ||
+    norm.includes('فقرة الادعية') ||
+    norm.includes('ادعية') ||
     norm.includes('duas') ||
     norm === 'ادعيتك' ||
     norm === 'الادعية'
@@ -121,7 +138,9 @@ export function isStoredMorningConfirmed(date?: string): boolean {
   if (!date) return false;
   try {
     const session = JSON.parse(userStorage.getItem(`islambook_azkar_morning_session_${date}`) || '{}');
-    return Boolean(session.confirmed);
+    if (Boolean(session.confirmed)) return true;
+    const tasks = getTasksForDate(date);
+    return tasks.some(t => isMorningAdhkarTask(t.title) && t.status === 'done');
   } catch {
     return false;
   }
@@ -144,7 +163,9 @@ export function isStoredEveningConfirmed(date?: string): boolean {
   if (!date) return false;
   try {
     const session = JSON.parse(userStorage.getItem(`islambook_azkar_evening_session_${date}`) || '{}');
-    return Boolean(session.confirmed);
+    if (Boolean(session.confirmed)) return true;
+    const tasks = getTasksForDate(date);
+    return tasks.some(t => isEveningAdhkarTask(t.title) && t.status === 'done');
   } catch {
     return false;
   }
@@ -158,7 +179,11 @@ export function getStoredQuranCompleted(date?: string): boolean {
   try {
     if (userStorage.getItem(`islambook_quran_wird_completed_${date}`) === 'true') return true;
     const session = JSON.parse(userStorage.getItem(`islambook_quran_wird_session_${date}`) || '{}');
-    return Boolean(session.completed);
+    if (Boolean(session.completed)) return true;
+    const legacy = JSON.parse(userStorage.getItem('religious_quran_wird') || '{}');
+    if (legacy && legacy.date === date && Number(legacy.progress) >= Number(legacy.goal || 5) && Number(legacy.progress) > 0) return true;
+    const tasks = getTasksForDate(date);
+    return tasks.some(t => isQuranWirdTask(t.title) && t.status === 'done');
   } catch {
     return false;
   }
@@ -170,16 +195,29 @@ export function getStoredQuranCompleted(date?: string): boolean {
 export function getStoredDuasCompleted(date?: string): { completed: boolean; ratio: number } {
   if (!date) return { completed: false, ratio: 0 };
   try {
-    const session = JSON.parse(userStorage.getItem(`islambook_quranic_duas_session_${date}`) || '{}');
+    const session = JSON.parse(
+      userStorage.getItem(`islambook_duas_quran_session_${date}`) ||
+      userStorage.getItem(`islambook_quranic_duas_session_${date}`) ||
+      '{}'
+    );
     if (session.confirmed) return { completed: true, ratio: 1 };
-    const counts = JSON.parse(userStorage.getItem(`islambook_quranic_duas_counts_${date}`) || '{}');
+    const counts = JSON.parse(
+      userStorage.getItem(`islambook_duas_quran_counts_${date}`) ||
+      userStorage.getItem(`islambook_quranic_duas_counts_${date}`) ||
+      '{}'
+    );
     const totalRequired = QURANIC_DUAS.length;
     let done = 0;
     for (const d of QURANIC_DUAS) {
       if ((counts[d.id] || 0) >= d.count) done++;
     }
     const ratio = totalRequired > 0 ? Math.min(1, done / totalRequired) : 0;
-    return { completed: ratio >= 1, ratio };
+    if (ratio >= 1) return { completed: true, ratio: 1 };
+    const tasks = getTasksForDate(date);
+    if (tasks.some(t => isDuasTask(t.title) && t.status === 'done')) {
+      return { completed: true, ratio: 1 };
+    }
+    return { completed: false, ratio };
   } catch {
     return { completed: false, ratio: 0 };
   }

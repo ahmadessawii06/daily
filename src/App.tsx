@@ -37,7 +37,7 @@ import { deletePlannerCategoryAndTasks, restorePlannerCategoryAndTasks, type Cat
 import { activeCategories, UNASSIGNED_CATEGORY } from './shared/workspace';
 import { getTaskCardCategories } from './utils/cardCategories';
 import { partitionPrayerTasks } from './utils/prayerTasks';
-import { calculateDailyProgress } from './utils/dailyProgress';
+import { calculateDailyProgress, isMorningAdhkarTask, isEveningAdhkarTask, isQuranWirdTask, isDuasTask } from './utils/dailyProgress';
 import { shouldPlayListCompletionSound } from './utils/listCompletion';
 import { canMoveTask } from './shared/taskPlanning';
 import { MainHeader } from './components/MainHeader';
@@ -385,6 +385,30 @@ export default function App() {
     setTasks(rec.tasks);
     refreshArchive();
     playStatusFeedback(before, rec.tasks, taskId, newStatus);
+
+    const changedTask = rec.tasks.find(t => t.id === taskId) || before.find(t => t.id === taskId);
+    if (changedTask) {
+      if (isMorningAdhkarTask(changedTask.title)) {
+        const sess = JSON.parse(userStorage.getItem(`islambook_azkar_morning_session_${currentDate}`) || '{}');
+        userStorage.setItem(`islambook_azkar_morning_session_${currentDate}`, JSON.stringify({ ...sess, confirmed: newStatus === 'done' }));
+        window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'morning', date: currentDate, confirmed: newStatus === 'done' } }));
+      } else if (isEveningAdhkarTask(changedTask.title)) {
+        const sess = JSON.parse(userStorage.getItem(`islambook_azkar_evening_session_${currentDate}`) || '{}');
+        userStorage.setItem(`islambook_azkar_evening_session_${currentDate}`, JSON.stringify({ ...sess, confirmed: newStatus === 'done' }));
+        window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'evening', date: currentDate, confirmed: newStatus === 'done' } }));
+      } else if (isQuranWirdTask(changedTask.title)) {
+        userStorage.setItem(`islambook_quran_wird_completed_${currentDate}`, newStatus === 'done' ? 'true' : 'false');
+        const sess = JSON.parse(userStorage.getItem(`islambook_quran_wird_session_${currentDate}`) || '{}');
+        userStorage.setItem(`islambook_quran_wird_session_${currentDate}`, JSON.stringify({ ...sess, completed: newStatus === 'done' }));
+        window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'quran', date: currentDate, completed: newStatus === 'done' } }));
+      } else if (isDuasTask(changedTask.title)) {
+        const sess = JSON.parse(userStorage.getItem(`islambook_duas_quran_session_${currentDate}`) || userStorage.getItem(`islambook_quranic_duas_session_${currentDate}`) || '{}');
+        const raw = JSON.stringify({ ...sess, confirmed: newStatus === 'done' });
+        userStorage.setItem(`islambook_duas_quran_session_${currentDate}`, raw);
+        userStorage.setItem(`islambook_quranic_duas_session_${currentDate}`, raw);
+        window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'duas', date: currentDate, confirmed: newStatus === 'done' } }));
+      }
+    }
   };
 
   const handlePrayerStatusChange = (taskId: string, newStatus: TaskStatus) => {
@@ -602,6 +626,33 @@ export default function App() {
   useEffect(() => {
     const handleReligiousProgress = (e: Event) => {
       const detail = (e as CustomEvent).detail;
+      const targetDate = detail?.date || currentDate;
+
+      if (detail?.type) {
+        const isDone = (detail.confirmed !== undefined ? detail.confirmed : detail.completed !== undefined ? detail.completed : true);
+        const dayRecord = getDayRecord(targetDate);
+        let updated = false;
+        const matcher = 
+          detail.type === 'morning' ? isMorningAdhkarTask :
+          detail.type === 'evening' ? isEveningAdhkarTask :
+          detail.type === 'quran' ? isQuranWirdTask :
+          detail.type === 'duas' ? isDuasTask : null;
+
+        if (matcher) {
+          const matchingTasks = dayRecord.tasks.filter(t => matcher(t.title));
+          for (const t of matchingTasks) {
+            const nextStatus: TaskStatus = isDone ? 'done' : 'pending';
+            if (t.status !== nextStatus) {
+              updateTaskInDay(targetDate, t.id, { status: nextStatus });
+              updated = true;
+            }
+          }
+        }
+        if (updated && targetDate === currentDate) {
+          setTasks(getDayRecord(currentDate).tasks);
+        }
+      }
+
       if (!detail || !detail.date || detail.date === currentDate) {
         setReligiousTick(prev => prev + 1);
       }
@@ -812,7 +863,7 @@ export default function App() {
 
           {support && <div className="flex justify-center w-full"><ReligiousTabs active={religiousSection} onChange={setReligiousSection} lang={lang} /></div>}
           <div id="onboarding-planner-area" className="space-y-4 sm:space-y-6">
-            {religiousSection !== 'prayers' && <div className="religious-content-switch" key={religiousSection}>
+            {religiousSection !== 'prayers' && <div className="religious-content-switch" key={`${religiousSection}_${currentDate}`}>
               {religiousSection === 'morning' && <MorningAdhkarIslamBook date={currentDate} />}
               {religiousSection === 'evening' && <EveningAdhkarIslamBook date={currentDate} />}
               {religiousSection === 'quran' && <QuranWirdGoldenMushaf date={currentDate} theme={theme} />}

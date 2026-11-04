@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { AZKAR_SABAH, type ZekrItem } from '../data/azkarSabah';
 import { userStorage } from '../utils/scopedStorage';
+import { isStoredMorningConfirmed, getStoredMorningCounts } from '../utils/dailyProgress';
 import { IslamicReadingToolbar, type ReadingViewMode } from './IslamicReadingToolbar';
 
 interface MorningAdhkarProps {
@@ -127,7 +128,7 @@ export function MorningAdhkarIslamBook({ date }: MorningAdhkarProps) {
   // Counts state: tracks how many taps done per zekr
   const [counts, setCounts] = useState<Record<string, number>>(() => {
     try {
-      return JSON.parse(userStorage.getItem(COUNTS_KEY) || '{}');
+      return getStoredMorningCounts(date);
     } catch { return {}; }
   });
 
@@ -163,8 +164,7 @@ export function MorningAdhkarIslamBook({ date }: MorningAdhkarProps) {
 
   const [isConfirmed, setIsConfirmed] = useState<boolean>(() => {
     try {
-      const saved = JSON.parse(userStorage.getItem(SESSION_KEY) || '{}');
-      return saved.confirmed || false;
+      return isStoredMorningConfirmed(date);
     } catch { return false; }
   });
 
@@ -206,7 +206,7 @@ export function MorningAdhkarIslamBook({ date }: MorningAdhkarProps) {
   useEffect(() => {
     userStorage.setItem(COUNTS_KEY, JSON.stringify(counts));
     window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'morning', date } }));
-  }, [counts, COUNTS_KEY]);
+  }, [counts, COUNTS_KEY, date]);
 
   // Save session info
   useEffect(() => {
@@ -216,7 +216,25 @@ export function MorningAdhkarIslamBook({ date }: MorningAdhkarProps) {
       confirmed: isConfirmed,
       elapsed: elapsedSeconds
     }));
-  }, [sessionStartTime, sessionEndTime, isConfirmed, elapsedSeconds, SESSION_KEY]);
+    window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'morning', date, confirmed: isConfirmed } }));
+  }, [sessionStartTime, sessionEndTime, isConfirmed, elapsedSeconds, SESSION_KEY, date]);
+
+  // Cross-component & sync listener
+  useEffect(() => {
+    const handleSync = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail || detail.date === date) {
+        setIsConfirmed(isStoredMorningConfirmed(date));
+        setCounts(getStoredMorningCounts(date));
+      }
+    };
+    window.addEventListener('daily_religious_progress_changed', handleSync);
+    window.addEventListener('mizan:data-synced', handleSync);
+    return () => {
+      window.removeEventListener('daily_religious_progress_changed', handleSync);
+      window.removeEventListener('mizan:data-synced', handleSync);
+    };
+  }, [date]);
 
   // Stopwatch timer interval
   useEffect(() => {
@@ -306,7 +324,6 @@ export function MorningAdhkarIslamBook({ date }: MorningAdhkarProps) {
   const handleResetAll = () => {
     setCounts({});
     userStorage.removeItem(COUNTS_KEY);
-    window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'morning', date } }));
     setBookmarkId(null);
     userStorage.removeItem(BOOKMARK_KEY);
     setElapsedSeconds(0);
@@ -315,6 +332,7 @@ export function MorningAdhkarIslamBook({ date }: MorningAdhkarProps) {
     setSessionEndTime(null);
     setIsConfirmed(false);
     userStorage.removeItem(SESSION_KEY);
+    window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'morning', date, confirmed: false } }));
   };
 
   // Confirm reading

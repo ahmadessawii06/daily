@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { QURANIC_DUAS, type ZekrItem } from '../data/quranicDuas';
 import { userStorage } from '../utils/scopedStorage';
+import { getStoredDuasCompleted } from '../utils/dailyProgress';
 import { IslamicReadingToolbar, type ReadingViewMode } from './IslamicReadingToolbar';
 
 interface QuranicDuasProps {
@@ -127,7 +128,8 @@ export function QuranicDuasIslamBook({ date }: QuranicDuasProps) {
   // Counts state: tracks completed repetitions per dua
   const [counts, setCounts] = useState<Record<string, number>>(() => {
     try {
-      return JSON.parse(userStorage.getItem(COUNTS_KEY) || '{}');
+      const raw = userStorage.getItem(COUNTS_KEY) || userStorage.getItem(`islambook_quranic_duas_counts_${date}`);
+      return raw ? JSON.parse(raw) : {};
     } catch { return {}; }
   });
 
@@ -139,14 +141,14 @@ export function QuranicDuasIslamBook({ date }: QuranicDuasProps) {
   // Session stopwatch & completion state
   const [sessionStartTime, setSessionStartTime] = useState<string | null>(() => {
     try {
-      const saved = JSON.parse(userStorage.getItem(SESSION_KEY) || '{}');
+      const saved = JSON.parse(userStorage.getItem(SESSION_KEY) || userStorage.getItem(`islambook_quranic_duas_session_${date}`) || '{}');
       return saved.startTime || null;
     } catch { return null; }
   });
 
   const [sessionEndTime, setSessionEndTime] = useState<string | null>(() => {
     try {
-      const saved = JSON.parse(userStorage.getItem(SESSION_KEY) || '{}');
+      const saved = JSON.parse(userStorage.getItem(SESSION_KEY) || userStorage.getItem(`islambook_quranic_duas_session_${date}`) || '{}');
       return saved.endTime || null;
     } catch { return null; }
   });
@@ -163,8 +165,7 @@ export function QuranicDuasIslamBook({ date }: QuranicDuasProps) {
 
   const [isConfirmed, setIsConfirmed] = useState<boolean>(() => {
     try {
-      const saved = JSON.parse(userStorage.getItem(SESSION_KEY) || '{}');
-      return saved.confirmed || false;
+      return getStoredDuasCompleted(date).completed;
     } catch { return false; }
   });
 
@@ -204,19 +205,40 @@ export function QuranicDuasIslamBook({ date }: QuranicDuasProps) {
 
   // Save counts when changed
   useEffect(() => {
-    userStorage.setItem(COUNTS_KEY, JSON.stringify(counts));
+    const raw = JSON.stringify(counts);
+    userStorage.setItem(COUNTS_KEY, raw);
+    userStorage.setItem(`islambook_quranic_duas_counts_${date}`, raw);
     window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'duas', date } }));
   }, [counts, COUNTS_KEY, date]);
 
   // Save session info
   useEffect(() => {
-    userStorage.setItem(SESSION_KEY, JSON.stringify({
+    const sessionData = JSON.stringify({
       startTime: sessionStartTime,
       endTime: sessionEndTime,
       confirmed: isConfirmed,
       elapsed: elapsedSeconds
-    }));
-  }, [sessionStartTime, sessionEndTime, isConfirmed, elapsedSeconds, SESSION_KEY]);
+    });
+    userStorage.setItem(SESSION_KEY, sessionData);
+    userStorage.setItem(`islambook_quranic_duas_session_${date}`, sessionData);
+    window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'duas', date, confirmed: isConfirmed } }));
+  }, [sessionStartTime, sessionEndTime, isConfirmed, elapsedSeconds, SESSION_KEY, date]);
+
+  // Cross-component & sync listener
+  useEffect(() => {
+    const handleSync = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail || detail.date === date) {
+        setIsConfirmed(getStoredDuasCompleted(date).completed);
+      }
+    };
+    window.addEventListener('daily_religious_progress_changed', handleSync);
+    window.addEventListener('mizan:data-synced', handleSync);
+    return () => {
+      window.removeEventListener('daily_religious_progress_changed', handleSync);
+      window.removeEventListener('mizan:data-synced', handleSync);
+    };
+  }, [date]);
 
   // Stopwatch timer interval
   useEffect(() => {
@@ -306,7 +328,7 @@ export function QuranicDuasIslamBook({ date }: QuranicDuasProps) {
   const handleResetAll = () => {
     setCounts({});
     userStorage.removeItem(COUNTS_KEY);
-    window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'duas', date } }));
+    userStorage.removeItem(`islambook_quranic_duas_counts_${date}`);
     setBookmarkId(null);
     userStorage.removeItem(BOOKMARK_KEY);
     setElapsedSeconds(0);
@@ -315,6 +337,8 @@ export function QuranicDuasIslamBook({ date }: QuranicDuasProps) {
     setSessionEndTime(null);
     setIsConfirmed(false);
     userStorage.removeItem(SESSION_KEY);
+    userStorage.removeItem(`islambook_quranic_duas_session_${date}`);
+    window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'duas', date, confirmed: false } }));
   };
 
   // Confirm reading

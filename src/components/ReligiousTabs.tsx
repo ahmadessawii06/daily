@@ -101,10 +101,12 @@ export function ReligiousTabs({
     window.addEventListener('daily_religious_progress_changed', handleUpdate);
     window.addEventListener('mizan:data-synced', handleUpdate);
     window.addEventListener('mizan:workspace-changed', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
     return () => {
       window.removeEventListener('daily_religious_progress_changed', handleUpdate);
       window.removeEventListener('mizan:data-synced', handleUpdate);
       window.removeEventListener('mizan:workspace-changed', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
     };
   }, []);
 

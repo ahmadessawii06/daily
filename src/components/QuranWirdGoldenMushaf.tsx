@@ -30,6 +30,7 @@ import {
   getGoldenQuranPageUrl 
 } from '../data/quranNavigation';
 import { userStorage } from '../utils/scopedStorage';
+import { getStoredQuranCompleted } from '../utils/dailyProgress';
 import type { Theme } from '../types';
 
 export type QuranViewMode = 'fit-screen' | 'fit-width';
@@ -73,7 +74,9 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
 
   // Completion state
   const [isCompleted, setIsCompleted] = useState<boolean>(() => {
-    return userStorage.getItem(COMPLETED_KEY) === 'true';
+    try {
+      return getStoredQuranCompleted(date);
+    } catch { return false; }
   });
 
   // View Mode: 'fit-screen' (ملاء الشاشة بالكامل) vs 'fit-width' (ملاء العرض وتكبير الخط)
@@ -165,8 +168,24 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
   // Persist completion state & notify app
   useEffect(() => {
     userStorage.setItem(COMPLETED_KEY, isCompleted ? 'true' : 'false');
-    window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'quran', date } }));
+    window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'quran', date, completed: isCompleted } }));
   }, [isCompleted, COMPLETED_KEY, date]);
+
+  // Cross-component & sync listener
+  useEffect(() => {
+    const handleSync = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail || detail.date === date) {
+        setIsCompleted(getStoredQuranCompleted(date));
+      }
+    };
+    window.addEventListener('daily_religious_progress_changed', handleSync);
+    window.addEventListener('mizan:data-synced', handleSync);
+    return () => {
+      window.removeEventListener('daily_religious_progress_changed', handleSync);
+      window.removeEventListener('mizan:data-synced', handleSync);
+    };
+  }, [date]);
 
   // Session timer ticker
   useEffect(() => {
@@ -350,6 +369,10 @@ export function QuranWirdGoldenMushaf({ date, theme }: QuranWirdProps) {
     if (nextState) {
       setTimerRunning(false);
     }
+    userStorage.setItem(COMPLETED_KEY, nextState ? 'true' : 'false');
+    const sess = JSON.parse(userStorage.getItem(SESSION_KEY) || '{}');
+    userStorage.setItem(SESSION_KEY, JSON.stringify({ ...sess, completed: nextState }));
+    window.dispatchEvent(new CustomEvent('daily_religious_progress_changed', { detail: { type: 'quran', date, completed: nextState } }));
   };
 
   // Proportional stage sizing
